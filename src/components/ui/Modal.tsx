@@ -44,14 +44,19 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/70 backdrop-blur-sm animate-fade-in overflow-y-auto"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm p-4 sm:p-6 text-center animate-fade-in"
       onClick={onClose}
     >
+      {/* Invisible flex/inline strut to ensure 100% stable vertical alignment without clipping */}
+      <span className="inline-block h-screen align-middle" aria-hidden="true">
+        &#8203;
+      </span>
+
       <div
-        className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[85vh] my-auto overflow-hidden animate-scale-in ${sizeClasses[size]}`}
+        className={`inline-block align-middle w-full text-left bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in max-h-[85vh] flex flex-col my-6 ${sizeClasses[size]}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header (Fixed at top) */}
+        {/* Modal Header (Always fixed & visible at top) */}
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
             <h3 className="text-base font-extrabold text-[#1B3A5C]">{title}</h3>
@@ -66,12 +71,12 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        {/* Modal Content Body (Scrollable inside, never overflows) */}
+        {/* Modal Content Body (Scrollable inside, never overflows outside) */}
         <div className="p-6 overflow-y-auto flex-1 min-h-0 leading-relaxed text-slate-800">
           {children}
         </div>
 
-        {/* Modal Footer (Fixed at bottom) */}
+        {/* Modal Footer (Always fixed & visible at bottom) */}
         {footer && (
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 shrink-0">
             {footer}
