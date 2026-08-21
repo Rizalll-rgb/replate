@@ -48,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-h-[80vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in my-auto ${sizeClasses[size]}`}
+        className={`relative w-full max-h-[80vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in ${sizeClasses[size]}`}
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '80vh' }}
       >
