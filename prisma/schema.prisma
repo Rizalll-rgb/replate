@@ -1,0 +1,345 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  PROVIDER
+  CONSUMER
+  RESCUE_PARTNER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum FoodCategory {
+  MEALS
+  BAKERY
+  PRODUCE
+  DAIRY
+  BEVERAGES
+  SNACKS
+  OTHER
+}
+
+enum StorageCondition {
+  ROOM_TEMP
+  REFRIGERATED
+  FROZEN
+}
+
+enum PackagingType {
+  PACKAGED
+  UNPACKAGED
+  PARTIAL
+}
+
+enum SurplusStatus {
+  AVAILABLE
+  PARTIALLY_CLAIMED
+  FULLY_CLAIMED
+  EXPIRED
+  RESCUED
+}
+
+enum DistributionType {
+  SALE
+  FREE
+  BOTH
+}
+
+enum ClaimStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  NOT_REQUIRED
+  PENDING
+  PAID
+}
+
+enum RescueStatus {
+  REQUESTED
+  ACCEPTED
+  PICKING_UP
+  VERIFYING
+  COMPLETED
+  REJECTED
+  FAILED
+}
+
+enum MatchType {
+  CONSUMER
+  RESCUE_PARTNER
+}
+
+enum TrackingStatus {
+  LISTED
+  MATCHED
+  CLAIMED
+  PICKUP_READY
+  IN_TRANSIT
+  DELIVERED
+  VERIFIED
+  CANCELLED
+  DISQUALIFIED
+}
+
+enum TrackingRefType {
+  CLAIM
+  RESCUE
+}
+
+enum NotificationType {
+  MATCH
+  CLAIM
+  RESCUE
+  SYSTEM
+  APPROVAL
+}
+
+enum QRType {
+  CLAIM
+  RESCUE
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id               String     @id @default(cuid())
+  email            String     @unique
+  name             String
+  password         String
+  role             UserRole   @default(CONSUMER)
+  status           UserStatus @default(PENDING)
+  phone            String?
+  address          String?    @db.Text
+  latitude         Float?
+  longitude        Float?
+  city             String?
+  organizationType String?
+  organizationName String?
+  profileImage     String?
+  verificationDocs Json?
+  bio              String?    @db.Text
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // Relations
+  surplusFood      SurplusFood[]
+  foodClaims       FoodClaim[]
+  rescueRequests   RescueRequest[]
+  matchResults     MatchResult[]
+  impactLogs       ImpactLog[]
+  notifications    Notification[]
+  trackingUpdates  FoodTracking[]  @relation("TrackingUpdatedBy")
+
+  @@index([role, status])
+  @@index([city])
+  @@map("users")
+}
+
+model SurplusFood {
+  id                String           @id @default(cuid())
+  providerId        String
+  foodName          String
+  description       String?          @db.Text
+  foodCategory      FoodCategory
+  quantity          Float
+  quantityUnit      String           @default("porsi")
+  productionDate    DateTime?
+  expiryDate        DateTime?
+  pickupDeadline    DateTime
+  storageCondition  StorageCondition @default(ROOM_TEMP)
+  packagingType     PackagingType    @default(PACKAGED)
+  photos            Json             @default("[]")
+  latitude          Float
+  longitude         Float
+  address           String           @db.Text
+  status            SurplusStatus    @default(AVAILABLE)
+  distributionType  DistributionType @default(BOTH)
+  price             Float?           @default(0)
+  remainingQuantity Float
+  rescueReadiness   Json?
+  weightPerUnitKg   Float            @default(0.5)
+  notes             String?          @db.Text
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  provider          User             @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  foodClaims        FoodClaim[]
+  rescueRequests    RescueRequest[]
+  matchResults      MatchResult[]
+
+  @@index([status, foodCategory])
+  @@index([providerId])
+  @@index([pickupDeadline])
+  @@index([latitude, longitude])
+  @@map("surplus_foods")
+}
+
+model FoodClaim {
+  id            String        @id @default(cuid())
+  claimCode     String        @unique
+  foodId        String
+  consumerId    String
+  quantity      Float
+  status        ClaimStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(NOT_REQUIRED)
+  qrCodeData    String?       @db.Text
+  claimedAt     DateTime      @default(now())
+  confirmedAt   DateTime?
+  pickedUpAt    DateTime?
+  cancelledAt   DateTime?
+  notes         String?       @db.Text
+
+  // Relations
+  food          SurplusFood   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  consumer      User          @relation(fields: [consumerId], references: [id], onDelete: Cascade)
+  trackingLogs  FoodTracking[]
+  qrCode        QRCode?
+
+  @@index([consumerId, status])
+  @@index([foodId])
+  @@map("food_claims")
+}
+
+model RescueRequest {
+  id              String       @id @default(cuid())
+  rescueCode      String       @unique
+  foodId          String
+  partnerId       String
+  quantity        Float
+  status          RescueStatus @default(REQUESTED)
+  safetyChecklist Json?
+  qrCodeData      String?      @db.Text
+  notes           String?      @db.Text
+  rejectionReason String?      @db.Text
+  requestedAt     DateTime     @default(now())
+  acceptedAt      DateTime?
+  completedAt     DateTime?
+
+  // Relations
+  food            SurplusFood  @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  partner         User         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  trackingLogs    FoodTracking[]
+  qrCode          QRCode?
+
+  @@index([partnerId, status])
+  @@index([foodId])
+  @@map("rescue_requests")
+}
+
+model MatchResult {
+  id             String    @id @default(cuid())
+  foodId         String
+  matchedUserId  String
+  score          Float
+  scoreBreakdown Json
+  matchType      MatchType
+  isNotified     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  // Relations
+  food           SurplusFood @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  matchedUser    User        @relation(fields: [matchedUserId], references: [id], onDelete: Cascade)
+
+  @@index([foodId, score])
+  @@index([matchedUserId])
+  @@map("match_results")
+}
+
+model FoodTracking {
+  id            String          @id @default(cuid())
+  referenceId   String
+  referenceType TrackingRefType
+  status        TrackingStatus
+  description   String          @db.Text
+  updatedById   String?
+  timestamp     DateTime        @default(now())
+
+  // Relations
+  updatedBy     User?           @relation("TrackingUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  claim         FoodClaim?      @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  claimId       String?
+  rescue        RescueRequest?  @relation(fields: [rescueId], references: [id], onDelete: Cascade)
+  rescueId      String?
+
+  @@index([referenceId, referenceType])
+  @@index([timestamp])
+  @@map("food_tracking")
+}
+
+model ImpactLog {
+  id           String   @id @default(cuid())
+  userId       String
+  referenceId  String
+  foodWeightKg Float
+  co2SavedKg   Float
+  peopleFed    Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("impact_logs")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String           @db.Text
+  type      NotificationType @default(SYSTEM)
+  isRead    Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model QRCode {
+  id          String    @id @default(cuid())
+  data        String    @unique @db.VarChar(512)
+  type        QRType
+  claimId     String?   @unique
+  rescueId    String?   @unique
+  isUsed      Boolean   @default(false)
+  usedAt      DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  claim       FoodClaim?      @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  rescue      RescueRequest?  @relation(fields: [rescueId], references: [id], onDelete: Cascade)
+
+  @@index([data])
+  @@map("qr_codes")
+}
