@@ -205,3 +205,86 @@ export async function POST(request: Request) {
         );
     }
 }
+
+// PATCH - Update surplus food status or details
+export async function PATCH(request: Request) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { id, status, remainingQuantity, foodName, pickupDeadline } = body;
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'ID Surplus wajib diisi' }, { status: 400 });
+        }
+
+        const existing = await prisma.surplusFood.findUnique({ where: { id } });
+        if (!existing) {
+            return NextResponse.json({ success: false, error: 'Data surplus tidak ditemukan' }, { status: 404 });
+        }
+
+        // Only provider owner or admin can update
+        if (existing.providerId !== session.user.id && session.user.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Akses ditolak' }, { status: 403 });
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (status) updateData.status = status;
+        if (typeof remainingQuantity === 'number') updateData.remainingQuantity = remainingQuantity;
+        if (foodName) updateData.foodName = foodName;
+        if (pickupDeadline) updateData.pickupDeadline = new Date(pickupDeadline);
+
+        const updated = await prisma.surplusFood.update({
+            where: { id },
+            data: updateData as any,
+        });
+
+        return NextResponse.json({
+            success: true,
+            data: updated,
+            message: 'Surplus makanan berhasil diperbarui!',
+        });
+    } catch (error) {
+        console.error('Update surplus error:', error);
+        return NextResponse.json({ success: false, error: 'Gagal memperbarui surplus makanan' }, { status: 500 });
+    }
+}
+
+// DELETE - Delete or cancel surplus food entry
+export async function DELETE(request: Request) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'ID Surplus wajib diisi' }, { status: 400 });
+        }
+
+        const existing = await prisma.surplusFood.findUnique({ where: { id } });
+        if (!existing) {
+            return NextResponse.json({ success: false, error: 'Data surplus tidak ditemukan' }, { status: 404 });
+        }
+
+        if (existing.providerId !== session.user.id && session.user.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Akses ditolak' }, { status: 403 });
+        }
+
+        await prisma.surplusFood.delete({ where: { id } });
+
+        return NextResponse.json({
+            success: true,
+            message: 'Surplus makanan berhasil dihapus!',
+        });
+    } catch (error) {
+        console.error('Delete surplus error:', error);
+        return NextResponse.json({ success: false, error: 'Gagal menghapus surplus makanan' }, { status: 500 });
+    }
+}
