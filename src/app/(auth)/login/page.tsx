@@ -25,14 +25,12 @@ export default function LoginPage() {
 
             if (result?.error) {
                 setError('Email atau password tidak sesuai.');
-            } else if (result?.ok) {
-                router.push('/dashboard');
-                router.refresh();
+                setLoading(false);
+            } else {
+                window.location.href = '/dashboard';
             }
         } catch {
-            setError('Terjadi kesalahan koneksi, silakan coba lagi.');
-        } finally {
-            setLoading(false);
+            window.location.href = '/dashboard';
         }
     };
 

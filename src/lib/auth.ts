@@ -42,8 +42,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     throw new Error('Email dan password wajib diisi');
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email as string },
+                const emailInput = (credentials.email as string).trim().toLowerCase();
+                const altEmail = emailInput.includes('@replate.id')
+                    ? emailInput.replace('@replate.id', '@foodbridge.id')
+                    : emailInput.replace('@foodbridge.id', '@replate.id');
+
+                const user = await prisma.user.findFirst({
+                    where: {
+                        OR: [
+                            { email: emailInput },
+                            { email: altEmail },
+                        ],
+                    },
                 });
 
                 if (!user) {
