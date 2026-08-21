@@ -38,7 +38,7 @@ export default function PublicTrackPage() {
               title: '🔍 2. Smart Matching Calculated',
               description: 'Algoritma memberikan skor match 96% kepada Food Bank Surabaya.',
               timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
-              actor: 'FoodBridge Smart Engine',
+              actor: 'Replate Smart Engine',
               completed: true,
               current: false,
             },

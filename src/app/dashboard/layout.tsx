@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? {
         id: session.user.id,
         name: session.user.name || 'Pengguna',
-        email: session.user.email || 'user@foodbridge.id',
+        email: session.user.email || 'user@replate.id',
         role: session.user.role || 'PROVIDER',
         status: session.user.status || 'APPROVED',
         phone: '081234567890',
@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     : {
         name: 'Pak Kumis',
-        email: 'bakso.pak.kumis@foodbridge.id',
+        email: 'bakso.pak.kumis@replate.id',
         role: 'PROVIDER',
         status: 'APPROVED',
         phone: '081234567891',

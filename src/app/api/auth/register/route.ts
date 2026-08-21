@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         await prisma.notification.create({
             data: {
                 userId: user.id,
-                title: 'Selamat Datang di FoodBridge! 🎉',
+                title: 'Selamat Datang di Replate! 🎉',
                 message: status === 'APPROVED'
                     ? 'Akun Anda sudah aktif. Mulai jelajahi makanan yang tersedia!'
                     : 'Akun Anda sedang menunggu persetujuan admin. Kami akan mengirim notifikasi setelah disetujui.',

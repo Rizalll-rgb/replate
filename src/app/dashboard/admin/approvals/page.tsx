@@ -13,7 +13,7 @@ export default function AdminApprovalsPage() {
     {
       id: 'p1',
       name: 'Catering Bu Ida Surabaya',
-      email: 'catering.bu.ida@foodbridge.id',
+      email: 'catering.bu.ida@replate.id',
       role: 'PROVIDER',
       org: 'Catering Bu Ida (Surabaya)',
       phone: '081298761234',
@@ -26,7 +26,7 @@ export default function AdminApprovalsPage() {
     {
       id: 'p2',
       name: 'Dapur Umum Gotong Royong',
-      email: 'dapur.gotong@foodbridge.id',
+      email: 'dapur.gotong@replate.id',
       role: 'RESCUE_PARTNER',
       org: 'Dapur Umum Gotong Royong',
       phone: '085611223344',
@@ -39,7 +39,7 @@ export default function AdminApprovalsPage() {
     {
       id: 'p3',
       name: 'Hotel Majapahit Banquet',
-      email: 'banquet.majapahit@foodbridge.id',
+      email: 'banquet.majapahit@replate.id',
       role: 'PROVIDER',
       org: 'PT Hotel Majapahit Tbk',
       phone: '081133445566',
@@ -75,7 +75,7 @@ export default function AdminApprovalsPage() {
       );
       setToastState({
         isOpen: true,
-        message: 'Status akun ditunda (HOLD) & tim survei lapangan FoodBridge dijadwalkan ke lokasi!',
+        message: 'Status akun ditunda (HOLD) & tim survei lapangan Replate dijadwalkan ke lokasi!',
         type: 'success',
       });
       setInspectModal({ isOpen: false, user: null });
@@ -128,7 +128,7 @@ export default function AdminApprovalsPage() {
       <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
         <div className="text-lg">ℹ️</div>
         <div className="space-y-1">
-          <span className="font-extrabold block">Aturan Verifikasi Administrasi Mitra FoodBridge:</span>
+          <span className="font-extrabold block">Aturan Verifikasi Administrasi Mitra Replate:</span>
           <p className="text-blue-800 leading-relaxed font-medium">
             Hanya pendaftar bertipe <strong>Food Provider</strong> (Restoran/Hotel/Toko) dan <strong>Rescue Partner</strong> (Panti Asuhan/Food Bank) yang memerlukan verifikasi NIB & SOP BPOM. Jika dokumen masih diragukan, klik <strong>"Hold & Jadwalkan Survei"</strong> untuk mengirim tim inspeksi ke lokasi.
           </p>

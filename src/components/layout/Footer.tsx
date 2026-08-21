@@ -58,7 +58,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400">
-          <p>© 2026 FoodBridge. Hak Cipta Dilindungi.</p>
+          <p>© 2026 Replate. Hak Cipta Dilindungi.</p>
           <p className="mt-2 md:mt-0">Surabaya, Jawa Timur, Indonesia</p>
         </div>
       </div>

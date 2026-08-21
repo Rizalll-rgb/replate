@@ -61,7 +61,7 @@ export default function AboutPage() {
           </Card>
         </div>
 
-        {/* Section Tim Dibalik FoodBridge */}
+        {/* Section Tim Dibalik Replate */}
         <section className="bg-white py-16 border-t border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 space-y-12">
             <div className="text-center space-y-2">

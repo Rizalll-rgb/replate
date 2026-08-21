@@ -15,7 +15,7 @@ export default function AdminOverviewPage() {
             Control Tower Superadmin
           </span>
           <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Admin Platform Overview</h2>
-          <p className="text-xs text-slate-500 font-medium">Pengawasan pusat redistribusi makanan berlebih FoodBridge Surabaya.</p>
+          <p className="text-xs text-slate-500 font-medium">Pengawasan pusat redistribusi makanan berlebih Replate Surabaya.</p>
         </div>
         <Link href="/dashboard/admin/approvals">
           <Button variant="gold" size="md" className="font-extrabold flex items-center gap-2">

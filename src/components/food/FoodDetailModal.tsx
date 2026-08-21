@@ -45,7 +45,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         </div>
 
         <p className="text-xs text-[#495057] leading-relaxed">
-          {food.description || 'Makanan surplus layak konsumsi dari penyedia terpilih FoodBridge.'}
+          {food.description || 'Makanan surplus layak konsumsi dari penyedia terpilih Replate.'}
         </p>
 
         <div className="grid grid-cols-2 gap-3 text-xs bg-[#F8F9FA] p-3 rounded-xl">
@@ -68,7 +68,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         </div>
 
         <div className="border-t pt-3 space-y-1 text-xs">
-          <p className="font-bold text-[#1B3A5C]">🏪 Provider: {food.provider?.organizationName || food.provider?.name || 'Penyedia FoodBridge'}</p>
+          <p className="font-bold text-[#1B3A5C]">🏪 Provider: {food.provider?.organizationName || food.provider?.name || 'Penyedia Replate'}</p>
           <p className="text-[#495057]">📍 Alamat: {food.address}</p>
           {food.provider?.phone && <p className="text-[#495057]">📞 Kontak: {food.provider.phone}</p>}
         </div>

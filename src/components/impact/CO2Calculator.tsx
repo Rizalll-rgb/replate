@@ -14,7 +14,7 @@ export const CO2Calculator: React.FC = () => {
   return (
     <Card className="bg-[#1B3A5C] text-white border-none shadow-lg">
       <CardHeader>
-        <CardTitle className="text-white text-base">🧮 Kalkulator Dampak Lingkungan FoodBridge</CardTitle>
+        <CardTitle className="text-white text-base">🧮 Kalkulator Dampak Lingkungan Replate</CardTitle>
       </CardHeader>
       <CardBody className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

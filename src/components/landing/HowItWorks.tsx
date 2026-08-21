@@ -58,7 +58,7 @@ export const HowItWorks: React.FC = () => {
             Alur Bisnis & Arsitektur Sistem
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1B3A5C]">
-            Bagaimana FoodBridge Bekerja?
+            Bagaimana Replate Bekerja?
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed font-medium">
             Ekosistem redistribusi makanan berlebih yang mengombinasikan standar keamanan pangan, kecerdasan algoritma matching, dan transparansi pelacakan rantai pasok.

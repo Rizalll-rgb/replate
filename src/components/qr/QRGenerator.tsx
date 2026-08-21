@@ -11,7 +11,7 @@ export interface QRGeneratorProps {
 
 export const QRGenerator: React.FC<QRGeneratorProps> = ({
   value,
-  codeTitle = 'FoodBridge Verification Code',
+  codeTitle = 'Replate Verification Code',
   codeSubtitle = 'Tunjukkan QR Code ini kepada Provider saat penjemputan',
 }) => {
   return (

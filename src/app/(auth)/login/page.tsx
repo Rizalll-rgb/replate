@@ -69,36 +69,43 @@ export default function LoginPage() {
                 {/* 1-Click Quick Demo Login Preset for Judges */}
                 <div className="mb-6 bg-[#0F1923] p-3.5 rounded-xl border border-[#2C5A8F] space-y-2">
                     <span className="text-[11px] font-extrabold text-[#D4A843] uppercase tracking-wider block text-center">
-                        Akses Cepat Demo Akun (1-Click Login)
+                        Akses Cepat Demo Akun 5 Role (1-Click Login)
                     </span>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                         <button
                             type="button"
-                            onClick={() => handleQuickDemo('admin@foodbridge.id', 'password123')}
-                            className="p-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
+                            onClick={() => handleQuickDemo('admin@replate.id', 'password123')}
+                            className="p-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
                         >
                             👑 Superadmin
                         </button>
                         <button
                             type="button"
-                            onClick={() => handleQuickDemo('bakso.pak.kumis@foodbridge.id', 'password123')}
-                            className="p-2.5 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
+                            onClick={() => handleQuickDemo('bakso.pak.kumis@replate.id', 'password123')}
+                            className="p-2 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
                         >
                             🏪 Food Provider
                         </button>
                         <button
                             type="button"
-                            onClick={() => handleQuickDemo('foodbank.surabaya@foodbridge.id', 'password123')}
-                            className="p-2.5 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
+                            onClick={() => handleQuickDemo('foodbank.surabaya@replate.id', 'password123')}
+                            className="p-2 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
                         >
                             🤝 Rescue Partner
                         </button>
                         <button
                             type="button"
-                            onClick={() => handleQuickDemo('budi.santoso@gmail.com', 'password123')}
-                            className="p-2.5 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
+                            onClick={() => handleQuickDemo('panti.kasih.ibu@replate.id', 'password123')}
+                            className="p-2 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
                         >
-                            🛒 Konsumen
+                            🏠 Yayasan / Panti
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleQuickDemo('budi.santoso@gmail.com', 'password123')}
+                            className="p-2 col-span-2 sm:col-span-2 bg-[#1A2636] hover:bg-[#2C5A8F] text-white font-bold rounded-lg border border-[#2C5A8F] transition-colors text-center shadow-xs"
+                        >
+                            🛒 Konsumen / Anak Kos
                         </button>
                     </div>
                 </div>

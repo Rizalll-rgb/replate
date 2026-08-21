@@ -62,7 +62,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
         <div className="min-w-0 pr-2">
           <h1 className="text-lg sm:text-xl font-extrabold text-[#1B3A5C] truncate">{title}</h1>
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">
-            Platform redistribusi makanan berlebih FoodBridge
+            Platform redistribusi makanan berlebih Replate
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
               <h3 className="text-lg font-extrabold text-[#1B3A5C] truncate">
                 {user?.name || (isAdmin ? 'Superadmin Platform' : 'Pak Kumis')}
               </h3>
-              <p className="text-xs text-slate-500 font-medium truncate">{user?.email || 'admin@foodbridge.id'}</p>
+              <p className="text-xs text-slate-500 font-medium truncate">{user?.email || 'admin@replate.id'}</p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <Badge variant={isAdmin ? 'primary' : 'gold'} size="sm">
                   {userRole}
@@ -145,7 +145,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <div>
                     <span className="text-slate-500 font-semibold block">Kontak Otoritas Sistem</span>
-                    <span className="font-bold text-slate-800">admin@foodbridge.id (+62 812-3456-7890)</span>
+                    <span className="font-bold text-slate-800">admin@replate.id (+62 812-3456-7890)</span>
                   </div>
                   <div>
                     <span className="text-slate-500 font-semibold block">Hak Pengawasan Sistem</span>
@@ -192,7 +192,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
                 <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs space-y-1">
                   <span className="font-extrabold block">Status Kredensial Keamanan Pangan:</span>
                   <p className="text-amber-800 font-normal leading-relaxed">
-                    Akun ini telah terverifikasi oleh Admin FoodBridge & memenuhi SOP higienitas 8-Poin Keamanan Pangan BPOM & WHO.
+                    Akun ini telah terverifikasi oleh Admin Replate & memenuhi SOP higienitas 8-Poin Keamanan Pangan BPOM & WHO.
                   </p>
                 </div>
               </>

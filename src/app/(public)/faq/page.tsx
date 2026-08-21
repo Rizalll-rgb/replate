@@ -6,12 +6,12 @@ import { Card, CardBody } from '@/components/ui/Card';
 export default function FAQPage() {
   const faqs = [
     {
-      q: 'Apakah semua makanan di FoodBridge terjamin keamanannya?',
+      q: 'Apakah semua makanan di Replate terjamin keamanannya?',
       a: 'Ya. Setiap Provider wajib mengisi dan memenuhi 100% dari 8 checklist SOP Rescue Readiness sesuai standar BPOM & WHO sebelum makanan dipublikasikan.',
     },
     {
       q: 'Bagaimana cara pembayaran transaksi Rescue Sale?',
-      a: 'Pembayaran dilakukan di luar platform (transfer langsung / tunai saat penjemputan). FoodBridge mencatat status pembayaran dan menerbitkan QR code klaim.',
+      a: 'Pembayaran dilakukan di luar platform (transfer langsung / tunai saat penjemputan). Replate mencatat status pembayaran dan menerbitkan QR code klaim.',
     },
     {
       q: 'Bagaimana cara kerja Smart Matching Engine?',
@@ -31,7 +31,7 @@ export default function FAQPage() {
           <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
             Pertanyaan Umum
           </span>
-          <h1 className="text-3xl font-black text-[#1B3A5C]">FAQ FoodBridge</h1>
+          <h1 className="text-3xl font-black text-[#1B3A5C]">FAQ Replate</h1>
         </div>
 
         <div className="space-y-4">

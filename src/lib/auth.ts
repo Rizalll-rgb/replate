@@ -29,7 +29,7 @@ declare module '@auth/core/jwt' {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || 'foodbridge-secret-key-change-in-production-2026',
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || 'replate-secret-key-change-in-production-2026',
     providers: [
         Credentials({
             name: 'credentials',

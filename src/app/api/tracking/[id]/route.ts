@@ -46,7 +46,7 @@ export async function GET(
       title: `${idx + 1}. Status: ${log.status}`,
       description: log.description,
       timestamp: log.timestamp.toISOString(),
-      actor: log.updatedBy?.name || 'Sistem FoodBridge',
+      actor: log.updatedBy?.name || 'Sistem Replate',
       completed: true,
       current: idx === trackingLogs.length - 1,
     }));

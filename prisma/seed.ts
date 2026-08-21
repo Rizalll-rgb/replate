@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Seeding FoodBridge database...');
+    console.log('🌱 Seeding Replate database...');
 
     // Clean existing data
     await prisma.notification.deleteMany();
@@ -25,8 +25,8 @@ async function main() {
 
     const admin = await prisma.user.create({
         data: {
-            email: 'admin@foodbridge.id',
-            name: 'Admin FoodBridge',
+            email: 'admin@replate.id',
+            name: 'Admin Replate',
             password: hashedPassword,
             role: 'ADMIN',
             status: 'APPROVED',
@@ -35,14 +35,14 @@ async function main() {
             latitude: -7.2908,
             longitude: 112.7388,
             city: 'Surabaya',
-            bio: 'Administrator platform FoodBridge',
+            bio: 'Administrator platform Replate',
         },
     });
 
     const providers = await Promise.all([
         prisma.user.create({
             data: {
-                email: 'bakso.pak.kumis@foodbridge.id',
+                email: 'bakso.pak.kumis@replate.id',
                 name: 'Pak Kumis',
                 password: hashedPassword,
                 role: 'PROVIDER',
@@ -59,7 +59,7 @@ async function main() {
         }),
         prisma.user.create({
             data: {
-                email: 'rotiboy.surabaya@foodbridge.id',
+                email: 'rotiboy.surabaya@replate.id',
                 name: 'Manager Roti Boy',
                 password: hashedPassword,
                 role: 'PROVIDER',
@@ -76,7 +76,7 @@ async function main() {
         }),
         prisma.user.create({
             data: {
-                email: 'hotel.majapahit@foodbridge.id',
+                email: 'hotel.majapahit@replate.id',
                 name: 'F&B Manager Majapahit',
                 password: hashedPassword,
                 role: 'PROVIDER',
@@ -93,7 +93,7 @@ async function main() {
         }),
         prisma.user.create({
             data: {
-                email: 'indomaret.manyar@foodbridge.id',
+                email: 'indomaret.manyar@replate.id',
                 name: 'Kepala Toko Manyar',
                 password: hashedPassword,
                 role: 'PROVIDER',
@@ -110,7 +110,7 @@ async function main() {
         }),
         prisma.user.create({
             data: {
-                email: 'catering.bu.ida@foodbridge.id',
+                email: 'catering.bu.ida@replate.id',
                 name: 'Bu Ida',
                 password: hashedPassword,
                 role: 'PROVIDER',
@@ -178,10 +178,10 @@ async function main() {
     const partners = await Promise.all([
         prisma.user.create({
             data: {
-                email: 'panti.kasih.ibu@foodbridge.id',
+                email: 'panti.kasih.ibu@replate.id',
                 name: 'Ibu Margareth',
                 password: hashedPassword,
-                role: 'RESCUE_PARTNER',
+                role: 'YAYASAN',
                 status: 'APPROVED',
                 phone: '081234567910',
                 address: 'Jl. Darmo Permai Selatan No. 30, Surabaya',
@@ -195,7 +195,7 @@ async function main() {
         }),
         prisma.user.create({
             data: {
-                email: 'foodbank.surabaya@foodbridge.id',
+                email: 'foodbank.surabaya@replate.id',
                 name: 'Koordinator Food Bank',
                 password: hashedPassword,
                 role: 'RESCUE_PARTNER',
@@ -212,7 +212,7 @@ async function main() {
         }),
         prisma.user.create({
             data: {
-                email: 'dapur.umum.gotong@foodbridge.id',
+                email: 'dapur.umum.gotong@replate.id',
                 name: 'Pak Harto',
                 password: hashedPassword,
                 role: 'RESCUE_PARTNER',
@@ -439,18 +439,18 @@ async function main() {
     console.log('✅ Seeding complete!');
     console.log('');
     console.log('📋 Demo Accounts (password: password123):');
-    console.log('  Admin:          admin@foodbridge.id');
-    console.log('  Provider 1:     bakso.pak.kumis@foodbridge.id');
-    console.log('  Provider 2:     rotiboy.surabaya@foodbridge.id');
-    console.log('  Provider 3:     hotel.majapahit@foodbridge.id');
-    console.log('  Provider 4:     indomaret.manyar@foodbridge.id');
-    console.log('  Provider 5:     catering.bu.ida@foodbridge.id');
+    console.log('  Admin:          admin@replate.id');
+    console.log('  Provider 1:     bakso.pak.kumis@replate.id');
+    console.log('  Provider 2:     rotiboy.surabaya@replate.id');
+    console.log('  Provider 3:     hotel.majapahit@replate.id');
+    console.log('  Provider 4:     indomaret.manyar@replate.id');
+    console.log('  Provider 5:     catering.bu.ida@replate.id');
     console.log('  Consumer 1:     budi.santoso@gmail.com');
     console.log('  Consumer 2:     siti.aminah@gmail.com');
     console.log('  Consumer 3:     andi.pratama@gmail.com');
-    console.log('  Partner 1:      panti.kasih.ibu@foodbridge.id');
-    console.log('  Partner 2:      foodbank.surabaya@foodbridge.id');
-    console.log('  Partner 3:      dapur.umum.gotong@foodbridge.id');
+    console.log('  Partner 1:      panti.kasih.ibu@replate.id');
+    console.log('  Partner 2:      foodbank.surabaya@replate.id');
+    console.log('  Partner 3:      dapur.umum.gotong@replate.id');
     console.log('');
     console.log(`📊 Created: ${providers.length} providers, ${consumers.length} consumers, ${partners.length} partners`);
     console.log(`🍱 Created: ${surplusFoods.length} surplus food items`);

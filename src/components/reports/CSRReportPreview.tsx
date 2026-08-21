@@ -26,7 +26,7 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
       <Card className="bg-white border-slate-200 p-6 space-y-6 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <h2 className="text-xl font-extrabold text-[#1B3A5C]">Laporan Keberlanjutan CSR FoodBridge</h2>
+            <h2 className="text-xl font-extrabold text-[#1B3A5C]">Laporan Keberlanjutan CSR Replate</h2>
             <p className="text-xs text-slate-500 font-medium">Ringkasan Dampak Lingkungan & Sosial Perusahaan</p>
           </div>
           <div className="text-right">

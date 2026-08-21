@@ -14,6 +14,7 @@ datasource db {
 enum UserRole {
   PROVIDER
   CONSUMER
+  YAYASAN
   RESCUE_PARTNER
   ADMIN
 }

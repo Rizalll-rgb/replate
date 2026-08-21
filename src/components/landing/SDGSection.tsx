@@ -36,7 +36,7 @@ export const SDGSection: React.FC = () => {
           <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
             Alignment Pembangunan Berkelanjutan
           </span>
-          <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Dukungan FoodBridge untuk UN SDGs</h2>
+          <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Dukungan Replate untuk UN SDGs</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

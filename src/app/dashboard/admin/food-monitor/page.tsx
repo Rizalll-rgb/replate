@@ -56,7 +56,7 @@ export default function AdminFoodMonitorPage() {
   const handleTriggerEmergencyMatch = (id: string, name: string) => {
     setActiveStreams((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, status: 'IN_TRANSIT', recipient: 'Armada Darurat FoodBridge Dispatcher' } : item
+        item.id === id ? { ...item, status: 'IN_TRANSIT', recipient: 'Armada Darurat Replate Dispatcher' } : item
       )
     );
     setToastState({

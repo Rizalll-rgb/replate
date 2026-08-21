@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
     {
       id: '1',
       name: 'Warung Bakso Pak Kumis',
-      email: 'bakso.pak.kumis@foodbridge.id',
+      email: 'bakso.pak.kumis@replate.id',
       role: 'PROVIDER',
       status: 'APPROVED',
       org: 'Warung Bakso Pak Kumis',
@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
     {
       id: '2',
       name: 'Roti Boy Surabaya',
-      email: 'rotiboy.sby@foodbridge.id',
+      email: 'rotiboy.sby@replate.id',
       role: 'PROVIDER',
       status: 'APPROVED',
       org: 'PT Roti Boy Utama',
@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
     {
       id: '3',
       name: 'Food Bank Surabaya',
-      email: 'foodbank.surabaya@foodbridge.id',
+      email: 'foodbank.surabaya@replate.id',
       role: 'RESCUE_PARTNER',
       status: 'APPROVED',
       org: 'Yayasan Food Bank Surabaya',
@@ -61,7 +61,7 @@ export default function AdminUsersPage() {
     {
       id: '4',
       name: 'Panti Asuhan Kasih Ibu',
-      email: 'panti.kasih.ibu@foodbridge.id',
+      email: 'panti.kasih.ibu@replate.id',
       role: 'RESCUE_PARTNER',
       status: 'APPROVED',
       org: 'Panti Asuhan Kasih Ibu',
@@ -398,7 +398,7 @@ export default function AdminUsersPage() {
               type="email"
               value={newUser.email}
               onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              placeholder="mitra@foodbridge.id"
+              placeholder="mitra@replate.id"
               required
             />
           </div>

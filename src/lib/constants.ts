@@ -3,7 +3,7 @@
 // ============================================
 
 export const APP_NAME = 'Replate';
-export const APP_TAGLINE = 'Menghubungkan makanan berlebih dengan yang membutuhkan';
+export const APP_TAGLINE = 'Digital Food Redistribution Ecosystem';
 export const APP_DESCRIPTION = 'Platform redistribusi makanan berlebih yang menghubungkan Food Provider dengan penerima manfaat secara efisien, aman, dan transparan.';
 
 // ============================================
@@ -46,10 +46,20 @@ export const PACKAGING_TYPES = {
 
 export const USER_ROLES = {
     PROVIDER: { label: 'Food Provider', description: 'Restoran, bakery, hotel, supermarket, dll.' },
-    CONSUMER: { label: 'Konsumen / Individu', description: 'Penerima manfaat individu' },
-    RESCUE_PARTNER: { label: 'Rescue Partner', description: 'Organisasi redistribusi makanan' },
+    CONSUMER: { label: 'Konsumen / Individu', description: 'Penerima manfaat individu (Anak Kos, Dll)' },
+    YAYASAN: { label: 'Yayasan / Panti Asuhan', description: 'Panti Asuhan, Yayasan Sosial, & Lembaga Non-Profit' },
+    RESCUE_PARTNER: { label: 'Rescue Partner / Komunitas', description: 'Organisasi redistribusi & kurir komunitas' },
     ADMIN: { label: 'Administrator', description: 'Admin platform Replate' },
 } as const;
+
+export const SURABAYA_REGIONS = [
+    { value: 'all', label: 'Semua Wilayah' },
+    { value: 'surabaya_pusat', label: 'Surabaya Pusat' },
+    { value: 'surabaya_timur', label: 'Surabaya Timur' },
+    { value: 'surabaya_barat', label: 'Surabaya Barat' },
+    { value: 'surabaya_selatan', label: 'Surabaya Selatan' },
+    { value: 'surabaya_utara', label: 'Surabaya Utara' },
+] as const;
 
 // ============================================
 // STATUS LABELS

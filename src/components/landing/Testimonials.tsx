@@ -7,7 +7,7 @@ export const Testimonials: React.FC = () => {
     {
       name: 'Pak Kumis',
       role: 'Owner Warung Bakso Pak Kumis',
-      text: 'FoodBridge membantu restoran kami memanfaatkan sisa porsi harian menjadi nilai tambah dan membantu sesama di Surabaya.',
+      text: 'Replate membantu restoran kami memanfaatkan sisa porsi harian menjadi nilai tambah dan membantu sesama di Surabaya.',
     },
     {
       name: 'Ibu Margareth',
@@ -28,7 +28,7 @@ export const Testimonials: React.FC = () => {
           <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
             Kisah Komunitas
           </span>
-          <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Apa Kata Pengguna FoodBridge?</h2>
+          <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Apa Kata Pengguna Replate?</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -35,7 +35,7 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({ data }) 
           )}
 
           <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed pt-2 font-normal">
-            Diberikan atas kontribusi nyata dalam redistribusi makanan berlebih, pengurangan emisi CO2, dan penanggulangan food waste secara transparan melalui platform FoodBridge.
+            Diberikan atas kontribusi nyata dalam redistribusi makanan berlebih, pengurangan emisi CO2, dan penanggulangan food waste secara transparan melalui platform Replate.
           </p>
 
           <div className="grid grid-cols-3 gap-3 bg-white/10 p-4 rounded-2xl border border-white/10 max-w-lg mx-auto my-4 text-center">
@@ -60,7 +60,7 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({ data }) 
             </div>
             <div className="text-right">
               <p className="font-extrabold text-[#D4A843]">Infinitera 2.0 Certified</p>
-              <p className="text-[10px]">FoodBridge Platform</p>
+              <p className="text-[10px]">Replate Platform</p>
             </div>
           </div>
         </div>
