@@ -53,7 +53,7 @@ export default function ProviderOverviewPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs text-slate-500 font-semibold block flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
                 Surplus Aktif <span className="text-[10px] text-[#1B3A5C] font-bold">➔</span>
               </span>
               <span className="text-2xl font-extrabold text-[#1B3A5C]">2 Listing</span>
@@ -70,7 +70,7 @@ export default function ProviderOverviewPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs text-slate-500 font-semibold block flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
                 Total Diselamatkan <span className="text-[10px] text-emerald-700 font-bold">➔</span>
               </span>
               <span className="text-2xl font-extrabold text-emerald-700">142.5 Kg</span>
@@ -87,7 +87,7 @@ export default function ProviderOverviewPage() {
               </svg>
             </div>
             <div>
-              <span className="text-xs text-slate-500 font-semibold block flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
                 Klaim Selesai <span className="text-[10px] text-[#D4A843] font-bold">➔</span>
               </span>
               <span className="text-2xl font-extrabold text-[#D4A843]">28 Transaksi</span>
