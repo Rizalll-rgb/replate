@@ -43,45 +43,40 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    /* Outer Fixed Overlay with scroll fallback */
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm p-4 sm:p-6 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
-      {/* Inner Flex Centering Container (Min Height 100%) */}
-      <div className="min-h-full flex items-center justify-center text-center">
-        {/* Modal Dialog Card */}
-        <div
-          className={`w-full bg-white rounded-2xl shadow-2xl border border-slate-200 text-left overflow-hidden animate-scale-in max-h-[85vh] flex flex-col my-auto ${sizeClasses[size]}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Modal Header (Fixed at top) */}
-          {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
-              <h3 className="text-base font-extrabold text-[#1B3A5C]">{title}</h3>
-              <button
-                onClick={onClose}
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {/* Modal Content Body (Scrolls internally if long) */}
-          <div className="p-6 overflow-y-auto flex-1 min-h-0 leading-relaxed text-slate-800">
-            {children}
+      <div
+        className={`relative w-full max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 animate-scale-in ${sizeClasses[size]}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header (Fixed at top, rounded corners) */}
+        {title && (
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-2xl">
+            <h3 className="text-base font-extrabold text-[#1B3A5C]">{title}</h3>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
+        )}
 
-          {/* Modal Footer (Fixed at bottom) */}
-          {footer && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 shrink-0">
-              {footer}
-            </div>
-          )}
+        {/* Modal Content Body (Scrollable inside, body never overflows outside dialog) */}
+        <div className="p-6 overflow-y-auto flex-1 leading-relaxed text-slate-800 text-xs">
+          {children}
         </div>
+
+        {/* Modal Footer (Fixed at bottom, rounded corners) */}
+        {footer && (
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 shrink-0 rounded-b-2xl">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
