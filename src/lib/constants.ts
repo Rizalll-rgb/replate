@@ -2,7 +2,7 @@
 // APP CONSTANTS
 // ============================================
 
-export const APP_NAME = 'FoodBridge';
+export const APP_NAME = 'Replate';
 export const APP_TAGLINE = 'Menghubungkan makanan berlebih dengan yang membutuhkan';
 export const APP_DESCRIPTION = 'Platform redistribusi makanan berlebih yang menghubungkan Food Provider dengan penerima manfaat secara efisien, aman, dan transparan.';
 
@@ -48,7 +48,7 @@ export const USER_ROLES = {
     PROVIDER: { label: 'Food Provider', description: 'Restoran, bakery, hotel, supermarket, dll.' },
     CONSUMER: { label: 'Konsumen / Individu', description: 'Penerima manfaat individu' },
     RESCUE_PARTNER: { label: 'Rescue Partner', description: 'Organisasi redistribusi makanan' },
-    ADMIN: { label: 'Administrator', description: 'Admin platform FoodBridge' },
+    ADMIN: { label: 'Administrator', description: 'Admin platform Replate' },
 } as const;
 
 // ============================================

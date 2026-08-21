@@ -4,12 +4,12 @@ import { PageTransition } from '@/components/layout/PageTransition';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'FoodBridge — Selamatkan Makanan, Bantu Sesama',
+  title: 'Replate — Selamatkan Makanan, Bantu Sesama',
   description: 'Platform redistribusi makanan berlebih yang menghubungkan Food Provider dengan penerima manfaat secara efisien, aman, dan transparan. Bersama kurangi food waste untuk masa depan berkelanjutan.',
-  keywords: ['food waste', 'food rescue', 'redistribusi makanan', 'SDG', 'sustainability', 'FoodBridge', 'Surabaya'],
-  authors: [{ name: 'FoodBridge Team' }],
+  keywords: ['food waste', 'food rescue', 'redistribusi makanan', 'SDG', 'sustainability', 'Replate', 'Surabaya'],
+  authors: [{ name: 'Replate Team' }],
   openGraph: {
-    title: 'FoodBridge — Selamatkan Makanan, Bantu Sesama',
+    title: 'Replate — Selamatkan Makanan, Bantu Sesama',
     description: 'Platform redistribusi makanan berlebih untuk masa depan berkelanjutan.',
     type: 'website',
     locale: 'id_ID',

@@ -75,7 +75,7 @@ export default function RegisterPage() {
                     <Logo variant="light" size="lg" />
                 </div>
 
-                <h1 className={styles.authTitle}>Bergabung dengan FoodBridge</h1>
+                <h1 className={styles.authTitle}>Bergabung dengan Replate</h1>
                 <p className={styles.authSubtitle}>Pilih peran dan mulai selamatkan makanan</p>
 
                 {error && <div className={`${styles.formAlert} ${styles.alertError}`}>{error}</div>}

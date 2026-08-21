@@ -35,11 +35,11 @@ export default function AboutPage() {
       <main className="flex-1 py-16 space-y-16">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
           <span className="inline-block px-3 py-1 rounded-full bg-[#1B3A5C]/10 text-[#1B3A5C] text-xs font-extrabold uppercase tracking-wider">
-            Tentang FoodBridge
+            Tentang Replate
           </span>
           <h1 className="text-4xl font-extrabold text-[#1B3A5C]">Misi Zero Waste & Ketahanan Pangan</h1>
           <p className="text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            FoodBridge lahir sebagai solusi digital inovatif untuk menangani timbulan food waste di perkotaan Indonesia, khususnya di kota metropolitan Surabaya, melalui redistribusi cerdas dan transparan.
+            Replate lahir sebagai solusi digital inovatif untuk menangani timbulan food waste di perkotaan Indonesia, khususnya di kota metropolitan Surabaya, melalui redistribusi cerdas dan transparan.
           </p>
         </div>
 
@@ -68,9 +68,9 @@ export default function AboutPage() {
               <span className="text-xs font-extrabold text-[#D4A843] uppercase tracking-widest">
                 Infinitera 2.0 Team
               </span>
-              <h2 className="text-3xl font-extrabold text-[#1B3A5C]">Tim Dibalik FoodBridge</h2>
+              <h2 className="text-3xl font-extrabold text-[#1B3A5C]">Tim Dibalik Replate</h2>
               <p className="text-xs text-slate-500 max-w-xl mx-auto">
-                Para talenta muda di balik pengembangan arsitektur, desain UI/UX, dan algoritma platform FoodBridge.
+                Para talenta muda di balik pengembangan arsitektur, desain UI/UX, dan algoritma platform Replate.
               </p>
             </div>
 

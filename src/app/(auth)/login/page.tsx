@@ -58,7 +58,7 @@ export default function LoginPage() {
                 </div>
 
                 <h1 className={styles.authTitle}>Selamat Datang Kembali</h1>
-                <p className={styles.authSubtitle}>Masuk ke akun FoodBridge Anda</p>
+                <p className={styles.authSubtitle}>Masuk ke akun Replate Anda</p>
 
                 {error && (
                     <div className={`${styles.formAlert} ${styles.alertError}`}>

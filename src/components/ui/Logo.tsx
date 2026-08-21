@@ -33,7 +33,7 @@ export const Logo: React.FC<LogoProps> = ({
       {customImageSrc ? (
         <img
           src={customImageSrc}
-          alt="FoodBridge Logo"
+          alt="Replate Logo"
           className={`${iconSizes[size]} object-contain`}
         />
       ) : (
@@ -64,7 +64,7 @@ export const Logo: React.FC<LogoProps> = ({
             isLight ? 'text-white' : 'text-[#1B3A5C]'
           }`}
         >
-          Food<span className="text-[#D4A843]">Bridge</span>
+          Re<span className="text-[#D4A843]">plate</span>
         </span>
         {showSubtitle && (
           <span
