@@ -8,7 +8,7 @@ export default auth((req) => {
     const userStatus = req.auth?.user?.status;
 
     // Public routes - always accessible
-    const publicRoutes = ['/', '/login', '/register', '/about', '/how-it-works', '/impact', '/faq'];
+    const publicRoutes = ['/', '/login', '/register', '/about', '/how-it-works', '/impact', '/faq', '/logout'];
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
     const isTrackingRoute = nextUrl.pathname.startsWith('/track/');
     const isApiAuth = nextUrl.pathname.startsWith('/api/auth');
