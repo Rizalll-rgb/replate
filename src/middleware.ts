@@ -55,8 +55,13 @@ export default auth((req) => {
             }
         }
 
-        // Ensure users can only access their role's dashboard
-        if (userRole && userRole !== 'ADMIN') {
+        // Shared dashboard routes accessible to all authenticated roles
+        const isSharedDashboardRoute =
+            nextUrl.pathname.startsWith('/dashboard/how-it-works') ||
+            nextUrl.pathname.startsWith('/dashboard/faq');
+
+        // Ensure users can only access their role's dashboard (or shared dashboard routes)
+        if (userRole && userRole !== 'ADMIN' && !isSharedDashboardRoute) {
             const allowedPath = roleRoutes[userRole];
             if (allowedPath && !nextUrl.pathname.startsWith(allowedPath)) {
                 return NextResponse.redirect(new URL(allowedPath, nextUrl));

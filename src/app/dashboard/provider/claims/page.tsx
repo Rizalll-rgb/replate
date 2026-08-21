@@ -124,22 +124,30 @@ export default function ProviderClaimsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with Clean Action Hierarchy (Poin 9) */}
-      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Clean Top Banner Info */}
+      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-md border border-[#2C5A8F] space-y-1">
+        <Badge variant="gold" size="sm" className="font-extrabold uppercase">
+          Pusat Penyelamatan & Verifikasi Penjemputan
+        </Badge>
+        <h1 className="text-2xl font-black tracking-tight">Klaim & Penyelamatan Makanan</h1>
+        <p className="text-xs text-slate-200">
+          Verifikasi kode QR atau masukkan kode transaksi penjemputan fisik. Verifikasi sukses otomatis mengurangi porsi stok makanan secara real-time.
+        </p>
+      </div>
+
+      {/* Dedicated Action Control Panel for Camera & QR Scanner (Poin 3) */}
+      <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
         <div className="space-y-1">
-          <Badge variant="gold" size="sm" className="font-extrabold uppercase">
-            Pusat Penyelamatan & Verifikasi Penjemputan
-          </Badge>
-          <h1 className="text-2xl font-black tracking-tight">Klaim & Penyelamatan Makanan</h1>
-          <p className="text-xs text-slate-200">
-            Verifikasi kode QR atau masukan kode transaksi penjemputan fisik. Verifikasi sukses otomatis mengurangi porsi stok.
-          </p>
+          <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
+            Verifikasi Penjemputan Fisik
+          </span>
+          <h3 className="text-sm font-extrabold text-white">Gunakan Pindai Kamera QR untuk Verifikasi Cepat</h3>
         </div>
 
         <Button
           variant="gold"
-          size="lg"
-          className="font-black shadow-md flex items-center gap-2 shrink-0 text-slate-900"
+          size="md"
+          className="font-black shadow-md flex items-center gap-2 shrink-0 text-slate-900 px-5"
           onClick={() => setShowScanner(!showScanner)}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

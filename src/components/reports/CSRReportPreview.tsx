@@ -20,22 +20,27 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
   totalCo2SavedKg = 106.25,
   totalBeneficiaries = 85,
 }) => {
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="space-y-4 max-w-3xl mx-auto">
-      {/* Print CSS Styles to strictly isolate CSR report print area to 1 clean page */}
+      {/* Strict Print CSS Isolation to print ONLY CSR Report on 1 clean A4 portrait page */}
       <style>{`
         @media print {
           body * {
             visibility: hidden !important;
           }
-          #csr-report-print-area, #csr-report-print-area * {
+          #csr-isolated-area, #csr-isolated-area * {
             visibility: visible !important;
           }
-          #csr-report-print-area {
-            position: absolute !important;
+          #csr-isolated-area {
+            position: fixed !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
             margin: 0 !important;
             padding: 32px !important;
             box-shadow: none !important;
@@ -44,6 +49,7 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
             color: #000000 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            page-break-after: always !important;
           }
           .no-print {
             display: none !important;
@@ -56,7 +62,7 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
       `}</style>
 
       <div
-        id="csr-report-print-area"
+        id="csr-isolated-area"
         className="bg-white border-2 border-[#1B3A5C] p-8 space-y-6 shadow-md rounded-2xl text-slate-900"
       >
         {/* Header */}
@@ -88,7 +94,7 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
           </div>
         </div>
 
-        {/* Real-Time Impact Metric Grid (Poin 14) */}
+        {/* Real-Time Impact Metric Grid (Poin 4 & 14) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[#0F1923] text-white p-5 rounded-2xl shadow-xs">
           <div>
             <span className="text-[11px] text-slate-300 block font-bold">Total Batch Surplus</span>
@@ -136,12 +142,12 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
           variant="primary"
           size="md"
           className="font-extrabold flex items-center gap-2 shadow-md bg-[#1B3A5C] hover:bg-[#2C5A8F]"
-          onClick={() => window.print()}
+          onClick={handlePrint}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
           </svg>
-          <span>🖨️ Cetak / Simpan Laporan CSR PDF (1 Halaman Clean)</span>
+          <span>🖨️ Cetak Laporan CSR PDF (1 Halaman Clean)</span>
         </Button>
       </div>
     </div>

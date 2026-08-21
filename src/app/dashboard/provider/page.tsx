@@ -8,21 +8,36 @@ import { Button } from '@/components/ui/Button';
 export default function ProviderOverviewPage() {
   return (
     <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-        <div>
-          <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest">
-            Dashboard Food Provider
-          </span>
-          <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Mitra Restoran & Toko Pangan</h2>
-          <p className="text-xs text-slate-500 font-medium">Warung Bakso Pak Kumis — Genteng, Surabaya</p>
+      {/* Clean Header Info */}
+      <div className="border-b border-slate-200 pb-3">
+        <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest block">
+          Dashboard Food Provider
+        </span>
+        <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Mitra Restoran & Toko Pangan</h2>
+        <p className="text-xs text-slate-500 font-medium mt-0.5">Warung Bakso Pak Kumis — Genteng, Surabaya</p>
+      </div>
+
+      {/* Dedicated Hero Action Banner for Posting Surplus (Poin 1) */}
+      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#2C5A8F]">
+        <div className="space-y-1 max-w-xl">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md">
+              Aksi Utama Provider
+            </span>
+            <span className="text-xs text-slate-300 font-medium">Terverifikasi BPOM SOP</span>
+          </div>
+          <h3 className="text-lg font-black tracking-tight text-white">Punya Makanan Berlebih Hari Ini?</h3>
+          <p className="text-xs text-slate-200 leading-relaxed">
+            Publikasikan porsi surplus makanan Anda untuk disalurkan ke panti asuhan, yayasan, atau konsumen target secara aman & transparan.
+          </p>
         </div>
-        <Link href="/dashboard/provider/add-surplus">
-          <Button variant="gold" size="lg" className="font-extrabold shadow-md flex items-center gap-2">
+
+        <Link href="/dashboard/provider/add-surplus" className="shrink-0">
+          <Button variant="gold" size="lg" className="font-extrabold shadow-lg flex items-center gap-2 px-6 text-slate-900">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            <span>Tambah Surplus Makanan Baru</span>
+            <span>+ Tambah Surplus Makanan Baru</span>
           </Button>
         </Link>
       </div>
