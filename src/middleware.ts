@@ -43,6 +43,7 @@ export default auth((req) => {
         const roleRoutes: Record<string, string> = {
             PROVIDER: '/dashboard/provider',
             CONSUMER: '/dashboard/consumer',
+            YAYASAN: '/dashboard/yayasan',
             RESCUE_PARTNER: '/dashboard/rescue-partner',
             ADMIN: '/dashboard/admin',
         };
