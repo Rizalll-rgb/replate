@@ -43,14 +43,17 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto"
+      onClick={onClose}
+    >
       <div
-        className={`w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in ${sizeClasses[size]}`}
+        className={`w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col my-auto ${sizeClasses[size]}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
-            <h3 className="text-lg font-extrabold text-[#1B3A5C]">{title}</h3>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
+            <h3 className="text-base font-extrabold text-[#1B3A5C]">{title}</h3>
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors"
@@ -61,9 +64,9 @@ export const Modal: React.FC<ModalProps> = ({
             </button>
           </div>
         )}
-        <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="p-6 overflow-y-auto flex-1">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 shrink-0">
             {footer}
           </div>
         )}

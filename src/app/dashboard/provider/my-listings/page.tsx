@@ -19,14 +19,21 @@ export default function MyListingsPage() {
     food: null,
   });
   const [newQuantity, setNewQuantity] = useState<number>(0);
+  const [isAvailableStatus, setIsAvailableStatus] = useState<boolean>(true);
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
     message: '',
     type: 'success',
   });
 
-  useEffect(() => {
-    fetch('/api/surplus')
+  const loadListings = () => {
+    // Read local cache for items added during session (Poin 5)
+    let localItems: any[] = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+    } catch (_) {}
+
+    fetch('/api/surplus?status=')
       .then((res) => res.json())
       .then((data) => {
         let itemsList: any[] = [];
@@ -71,9 +78,16 @@ export default function MyListingsPage() {
           },
         ];
 
-        setFoods(itemsList.length > 0 ? itemsList : fallback);
+        const combined = [...localItems, ...itemsList];
+        setFoods(combined.length > 0 ? combined : fallback);
       })
-      .catch(() => {});
+      .catch(() => {
+        setFoods(localItems.length > 0 ? localItems : []);
+      });
+  };
+
+  useEffect(() => {
+    loadListings();
   }, [session]);
 
   const handleDetail = (id: string) => {
@@ -103,27 +117,33 @@ export default function MyListingsPage() {
     if (item) {
       setManageModal({ isOpen: true, food: item });
       setNewQuantity(item.remainingQuantity ?? item.quantity);
+      setIsAvailableStatus(item.status === 'AVAILABLE');
     }
   };
 
   const handleSaveManage = async () => {
     if (!manageModal.food) return;
     const updatedId = manageModal.food.id;
+    const nextStatus = isAvailableStatus ? 'AVAILABLE' : 'UNAVAILABLE';
     try {
       await fetch('/api/surplus', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: updatedId, remainingQuantity: newQuantity }),
+        body: JSON.stringify({ id: updatedId, remainingQuantity: newQuantity, status: nextStatus }),
       });
     } catch (_) {}
 
     setFoods((prev) =>
-      prev.map((f) => (f.id === updatedId ? { ...f, quantity: newQuantity, remainingQuantity: newQuantity } : f))
+      prev.map((f) =>
+        f.id === updatedId
+          ? { ...f, quantity: newQuantity, remainingQuantity: newQuantity, status: nextStatus }
+          : f
+      )
     );
     setManageModal({ isOpen: false, food: null });
     setToastState({
       isOpen: true,
-      message: `Stok ${manageModal.food.foodName} berhasil diperbarui menjadi ${newQuantity} ${manageModal.food.quantityUnit}!`,
+      message: `Status & Stok ${manageModal.food.foodName} berhasil diperbarui!`,
       type: 'success',
     });
   };
@@ -134,12 +154,12 @@ export default function MyListingsPage() {
         <div>
           <h2 className="text-xl font-extrabold text-[#1B3A5C]">Kelola Daftar Surplus Makanan Saya</h2>
           <p className="text-xs text-slate-500 font-medium">
-            Atur kuantitas stok, edit status kelayakan SOP, dan pantau ketersediaan porsi makanan berlebih.
+            Atur kuantitas stok, saklar penayangan publik, dan lihat detail penjemputan porsi berlebih.
           </p>
         </div>
       </div>
 
-      {/* Restored Clean FoodGrid Card Layout */}
+      {/* Clean FoodGrid Card Layout */}
       <FoodGrid foods={foods} onDetail={handleDetail} onManage={handleManage} />
 
       {/* Modal Detail Makanan */}
@@ -149,7 +169,7 @@ export default function MyListingsPage() {
         food={selectedFood}
       />
 
-      {/* Modal Kelola Stok & Status */}
+      {/* Modal Kelola Stok & Status Penayangan (Poin 6) */}
       {manageModal.isOpen && (
         <Modal
           isOpen={manageModal.isOpen}
@@ -157,7 +177,7 @@ export default function MyListingsPage() {
           title={`Kelola Surplus: ${manageModal.food?.foodName}`}
           size="md"
         >
-          <div className="space-y-4 text-xs text-slate-700">
+          <div className="space-y-5 text-xs text-slate-700">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
               <span className="text-slate-500 font-semibold block">Item Makanan:</span>
               <span className="font-extrabold text-[#1B3A5C] text-sm block">
@@ -166,6 +186,22 @@ export default function MyListingsPage() {
               <span className="text-slate-500 block">
                 Lokasi Penjemputan: {manageModal.food?.address}
               </span>
+            </div>
+
+            {/* Toggle Status Penayangan (Poin 6) */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label className="font-extrabold text-slate-800 block">Status Penayangan Publik:</label>
+              <label className="flex items-center justify-between cursor-pointer p-2.5 bg-white rounded-lg border border-slate-200">
+                <span className="font-bold text-xs text-[#1B3A5C]">
+                  {isAvailableStatus ? '🟢 Aktif Tayang (Dapat Diklaim)' : '🔴 Nonaktif (Disembunyikan)'}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={isAvailableStatus}
+                  onChange={(e) => setIsAvailableStatus(e.target.checked)}
+                  className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
+                />
+              </label>
             </div>
 
             <div className="space-y-2">
@@ -183,7 +219,7 @@ export default function MyListingsPage() {
 
             <div className="pt-2 border-t border-slate-200 flex justify-end gap-2">
               <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
-                Simpan Perubahan Stok ➔
+                Simpan Perubahan Stok & Status ➔
               </Button>
             </div>
           </div>

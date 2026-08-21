@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 
 export default function DashboardFAQPage() {
@@ -40,18 +39,18 @@ export default function DashboardFAQPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg space-y-3">
-        <Badge variant="gold" size="sm" className="font-extrabold uppercase">
+      {/* High Contrast Header Banner (Poin 11) */}
+      <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg border border-[#2C5A8F] space-y-3">
+        <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md inline-block shadow-xs">
           Pusat Bantuan & FAQ
-        </Badge>
-        <h1 className="text-2xl font-black tracking-tight">Pertanyaan yang Sering Diajukan</h1>
-        <p className="text-xs text-slate-200">
+        </span>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">Pertanyaan yang Sering Diajukan</h1>
+        <p className="text-xs text-slate-100 font-medium leading-relaxed">
           Temukan jawaban cepat seputar standar keamanan BPOM, alur pengiriman, sertifikat CSR, dan panduan penggunaan platform Replate.
         </p>
         <div className="pt-2">
           <Input
-            placeholder="🔍 Cari pertanyaan atau topik bantuan..."
+            placeholder="Cari pertanyaan atau topik bantuan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-white text-slate-900 border-none text-xs"
@@ -85,7 +84,7 @@ export default function DashboardFAQPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="font-extrabold text-sm text-amber-900">Butuh Bantuan Langsung Tim Replate?</h4>
-            <p className="text-xs text-amber-800">Tim Helpdesk Surabaya kami siap membantu Anda 24/7 melalui Live Chat atau WhatsApp.</p>
+            <p className="text-xs text-amber-800">Tim Helpdesk Surabaya kami siap membantu Anda 24/7 melalui Live Helpdesk atau WhatsApp.</p>
           </div>
           <a
             href="https://wa.me/628123456789"
@@ -93,7 +92,7 @@ export default function DashboardFAQPage() {
             rel="noopener noreferrer"
             className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors shrink-0"
           >
-            💬 Hubungi Live Helpdesk
+            Hubungi Live Helpdesk ➔
           </a>
         </div>
       </Card>

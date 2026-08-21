@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 export default function ProviderOverviewPage() {
   return (
     <div className="space-y-8">
-      {/* Clean Header Info */}
+      {/* Header Info */}
       <div className="border-b border-slate-200 pb-3">
         <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest block">
           Dashboard Food Provider
@@ -17,33 +17,34 @@ export default function ProviderOverviewPage() {
         <p className="text-xs text-slate-500 font-medium mt-0.5">Warung Bakso Pak Kumis — Genteng, Surabaya</p>
       </div>
 
-      {/* Dedicated Hero Action Banner for Posting Surplus (Poin 1) */}
-      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#2C5A8F]">
-        <div className="space-y-1 max-w-xl">
+      {/* High-Contrast Hero Action Banner (Poin 1 & 9) */}
+      <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#2C5A8F]">
+        <div className="space-y-1.5 max-w-xl">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md">
+            <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md shadow-xs">
               Aksi Utama Provider
             </span>
-            <span className="text-xs text-slate-300 font-medium">Terverifikasi BPOM SOP</span>
+            <span className="text-xs text-slate-200 font-semibold">100% Terverifikasi SOP BPOM</span>
           </div>
-          <h3 className="text-lg font-black tracking-tight text-white">Punya Makanan Berlebih Hari Ini?</h3>
+          <h3 className="text-xl font-extrabold tracking-tight text-white">Punya Makanan Berlebih Hari Ini?</h3>
           <p className="text-xs text-slate-200 leading-relaxed">
             Publikasikan porsi surplus makanan Anda untuk disalurkan ke panti asuhan, yayasan, atau konsumen target secara aman & transparan.
           </p>
         </div>
 
         <Link href="/dashboard/provider/add-surplus" className="shrink-0">
-          <Button variant="gold" size="lg" className="font-extrabold shadow-lg flex items-center gap-2 px-6 text-slate-900">
+          <Button variant="gold" size="lg" className="font-black shadow-lg flex items-center gap-2 px-6 text-slate-900">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            <span>+ Tambah Surplus Makanan Baru</span>
+            <span>Tambah Surplus Makanan Baru</span>
           </Button>
         </Link>
       </div>
 
-      {/* Ringkasan KPI Interaktif (Interactive Metric Cards) */}
+      {/* Ringkasan KPI Interaktif (Correct Navigation Mapping Poin 2 & 3) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Card 1: Surplus Aktif -> my-listings */}
         <Link href="/dashboard/provider/my-listings" className="block group">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-[#1B3A5C] hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
             <div className="p-3 bg-blue-50 text-[#1B3A5C] rounded-xl group-hover:scale-105 transition-transform">
@@ -60,7 +61,8 @@ export default function ProviderOverviewPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/provider/claims" className="block group">
+        {/* Card 2: Total Diselamatkan -> impact (Poin 2) */}
+        <Link href="/dashboard/provider/impact" className="block group">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
             <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl group-hover:scale-105 transition-transform">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +78,8 @@ export default function ProviderOverviewPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/provider/impact" className="block group">
+        {/* Card 3: Klaim Selesai -> claims (Poin 3) */}
+        <Link href="/dashboard/provider/claims" className="block group">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-[#D4A843] hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
             <div className="p-3 bg-amber-50 text-[#D4A843] rounded-xl group-hover:scale-105 transition-transform">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +96,7 @@ export default function ProviderOverviewPage() {
         </Link>
       </div>
 
-      {/* CORE BUSINESS ACTIONS (Fitur Utama Menopang Proses Bisnis) */}
+      {/* CORE BUSINESS ACTIONS */}
       <div className="space-y-4">
         <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
           <svg className="w-5 h-5 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +106,7 @@ export default function ProviderOverviewPage() {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Action Card 1: Add Surplus & BPOM Checklist */}
+          {/* Action Card 1 */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="w-10 h-10 rounded-xl bg-amber-50 text-[#D4A843] flex items-center justify-center font-bold">
@@ -123,7 +126,7 @@ export default function ProviderOverviewPage() {
             </Link>
           </div>
 
-          {/* Action Card 2: QR Scanner Verification */}
+          {/* Action Card 2 */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1B3A5C] flex items-center justify-center font-bold">
@@ -143,7 +146,7 @@ export default function ProviderOverviewPage() {
             </Link>
           </div>
 
-          {/* Action Card 3: CSR & Certificate Report */}
+          {/* Action Card 3 */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">

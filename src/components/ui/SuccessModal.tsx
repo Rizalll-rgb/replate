@@ -23,10 +23,12 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <div className="text-center p-4 space-y-4">
-        {/* Animated Celebration Icon */}
-        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center text-3xl shadow-md animate-bounce">
-          🎉
+      <div className="text-center p-2 space-y-4">
+        {/* Animated Celebration Vector Icon (Poin 12 - SVG Icon instead of emoji) */}
+        <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-md animate-bounce">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
         </div>
 
         <div className="space-y-1">
@@ -37,7 +39,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
         </div>
 
         {/* Item Summary Card */}
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-left space-y-1">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-left space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-slate-500 font-semibold">Nama Produk:</span>
             <span className="font-extrabold text-[#1B3A5C]">{foodName}</span>
@@ -56,13 +58,13 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
         <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
           <Button
             variant="gold"
-            className="w-full font-black text-xs"
+            className="w-full font-black text-xs shadow-md"
             onClick={() => {
               onClose();
               if (onViewListings) onViewListings();
             }}
           >
-            📦 Lihat Daftar Makanan Saya ➔
+            Lihat Daftar Makanan Saya ➔
           </Button>
         </div>
       </div>

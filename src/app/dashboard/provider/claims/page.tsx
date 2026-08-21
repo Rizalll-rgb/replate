@@ -53,6 +53,7 @@ export default function ProviderClaimsPage() {
       quantity: '5 Porsi',
       status: 'VERIFIED',
       time: '21 Aug 2026, 14:00',
+      handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
     },
   ]);
 
@@ -70,12 +71,16 @@ export default function ProviderClaimsPage() {
     quantity: '',
   });
 
+  const [detailModal, setDetailModal] = useState<{ isOpen: boolean; claim: any | null }>({
+    isOpen: false,
+    claim: null,
+  });
+
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
   const [courierName, setCourierName] = useState<string>('');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
   const handleVerifyCode = async (code: string) => {
-    // Deduct claim and move from Pending to Completed
     const target = pendingClaims.find((c) => c.code === code) || {
       code,
       foodName: 'Surplus Makanan',
@@ -86,11 +91,18 @@ export default function ProviderClaimsPage() {
     };
 
     setPendingClaims((prev) => prev.filter((c) => c.code !== code));
-    setCompletedClaims((prev) => [{ ...target, status: 'VERIFIED' }, ...prev]);
+    setCompletedClaims((prev) => [
+      {
+        ...target,
+        status: 'VERIFIED',
+        handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      },
+      ...prev,
+    ]);
 
     setToastState({
       isOpen: true,
-      message: `🎉 Transaksi ${code} Berhasil Diverifikasi! Stok tersisa telah berkurang secara otomatis.`,
+      message: `Transaksi ${code} Berhasil Diverifikasi! Stok tersisa telah berkurang secara otomatis.`,
       type: 'success',
     });
     setShowScanner(false);
@@ -124,13 +136,13 @@ export default function ProviderClaimsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Clean Top Banner Info */}
-      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-md border border-[#2C5A8F] space-y-1">
-        <Badge variant="gold" size="sm" className="font-extrabold uppercase">
+      {/* High Contrast Banner (Poin 9 & 11) */}
+      <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg border border-[#2C5A8F] space-y-2">
+        <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md inline-block shadow-xs">
           Pusat Penyelamatan & Verifikasi Penjemputan
-        </Badge>
-        <h1 className="text-2xl font-black tracking-tight">Klaim & Penyelamatan Makanan</h1>
-        <p className="text-xs text-slate-200">
+        </span>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan</h1>
+        <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
           Verifikasi kode QR atau masukkan kode transaksi penjemputan fisik. Verifikasi sukses otomatis mengurangi porsi stok makanan secara real-time.
         </p>
       </div>
@@ -153,7 +165,7 @@ export default function ProviderClaimsPage() {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
           </svg>
-          <span>{showScanner ? 'Tutup Pindai Kamera' : '📷 Pindai Kamera / Scan QR Code'}</span>
+          <span>{showScanner ? 'Tutup Pindai Kamera' : 'Pindai Kamera / Scan QR Code'}</span>
         </Button>
       </div>
 
@@ -173,7 +185,7 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          ⏳ Menunggu Penjemputan ({pendingClaims.length})
+          Menunggu Penjemputan ({pendingClaims.length})
         </button>
         <button
           onClick={() => setActiveTab('COMPLETED')}
@@ -183,11 +195,11 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          ✅ Riwayat Selesai ({completedClaims.length})
+          Riwayat Selesai ({completedClaims.length})
         </button>
       </div>
 
-      {/* Transaction List (Poin 10) */}
+      {/* Transaction List */}
       <Card className="bg-white border-slate-200">
         <CardBody className="p-4 space-y-3 text-xs">
           {(activeTab === 'PENDING' ? pendingClaims : completedClaims).length === 0 ? (
@@ -217,18 +229,65 @@ export default function ProviderClaimsPage() {
 
                 {activeTab === 'PENDING' ? (
                   <Button variant="gold" size="sm" className="font-extrabold text-xs" onClick={() => openConfirmModal(tx)}>
-                    Verifikasi Kode & Foto 📸
+                    Verifikasi Kode & Foto ➔
                   </Button>
                 ) : (
-                  <Badge variant="success" className="px-3 py-1 text-xs">
-                    Selesai & Stok Berkurang
-                  </Badge>
+                  /* Action Detail Button for Completed Tab (Poin 10) */
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
+                    onClick={() => setDetailModal({ isOpen: true, claim: tx })}
+                  >
+                    Lihat Detail & Foto Serah Terima ➔
+                  </Button>
                 )}
               </div>
             ))
           )}
         </CardBody>
       </Card>
+
+      {/* Detail Modal for Completed Claim (Poin 10) */}
+      {detailModal.isOpen && (
+        <Modal
+          isOpen={detailModal.isOpen}
+          onClose={() => setDetailModal({ isOpen: false, claim: null })}
+          title={`Detail Transaksi Selesai: ${detailModal.claim?.code}`}
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
+              <span className="text-emerald-900 font-black text-sm block">Status: VERIFIED & SELESAI</span>
+              <p className="text-emerald-800">
+                Porsi stok sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diserahkan secara utuh.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div>
+                <span className="text-slate-500 block">Item Makanan:</span>
+                <span className="font-bold text-slate-900">{detailModal.claim?.foodName}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block">Nama Penerima:</span>
+                <span className="font-bold text-slate-900">{detailModal.claim?.userName}</span>
+              </div>
+            </div>
+
+            {detailModal.claim?.handoverProof && (
+              <div className="space-y-1">
+                <span className="font-extrabold text-[#1B3A5C] block">Foto Dokumentasi Serah Terima:</span>
+                <img
+                  src={detailModal.claim.handoverProof}
+                  alt="Bukti Serah Terima"
+                  className="w-full h-44 object-cover rounded-xl border border-slate-300"
+                />
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
 
       {/* Verification Modal */}
       {confirmModal.isOpen && (
@@ -251,8 +310,8 @@ export default function ProviderClaimsPage() {
             </div>
 
             <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
-              <h4 className="font-extrabold text-[#1B3A5C] text-sm flex items-center gap-2">
-                <span>Dokumentasi Foto Bukti Serah Terima Fisik</span>
+              <h4 className="font-extrabold text-[#1B3A5C] text-sm">
+                Dokumentasi Foto Bukti Serah Terima Fisik
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
