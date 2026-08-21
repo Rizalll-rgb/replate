@@ -27,43 +27,55 @@ export default function ProviderOverviewPage() {
         </Link>
       </div>
 
-      {/* Ringkasan Ringkas KPI (Compact Metric Cards) */}
+      {/* Ringkasan KPI Interaktif (Interactive Metric Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
-          <div className="p-3 bg-blue-50 text-[#1B3A5C] rounded-xl">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
+        <Link href="/dashboard/provider/my-listings" className="block group">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-[#1B3A5C] hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
+            <div className="p-3 bg-blue-50 text-[#1B3A5C] rounded-xl group-hover:scale-105 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 font-semibold block flex items-center gap-1">
+                Surplus Aktif <span className="text-[10px] text-[#1B3A5C] font-bold">➔</span>
+              </span>
+              <span className="text-2xl font-extrabold text-[#1B3A5C]">2 Listing</span>
+            </div>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 font-semibold block">Surplus Aktif</span>
-            <span className="text-2xl font-extrabold text-[#1B3A5C]">2 Listing</span>
-          </div>
-        </div>
+        </Link>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
+        <Link href="/dashboard/provider/claims" className="block group">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
+            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl group-hover:scale-105 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 font-semibold block flex items-center gap-1">
+                Total Diselamatkan <span className="text-[10px] text-emerald-700 font-bold">➔</span>
+              </span>
+              <span className="text-2xl font-extrabold text-emerald-700">142.5 Kg</span>
+            </div>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 font-semibold block">Total Makanan Diselamatkan</span>
-            <span className="text-2xl font-extrabold text-emerald-700">142.5 Kg</span>
-          </div>
-        </div>
+        </Link>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
-          <div className="p-3 bg-amber-50 text-[#D4A843] rounded-xl">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        <Link href="/dashboard/provider/impact" className="block group">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-[#D4A843] hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
+            <div className="p-3 bg-amber-50 text-[#D4A843] rounded-xl group-hover:scale-105 transition-transform">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 font-semibold block flex items-center gap-1">
+                Klaim Selesai <span className="text-[10px] text-[#D4A843] font-bold">➔</span>
+              </span>
+              <span className="text-2xl font-extrabold text-[#D4A843]">28 Transaksi</span>
+            </div>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 font-semibold block">Transaksi Klaim Selesai</span>
-            <span className="text-2xl font-extrabold text-[#D4A843]">28 Transaksi</span>
-          </div>
-        </div>
+        </Link>
       </div>
 
       {/* CORE BUSINESS ACTIONS (Fitur Utama Menopang Proses Bisnis) */}

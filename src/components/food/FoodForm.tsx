@@ -20,6 +20,7 @@ export interface FoodFormData {
   address: string;
   latitude: number;
   longitude: number;
+  photos?: string[];
   rescueReadiness: RescueReadinessChecklist;
 }
 
@@ -29,6 +30,12 @@ export interface FoodFormProps {
 }
 
 export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false }) => {
+  const defaultAddress = 'Jl. Genteng Kali No. 45, Genteng, Surabaya';
+  const [useDefaultAddress, setUseDefaultAddress] = useState(true);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(
+    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'
+  );
+
   const [formData, setFormData] = useState<Partial<FoodFormData>>({
     foodCategory: 'MEALS',
     quantityUnit: 'porsi',
@@ -37,9 +44,10 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     distributionType: 'BOTH',
     price: 0,
     weightPerUnitKg: 0.5,
-    address: 'Jl. Pemuda No. 1, Surabaya',
-    latitude: -7.2654,
-    longitude: 112.7483,
+    address: defaultAddress,
+    latitude: -7.2575,
+    longitude: 112.7521,
+    pickupDeadline: new Date(Date.now() + 4 * 3600000).toISOString().slice(0, 16),
   });
 
   const [checklistReady, setChecklistReady] = useState<boolean>(true);
@@ -54,14 +62,44 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     locationAccurate: true,
   });
 
+  // Quick Preset Date Time Handler
+  const handleQuickPresetTime = (hoursFromNow: number, setFixedHour?: number) => {
+    const target = new Date();
+    if (setFixedHour !== undefined) {
+      target.setHours(setFixedHour, 0, 0, 0);
+      if (target.getTime() <= Date.now()) {
+        target.setDate(target.getDate() + 1);
+      }
+    } else {
+      target.setTime(target.getTime() + hoursFromNow * 3600000);
+    }
+    const formattedStr = target.toISOString().slice(0, 16);
+    setFormData((prev) => ({ ...prev, pickupDeadline: formattedStr }));
+  };
+
+  const handlePhotoUploadMock = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Ukuran file melebihi batas 5MB!');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!checklistReady) {
-      alert('Mohon lengkapi semua checklist SOP Rescue Readiness (100%) sebelum submit!');
+      alert('Mohon lengkapi seluruh kriteria SOP BPOM Rescue Readiness (100%) sebelum publikasi!');
       return;
     }
     if (!formData.foodName || !formData.quantity || !formData.pickupDeadline) {
-      alert('Mohon isi nama makanan, jumlah, dan batas waktu pickup!');
+      alert('Mohon isi nama makanan, kuantitas porsi, dan batas waktu penjemputan!');
       return;
     }
 
@@ -71,21 +109,56 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       foodCategory: formData.foodCategory || 'MEALS',
       quantity: Number(formData.quantity),
       quantityUnit: formData.quantityUnit || 'porsi',
-      pickupDeadline: formData.pickupDeadline || new Date(Date.now() + 6 * 3600000).toISOString(),
+      pickupDeadline: formData.pickupDeadline || new Date(Date.now() + 4 * 3600000).toISOString(),
       storageCondition: formData.storageCondition || 'ROOM_TEMP',
       packagingType: formData.packagingType || 'PACKAGED',
       distributionType: formData.distributionType || 'BOTH',
       price: Number(formData.price || 0),
       weightPerUnitKg: Number(formData.weightPerUnitKg || 0.5),
-      address: formData.address || 'Surabaya',
-      latitude: formData.latitude || -7.2654,
-      longitude: formData.longitude || 112.7483,
+      address: useDefaultAddress ? defaultAddress : formData.address || defaultAddress,
+      latitude: formData.latitude || -7.2575,
+      longitude: formData.longitude || 112.7521,
+      photos: previewPhoto ? [previewPhoto] : [],
       rescueReadiness: checklistData,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 text-slate-800">
+      {/* Photo Upload Section with Hint Ratio & Preview (Poin 3) */}
+      <div className="space-y-2">
+        <label className="text-xs font-extrabold text-[#1B3A5C] block">
+          Upload Foto Produk Surplus Makanan
+        </label>
+        <div className="border-2 border-dashed border-slate-300 hover:border-[#1B3A5C] rounded-2xl p-5 bg-slate-50 transition-colors text-center relative overflow-hidden">
+          {previewPhoto ? (
+            <div className="relative max-w-sm mx-auto group">
+              <img
+                src={previewPhoto}
+                alt="Preview Produk"
+                className="w-full h-44 object-cover rounded-xl shadow-xs border border-slate-200"
+              />
+              <label className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white font-bold text-xs cursor-pointer">
+                📷 Ganti Foto Produk
+                <input type="file" accept="image/png, image/jpeg" onChange={handlePhotoUploadMock} className="hidden" />
+              </label>
+            </div>
+          ) : (
+            <label className="cursor-pointer space-y-2 block">
+              <div className="w-12 h-12 mx-auto rounded-full bg-amber-100 text-[#D4A843] flex items-center justify-center text-2xl">
+                📸
+              </div>
+              <p className="text-xs font-bold text-[#1B3A5C]">Klik atau Drag & Drop foto produk di sini</p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                💡 Hint: Disarankan rasio <strong className="text-slate-700">16:9 atau 4:3</strong>, maksimal ukuran file <strong className="text-slate-700">5 MB</strong> (JPG/PNG). Foto jernih meningkatkan klaim hingga 80%.
+              </p>
+              <input type="file" accept="image/png, image/jpeg" onChange={handlePhotoUploadMock} className="hidden" />
+            </label>
+          )}
+        </div>
+      </div>
+
+      {/* Main Product Info Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Nama Makanan Surplus"
@@ -127,15 +200,58 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
           value={formData.quantityUnit || ''}
           onChange={(e) => setFormData({ ...formData, quantityUnit: e.target.value })}
         />
+      </div>
+
+      {/* Custom Authentic Date & Time Picker with Preset Chips (Poin 4) */}
+      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-extrabold text-[#1B3A5C]">
+            ⏱️ Batas Waktu Penjemputan (Pickup Deadline)
+          </label>
+          <span className="text-[11px] text-slate-500 font-medium">Pilih preset cepat atau tentukan tanggal & jam</span>
+        </div>
+
+        {/* Preset Chips */}
+        <div className="flex flex-wrap gap-2 text-xs">
+          <button
+            type="button"
+            onClick={() => handleQuickPresetTime(2)}
+            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors shadow-xs"
+          >
+            ⚡ 2 Jam Lagi
+          </button>
+          <button
+            type="button"
+            onClick={() => handleQuickPresetTime(4)}
+            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors shadow-xs"
+          >
+            🔥 4 Jam Lagi
+          </button>
+          <button
+            type="button"
+            onClick={() => handleQuickPresetTime(0, 21)}
+            className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg transition-colors shadow-xs"
+          >
+            🌙 Malam Ini 21.00 WIB
+          </button>
+          <button
+            type="button"
+            onClick={() => handleQuickPresetTime(0, 8)}
+            className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg transition-colors shadow-xs"
+          >
+            ☀️ Besok Pagi 08.00 WIB
+          </button>
+        </div>
 
         <Input
-          label="Batas Waktu Penjemputan (Deadline)"
           type="datetime-local"
           value={formData.pickupDeadline || ''}
           onChange={(e) => setFormData({ ...formData, pickupDeadline: e.target.value })}
           required
         />
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Estimasi Berat per Unit (Kg)"
           type="number"
@@ -157,50 +273,45 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
             <option value="FROZEN">Beku (Freezer)</option>
           </select>
         </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-[#343A40]">Skema Distribusi</label>
-          <select
-            className="w-full rounded-lg border border-[#DEE2E6] text-sm px-3.5 py-2 bg-white focus:border-[#1B3A5C] focus:outline-none"
-            value={formData.distributionType}
-            onChange={(e) => setFormData({ ...formData, distributionType: e.target.value })}
-          >
-            <option value="BOTH">Bisa Rescue Sale (Jual Murah) & Food Rescue (Gratis)</option>
-            <option value="SALE">Hanya Rescue Sale (Jual Murah)</option>
-            <option value="FREE">Hanya Food Rescue (Gratis / Panti)</option>
-          </select>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Harga per Unit (Rp)"
-          type="number"
-          placeholder="0 untuk gratis"
-          value={formData.price || 0}
-          onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-        />
+      {/* Auto-Fill Address Toggle (Poin 5) */}
+      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-extrabold text-[#1B3A5C]">📍 Alamat Penjemputan Makanan</label>
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+            <input
+              type="checkbox"
+              checked={useDefaultAddress}
+              onChange={(e) => setUseDefaultAddress(e.target.checked)}
+              className="rounded border-slate-300 text-[#1B3A5C] focus:ring-0"
+            />
+            <span>Gunakan Alamat Toko Saya ({defaultAddress})</span>
+          </label>
+        </div>
 
-        <Input
-          label="Alamat Penjemputan"
-          placeholder="Jl. Genteng Kali No. 45, Genteng, Surabaya"
-          value={formData.address || ''}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-        />
+        {!useDefaultAddress && (
+          <Input
+            placeholder="Masukkan alamat lokasi penjemputan alternatif..."
+            value={formData.address || ''}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            required
+          />
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-[#343A40]">Deskripsi Makanan & Catatan</label>
+        <label className="text-xs font-semibold text-[#343A40]">Deskripsi Makanan & Catatan Kemasan</label>
         <textarea
           rows={3}
           className="w-full rounded-lg border border-[#DEE2E6] text-sm p-3 bg-white focus:border-[#1B3A5C] focus:outline-none"
-          placeholder="Jelaskan kondisi makanan, bahan, wadah yang perlu dibawa, dll."
+          placeholder="Jelaskan kondisi makanan, rekomendasi wadah, atau catatan penjemputan..."
           value={formData.description || ''}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
-      {/* Mandatory Rescue Readiness SOP Checklist */}
+      {/* Hybrid BPOM SOP Readiness Checklist (Poin 6) */}
       <RescueReadinessForm
         onChange={(checkData, isComplete) => {
           setChecklistData(checkData);
@@ -209,8 +320,8 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       />
 
       <div className="flex justify-end gap-3 pt-2">
-        <Button type="submit" variant="gold" size="lg" isLoading={isLoading} disabled={!checklistReady}>
-          🚀 Submit & Trigger Smart Matching
+        <Button type="submit" variant="gold" size="lg" isLoading={isLoading} disabled={!checklistReady} className="font-extrabold shadow-md">
+          🚀 Publikasikan Surplus & Trigger Smart Matching
         </Button>
       </div>
     </form>

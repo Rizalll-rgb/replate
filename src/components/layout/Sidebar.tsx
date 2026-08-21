@@ -228,7 +228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
   const commonLinks = [
     {
-      href: '/how-it-works',
+      href: '/dashboard/how-it-works',
       label: 'Cara Kerja',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,7 +237,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/faq',
+      href: '/dashboard/faq',
       label: 'FAQ & Bantuan',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

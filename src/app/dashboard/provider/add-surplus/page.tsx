@@ -2,12 +2,22 @@
 
 import React, { useState } from 'react';
 import { FoodForm, FoodFormData } from '@/components/food/FoodForm';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
+import { SuccessModal } from '@/components/ui/SuccessModal';
 import { useRouter } from 'next/navigation';
 
 export default function AddSurplusPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    foodName: string;
+    quantity: string;
+  }>({
+    isOpen: false,
+    foodName: '',
+    quantity: '',
+  });
 
   const handleSubmit = async (data: FoodFormData) => {
     setIsLoading(true);
@@ -19,12 +29,15 @@ export default function AddSurplusPage() {
       });
       const result = await res.json();
       if (result.success) {
-        alert('🎉 Surplus makanan berhasil ditambahkan dan Smart Matching ter-trigger!');
-        router.push('/dashboard/provider/my-listings');
+        setSuccessModal({
+          isOpen: true,
+          foodName: data.foodName,
+          quantity: `${data.quantity} ${data.quantityUnit}`,
+        });
       } else {
         alert(result.error || 'Gagal menambahkan surplus makanan.');
       }
-    } catch (e) {
+    } catch {
       alert('Terjadi kesalahan koneksi.');
     } finally {
       setIsLoading(false);
@@ -43,6 +56,15 @@ export default function AddSurplusPage() {
       <Card className="bg-white p-6 border-[#DEE2E6]">
         <FoodForm onSubmit={handleSubmit} isLoading={isLoading} />
       </Card>
+
+      {/* Custom Replate Authentic Success Modal */}
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, foodName: '', quantity: '' })}
+        foodName={successModal.foodName}
+        quantity={successModal.quantity}
+        onViewListings={() => router.push('/dashboard/provider/my-listings')}
+      />
     </div>
   );
 }

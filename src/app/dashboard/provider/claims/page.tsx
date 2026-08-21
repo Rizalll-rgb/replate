@@ -11,32 +11,14 @@ import { Input } from '@/components/ui/Input';
 
 export default function ProviderClaimsPage() {
   const [showScanner, setShowScanner] = useState(false);
+  const [activeTab, setActiveTab] = useState<'PENDING' | 'COMPLETED'>('PENDING');
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
     message: '',
     type: 'success',
   });
 
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    code: string;
-    foodName: string;
-    userName: string;
-    quantity: string;
-  }>({
-    isOpen: false,
-    code: '',
-    foodName: '',
-    userName: '',
-    quantity: '',
-  });
-
-  // Proof of handover photo state (Selfie / Proof photo)
-  const [proofPhoto, setProofPhoto] = useState<string | null>(null);
-  const [courierName, setCourierName] = useState<string>('');
-  const [conditionChecked, setConditionChecked] = useState<boolean>(true);
-
-  const sampleTransactions = [
+  const [pendingClaims, setPendingClaims] = useState([
     {
       code: 'FB-CLAIM-101',
       foodName: 'Bakso Sapi Komplit',
@@ -56,45 +38,65 @@ export default function ProviderClaimsPage() {
     {
       code: 'FB-CLAIM-103',
       foodName: 'Nasi Goreng Buffet + Ayam Bakar',
-      userName: 'Panti Asuhan Kasih Ibu (Rescue Partner)',
+      userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
       quantity: '30 Porsi',
       status: 'IN TRANSIT',
       time: 'Hari ini 21:00',
     },
-  ];
+  ]);
+
+  const [completedClaims, setCompletedClaims] = useState([
+    {
+      code: 'FB-CLAIM-099',
+      foodName: 'Buah Potong Segar',
+      userName: 'Siti Aminah (Konsumen)',
+      quantity: '5 Porsi',
+      status: 'VERIFIED',
+      time: '21 Aug 2026, 14:00',
+    },
+  ]);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    code: string;
+    foodName: string;
+    userName: string;
+    quantity: string;
+  }>({
+    isOpen: false,
+    code: '',
+    foodName: '',
+    userName: '',
+    quantity: '',
+  });
+
+  const [proofPhoto, setProofPhoto] = useState<string | null>(null);
+  const [courierName, setCourierName] = useState<string>('');
+  const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
   const handleVerifyCode = async (code: string) => {
-    try {
-      const res = await fetch('/api/qr/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrData: code }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setToastState({
-          isOpen: true,
-          message: result.message || `Kode ${code} Berhasil Diverifikasi dengan Bukti Foto Serah Terima!`,
-          type: 'success',
-        });
-        setShowScanner(false);
-      } else {
-        setToastState({
-          isOpen: true,
-          message: result.error || 'Verifikasi gagal, periksa kode transaksi.',
-          type: 'error',
-        });
-      }
-    } catch {
-      setToastState({
-        isOpen: true,
-        message: 'Terjadi kesalahan koneksi.',
-        type: 'error',
-      });
-    }
+    // Deduct claim and move from Pending to Completed
+    const target = pendingClaims.find((c) => c.code === code) || {
+      code,
+      foodName: 'Surplus Makanan',
+      userName: 'Penglaim Terverifikasi',
+      quantity: '1 Porsi',
+      status: 'VERIFIED',
+      time: new Date().toLocaleTimeString(),
+    };
+
+    setPendingClaims((prev) => prev.filter((c) => c.code !== code));
+    setCompletedClaims((prev) => [{ ...target, status: 'VERIFIED' }, ...prev]);
+
+    setToastState({
+      isOpen: true,
+      message: `🎉 Transaksi ${code} Berhasil Diverifikasi! Stok tersisa telah berkurang secara otomatis.`,
+      type: 'success',
+    });
+    setShowScanner(false);
   };
 
-  const openConfirmModal = (tx: (typeof sampleTransactions)[0]) => {
+  const openConfirmModal = (tx: (typeof pendingClaims)[0]) => {
     setConfirmModal({
       isOpen: true,
       code: tx.code,
@@ -103,7 +105,6 @@ export default function ProviderClaimsPage() {
       quantity: tx.quantity,
     });
     setCourierName(tx.userName);
-    // Simulated proof photo fallback
     setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60');
   };
 
@@ -123,185 +124,170 @@ export default function ProviderClaimsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-        <div>
-          <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Klaim & Verifikasi QR / Bukti Penjemputan</h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Verifikasi kode QR & unggah foto selfie serah terima fisik makanan saat penjemputan.
+      {/* Top Banner with Clean Action Hierarchy (Poin 9) */}
+      <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <Badge variant="gold" size="sm" className="font-extrabold uppercase">
+            Pusat Penyelamatan & Verifikasi Penjemputan
+          </Badge>
+          <h1 className="text-2xl font-black tracking-tight">Klaim & Penyelamatan Makanan</h1>
+          <p className="text-xs text-slate-200">
+            Verifikasi kode QR atau masukan kode transaksi penjemputan fisik. Verifikasi sukses otomatis mengurangi porsi stok.
           </p>
         </div>
-        <Button variant="gold" size="md" className="font-bold flex items-center gap-2" onClick={() => setShowScanner(!showScanner)}>
+
+        <Button
+          variant="gold"
+          size="lg"
+          className="font-black shadow-md flex items-center gap-2 shrink-0 text-slate-900"
+          onClick={() => setShowScanner(!showScanner)}
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
           </svg>
-          <span>{showScanner ? 'Tutup Scanner' : 'Pindai Kamera Scanner QR'}</span>
+          <span>{showScanner ? 'Tutup Pindai Kamera' : '📷 Pindai Kamera / Scan QR Code'}</span>
         </Button>
       </div>
 
-      {/* Helper Box: Data Dummy Kode Transaksi */}
-      <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-2">
-        <span className="text-xs font-extrabold text-amber-900 uppercase tracking-wider block">
-          Kode Transaksi & Simulasi Verifikasi Foto Bukti Serah Terima
-        </span>
-        <div className="flex flex-wrap gap-2">
-          {sampleTransactions.map((tx) => (
-            <button
-              key={tx.code}
-              onClick={() => openConfirmModal(tx)}
-              className="px-3 py-1.5 bg-white border border-amber-300 hover:border-amber-500 rounded-lg text-xs font-bold text-[#1B3A5C] shadow-2xs transition-all flex items-center gap-1.5"
-            >
-              <span className="font-mono text-[#D4A843]">{tx.code}</span>
-              <span className="text-[11px] text-slate-500">({tx.foodName})</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {showScanner && (
-        <Card className="p-6 border-[#D4A843]">
+        <Card className="p-6 border-[#D4A843] bg-white">
           <QRScanner onScanSuccess={handleVerifyCode} />
         </Card>
       )}
 
-      {/* Table / List Transactions */}
-      <Card className="bg-white border-slate-200">
-        <CardHeader>
-          <CardTitle className="text-base font-extrabold text-[#1B3A5C]">
-            Daftar Transaksi Klaim Masuk (Siap Diambil)
-          </CardTitle>
-        </CardHeader>
-        <CardBody className="space-y-3 text-xs">
-          {sampleTransactions.map((tx) => (
-            <div
-              key={tx.code}
-              className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#1B3A5C] text-sm">{tx.foodName}</span>
-                  <Badge variant="primary" size="sm">
-                    {tx.quantity}
-                  </Badge>
-                </div>
-                <p className="text-slate-600 font-medium">Penerima: {tx.userName}</p>
-                <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                  <span>Kode Transaksi: <strong className="font-mono text-[#1B3A5C]">{tx.code}</strong></span>
-                  <span>•</span>
-                  <span>Batas: {tx.time}</span>
-                </div>
-              </div>
+      {/* Tabs Filter */}
+      <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold">
+        <button
+          onClick={() => setActiveTab('PENDING')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            activeTab === 'PENDING'
+              ? 'bg-[#1B3A5C] text-white font-black'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          ⏳ Menunggu Penjemputan ({pendingClaims.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('COMPLETED')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            activeTab === 'COMPLETED'
+              ? 'bg-[#1B3A5C] text-white font-black'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          ✅ Riwayat Selesai ({completedClaims.length})
+        </button>
+      </div>
 
-              <div className="flex items-center gap-2 justify-end">
-                <Button variant="gold" size="sm" className="font-bold text-xs" onClick={() => openConfirmModal(tx)}>
-                  Verifikasi Manual & Foto 📸
-                </Button>
+      {/* Transaction List (Poin 10) */}
+      <Card className="bg-white border-slate-200">
+        <CardBody className="p-4 space-y-3 text-xs">
+          {(activeTab === 'PENDING' ? pendingClaims : completedClaims).length === 0 ? (
+            <p className="text-center text-slate-400 py-6 font-semibold">Tidak ada transaksi di tab ini.</p>
+          ) : (
+            (activeTab === 'PENDING' ? pendingClaims : completedClaims).map((tx) => (
+              <div
+                key={tx.code}
+                className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-100/60 transition-colors"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-[#1B3A5C] text-sm">{tx.foodName}</span>
+                    <Badge variant={activeTab === 'PENDING' ? 'warning' : 'success'} size="sm">
+                      {tx.quantity}
+                    </Badge>
+                  </div>
+                  <p className="text-slate-600 font-medium">Penerima: {tx.userName}</p>
+                  <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                    <span>
+                      Kode Transaksi: <strong className="font-mono text-[#1B3A5C]">{tx.code}</strong>
+                    </span>
+                    <span>•</span>
+                    <span>Waktu: {tx.time}</span>
+                  </div>
+                </div>
+
+                {activeTab === 'PENDING' ? (
+                  <Button variant="gold" size="sm" className="font-extrabold text-xs" onClick={() => openConfirmModal(tx)}>
+                    Verifikasi Kode & Foto 📸
+                  </Button>
+                ) : (
+                  <Badge variant="success" className="px-3 py-1 text-xs">
+                    Selesai & Stok Berkurang
+                  </Badge>
+                )}
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </CardBody>
       </Card>
 
-      {/* Detailed Custom Verification Modal with Selfie & Handover Proof */}
-      <Modal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-        title="Verifikasi Bukti Serah Terima & Foto Fisik Makanan"
-        size="lg"
-      >
-        <div className="space-y-5 text-xs text-slate-700">
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <span className="text-slate-500 font-semibold block">Kode Transaksi:</span>
-              <span className="font-mono font-extrabold text-[#1B3A5C] text-sm">{confirmModal.code}</span>
+      {/* Verification Modal */}
+      {confirmModal.isOpen && (
+        <Modal
+          isOpen={confirmModal.isOpen}
+          onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+          title="Verifikasi Bukti Serah Terima & Foto Fisik Makanan"
+          size="lg"
+        >
+          <div className="space-y-5 text-xs text-slate-700">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <span className="text-slate-500 font-semibold block">Kode Transaksi:</span>
+                <span className="font-mono font-extrabold text-[#1B3A5C] text-sm">{confirmModal.code}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Item Makanan:</span>
+                <span className="font-bold text-slate-900">{confirmModal.foodName} ({confirmModal.quantity})</span>
+              </div>
             </div>
-            <div>
-              <span className="text-slate-500 font-semibold block">Item Makanan:</span>
-              <span className="font-bold text-slate-900">{confirmModal.foodName} ({confirmModal.quantity})</span>
-            </div>
-          </div>
 
-          {/* Form Verifikasi Foto Bukti Serah Terima */}
-          <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
-            <h4 className="font-extrabold text-[#1B3A5C] text-sm flex items-center gap-2">
-              <svg className="w-5 h-5 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 011.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              </svg>
-              <span>Dokumentasi Foto Bukti Serah Terima Fisik</span>
-            </h4>
+            <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
+              <h4 className="font-extrabold text-[#1B3A5C] text-sm flex items-center gap-2">
+                <span>Dokumentasi Foto Bukti Serah Terima Fisik</span>
+              </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              {/* Photo Preview */}
-              <div className="relative h-36 bg-slate-800 rounded-xl overflow-hidden border border-slate-300">
-                {proofPhoto ? (
-                  <img src={proofPhoto} alt="Foto Serah Terima" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                    <span className="text-2xl">📸</span>
-                    <span className="text-[11px] mt-1">Belum Ada Foto Terunggah</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div className="relative h-36 bg-slate-800 rounded-xl overflow-hidden border border-slate-300">
+                  {proofPhoto && <img src={proofPhoto} alt="Foto Serah Terima" className="w-full h-full object-cover" />}
+                  <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded-md font-mono">
+                    BUKTI SERAH TERIMA FISIK
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Nama Penjemput / Kurir Armada:</label>
+                    <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="Nama lengkap kurir" />
                   </div>
-                )}
-                <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded-md font-mono">
-                  BUKTI SERAH TERIMA FISIK
+                </div>
+              </div>
+
+              <label className="flex items-start gap-2 pt-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={conditionChecked}
+                  onChange={(e) => setConditionChecked(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded border-slate-300 focus:ring-[#D4A843]"
+                />
+                <span className="text-xs font-bold text-slate-800 leading-snug">
+                  Saya mengonfirmasi bahwa makanan diserahkan dalam keadaan utuh, higienis, dan sesuai dengan porsi yang terdaftar.
                 </span>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="font-bold text-slate-800 block mb-1">Nama Penjemput / Kurir Armada:</label>
-                  <Input
-                    value={courierName}
-                    onChange={(e) => setCourierName(e.target.value)}
-                    placeholder="Nama lengkap kurir"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Simulasi Ambil Foto:</label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs font-bold border-slate-300"
-                    onClick={() =>
-                      setProofPhoto('https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60')
-                    }
-                  >
-                    📸 Ambil Foto Selfie / Serah Terima Makanan
-                  </Button>
-                </div>
-              </div>
+              </label>
             </div>
 
-            {/* Checkbox Kelayakan */}
-            <label className="flex items-start gap-2 pt-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={conditionChecked}
-                onChange={(e) => setConditionChecked(e.target.checked)}
-                className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded border-slate-300 focus:ring-[#D4A843]"
-              />
-              <span className="text-xs font-bold text-slate-800 leading-snug">
-                Saya mengonfirmasi bahwa makanan diserahkan dalam keadaan utuh, higienis, dan sesuai dengan porsi yang terdaftar.
-              </span>
-            </label>
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200">
+              <Button variant="outline" size="sm" onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}>
+                Batal
+              </Button>
+              <Button variant="gold" size="sm" className="font-extrabold" onClick={executeConfirm}>
+                Selesaikan Verifikasi & Potong Stok ➔
+              </Button>
+            </div>
           </div>
+        </Modal>
+      )}
 
-          <div className="flex justify-end gap-3 pt-2 border-t border-slate-200">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-            >
-              Batal
-            </Button>
-            <Button variant="gold" size="sm" className="font-extrabold" onClick={executeConfirm}>
-              Selesaikan Verifikasi & Catat Dampak ➔
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Custom Toast Notification */}
       <Toast
         isOpen={toastState.isOpen}
         message={toastState.message}
