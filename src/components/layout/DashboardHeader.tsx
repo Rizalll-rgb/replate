@@ -26,7 +26,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    try {
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+    } catch (_) {}
+    await signOut({ callbackUrl: '/login?switch=1' });
   };
 
   const userRole = user?.role || 'PROVIDER';

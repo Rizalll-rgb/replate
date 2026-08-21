@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
@@ -17,6 +17,9 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
+            // Force signout to clear any stale JWT cookie from previous sessions
+            try { await signOut({ redirect: false }); } catch (_) {}
+            
             const result = await signIn('credentials', {
                 email: emailVal,
                 password: passwordVal,
