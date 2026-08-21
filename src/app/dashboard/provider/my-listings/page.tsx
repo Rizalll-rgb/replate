@@ -53,7 +53,7 @@ export default function MyListingsPage() {
             quantityUnit: 'porsi',
             price: 5000,
             status: 'AVAILABLE',
-            distributionType: 'BOTH',
+            distributionType: 'SALE',
             address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
             pickupDeadline: new Date(Date.now() + 5 * 3600000).toISOString(),
             photos: ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'],

@@ -38,6 +38,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
   );
 
   const [pricingScheme, setPricingScheme] = useState<'RESCUE_SALE' | 'DONATION_YAYASAN' | 'DONATION_INDIVIDUAL'>('RESCUE_SALE');
+  const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'RESCUE_PARTNER'>('SELF_PICKUP');
 
   const [formData, setFormData] = useState<Partial<FoodFormData>>({
     foodCategory: 'MEALS',
@@ -45,7 +46,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     quantity: 15,
     storageCondition: 'ROOM_TEMP',
     packagingType: 'PACKAGED',
-    distributionType: 'BOTH',
+    distributionType: 'SALE',
     price: 5000,
     weightPerUnitKg: 0.5,
     address: defaultAddress,
@@ -116,12 +117,8 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       return;
     }
 
-    const finalDistributionType: 'SALE' | 'FREE' | 'BOTH' =
-      formData.distributionType === 'BOTH'
-        ? 'BOTH'
-        : pricingScheme === 'RESCUE_SALE'
-        ? 'SALE'
-        : 'FREE';
+    const finalDistributionType: 'SALE' | 'FREE' =
+      pricingScheme === 'RESCUE_SALE' ? 'SALE' : 'FREE';
 
     const payload: FoodFormData = {
       foodName: formData.foodName || '',
@@ -358,13 +355,12 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-[#343A40]">Metode Pengiriman Penjemputan (Poin 8)</label>
+          <label className="text-xs font-semibold text-[#343A40]">Metode Penjemputan / Logistik (Poin 8)</label>
           <select
             className="w-full rounded-lg border border-[#DEE2E6] text-sm px-3.5 py-2 bg-white focus:border-[#1B3A5C] focus:outline-none font-medium"
-            value={formData.distributionType}
-            onChange={(e) => setFormData({ ...formData, distributionType: e.target.value })}
+            value={deliveryMethod}
+            onChange={(e) => setDeliveryMethod(e.target.value as 'SELF_PICKUP' | 'RESCUE_PARTNER')}
           >
-            <option value="BOTH">Bebas (Ambil Sendiri ATAU Diantar Armada Komunitas)</option>
             <option value="SELF_PICKUP">Ambil Sendiri (Penerima datang langsung ke lokasi)</option>
             <option value="RESCUE_PARTNER">Diantar Komunitas (Armada Kurir Rescue Partner)</option>
           </select>
