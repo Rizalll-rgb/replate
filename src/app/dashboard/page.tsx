@@ -21,6 +21,8 @@ export default function DashboardPage() {
     const role = session.user.role;
     if (role === 'ADMIN') {
       router.push('/dashboard/admin');
+    } else if (role === 'YAYASAN') {
+      router.push('/dashboard/yayasan');
     } else if (role === 'RESCUE_PARTNER') {
       router.push('/dashboard/rescue-partner');
     } else if (role === 'CONSUMER') {

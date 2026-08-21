@@ -196,6 +196,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
     },
   ];
 
+  const yayasanLinks = [
+    {
+      href: '/dashboard/yayasan',
+      label: 'Ringkasan Panti',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h6m-6 0V10m0 0h6m-6 0H7" />
+        </svg>
+      ),
+    },
+    {
+      href: '/dashboard/yayasan/claims',
+      label: 'Permintaan & Klaim Panti',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 100 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+    },
+    {
+      href: '/dashboard/yayasan/history',
+      label: 'Riwayat Bantuan Pangan',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+  ];
+
   const commonLinks = [
     {
       href: '/how-it-works',
@@ -219,7 +249,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
   let links = providerLinks;
   if (role === 'CONSUMER') links = consumerLinks;
-  if (role === 'RESCUE_PARTNER' || role === 'YAYASAN') links = partnerLinks;
+  if (role === 'YAYASAN') links = yayasanLinks;
+  if (role === 'RESCUE_PARTNER') links = partnerLinks;
   if (role === 'ADMIN') links = adminLinks;
 
   const allLinks = [...links, ...commonLinks];

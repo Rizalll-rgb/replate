@@ -34,8 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
-      <Navbar user={currentUser} />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-screen">
         <Sidebar role={currentUser.role} />
         <div className="flex-1 flex flex-col min-w-0">
           <DashboardHeader user={currentUser} title={`Dashboard (${currentUser.role.replace('_', ' ')})`} />
