@@ -48,12 +48,13 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 animate-scale-in ${sizeClasses[size]}`}
+        className={`relative w-full max-h-[80vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scale-in my-auto ${sizeClasses[size]}`}
         onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: '80vh' }}
       >
-        {/* Modal Header (Fixed at top, rounded corners) */}
+        {/* Modal Header (Fixed at top, shrink-0) */}
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0 rounded-t-2xl">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
             <h3 className="text-base font-extrabold text-[#1B3A5C]">{title}</h3>
             <button
               onClick={onClose}
@@ -66,14 +67,17 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        {/* Modal Content Body (Scrollable inside, body never overflows outside dialog) */}
-        <div className="p-6 overflow-y-auto flex-1 leading-relaxed text-slate-800 text-xs">
+        {/* Modal Content Body (Scrollable with explicit min-h-0 and calc maxHeight) */}
+        <div
+          className="p-6 overflow-y-auto flex-1 min-h-0 leading-relaxed text-slate-800 text-xs"
+          style={{ maxHeight: 'calc(80vh - 120px)', overflowY: 'auto' }}
+        >
           {children}
         </div>
 
-        {/* Modal Footer (Fixed at bottom, rounded corners) */}
+        {/* Modal Footer (Fixed at bottom, shrink-0) */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 shrink-0 rounded-b-2xl">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 shrink-0">
             {footer}
           </div>
         )}
