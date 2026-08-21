@@ -99,9 +99,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
   const handlePricingSchemeChange = (scheme: 'RESCUE_SALE' | 'DONATION_YAYASAN' | 'DONATION_INDIVIDUAL') => {
     setPricingScheme(scheme);
     if (scheme === 'DONATION_YAYASAN' || scheme === 'DONATION_INDIVIDUAL') {
-      setFormData((prev) => ({ ...prev, price: 0, distributionType: scheme === 'DONATION_YAYASAN' ? 'DONATION' : 'FREE' }));
+      setFormData((prev) => ({ ...prev, price: 0, distributionType: 'FREE' }));
     } else {
-      setFormData((prev) => ({ ...prev, price: 5000, distributionType: 'DISCOUNTED' }));
+      setFormData((prev) => ({ ...prev, price: 5000, distributionType: 'SALE' }));
     }
   };
 
@@ -116,6 +116,13 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       return;
     }
 
+    const finalDistributionType: 'SALE' | 'FREE' | 'BOTH' =
+      formData.distributionType === 'BOTH'
+        ? 'BOTH'
+        : pricingScheme === 'RESCUE_SALE'
+        ? 'SALE'
+        : 'FREE';
+
     const payload: FoodFormData = {
       foodName: formData.foodName || '',
       description: formData.description || '',
@@ -125,7 +132,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       pickupDeadline: formData.pickupDeadline || new Date(Date.now() + 4 * 3600000).toISOString(),
       storageCondition: formData.storageCondition || 'ROOM_TEMP',
       packagingType: formData.packagingType || 'PACKAGED',
-      distributionType: formData.distributionType || 'BOTH',
+      distributionType: finalDistributionType,
       pricingScheme,
       price: pricingScheme === 'RESCUE_SALE' ? Number(formData.price || 5000) : 0,
       weightPerUnitKg: Number(formData.weightPerUnitKg || 0.5),
