@@ -80,7 +80,7 @@ export default function DashboardFAQPage() {
       </div>
 
       {/* Support Contact Box */}
-      <Card className="border-slate-200 bg-amber-50 p-5 border-amber-200">
+      <Card className="bg-amber-50 p-5 border-amber-200">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="font-extrabold text-sm text-amber-900">Butuh Bantuan Langsung Tim Replate?</h4>
