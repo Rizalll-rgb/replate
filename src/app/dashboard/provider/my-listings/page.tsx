@@ -27,7 +27,6 @@ export default function MyListingsPage() {
   });
 
   const loadListings = () => {
-    // Read local cache for items added during session (Poin 5)
     let localItems: any[] = [];
     try {
       localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
@@ -148,6 +147,17 @@ export default function MyListingsPage() {
     });
   };
 
+  const manageModalFooter = (
+    <div className="flex justify-end gap-2 w-full">
+      <Button variant="outline" size="sm" onClick={() => setManageModal({ isOpen: false, food: null })}>
+        Batal
+      </Button>
+      <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
+        Simpan Perubahan Stok & Status ➔
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -176,6 +186,7 @@ export default function MyListingsPage() {
           onClose={() => setManageModal({ isOpen: false, food: null })}
           title={`Kelola Surplus: ${manageModal.food?.foodName}`}
           size="md"
+          footer={manageModalFooter}
         >
           <div className="space-y-5 text-xs text-slate-700">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
@@ -215,12 +226,6 @@ export default function MyListingsPage() {
                 />
                 <span className="font-bold text-slate-700">{manageModal.food?.quantityUnit}</span>
               </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-200 flex justify-end gap-2">
-              <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
-                Simpan Perubahan Stok & Status ➔
-              </Button>
             </div>
           </div>
         </Modal>
