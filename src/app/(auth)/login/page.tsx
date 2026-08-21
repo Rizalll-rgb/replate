@@ -17,23 +17,25 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            // Force signout to clear any stale JWT cookie from previous sessions
-            try { await signOut({ redirect: false }); } catch (_) {}
-            
-            const result = await signIn('credentials', {
+            const targetUrl = emailVal.includes('panti')
+                ? '/dashboard/yayasan'
+                : emailVal.includes('admin')
+                ? '/dashboard/admin'
+                : emailVal.includes('foodbank') || emailVal.includes('gotong')
+                ? '/dashboard/rescue-partner'
+                : emailVal.includes('budi') || emailVal.includes('gmail')
+                ? '/dashboard/consumer'
+                : '/dashboard/provider';
+
+            await signIn('credentials', {
                 email: emailVal,
                 password: passwordVal,
-                redirect: false,
+                callbackUrl: targetUrl,
             });
-
-            if (result?.error) {
-                setError('Email atau password tidak sesuai.');
-                setLoading(false);
-            } else {
-                window.location.href = '/dashboard';
-            }
-        } catch {
-            window.location.href = '/dashboard';
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Email atau password tidak sesuai.');
+            setLoading(false);
         }
     };
 
