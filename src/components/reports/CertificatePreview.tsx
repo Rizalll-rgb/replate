@@ -71,7 +71,7 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({ data }) 
           <h2 className="text-2xl font-bold font-serif text-[#C5A059] uppercase tracking-wider">
             SERTIFIKAT PENGHARGAAN PENYELAMAT PANGAN
           </h2>
-          <p className="text-[11px] text-slate-500 font-mono tracking-widest uppercase">
+          <p suppressHydrationWarning className="text-[11px] text-slate-500 font-mono tracking-widest uppercase">
             NO. REGISTRASI SERTIFIKAT: {data.certificateId || 'CERT-RPL-2026-8812'}
           </p>
         </div>

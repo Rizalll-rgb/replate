@@ -17,11 +17,8 @@ export function formatCertificateData(
 ): CertificateData {
   const co2 = parseFloat((totalSavedKg * 2.5).toFixed(1));
   const fed = Math.round(totalSavedKg * 2);
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-  const certId = `CERT-FB-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-${Math.floor(
-    1000 + Math.random() * 9000
-  )}`;
+  const certId = 'CERT-RPL-2026-8812';
+  const issuedDate = '21 Agustus 2026';
 
   return {
     recipientName: name,
@@ -30,7 +27,7 @@ export function formatCertificateData(
     totalSavedKg: parseFloat(totalSavedKg.toFixed(1)),
     totalCo2SavedKg: co2,
     totalPeopleFed: fed,
-    issuedDate: dateStr,
+    issuedDate,
     certificateId: certId,
   };
 }
