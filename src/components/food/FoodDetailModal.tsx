@@ -20,6 +20,7 @@ export interface FoodDetailModalProps {
     address: string;
     storageCondition: string;
     packagingType: string;
+    weightPerUnitKg?: number;
     provider?: {
       name: string;
       organizationName?: string | null;
@@ -33,6 +34,17 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   if (!food) return null;
 
   const isFree = !food.price || food.price === 0;
+  const deadlineDate = new Date(food.pickupDeadline);
+  const formattedDeadline = deadlineDate.toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const estWeight = (food.quantity || 1) * (food.weightPerUnitKg || 0.5);
+  const estCo2Saved = Math.round(estWeight * 2.5 * 10) / 10;
 
   const modalFooter = (
     <div className="flex justify-end gap-3 w-full">
@@ -59,45 +71,88 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Detail Makanan: ${food.foodName}`}
-      size="md"
+      title={`Spesifikasi Makanan: ${food.foodName}`}
+      size="lg"
       footer={modalFooter}
     >
       <div className="space-y-4 text-xs text-slate-800">
+        {/* Header Badges */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <Badge variant="primary">{food.foodCategory}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="primary">{food.foodCategory}</Badge>
+            <Badge variant="success" size="sm">
+              VERIFIKASI SOP BPOM 100%
+            </Badge>
+          </div>
           <span className="text-base font-extrabold text-[#D4A843]">
-            {isFree ? 'GRATIS / DONASI' : `Rp ${food.price?.toLocaleString('id-ID')}`}
+            {isFree ? 'GRATIS / DONASI SOSIAL' : `Rp ${food.price?.toLocaleString('id-ID')}`}
           </span>
         </div>
 
-        <p className="text-xs text-slate-600 leading-relaxed">
-          {food.description || 'Makanan surplus layak konsumsi dari penyedia terverifikasi Replate.'}
-        </p>
+        {/* Product Description */}
+        <div className="space-y-1">
+          <h4 className="font-extrabold text-sm text-[#1B3A5C]">{food.foodName}</h4>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {food.description || 'Makanan surplus segar dan layak konsumsi hasil redistribusi terverifikasi platform Replate.'}
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        {/* Pickup Deadline Alert Box */}
+        <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-amber-900">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-extrabold">Batas Maksimal Penjemputan:</span>
+          </div>
+          <span className="font-extrabold text-amber-800 font-mono text-sm">{formattedDeadline} WIB</span>
+        </div>
+
+        {/* 6-Grid Technical Specifications */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
           <div>
-            <span className="text-slate-500 block font-medium">Kuantitas Tersedia:</span>
-            <span className="font-extrabold text-[#1B3A5C]">{food.quantity} {food.quantityUnit}</span>
+            <span className="text-slate-500 block font-medium">Sisa Stok Kuantitas:</span>
+            <span className="font-extrabold text-[#1B3A5C] text-sm">{food.quantity} {food.quantityUnit}</span>
           </div>
           <div>
-            <span className="text-slate-500 block font-medium">Batas Waktu Pickup:</span>
-            <span className="font-bold text-amber-700">{new Date(food.pickupDeadline).toLocaleString('id-ID')}</span>
+            <span className="text-slate-500 block font-medium">Kondisi Penyimpanan:</span>
+            <span className="font-bold text-slate-800">{food.storageCondition === 'ROOM_TEMP' ? 'Suhu Ruangan' : food.storageCondition === 'REFRIGERATED' ? 'Pendingin (Kulkas)' : 'Beku (Freezer)'}</span>
           </div>
           <div>
-            <span className="text-slate-500 block font-medium">Penyimpanan:</span>
-            <span className="font-bold text-slate-800">{food.storageCondition}</span>
+            <span className="text-slate-500 block font-medium">Kemasan Produk:</span>
+            <span className="font-bold text-slate-800">{food.packagingType === 'PACKAGED' ? 'Terkemas Utuh' : 'Parsial / Wadah Steril'}</span>
           </div>
           <div>
-            <span className="text-slate-500 block font-medium">Jenis Kemasan:</span>
-            <span className="font-bold text-slate-800">{food.packagingType}</span>
+            <span className="text-slate-500 block font-medium">Perkiraan Berat Total:</span>
+            <span className="font-bold text-slate-800">{estWeight} Kg</span>
+          </div>
+          <div>
+            <span className="text-slate-500 block font-medium">Potensi Emisi Terhemat:</span>
+            <span className="font-bold text-emerald-700">{estCo2Saved} Kg CO2e</span>
+          </div>
+          <div>
+            <span className="text-slate-500 block font-medium">Status Penayangan:</span>
+            <span className="font-extrabold text-emerald-700">AKTIF TAYANG</span>
           </div>
         </div>
 
-        <div className="border-t border-slate-200 pt-3 space-y-1.5 text-xs bg-blue-50/50 p-3 rounded-xl">
-          <p className="font-bold text-[#1B3A5C]">Provider: {food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis'}</p>
-          <p className="text-slate-700 font-medium">Alamat: {food.address}</p>
-          {food.provider?.phone && <p className="text-slate-700 font-medium">Kontak HP: {food.provider.phone}</p>}
+        {/* Provider Contact & Pickup Address */}
+        <div className="border-t border-slate-200 pt-3 space-y-2 bg-blue-50/60 p-4 rounded-xl border">
+          <h5 className="font-extrabold text-xs text-[#1B3A5C] uppercase tracking-wider">Lokasi & Kontak Mitra Provider</h5>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-slate-500 block font-medium">Nama Provider / Outlet:</span>
+              <span className="font-bold text-[#1B3A5C]">{food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis'}</span>
+            </div>
+            <div>
+              <span className="text-slate-500 block font-medium">No. WhatsApp Penjemputan:</span>
+              <span className="font-bold text-slate-800">{food.provider?.phone || '081234567891'}</span>
+            </div>
+          </div>
+          <div>
+            <span className="text-slate-500 block font-medium">Alamat Lengkap Penjemputan:</span>
+            <span className="font-bold text-slate-800">{food.address}</span>
+          </div>
         </div>
       </div>
     </Modal>

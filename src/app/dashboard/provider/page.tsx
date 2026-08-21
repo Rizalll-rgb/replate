@@ -8,14 +8,19 @@ import { useSession } from 'next-auth/react';
 export default function ProviderOverviewPage() {
   const { data: session } = useSession();
   const [activeSurplusCount, setActiveSurplusCount] = useState<number>(2);
-  const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(28);
-  const [totalRescuedKg, setTotalRescuedKg] = useState<number>(142.5);
+  const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(1);
+  const [totalRescuedKg, setTotalRescuedKg] = useState<number>(42.5);
 
   useEffect(() => {
     // Dynamic real-time calculation from local cache & database APIs (Poin 1, 2, 3)
     let localItems: any[] = [];
     try {
       localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+    } catch (_) {}
+
+    let localCompleted: any[] = [];
+    try {
+      localCompleted = JSON.parse(localStorage.getItem('replate_completed_claims') || '[]');
     } catch (_) {}
 
     fetch('/api/surplus?status=')
@@ -34,7 +39,7 @@ export default function ProviderOverviewPage() {
           setActiveSurplusCount(activeItems.length);
         }
 
-        // Calculate dynamic rescued weight and completed claims count
+        // Calculate dynamic rescued weight
         const calculatedWeight = combined.reduce((acc, curr) => {
           const qty = Number(curr.quantity || 15);
           const weightUnit = Number(curr.weightPerUnitKg || 0.5);
@@ -50,19 +55,20 @@ export default function ProviderOverviewPage() {
           setActiveSurplusCount(localItems.length);
         }
       });
-  }, [session]);
 
-  const providerOrgName = session?.user?.name ? `${session.user.name}` : 'Warung Bakso Pak Kumis — Genteng, Surabaya';
+    // Sync Completed Claims count with Tab Selesai di Klaim & Penyelamatan (Poin 1 & 2)
+    const baseCompleted = 1;
+    setCompletedClaimsCount(baseCompleted + localCompleted.length);
+  }, [session]);
 
   return (
     <div className="space-y-8">
-      {/* Header Info */}
+      {/* Header Info (Poin 3 - Removed Pak Kumis text below headline) */}
       <div className="border-b border-slate-200 pb-3">
         <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest block">
           Dashboard Food Provider
         </span>
         <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Mitra Restoran & Toko Pangan</h2>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">{providerOrgName}</p>
       </div>
 
       {/* High-Contrast Hero Action Banner */}
@@ -126,7 +132,7 @@ export default function ProviderOverviewPage() {
           </div>
         </Link>
 
-        {/* Card 3: Klaim Selesai -> claims (Poin 2) */}
+        {/* Card 3: Klaim Selesai -> claims (Poin 1 & 2 - Synced with Tab Selesai) */}
         <Link href="/dashboard/provider/claims" className="block group">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-[#D4A843] hover:shadow-md transition-all flex items-center gap-4 cursor-pointer">
             <div className="p-3 bg-amber-50 text-[#D4A843] rounded-xl group-hover:scale-105 transition-transform">
@@ -199,7 +205,7 @@ export default function ProviderOverviewPage() {
             <div className="space-y-2">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h55.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <h4 className="text-base font-extrabold text-[#1B3A5C]">3. Unduh Sertifikat & CSR</h4>

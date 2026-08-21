@@ -12,6 +12,7 @@ import { useSession } from 'next-auth/react';
 export default function MyListingsPage() {
   const { data: session } = useSession();
   const [foods, setFoods] = useState<any[]>([]);
+  const [activeTabFilter, setActiveTabFilter] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [manageModal, setManageModal] = useState<{ isOpen: boolean; food: any | null }>({
@@ -116,7 +117,7 @@ export default function MyListingsPage() {
     if (item) {
       setManageModal({ isOpen: true, food: item });
       setNewQuantity(item.remainingQuantity ?? item.quantity);
-      setIsAvailableStatus(item.status === 'AVAILABLE');
+      setIsAvailableStatus(item.status === 'AVAILABLE' || item.status === 'ACTIVE' || !item.status);
     }
   };
 
@@ -132,6 +133,15 @@ export default function MyListingsPage() {
       });
     } catch (_) {}
 
+    // Update local storage cache
+    try {
+      const local = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      const updatedLocal = local.map((item: any) =>
+        item.id === updatedId ? { ...item, quantity: newQuantity, remainingQuantity: newQuantity, status: nextStatus } : item
+      );
+      localStorage.setItem('replate_local_surplus', JSON.stringify(updatedLocal));
+    } catch (_) {}
+
     setFoods((prev) =>
       prev.map((f) =>
         f.id === updatedId
@@ -140,12 +150,18 @@ export default function MyListingsPage() {
       )
     );
     setManageModal({ isOpen: false, food: null });
+
+    const statusLabel = isAvailableStatus ? 'AKTIF TAYANG' : 'NONAKTIF (Disembunyikan dari Publik)';
     setToastState({
       isOpen: true,
-      message: `Status & Stok ${manageModal.food.foodName} berhasil diperbarui!`,
-      type: 'success',
+      message: `Status ${manageModal.food.foodName} berhasil diubah menjadi ${statusLabel}!`,
+      type: isAvailableStatus ? 'success' : 'error',
     });
   };
+
+  const activeFoods = foods.filter((f) => f.status === 'AVAILABLE' || f.status === 'ACTIVE' || !f.status);
+  const inactiveFoods = foods.filter((f) => f.status === 'UNAVAILABLE' || f.status === 'INACTIVE');
+  const displayedFoods = activeTabFilter === 'ACTIVE' ? activeFoods : inactiveFoods;
 
   const manageModalFooter = (
     <div className="flex justify-end gap-2 w-full">
@@ -153,7 +169,7 @@ export default function MyListingsPage() {
         Batal
       </Button>
       <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
-        Simpan Perubahan Stok & Status ➔
+        Simpan Perubahan Status & Stok ➔
       </Button>
     </div>
   );
@@ -164,13 +180,55 @@ export default function MyListingsPage() {
         <div>
           <h2 className="text-xl font-extrabold text-[#1B3A5C]">Kelola Daftar Surplus Makanan Saya</h2>
           <p className="text-xs text-slate-500 font-medium">
-            Atur kuantitas stok, saklar penayangan publik, dan lihat detail penjemputan porsi berlebih.
+            Atur kuantitas stok, saklar penayangan publik, dan kelola status tayang porsi makanan berlebih.
           </p>
         </div>
       </div>
 
-      {/* Clean FoodGrid Card Layout */}
-      <FoodGrid foods={foods} onDetail={handleDetail} onManage={handleManage} />
+      {/* Tabs Filter (Poin 5: Aktif Tayang vs Nonaktif / Diarsipkan) */}
+      <div className="flex items-center gap-3 border-b border-slate-200 text-xs font-bold pb-1">
+        <button
+          onClick={() => setActiveTabFilter('ACTIVE')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+            activeTabFilter === 'ACTIVE'
+              ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Aktif Tayang ({activeFoods.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTabFilter('INACTIVE')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+            activeTabFilter === 'INACTIVE'
+              ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-red-500"></span>
+          <span>Nonaktif / Diarsipkan ({inactiveFoods.length})</span>
+        </button>
+      </div>
+
+      {/* Clean FoodGrid Layout */}
+      {displayedFoods.length > 0 ? (
+        <FoodGrid foods={displayedFoods} onDetail={handleDetail} onManage={handleManage} />
+      ) : (
+        <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-2">
+          <h3 className="text-base font-extrabold text-[#1B3A5C]">
+            {activeTabFilter === 'ACTIVE'
+              ? 'Tidak Ada Surplus Aktif Tayang'
+              : 'Tidak Ada Item Surplus Nonaktif'}
+          </h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+            {activeTabFilter === 'ACTIVE'
+              ? 'Saat ini belum ada listing makanan berlebih yang tayang publik.'
+              : 'Semua listing makanan Anda saat ini sedang tayang aktif.'}
+          </p>
+        </div>
+      )}
 
       {/* Modal Detail Makanan */}
       <FoodDetailModal
@@ -179,7 +237,7 @@ export default function MyListingsPage() {
         food={selectedFood}
       />
 
-      {/* Modal Kelola Stok & Status Penayangan (Poin 6) */}
+      {/* Modal Kelola Stok & Status Penayangan (Poin 5 & 6) */}
       {manageModal.isOpen && (
         <Modal
           isOpen={manageModal.isOpen}
@@ -199,13 +257,16 @@ export default function MyListingsPage() {
               </span>
             </div>
 
-            {/* Toggle Status Penayangan (Poin 6) */}
+            {/* Toggle Status Penayangan Publik (Poin 5) */}
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label className="font-extrabold text-slate-800 block">Status Penayangan Publik:</label>
-              <label className="flex items-center justify-between cursor-pointer p-2.5 bg-white rounded-lg border border-slate-200">
-                <span className="font-bold text-xs text-[#1B3A5C]">
-                  {isAvailableStatus ? '🟢 Aktif Tayang (Dapat Diklaim)' : '🔴 Nonaktif (Disembunyikan)'}
-                </span>
+              <label className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-[#1B3A5C] transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className={`w-3 h-3 rounded-full ${isAvailableStatus ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+                  <span className="font-extrabold text-xs text-[#1B3A5C]">
+                    {isAvailableStatus ? 'Aktif Tayang (Publik Bisa Mengklaim)' : 'Nonaktif (Disembunyikan dari Publik)'}
+                  </span>
+                </div>
                 <input
                   type="checkbox"
                   checked={isAvailableStatus}
@@ -213,6 +274,9 @@ export default function MyListingsPage() {
                   className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
                 />
               </label>
+              <p className="text-[11px] text-slate-500">
+                *Mengubah status ke Nonaktif akan memindahkan makanan ini ke tab <strong>Nonaktif / Diarsipkan</strong> dan menyembunyikannya dari pencarian publik.
+              </p>
             </div>
 
             <div className="space-y-2">
