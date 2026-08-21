@@ -71,13 +71,6 @@ export default auth((req) => {
         }
     }
 
-    // Redirect logged-in users away from auth pages (unless switching accounts)
-    if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register')) {
-        if (!nextUrl.searchParams.has('switch')) {
-            return NextResponse.redirect(new URL('/dashboard', nextUrl));
-        }
-    }
-
     return NextResponse.next();
 });
 
