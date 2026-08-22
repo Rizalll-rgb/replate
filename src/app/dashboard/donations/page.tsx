@@ -20,6 +20,8 @@ const getHumanReadableStatusLabel = (statusCode: string) => {
       return '🏢 Siap Diambil Mandiri oleh Pengurus Panti';
     case 'PROVIDER_DELIVERING':
       return '🚚 Dalam Pengiriman Armada Toko';
+    case 'IN_TRANSIT':
+      return '🚚 OTW Mengirim Ke Penerima Bantuan (Panti)';
     case 'COMPLETED':
       return '✓ Donasi Berhasil Diserahkan & Selesai';
     case 'MATCHED & PROCESSED':
