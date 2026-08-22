@@ -11,19 +11,19 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-// Human-Readable Indonesian Status Label Helper
+// Human-Readable Indonesian Status Label Helper for ALL Recipient Types (Panti, Shelter, Yayasan, Individu)
 const getHumanReadableStatusLabel = (statusCode: string) => {
   switch (statusCode) {
     case 'AWAITING_RESCUE_PICKUP':
       return '🛵 Menunggu Penjemputan Kurir Relawan';
     case 'READY_FOR_PICKUP':
-      return '🏢 Siap Diambil Mandiri oleh Pengurus Panti';
+      return '🏢 Siap Diambil Mandiri oleh Penerima Manfaat';
     case 'PROVIDER_DELIVERING':
       return '🚚 Dalam Pengiriman Armada Toko';
     case 'IN_TRANSIT':
-      return '🚚 OTW Mengirim Ke Penerima Bantuan (Panti)';
+      return '🚚 OTW Mengirim Ke Penerima Bantuan';
     case 'COMPLETED':
-      return '✓ Donasi Berhasil Diserahkan & Selesai';
+      return '✓ Donasi Berhasil Diserahkan Ke Penerima & Selesai';
     case 'MATCHED & PROCESSED':
       return '✓ Donasi Ter-Match & Diproses';
     default:
@@ -43,6 +43,7 @@ export default function DonationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLocation, setFilterLocation] = useState('ALL');
   const [filterCategory, setFilterCategory] = useState('ALL');
+  const [filterRecipientType, setFilterRecipientType] = useState('ALL'); // Panti, Shelter, Yayasan, Individu
   const [filterUrgency, setFilterUrgency] = useState('ALL');
 
   // Active Provider Surplus Inventory
@@ -75,6 +76,7 @@ export default function DonationsPage() {
       id: 'REQ-DON-001',
       shelterName: 'Panti Asuhan Kasih Ibu',
       shelterType: 'Panti Asuhan Anak',
+      recipientCategory: 'PANTI',
       beneficiariesCount: 45,
       foodCategoryNeeded: 'Makanan Olahan (Meals)',
       urgency: 'HIGH',
@@ -95,6 +97,7 @@ export default function DonationsPage() {
       id: 'REQ-DON-002',
       shelterName: 'Panti Werdha Lansia Sejahtera',
       shelterType: 'Panti Werdha (Lansia)',
+      recipientCategory: 'PANTI',
       beneficiariesCount: 30,
       foodCategoryNeeded: 'Roti, Buah & Susu (Bakery & Dairy)',
       urgency: 'MEDIUM',
@@ -114,7 +117,8 @@ export default function DonationsPage() {
     {
       id: 'REQ-DON-003',
       shelterName: 'Rumah Singgah Anak Jalanan',
-      shelterType: 'Yayasan Sosmas',
+      shelterType: 'Shelter & Rumah Singgah',
+      recipientCategory: 'SHELTER',
       beneficiariesCount: 25,
       foodCategoryNeeded: 'Makanan Olahan (Meals)',
       urgency: 'HIGH',
@@ -130,6 +134,48 @@ export default function DonationsPage() {
       contactPhone: '081567890123',
       leaderName: 'Mas Rizky Relawan',
       legalPermit: 'DINSOS-SBY/2024/1109',
+    },
+    {
+      id: 'REQ-DON-004',
+      shelterName: 'Komunitas Dapur Umum Sosmas Ketintang',
+      shelterType: 'Yayasan & Sosmas',
+      recipientCategory: 'YAYASAN',
+      beneficiariesCount: 50,
+      foodCategoryNeeded: 'Bahan Pokok (Produce)',
+      urgency: 'MEDIUM',
+      deadline: 'Besok Pagi 09:00 WIB',
+      location: 'Surabaya Selatan',
+      address: 'Jl. Ketintang No. 15, Gayungan, Surabaya',
+      lat: -7.3112,
+      lng: 112.7291,
+      photoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80',
+      notes: 'Membutuhkan bahan sembako & sayuran segar untuk dimasak di dapur umum.',
+      preferredDelivery: 'RESCUE_COURIER',
+      status: 'OPEN',
+      contactPhone: '081789012345',
+      leaderName: 'Mbak Dewi Sosmas',
+      legalPermit: 'YAYASAN-SBY/2023/3312',
+    },
+    {
+      id: 'REQ-DON-005',
+      shelterName: 'Keluarga Ibu Ratna (Masyarakat Rentan)',
+      shelterType: 'Individu / Warga Rentan',
+      recipientCategory: 'INDIVIDU',
+      beneficiariesCount: 5,
+      foodCategoryNeeded: 'Makanan Olahan (Meals)',
+      urgency: 'HIGH',
+      deadline: 'Hari ini 18:00 WIB',
+      location: 'Surabaya Utara',
+      address: 'Jl. Krembangan Barat No. 8, Pabean, Surabaya',
+      lat: -7.2312,
+      lng: 112.7381,
+      photoUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+      notes: 'Membutuhkan bantuan porsi makanan siap santap untuk keluarga buruh harian.',
+      preferredDelivery: 'RESCUE_COURIER',
+      status: 'OPEN',
+      contactPhone: '081901234567',
+      leaderName: 'Ibu Ratna',
+      legalPermit: 'KTP-VERIFIED/357801992',
     },
   ]);
 
@@ -177,7 +223,6 @@ export default function DonationsPage() {
       if (savedClaimsStr) {
         const savedClaims = JSON.parse(savedClaimsStr);
         if (Array.isArray(savedClaims) && savedClaims.length > 0) {
-          // Deduplicate with default mock
           const combined = [...savedClaims, ...defaultHistoryMock];
           const unique = combined.filter((v, i, a) => a.findIndex(t => t.id === v.id || t.claimCode === v.claimCode) === i);
           setProviderDonationHistory(unique);
@@ -219,7 +264,7 @@ export default function DonationsPage() {
     type: 'success',
   });
 
-  // Filtered Requests Logic
+  // Filtered Requests Logic (Panti, Shelter, Yayasan, Individu)
   const filteredRequests = requests.filter((req) => {
     const matchesSearch =
       req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -228,9 +273,10 @@ export default function DonationsPage() {
 
     const matchesLocation = filterLocation === 'ALL' || req.location === filterLocation;
     const matchesCategory = filterCategory === 'ALL' || req.foodCategoryNeeded === filterCategory;
+    const matchesType = filterRecipientType === 'ALL' || req.recipientCategory === filterRecipientType;
     const matchesUrgency = filterUrgency === 'ALL' || req.urgency === filterUrgency;
 
-    return matchesSearch && matchesLocation && matchesCategory && matchesUrgency;
+    return matchesSearch && matchesLocation && matchesCategory && matchesType && matchesUrgency;
   });
 
   const handleOpenFulfillModal = (req: any) => {
@@ -269,7 +315,7 @@ export default function DonationsPage() {
       score: totalScore,
       isMatch: totalScore >= 70 && categoryScore > 0,
       breakdown: [
-        { label: 'Kategori & Gizi Makro Panti', score: categoryScore, max: 30 },
+        { label: 'Kategori & Gizi Penerima', score: categoryScore, max: 30 },
         { label: 'Proksimitas Geofencing GPS', score: distScore, max: 25 },
         { label: 'Ketahanan & Urgensi Waktu', score: timeScore, max: 20 },
         { label: 'Rasio Kecukupan Porsi', score: portionScore, max: 15 },
@@ -287,7 +333,7 @@ export default function DonationsPage() {
     if (!matchAnalysis.isMatch) {
       setToastState({
         isOpen: true,
-        message: `Kategori makanan yang Anda pilih (${selectedFoodObj.category}) tidak sesuai dengan kebutuhan gizi shelter (${selectedRequest.foodCategoryNeeded})!`,
+        message: `Kategori makanan yang Anda pilih (${selectedFoodObj.category}) tidak sesuai dengan kebutuhan gizi penerima (${selectedRequest.foodCategoryNeeded})!`,
         type: 'error',
       });
       return;
@@ -374,7 +420,7 @@ export default function DonationsPage() {
 
     setToastState({
       isOpen: true,
-      message: `Berhasil! Donasi ${portionedQuantity} porsi (Match Score: ${matchAnalysis.score}%) ter-match & terdaftar di Tracking Penyelamatan!`,
+      message: `Berhasil! Donasi ${portionedQuantity} porsi disalurkan ke ${selectedRequest.shelterName}!`,
       type: 'success',
     });
   };
@@ -382,14 +428,15 @@ export default function DonationsPage() {
   const handleAddRequestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newShelterName || !newNotes) {
-      alert('Mohon isi nama yayasan/panti dan deskripsi kebutuhan donasi!');
+      alert('Mohon isi nama penerima bantuan dan deskripsi kebutuhan donasi!');
       return;
     }
 
     const newReq = {
       id: `REQ-DON-${Date.now()}`,
       shelterName: newShelterName,
-      shelterType: 'Yayasan Terverifikasi Dinsos',
+      shelterType: 'Yayasan / Shelter Terverifikasi',
+      recipientCategory: 'SHELTER',
       beneficiariesCount: newCount,
       foodCategoryNeeded: newCategory,
       urgency: 'HIGH',
@@ -403,8 +450,8 @@ export default function DonationsPage() {
       preferredDelivery: newDeliveryPref,
       status: 'OPEN',
       contactPhone: '081234567890',
-      leaderName: 'Pengurus Yayasan',
-      legalPermit: 'DINSOS-SBY/2024/9912',
+      leaderName: 'Pengurus / Perwakilan',
+      legalPermit: 'VERIFIED-ID/2024/9912',
     };
 
     setRequests([newReq, ...requests]);
@@ -423,13 +470,13 @@ export default function DonationsPage() {
         <div className="space-y-1.5 max-w-2xl">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md shadow-xs">
-              Smart Matching 2.0 AI Engine
+              Hub Donasi Panti, Shelter, Yayasan & Individu
             </span>
-            <span className="text-xs text-slate-200 font-semibold">Evaluasi 5-Pilar Multi-Kriteria</span>
+            <span className="text-xs text-slate-200 font-semibold">Inklusif Untuk Seluruh Penerima Manfaat</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">Hub Donasi & Kebutuhan Shelter Panti</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-white">Hub Donasi & Kebutuhan Penerima Manfaat</h1>
           <p className="text-xs text-slate-100 leading-relaxed font-medium">
-            Mesin pencocokan pintar mengevaluasi kategori gizi, proksimitas GPS, ketahanan waktu, rasio porsi, dan kredensial BPOM untuk menjamin akurasi bantuan pangan 100%.
+            Mencakup kebutuhan Panti Asuhan/Werdha, Shelter Rumah Singgah, Yayasan Sosial, hingga Warga Individu Rentan. Provider restoran menyalurkan stok makanan surplus secara presisi.
           </p>
         </div>
 
@@ -443,7 +490,7 @@ export default function DonationsPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            <span>Ajukan Permintaan Donasi Panti</span>
+            <span>Ajukan Permintaan Bantuan Donasi</span>
           </Button>
         )}
       </div>
@@ -457,7 +504,7 @@ export default function DonationsPage() {
             </div>
             <div>
               <span className="text-[11px] text-slate-500 font-semibold block">Total Donasi Dihibahkan</span>
-              <h4 className="text-lg font-black text-[#1B3A5C]">125 Porsi Steril</h4>
+              <h4 className="text-lg font-black text-[#1B3A5C]">155 Porsi Steril</h4>
             </div>
           </div>
         </Card>
@@ -465,11 +512,11 @@ export default function DonationsPage() {
         <Card className="p-4 border-slate-200 bg-white shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-lg">
-              🏛️
+              🏢
             </div>
             <div>
-              <span className="text-[11px] text-slate-500 font-semibold block">Yayasan / Panti Terbantu</span>
-              <h4 className="text-lg font-black text-[#1B3A5C]">3 Panti Surabaya</h4>
+              <span className="text-[11px] text-slate-500 font-semibold block">Penerima Bantuan Terbantu</span>
+              <h4 className="text-lg font-black text-[#1B3A5C]">5 Lembaga & Warga</h4>
             </div>
           </div>
         </Card>
@@ -487,26 +534,40 @@ export default function DonationsPage() {
         </Card>
       </div>
 
-      {/* Search & Multi-Filter Control Bar */}
+      {/* Search & Multi-Filter Control Bar (Added Recipient Type Filter) */}
       <Card className="p-4 bg-white border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-2">
             <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span>Pencarian & Filter Kebutuhan Panti Surabaya</span>
+            <span>Pencarian & Filter Kebutuhan Bantuan Surabaya</span>
           </h3>
-          <span className="text-[11px] font-bold text-slate-500">Menampilkan {filteredRequests.length} dari {requests.length} Shelter</span>
+          <span className="text-[11px] font-bold text-slate-500">Menampilkan {filteredRequests.length} dari {requests.length} Penerima</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
           <div className="sm:col-span-1">
             <Input
-              placeholder="🔍 Cari nama panti / catatan..."
+              placeholder="🔍 Cari nama / catatan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="text-xs"
             />
+          </div>
+
+          <div>
+            <select
+              className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+              value={filterRecipientType}
+              onChange={(e) => setFilterRecipientType(e.target.value)}
+            >
+              <option value="ALL">👥 Semua Tipe Penerima</option>
+              <option value="PANTI">🏛️ Panti Asuhan & Werdha</option>
+              <option value="SHELTER">🏥 Shelter & Rumah Singgah</option>
+              <option value="YAYASAN">🏢 Yayasan & Sosmas</option>
+              <option value="INDIVIDU">🧑‍🤝‍🧑 Individu / Warga Rentan</option>
+            </select>
           </div>
 
           <div>
@@ -543,7 +604,7 @@ export default function DonationsPage() {
               value={filterUrgency}
               onChange={(e) => setFilterUrgency(e.target.value)}
             >
-              <option value="ALL">🚨 Semua Tingkat Urgensi</option>
+              <option value="ALL">🚨 Semua Urgensi</option>
               <option value="HIGH">URGENT (Segera)</option>
               <option value="MEDIUM">MEMBUTUHKAN</option>
             </select>
@@ -551,7 +612,7 @@ export default function DonationsPage() {
         </div>
       </Card>
 
-      {/* Grid List Permintaan Donasi Shelter */}
+      {/* Grid List Permintaan Donasi */}
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredRequests.map((req) => (
@@ -646,7 +707,7 @@ export default function DonationsPage() {
         </div>
       </div>
 
-      {/* Provider Funded Donation History Section (ALWAYS VISIBLE & CLEAR) */}
+      {/* Provider Funded Donation History Section */}
       <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4 mt-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
           <div>
@@ -691,7 +752,6 @@ export default function DonationsPage() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                {/* Button 1: Live In-Page Timeline Tracker */}
                 <button
                   type="button"
                   onClick={() => setActiveTrackingModalItem(history)}
@@ -700,7 +760,6 @@ export default function DonationsPage() {
                   <span>📍 Lacak Stepper Progress</span>
                 </button>
 
-                {/* Button 2: Direct Redirect to Public Transparansi Tracking Page (/track/[id]) */}
                 <button
                   type="button"
                   onClick={() => router.push(`/track/${history.claimCode || history.id}`)}
@@ -714,7 +773,7 @@ export default function DonationsPage() {
         </div>
       </Card>
 
-      {/* Modal Profile Detail Shelter / Panti Asuhan */}
+      {/* Modal Profile Detail Shelter / Penerima Bantuan */}
       <Modal
         isOpen={!!selectedShelterProfile}
         onClose={() => setSelectedShelterProfile(null)}
@@ -742,7 +801,7 @@ export default function DonationsPage() {
 
             <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
               <div>
-                <span className="text-slate-500 font-semibold block">Ketua / Pengurus Panti:</span>
+                <span className="text-slate-500 font-semibold block">Pengurus / Perwakilan Penerima:</span>
                 <span className="font-extrabold text-[#1B3A5C]">{selectedShelterProfile.leaderName}</span>
               </div>
               <div>
@@ -754,7 +813,7 @@ export default function DonationsPage() {
                 <span className="font-bold text-slate-800">{selectedShelterProfile.beneficiariesCount} Jiwa</span>
               </div>
               <div>
-                <span className="text-slate-500 font-semibold block">Izin Resmi Dinsos:</span>
+                <span className="text-slate-500 font-semibold block">Identitas Verifikasi:</span>
                 <span className="font-mono font-bold text-slate-800">{selectedShelterProfile.legalPermit}</span>
               </div>
             </div>
@@ -765,7 +824,7 @@ export default function DonationsPage() {
               rel="noreferrer"
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
-              <span>💬 Hubungi WhatsApp Pengurus Panti (Koordinasi Direct)</span>
+              <span>💬 Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct)</span>
             </a>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
@@ -787,14 +846,14 @@ export default function DonationsPage() {
                   className="w-full h-full filter saturate-150"
                 />
                 <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                  📍 Titik Lokasi Panti: {selectedShelterProfile.shelterName}
+                  📍 Titik Lokasi: {selectedShelterProfile.shelterName}
                 </div>
               </div>
             </div>
 
             <div className="flex justify-end pt-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>
-                Tutup Profil Shelter
+                Tutup Profil Penerima
               </Button>
             </div>
           </div>
@@ -821,7 +880,7 @@ export default function DonationsPage() {
               </div>
 
               <h4 className="text-xl font-black text-white leading-snug drop-shadow-xs">
-                {selectedRequest.shelterName} ({selectedRequest.beneficiariesCount} Anak/Lansia)
+                {selectedRequest.shelterName} ({selectedRequest.beneficiariesCount} Jiwa Penerima)
               </h4>
 
               <p className="text-xs text-slate-100 font-semibold flex items-center gap-2 pt-0.5">
@@ -884,7 +943,7 @@ export default function DonationsPage() {
 
               {!matchAnalysis.isMatch && (
                 <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
-                  ⚠️ Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan shelter ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
+                  ⚠️ Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan penerima ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
                 </p>
               )}
             </div>
@@ -918,13 +977,13 @@ export default function DonationsPage() {
 
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#1B3A5C]">4. Metode Pengiriman Yang Diminta Shelter:</span>
+                <span className="font-bold text-[#1B3A5C]">4. Metode Pengiriman Yang Diminta Penerima:</span>
                 <Badge variant="primary">
                   {selectedRequest.preferredDelivery === 'RESCUE_COURIER'
                     ? '🛵 Kurir Relawan Komunitas'
                     : selectedRequest.preferredDelivery === 'PROVIDER_DIRECT'
                     ? '🚚 Diantar Langsung Toko'
-                    : '🏢 Diambil Mandiri Panti'}
+                    : '🏢 Ambil Mandiri Penerima'}
                 </Badge>
               </div>
 
@@ -937,7 +996,7 @@ export default function DonationsPage() {
                     <span>Penyesuaian Kemampuan Armada Toko:</span>
                   </div>
                   <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-                    Shelter meminta pengiriman mandiri oleh toko. Karena outlet Anda belum mengaktifkan armada kurir mandiri, metode pengiriman <strong>dialihkan secara otomatis ke Kurir Relawan Komunitas Replate (🛵)</strong> agar donasi tetap berjalan lancar!
+                    Penerima meminta pengiriman mandiri oleh toko. Karena outlet Anda belum mengaktifkan armada kurir mandiri, metode pengiriman <strong>dialihkan secara otomatis ke Kurir Relawan Komunitas Replate (🛵)</strong> agar donasi tetap berjalan lancar!
                   </p>
                 </div>
               )}
@@ -949,7 +1008,7 @@ export default function DonationsPage() {
                     ? '🛵 Kurir Relawan Replate (Auto Assigned)'
                     : effectiveDeliveryMethod === 'PROVIDER_DIRECT'
                     ? '🚚 Diantar Langsung Toko'
-                    : '🏢 Ambil Mandiri Panti'}
+                    : '🏢 Ambil Mandiri Penerima'}
                 </span>
               </div>
             </div>
@@ -1003,7 +1062,6 @@ export default function DonationsPage() {
               </p>
             </div>
 
-            {/* QR Code Graphic Box */}
             <div className="flex flex-col items-center justify-center p-6 bg-slate-900 text-white rounded-2xl space-y-3 shadow-md border border-slate-700">
               <div className="w-40 h-40 bg-white p-3 rounded-xl shadow-inner flex items-center justify-center">
                 <img
@@ -1039,7 +1097,6 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Direct Navigation Buttons to Public Track & Provider Claims */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
                 type="button"
@@ -1068,10 +1125,10 @@ export default function DonationsPage() {
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
                 <span className="font-bold text-xs text-amber-900 block">🚚 Alur Diantar Langsung oleh Provider:</span>
                 <p className="text-[11px] text-amber-800">
-                  Setelah armada Anda sampai di panti asuhan, unggah foto penyerahan sebagai bukti verifikasi penyelesaian donasi.
+                  Setelah armada Anda sampai di lokasi penerima bantuan, unggah foto penyerahan sebagai bukti verifikasi penyelesaian donasi.
                 </p>
                 <label className="inline-block px-3 py-1.5 bg-[#1B3A5C] text-white font-bold text-xs rounded-xl cursor-pointer hover:bg-[#2C5A8F]">
-                  Upload Foto Bukti Sampai di Panti
+                  Upload Foto Bukti Sampai di Penerima
                   <input
                     type="file"
                     accept="image/*"
@@ -1081,7 +1138,7 @@ export default function DonationsPage() {
                         setProviderDeliveryPhoto(url);
                         setToastState({
                           isOpen: true,
-                          message: 'Foto bukti serah terima di panti berhasil diunggah! Status donasi kini SELESAI (COMPLETED).',
+                          message: 'Foto bukti serah terima penerima bantuan berhasil diunggah! Status donasi kini SELESAI (COMPLETED).',
                           type: 'success',
                         });
                       }
@@ -1115,10 +1172,9 @@ export default function DonationsPage() {
               </p>
             </div>
 
-            {/* Google Maps Delivery Route Embed */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Peta Rute Logistik Penyelamatan Panti</h4>
+                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Peta Rute Logistik Penyelamatan Penerima Bantuan</h4>
                 <span className="text-[10px] font-mono font-bold text-slate-500">Surabaya Geofencing Active</span>
               </div>
               <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
@@ -1132,12 +1188,11 @@ export default function DonationsPage() {
                   className="w-full h-full filter saturate-150"
                 />
                 <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                  📍 Lokasi Pengiriman: {activeTrackingModalItem.shelterName}
+                  📍 Lokasi Penerima: {activeTrackingModalItem.shelterName}
                 </div>
               </div>
             </div>
 
-            {/* Stepper Timeline Progress */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
               <span className="font-extrabold text-[#1B3A5C] block">Timeline Progress Penyelamatan Real-Time:</span>
               
@@ -1145,7 +1200,6 @@ export default function DonationsPage() {
                 const isDone = activeTrackingModalItem.status === 'COMPLETED' || activeTrackingModalItem.status === 'VERIFIED';
                 return (
                   <div className="space-y-3 pl-3 border-l-2 border-[#1B3A5C]">
-                    {/* Step 1 */}
                     <div className="relative pl-3">
                       <span className="absolute -left-[19px] top-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
                       <span className="font-extrabold text-emerald-800 block text-xs">1. Donasi Dialokasikan & Resi QR Diterbitkan</span>
@@ -1154,11 +1208,10 @@ export default function DonationsPage() {
                       </span>
                     </div>
 
-                    {/* Step 2 */}
                     <div className="relative pl-3">
                       <span className={`absolute -left-[19px] top-1 w-3 h-3 rounded-full border-2 border-white ${isDone ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
                       <span className={`font-extrabold block text-xs ${isDone ? 'text-emerald-800' : 'text-amber-900'}`}>
-                        {isDone ? '2. Makanan Diambil & Dalam Penyaluran Ke Panti' : `2. Status Penyaluran: ${getHumanReadableStatusLabel(activeTrackingModalItem.status)}`}
+                        {isDone ? '2. Makanan Diambil & Dalam Penyaluran Ke Penerima' : `2. Status Penyaluran: ${getHumanReadableStatusLabel(activeTrackingModalItem.status)}`}
                       </span>
                       <span className="text-[11px] text-slate-600 font-medium leading-relaxed block">
                         {isDone
@@ -1166,12 +1219,11 @@ export default function DonationsPage() {
                           : activeTrackingModalItem.deliveryMethod === 'PROVIDER_DIRECT'
                           ? `Armada toko Anda dalam alur pengiriman langsung menuju lokasi penerima (${activeTrackingModalItem.shelterName}).`
                           : activeTrackingModalItem.deliveryMethod === 'SHELTER_PICKUP'
-                          ? `Pengurus Panti Asuhan (${activeTrackingModalItem.shelterName}) dalam alur penjemputan mandiri ke toko Anda.`
+                          ? `Penerima Bantuan (${activeTrackingModalItem.shelterName}) dalam alur penjemputan mandiri ke toko Anda.`
                           : `Kurir Relawan Replate telah mengambil makanan di toko & sedang dalam perjalanan menuju lokasi penerima (${activeTrackingModalItem.shelterName}).`}
                       </span>
                     </div>
 
-                    {/* Step 3 */}
                     <div className="relative pl-3">
                       <span className={`absolute -left-[19px] top-1 w-3 h-3 rounded-full border-2 border-white ${isDone ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                       <span className={`font-bold block text-xs ${isDone ? 'text-emerald-800 font-extrabold' : 'text-slate-700'}`}>
@@ -1179,7 +1231,7 @@ export default function DonationsPage() {
                       </span>
                       <span className="text-[11px] text-slate-500 font-medium block">
                         {isDone
-                          ? `✓ Makanan surplus (${activeTrackingModalItem.quantity}) telah resmi diserahkan & diverifikasi via Kode QR oleh pengurus ${activeTrackingModalItem.shelterName}.`
+                          ? `✓ Makanan surplus (${activeTrackingModalItem.quantity}) telah resmi diserahkan & diverifikasi via Kode QR oleh penerima (${activeTrackingModalItem.shelterName}).`
                           : `Menunggu verifikasi scan Kode QR saat armada kurir tiba di lokasi penerima (${activeTrackingModalItem.shelterName}).`}
                       </span>
                     </div>
@@ -1193,7 +1245,6 @@ export default function DonationsPage() {
                 Tutup Pelacak
               </Button>
 
-              {/* Direct Redirect Button to Public Tracking Page */}
               <button
                 type="button"
                 onClick={() => {
@@ -1209,17 +1260,17 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Ajukan Request Baru oleh Shelter */}
+      {/* Modal Ajukan Request Baru oleh Penerima */}
       <Modal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        title="Ajukan Permintaan Bantuan Donasi Makanan Panti"
+        title="Ajukan Permintaan Bantuan Donasi Makanan"
         size="md"
       >
         <form onSubmit={handleAddRequestSubmit} className="space-y-4 text-xs">
           <Input
-            label="Nama Yayasan / Panti Asuhan / Shelter"
-            placeholder="Contoh: Panti Asuhan Kasih Ibu"
+            label="Nama Lembaga / Shelter / Yayasan / Individu Penerima"
+            placeholder="Contoh: Panti Asuhan Kasih Ibu / Keluarga Ibu Ratna"
             value={newShelterName}
             onChange={(e) => setNewShelterName(e.target.value)}
             required
@@ -1264,7 +1315,7 @@ export default function DonationsPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#343A40]">Metode Pengiriman Yang Diinginkan Panti</label>
+            <label className="text-xs font-semibold text-[#343A40]">Metode Pengiriman Yang Diinginkan Penerima</label>
             <select
               className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2 bg-white font-bold text-[#1B3A5C]"
               value={newDeliveryPref}
@@ -1272,16 +1323,16 @@ export default function DonationsPage() {
             >
               <option value="RESCUE_COURIER">🛵 Disalurkan via Kurir Relawan Komunitas Replate (Rekomendasi)</option>
               <option value="PROVIDER_DIRECT">🚚 Diantar Langsung oleh Armada Toko / Restoran</option>
-              <option value="SHELTER_PICKUP">🏢 Diambil Mandiri oleh Pengurus Panti Asuhan</option>
+              <option value="SHELTER_PICKUP">🏢 Diambil Mandiri oleh Penerima Manfaat</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#343A40]">Deskripsi Rincian Kebutuhan Panti</label>
+            <label className="text-xs font-semibold text-[#343A40]">Deskripsi Rincian Kebutuhan Penerima</label>
             <textarea
               className="w-full rounded-xl border border-slate-300 text-xs p-3 focus:outline-none focus:border-[#1B3A5C]"
               rows={3}
-              placeholder="Jelaskan porsi, batas waktu, dan kebutuhan gizi anak-anak panti..."
+              placeholder="Jelaskan porsi, batas waktu, dan kebutuhan gizi penerima..."
               value={newNotes}
               onChange={(e) => setNewNotes(e.target.value)}
               required
