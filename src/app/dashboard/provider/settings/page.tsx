@@ -19,8 +19,11 @@ export default function ProviderSettingsPage() {
   const [nib, setNib] = useState('NIB-9120481023912');
   const [businessCategory, setBusinessCategory] = useState('Restoran / Warung Kuliner');
   const [pickupHours, setPickupHours] = useState('19:00 - 22:00 WIB');
+  const [halalCertNo, setHalalCertNo] = useState('ID35110001298450123');
+  const [defaultPackaging, setDefaultPackaging] = useState('Kemasan Boks Biodegradable (Steril)');
   const [autoMatchPanti, setAutoMatchPanti] = useState(true);
   const [waAlerts, setWaAlerts] = useState(true);
+  const [autoExpireAlert, setAutoExpireAlert] = useState(true);
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -32,24 +35,24 @@ export default function ProviderSettingsPage() {
     e.preventDefault();
     setToastState({
       isOpen: true,
-      message: 'Pengaturan outlet & profil usaha mitra berhasil disimpan!',
+      message: 'Seluruh pengaturan outlet & profil usaha mitra berhasil disimpan!',
       type: 'success',
     });
   };
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Top Banner (Poin 5) */}
+      {/* Top Banner */}
       <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg border border-[#2C5A8F] space-y-2">
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md shadow-xs">
             Pengaturan Akun Provider
           </span>
-          <span className="text-xs text-slate-200 font-semibold">100% Terverifikasi SOP BPOM</span>
+          <span className="text-xs text-slate-200 font-semibold">100% Terverifikasi SOP BPOM RI</span>
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Pengaturan Outlet & Profil Usaha</h1>
-        <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
-          Kelola informasi legalitas bisnis, lokasi penjemputan utama, jam operasional pickup, dan preferensi notifikasi klaim otomatis.
+        <p className="text-xs text-slate-100 leading-relaxed max-w-3xl font-medium">
+          Pusat kendali operasional mitra restoran: kelola kredensial legalitas NIB, titik koordinat GPS Surabaya, jam pickup surplus, kriteria higienitas BPOM, dan preferensi notifikasi klaim real-time.
         </p>
       </div>
 
@@ -64,7 +67,7 @@ export default function ProviderSettingsPage() {
                 </svg>
                 <span>1. Identitas Usaha & Legalitas Bisnis</span>
               </h3>
-              <Badge variant="success">VERIFIED PRO</Badge>
+              <Badge variant="success">VERIFIED PRO GRADE A</Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -90,14 +93,14 @@ export default function ProviderSettingsPage() {
               </div>
 
               <Input
-                label="Nomor NIB / Izin Usaha Resmi"
+                label="Nomor NIB / Izin Usaha Resmi (BPOM Verified)"
                 value={nib}
                 onChange={(e) => setNib(e.target.value)}
                 required
               />
 
               <Input
-                label="Email Resmi Outlet"
+                label="Email Resmi Operasional Outlet"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -116,13 +119,13 @@ export default function ProviderSettingsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>2. Lokasi Penjemputan & Jam Operasional</span>
+                <span>2. Geofencing Lokasi Surabaya & Jam Pickup</span>
               </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-[#343A40]">Wilayah Surabaya</label>
+                <label className="text-xs font-semibold text-[#343A40]">Wilayah Operasional Surabaya</label>
                 <select
                   className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
                   value={district}
@@ -137,7 +140,7 @@ export default function ProviderSettingsPage() {
               </div>
 
               <Input
-                label="Kontak HP / WhatsApp PIC Penjemputan"
+                label="No. WhatsApp / Telepon PIC Penjemputan"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -145,7 +148,7 @@ export default function ProviderSettingsPage() {
 
               <div className="md:col-span-2">
                 <Input
-                  label="Alamat Utama Penjemputan Makanan Surplus"
+                  label="Alamat Utama Penjemputan Makanan Surplus (Titik GPS)"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   required
@@ -163,15 +166,50 @@ export default function ProviderSettingsPage() {
           </CardBody>
         </Card>
 
-        {/* Section 3: Preferensi Smart Matching & Notifikasi */}
+        {/* Section 3: Standar Kredensial Keamanan Pangan & BPOM */}
         <Card className="border-slate-200 shadow-xs">
           <CardBody className="p-6 space-y-4">
             <div className="border-b border-slate-200 pb-3">
               <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
                 <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>3. Standar Kredensial Higienitas & Halal BPOM</span>
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <Input
+                label="Nomor Sertifikasi Halal (BPJPH / MUI)"
+                value={halalCertNo}
+                onChange={(e) => setHalalCertNo(e.target.value)}
+              />
+
+              <Input
+                label="Standar Kemasan Default Toko"
+                value={defaultPackaging}
+                onChange={(e) => setDefaultPackaging(e.target.value)}
+              />
+            </div>
+
+            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-xs space-y-1">
+              <span className="font-extrabold block">Status Audit SOP BPOM RI:</span>
+              <p className="text-emerald-800 leading-relaxed font-medium">
+                Outlet Anda telah lulus verifikasi audit 8-Checklist Higienitas Replate & berhak menerbitkan Sertifikat Penyelamat Pangan resmi untuk laporan CSR perusahaan.
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Section 4: Preferensi Otomatisasi & Notifikasi */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span>3. Preferensi Notifikasi & Algoritma Otomatis</span>
+                <span>4. Preferensi Smart Matching & Notifikasi WhatsApp</span>
               </h3>
             </div>
 
@@ -192,12 +230,25 @@ export default function ProviderSettingsPage() {
               <label className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
                 <div>
                   <span className="font-extrabold text-[#1B3A5C] block">Notifikasi WhatsApp Real-Time</span>
-                  <span className="text-slate-500 block text-[11px]">Kirimkan notifikasi WhatsApp instan setiap ada klaim baru atau serah terima QR.</span>
+                  <span className="text-slate-500 block text-[11px]">Kirimkan notifikasi WhatsApp instan setiap ada klaim baru atau verifikasi Kode QR.</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={waAlerts}
                   onChange={(e) => setWaAlerts(e.target.checked)}
+                  className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-[#1B3A5C] block">Peringatan Otomatis 30 Menit Sebelum Pickup Expire</span>
+                  <span className="text-slate-500 block text-[11px]">Sistem akan mengirim peringatan jika ada listing yang mendekati batas waktu penjemputan.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={autoExpireAlert}
+                  onChange={(e) => setAutoExpireAlert(e.target.checked)}
                   className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
                 />
               </label>
