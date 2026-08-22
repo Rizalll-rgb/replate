@@ -8,6 +8,25 @@ import { Input } from '@/components/ui/Input';
 import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+
+// Poin 1: Human-Readable Indonesian Status Label Helper
+const getHumanReadableStatusLabel = (statusCode: string) => {
+  switch (statusCode) {
+    case 'AWAITING_RESCUE_PICKUP':
+      return '🛵 Menunggu Penjemputan Kurir Relawan';
+    case 'READY_FOR_PICKUP':
+      return '🏢 Siap Diambil Mandiri oleh Pengurus Panti';
+    case 'PROVIDER_DELIVERING':
+      return '🚚 Dalam Pengiriman Armada Toko';
+    case 'COMPLETED':
+      return '✓ Donasi Berhasil Diserahkan & Selesai';
+    case 'MATCHED & PROCESSED':
+      return '✓ Donasi Ter-Match & Diproses';
+    default:
+      return statusCode || 'Proses Penyelamatan';
+  }
+};
 
 export default function DonationsPage() {
   const { data: session } = useSession();
@@ -15,6 +34,12 @@ export default function DonationsPage() {
 
   // Provider Direct Delivery Fleet Capability
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
+
+  // Search & Multi-Filter Control Bar State (Poin 5 & Poin 6)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterLocation, setFilterLocation] = useState('ALL');
+  const [filterCategory, setFilterCategory] = useState('ALL');
+  const [filterUrgency, setFilterUrgency] = useState('ALL');
 
   // Active Provider Surplus Inventory
   const [providerInventory, setProviderInventory] = useState<any[]>([
@@ -104,6 +129,19 @@ export default function DonationsPage() {
     },
   ]);
 
+  // Provider Funded Donation History (Poin 2)
+  const [providerDonationHistory, setProviderDonationHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      if (savedClaimsStr) {
+        const claims = JSON.parse(savedClaimsStr);
+        setProviderDonationHistory(claims);
+      }
+    } catch (_) {}
+  }, []);
+
   // Add Request Modal State
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [newShelterName, setNewShelterName] = useState('');
@@ -124,6 +162,9 @@ export default function DonationsPage() {
   const [readyTime, setReadyTime] = useState('18:30 WIB');
   const [hygieneChecked, setHygieneChecked] = useState(true);
 
+  // Live Tracking Modal State (Poin 2)
+  const [activeTrackingModalItem, setActiveTrackingModalItem] = useState<any | null>(null);
+
   // Success QR Ticket Receipt State
   const [completedTicket, setCompletedTicket] = useState<any | null>(null);
   const [providerDeliveryPhoto, setProviderDeliveryPhoto] = useState<string | null>(null);
@@ -132,6 +173,20 @@ export default function DonationsPage() {
     isOpen: false,
     message: '',
     type: 'success',
+  });
+
+  // Filtered Requests Logic (Poin 5 & Poin 6)
+  const filteredRequests = requests.filter((req) => {
+    const matchesSearch =
+      req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesLocation = filterLocation === 'ALL' || req.location === filterLocation;
+    const matchesCategory = filterCategory === 'ALL' || req.foodCategoryNeeded === filterCategory;
+    const matchesUrgency = filterUrgency === 'ALL' || req.urgency === filterUrgency;
+
+    return matchesSearch && matchesLocation && matchesCategory && matchesUrgency;
   });
 
   const handleOpenFulfillModal = (req: any) => {
@@ -159,10 +214,10 @@ export default function DonationsPage() {
     if (!food || !request) return { score: 0, isMatch: false, breakdown: [] };
 
     let categoryScore = food.category === request.foodCategoryNeeded ? 30 : 0;
-    let distScore = 25; // Default GPS proximity (Surabaya Radius < 3km)
+    let distScore = 25;
     let timeScore = request.urgency === 'HIGH' ? 20 : 15;
     let portionScore = Math.min(15, Math.round(((food.quantity || 1) / (request.beneficiariesCount || 1)) * 15));
-    let hygieneScore = 10; // 100% BPOM Certified
+    let hygieneScore = 10;
 
     const totalScore = categoryScore + distScore + timeScore + portionScore + hygieneScore;
 
@@ -243,7 +298,9 @@ export default function DonationsPage() {
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
       const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
-      localStorage.setItem('replate_claims', JSON.stringify([newClaimRecord, ...existingClaims]));
+      const updatedClaims = [newClaimRecord, ...existingClaims];
+      localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
+      setProviderDonationHistory(updatedClaims);
     } catch (_) {}
 
     setRequests((prev) =>
@@ -345,29 +402,139 @@ export default function DonationsPage() {
         )}
       </div>
 
-      {/* Grid List Permintaan Donasi Shelter */}
-      <div className="space-y-4">
+      {/* Metric Counters Widget (Poin 7 - Developer Recommendation) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 border-slate-200 bg-white shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#D4A843] flex items-center justify-center font-black text-lg">
+              🍱
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 font-semibold block">Total Donasi Dihibahkan</span>
+              <h4 className="text-lg font-black text-[#1B3A5C]">125 Porsi Steril</h4>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 border-slate-200 bg-white shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-lg">
+              🏛️
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 font-semibold block">Yayasan / Panti Terbantu</span>
+              <h4 className="text-lg font-black text-[#1B3A5C]">3 Panti Surabaya</h4>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 border-slate-200 bg-white shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-lg">
+              🛵
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 font-semibold block">Resi Tracking Penyelamatan</span>
+              <h4 className="text-lg font-black text-[#1B3A5C]">{providerDonationHistory.length} Resi Aktif</h4>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Search & Multi-Filter Control Bar (Poin 5 & Poin 6) */}
+      <Card className="p-4 bg-white border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h6m-6 0V10m0 0h6m-6 0H7" />
+          <h3 className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-2">
+            <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span>Daftar Permintaan Donasi Aktif ({requests.length} Shelter)</span>
+            <span>Pencarian & Filter Kebutuhan Panti Surabaya</span>
           </h3>
-          <span className="text-xs text-slate-500 font-semibold">Wilayah Kota Surabaya</span>
+          <span className="text-[11px] font-bold text-slate-500">Menampilkan {filteredRequests.length} dari {requests.length} Shelter</span>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+          {/* Search Field */}
+          <div className="sm:col-span-1">
+            <Input
+              placeholder="🔍 Cari nama panti / catatan..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="text-xs"
+            />
+          </div>
+
+          {/* Filter Wilayah */}
+          <div>
+            <select
+              className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+              value={filterLocation}
+              onChange={(e) => setFilterLocation(e.target.value)}
+            >
+              <option value="ALL">🏙️ Semua Wilayah Surabaya</option>
+              <option value="Surabaya Pusat">Surabaya Pusat</option>
+              <option value="Surabaya Timur">Surabaya Timur</option>
+              <option value="Surabaya Selatan">Surabaya Selatan</option>
+              <option value="Surabaya Barat">Surabaya Barat</option>
+              <option value="Surabaya Utara">Surabaya Utara</option>
+            </select>
+          </div>
+
+          {/* Filter Kategori Pangan */}
+          <div>
+            <select
+              className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+            >
+              <option value="ALL">🥗 Semua Kategori Pangan</option>
+              <option value="Makanan Olahan (Meals)">Makanan Olahan (Meals)</option>
+              <option value="Roti, Buah & Susu (Bakery & Dairy)">Roti, Buah & Susu (Bakery & Dairy)</option>
+              <option value="Bahan Pokok (Produce)">Bahan Sembako (Produce)</option>
+            </select>
+          </div>
+
+          {/* Filter Urgensi */}
+          <div>
+            <select
+              className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+              value={filterUrgency}
+              onChange={(e) => setFilterUrgency(e.target.value)}
+            >
+              <option value="ALL">🚨 Semua Tingkat Urgensi</option>
+              <option value="HIGH">URGENT (Segera)</option>
+              <option value="MEDIUM">MEMBUTUHKAN</option>
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      {/* Grid List Permintaan Donasi Shelter */}
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {requests.map((req) => (
+          {filteredRequests.map((req) => (
             <Card key={req.id} className="border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
-              <div className="relative w-full h-36 bg-slate-200 overflow-hidden">
+              {/* Photo Banner Header with HIGH CONTRAST BADGES (Poin 3) */}
+              <div className="relative w-full h-40 bg-slate-900 overflow-hidden">
                 <img src={req.photoUrl} alt={req.shelterName} className="w-full h-full object-cover opacity-90" />
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                  <Badge variant={req.status === 'MATCHED & PROCESSED' ? 'success' : req.urgency === 'HIGH' ? 'danger' : 'warning'} size="sm">
-                    {req.status === 'MATCHED & PROCESSED' ? '✓ MATCHED' : req.urgency === 'HIGH' ? 'URGENT' : 'MEMBUTUHKAN'}
-                  </Badge>
+                  {/* High Contrast Pill Badges (Poin 3) */}
+                  {req.status === 'MATCHED & PROCESSED' ? (
+                    <span className="px-3 py-1 bg-emerald-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
+                      ✓ MATCHED
+                    </span>
+                  ) : req.urgency === 'HIGH' ? (
+                    <span className="px-3 py-1 bg-red-600 text-white font-black text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
+                      🔥 URGENT
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
+                      MEMBUTUHKAN
+                    </span>
+                  )}
                 </div>
-                <div className="absolute bottom-2 right-2 bg-slate-900/80 text-white px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold">
+                {/* High Contrast Location Badge (Poin 3) */}
+                <div className="absolute bottom-2.5 right-2.5 bg-slate-900/90 text-white px-3 py-1 rounded-md text-[10px] font-mono font-bold shadow-md border border-slate-700/80 backdrop-blur-xs">
                   📍 {req.location}
                 </div>
               </div>
@@ -455,12 +622,12 @@ export default function DonationsPage() {
                 alt={selectedShelterProfile.shelterName}
                 className="w-full h-full object-cover opacity-90"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent flex items-end p-4 text-white">
                 <div>
                   <Badge variant="gold" size="sm" className="mb-1">
                     {selectedShelterProfile.shelterType}
                   </Badge>
-                  <h3 className="text-lg font-extrabold text-white">{selectedShelterProfile.shelterName}</h3>
+                  <h3 className="text-xl font-black text-white">{selectedShelterProfile.shelterName}</h3>
                   <p className="text-xs text-slate-200">{selectedShelterProfile.address}</p>
                 </div>
               </div>
@@ -484,6 +651,16 @@ export default function DonationsPage() {
                 <span className="font-mono font-bold text-slate-800">{selectedShelterProfile.legalPermit}</span>
               </div>
             </div>
+
+            {/* Direct WhatsApp Coordination Button (Poin 7) */}
+            <a
+              href={`https://wa.me/${selectedShelterProfile.contactPhone.replace(/^0/, '62')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
+            >
+              <span>💬 Hubungi WhatsApp Pengurus Panti (Koordinasi Direct)</span>
+            </a>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
@@ -518,7 +695,7 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Interactive Fulfill Donation Flow dengan Smart Matching 2.0 AI Scorecard */}
+      {/* Modal Interactive Fulfill Donation Flow (Poin 4 - HIGH CONTRAST WHITE TEXT HEADER) */}
       <Modal
         isOpen={!!selectedRequest}
         onClose={() => setSelectedRequest(null)}
@@ -527,17 +704,28 @@ export default function DonationsPage() {
       >
         {selectedRequest && (
           <form onSubmit={handleConfirmFulfillSubmit} className="space-y-4 text-xs">
-            {/* Target Summary Card */}
-            <div className="p-4 bg-[#1B3A5C] text-white rounded-xl space-y-1">
+            {/* Target Summary Card with CRISP WHITE TEXT CONTRAST (Poin 4) */}
+            <div className="p-5 bg-[#1B3A5C] text-white rounded-2xl space-y-1.5 shadow-md border border-[#2C5A8F]">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-wider">Target Penerima Bantuan Pangan</span>
-                <span className="px-2.5 py-0.5 bg-[#D4A843] text-slate-900 font-extrabold text-[10px] rounded-md">
+                <span className="text-[11px] font-black uppercase text-[#D4A843] tracking-widest block">
+                  TARGET PENERIMA BANTUAN PANGAN
+                </span>
+                <span className="px-3 py-1 bg-[#D4A843] text-slate-950 font-black text-[10px] rounded-md shadow-xs">
                   Kebutuhan: {selectedRequest.foodCategoryNeeded}
                 </span>
               </div>
-              <h4 className="text-base font-extrabold">{selectedRequest.shelterName} ({selectedRequest.beneficiariesCount} Anak/Lansia)</h4>
-              <p className="text-xs text-slate-200">
-                Lokasi: {selectedRequest.location} • Delivery Pref: {selectedRequest.preferredDelivery === 'RESCUE_COURIER' ? '🛵 Kurir Relawan' : selectedRequest.preferredDelivery === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🏢 Ambil Mandiri'}
+
+              {/* Crisp White Title (Poin 4) */}
+              <h4 className="text-xl font-black text-white leading-snug drop-shadow-xs">
+                {selectedRequest.shelterName} ({selectedRequest.beneficiariesCount} Anak/Lansia)
+              </h4>
+
+              <p className="text-xs text-slate-100 font-semibold flex items-center gap-2 pt-0.5">
+                <span>📍 Lokasi: {selectedRequest.location}</span>
+                <span>•</span>
+                <span>
+                  Delivery Pref: {selectedRequest.preferredDelivery === 'RESCUE_COURIER' ? '🛵 Kurir Relawan' : selectedRequest.preferredDelivery === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🏢 Ambil Mandiri'}
+                </span>
               </p>
             </div>
 
@@ -555,7 +743,6 @@ export default function DonationsPage() {
                 </Badge>
               </div>
 
-              {/* Breakdown 5-Pilar Multi-Kriteria */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-[10px] pt-1 border-t border-slate-800">
                 {matchAnalysis.breakdown.map((item, idx) => (
                   <div key={idx} className="bg-slate-800/80 p-2 rounded-lg border border-slate-700 text-center">
@@ -701,7 +888,7 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Tiket Receipt Kode QR & Tracking Integration */}
+      {/* Modal Tiket Receipt Kode QR & Direct Link Live Tracking (Poin 1 & Poin 2) */}
       <Modal
         isOpen={!!completedTicket}
         onClose={() => setCompletedTicket(null)}
@@ -746,9 +933,23 @@ export default function DonationsPage() {
                 <span className="font-bold text-slate-800">{completedTicket.foodName}</span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Status Tracking:</span>
-                <span className="font-extrabold text-[#D4A843]">{completedTicket.initialStatus}</span>
+                <span className="text-slate-500 font-medium block">Status Tracking (Bahasa):</span>
+                {/* Human-Readable Status Label (Poin 1) */}
+                <span className="font-extrabold text-[#D4A843] block mt-0.5">
+                  {getHumanReadableStatusLabel(completedTicket.initialStatus)}
+                </span>
               </div>
+            </div>
+
+            {/* Direct Link to Claims & Live Tracking (Poin 2) */}
+            <div className="space-y-2">
+              <Link
+                href="/dashboard/provider/claims"
+                onClick={() => setCompletedTicket(null)}
+                className="w-full py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-900 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors"
+              >
+                <span>Lacak Penyelamatan Real-Time di Menu Klaim ➔</span>
+              </Link>
             </div>
 
             {completedTicket.deliveryMethod === 'PROVIDER_DIRECT' && (
@@ -781,15 +982,102 @@ export default function DonationsPage() {
                 )}
               </div>
             )}
+          </div>
+        )}
+      </Modal>
 
-            <Button
-              variant="gold"
-              size="md"
-              className="w-full font-extrabold"
-              onClick={() => setCompletedTicket(null)}
-            >
-              Selesai & Cek Tracking Penyelamatan ➔
-            </Button>
+      {/* Provider Funded Donation History Section (Poin 2) */}
+      {providerDonationHistory.length > 0 && (
+        <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="text-sm font-extrabold text-[#1B3A5C] flex items-center gap-2">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>Riwayat Donasi Disalurkan Toko Saya ({providerDonationHistory.length} Resi)</span>
+            </h3>
+            <Link href="/dashboard/provider/claims" className="text-xs font-bold text-[#1B3A5C] hover:underline">
+              Kelola di Penyelamatan ➔
+            </Link>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            {providerDonationHistory.map((history) => (
+              <div key={history.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-black text-[#D4A843]">{history.claimCode || history.id}</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md">
+                      {getHumanReadableStatusLabel(history.status)}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-[#1B3A5C] mt-0.5">{history.shelterName} — {history.foodName} ({history.quantity} Porsi)</h4>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTrackingModalItem(history)}
+                    className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-lg transition-colors"
+                  >
+                    Lacak Status Penyelamatan ➔
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Live Tracking Status Modal (Poin 2) */}
+      <Modal
+        isOpen={!!activeTrackingModalItem}
+        onClose={() => setActiveTrackingModalItem(null)}
+        title={`Pelacak Status Penyelamatan: ${activeTrackingModalItem?.claimCode}`}
+        size="md"
+      >
+        {activeTrackingModalItem && (
+          <div className="space-y-4 text-xs">
+            <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-2">
+              <span className="text-[10px] text-slate-400 font-mono block">RESI STATUS REAL-TIME:</span>
+              <h3 className="text-lg font-black text-[#D4A843]">{activeTrackingModalItem.claimCode}</h3>
+              <p className="text-xs text-slate-200">
+                Penerima: <strong>{activeTrackingModalItem.shelterName}</strong> • {activeTrackingModalItem.foodName} ({activeTrackingModalItem.quantity} Porsi)
+              </p>
+            </div>
+
+            {/* Stepper Timeline */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <span className="font-extrabold text-[#1B3A5C] block">Timeline Status Penyelamatan:</span>
+              <div className="space-y-2.5 pl-3 border-l-2 border-[#1B3A5C]">
+                <div className="relative pl-3">
+                  <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                  <span className="font-bold text-slate-900 block">1. Donasi Dialokasikan & Resi Diterbitkan</span>
+                  <span className="text-[10px] text-slate-500">{activeTrackingModalItem.createdAt || 'Baru Saja'}</span>
+                </div>
+                <div className="relative pl-3">
+                  <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 bg-amber-500 rounded-full" />
+                  <span className="font-bold text-slate-900 block">2. Status Saat Ini: {getHumanReadableStatusLabel(activeTrackingModalItem.status)}</span>
+                  <span className="text-[10px] text-slate-500">Penjemputan disiapkan di lokasi toko</span>
+                </div>
+                <div className="relative pl-3 opacity-60">
+                  <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full" />
+                  <span className="font-bold text-slate-700 block">3. Verifikasi QR Scan & Serah Terima Selesai</span>
+                  <span className="text-[10px] text-slate-400">Menunggu scan fisik di lokasi panti</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setActiveTrackingModalItem(null)}>
+                Tutup Pelacak
+              </Button>
+              <Link href="/dashboard/provider/claims">
+                <Button variant="gold" size="sm" className="font-extrabold">
+                  Buka Kelola Penyelamatan ➔
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
       </Modal>
