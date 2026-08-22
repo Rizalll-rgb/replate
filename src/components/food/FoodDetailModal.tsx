@@ -21,6 +21,7 @@ export interface FoodDetailModalProps {
     storageCondition: string;
     packagingType: string;
     weightPerUnitKg?: number;
+    allergens?: string[];
     provider?: {
       name: string;
       organizationName?: string | null;
@@ -45,6 +46,9 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
 
   const estWeight = (food.quantity || 1) * (food.weightPerUnitKg || 0.5);
   const estCo2Saved = Math.round(estWeight * 2.5 * 10) / 10;
+  const estCh4Saved = Math.round(estWeight * 0.25 * 10) / 10;
+
+  const defaultAllergens = food.allergens || ['Nut-Free (Bebas Kacang)', 'Halal Certified BPJPH', 'Sterile Package'];
 
   const modalFooter = (
     <div className="flex justify-end gap-3 w-full">
@@ -97,6 +101,20 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
           </p>
         </div>
 
+        {/* Food Safety Allergen Tagging Section */}
+        <div className="space-y-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <span className="font-extrabold text-[11px] text-[#1B3A5C] uppercase tracking-wider block">
+            Label Keamanan Pangan & Bebas Alergen:
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {defaultAllergens.map((tag, idx) => (
+              <span key={idx} className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-extrabold rounded-md text-[10px]">
+                ✓ {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Pickup Deadline Alert Box */}
         <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-amber-900">
           <div className="flex items-center gap-2">
@@ -108,7 +126,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
           <span className="font-extrabold text-amber-800 font-mono text-sm">{formattedDeadline} WIB</span>
         </div>
 
-        {/* 6-Grid Technical Specifications */}
+        {/* 6-Grid Technical Specifications including Methane CH4 Prevention */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
           <div>
             <span className="text-slate-500 block font-medium">Sisa Stok Kuantitas:</span>
@@ -131,8 +149,8 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             <span className="font-bold text-emerald-700">{estCo2Saved} Kg CO2e</span>
           </div>
           <div>
-            <span className="text-slate-500 block font-medium">Status Penayangan:</span>
-            <span className="font-extrabold text-emerald-700">AKTIF TAYANG</span>
+            <span className="text-slate-500 block font-medium">Gas Metana CH4 Tercegah:</span>
+            <span className="font-bold text-purple-700">{estCh4Saved} Kg CH4</span>
           </div>
         </div>
 

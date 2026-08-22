@@ -7,6 +7,7 @@ export interface ImpactDashboardProps {
   foodWeightKg: number;
   co2SavedKg: number;
   peopleFed: number;
+  ch4SavedKg?: number;
   wasteDivertedPercent?: number;
   providersCount?: number;
   partnersCount?: number;
@@ -18,6 +19,8 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
   peopleFed = 290,
   wasteDivertedPercent = 88.5,
 }) => {
+  const ch4SavedKg = Math.round(foodWeightKg * 0.25 * 10) / 10;
+
   const cards = [
     {
       title: 'Makanan Diselamatkan',
@@ -40,22 +43,22 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
       ),
     },
     {
+      title: 'Gas Metana (CH4) Tercegah',
+      val: `${ch4SavedKg} Kg CH4`,
+      color: 'text-purple-700',
+      icon: (
+        <svg className="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+    },
+    {
       title: 'Penerima Terbantu',
       val: `${peopleFed} Orang`,
       color: 'text-[#D4A843]',
       icon: (
         <svg className="w-6 h-6 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-    },
-    {
-      title: 'Waste Diverted',
-      val: `${wasteDivertedPercent}%`,
-      color: 'text-purple-700',
-      icon: (
-        <svg className="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
       ),
     },
@@ -79,7 +82,7 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-white border-slate-200">
           <CardHeader>
             <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">
@@ -99,6 +102,22 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
         <Card className="bg-white border-slate-200">
           <CardHeader>
             <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">
+              Pengurangan Gas Metana (CH4) TPA
+            </CardTitle>
+          </CardHeader>
+          <CardBody className="text-xs text-slate-600 space-y-1">
+            <p className="text-2xl font-extrabold text-purple-700">
+              {ch4SavedKg} Kg CH4
+            </p>
+            <p className="text-slate-500">
+              Mencegah potensi pembentukan gas metana beracun penyebab efek rumah kaca dari sampah makanan di TPA Benowo Surabaya.
+            </p>
+          </CardBody>
+        </Card>
+
+        <Card className="bg-white border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">
               Setara Pengurangan Jarak Kendaraan
             </CardTitle>
           </CardHeader>
@@ -107,7 +126,7 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
               ~{Math.round(co2SavedKg / 0.192)} Km Perjalanan Mobil
             </p>
             <p className="text-slate-500">
-              Pengurangan gas rumah kaca dari dekomposisi makanan setara dengan tidak mengendarai mobil sejauh ini.
+              Pengurangan emisi gas rumah kaca dari dekomposisi makanan setara dengan tidak mengendarai mobil sejauh ini.
             </p>
           </CardBody>
         </Card>
