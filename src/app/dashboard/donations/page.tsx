@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -13,6 +13,26 @@ export default function DonationsPage() {
   const { data: session } = useSession();
   const userRole = session?.user?.role || 'PROVIDER';
 
+  // Active Provider Surplus Inventory (Poin 1 & Poin 2)
+  const [providerInventory, setProviderInventory] = useState<any[]>([
+    { id: 'FOOD-001', foodName: 'Nasi Ayam Bakar Pak Kumis', quantity: 35, quantityUnit: 'Porsi', category: 'Makanan Olahan' },
+    { id: 'FOOD-002', foodName: 'Bakso Sapi Urat Super', quantity: 20, quantityUnit: 'Porsi', category: 'Makanan Olahan' },
+    { id: 'FOOD-003', foodName: 'Paket Roti Bakery Steril', quantity: 40, quantityUnit: 'Paket', category: 'Bakery' },
+  ]);
+
+  // Load local surplus inventory if available
+  useEffect(() => {
+    try {
+      const savedSurplus = localStorage.getItem('replate_local_surplus');
+      if (savedSurplus) {
+        const parsed = JSON.parse(savedSurplus);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProviderInventory(parsed);
+        }
+      }
+    } catch (_) {}
+  }, []);
+
   const [requests, setRequests] = useState([
     {
       id: 'REQ-DON-001',
@@ -23,9 +43,12 @@ export default function DonationsPage() {
       urgency: 'HIGH',
       deadline: 'Hari ini 19:00 WIB',
       location: 'Surabaya Timur',
+      address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
       notes: 'Membutuhkan 40-50 porsi nasi lauk pauk bergizi untuk makan malam anak-anak panti.',
       status: 'OPEN',
       contactPhone: '081298765432',
+      leaderName: 'Ibu Hj. Aminah',
+      legalPermit: 'DINSOS-SBY/2023/8912',
     },
     {
       id: 'REQ-DON-002',
@@ -36,9 +59,12 @@ export default function DonationsPage() {
       urgency: 'MEDIUM',
       deadline: 'Besok Pagi 08:00 WIB',
       location: 'Surabaya Selatan',
+      address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
       notes: 'Membutuhkan roti tekstur lembut, buah potong segar, atau susu UHT untuk lansia.',
       status: 'OPEN',
       contactPhone: '081345678901',
+      leaderName: 'Bpk. Dr. Handoko',
+      legalPermit: 'DINSOS-SBY/2022/4102',
     },
     {
       id: 'REQ-DON-003',
@@ -49,9 +75,12 @@ export default function DonationsPage() {
       urgency: 'HIGH',
       deadline: 'Hari ini 20:30 WIB',
       location: 'Surabaya Pusat',
+      address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
       notes: 'Membutuhkan porsi makanan surplus siap santap untuk pembagian malam relawan.',
       status: 'OPEN',
       contactPhone: '081567890123',
+      leaderName: 'Mas Rizky Relawan',
+      legalPermit: 'DINSOS-SBY/2024/1109',
     },
   ]);
 
@@ -63,13 +92,19 @@ export default function DonationsPage() {
   const [newNotes, setNewNotes] = useState('');
   const [newLocation, setNewLocation] = useState('Surabaya Pusat');
 
-  // Interactive Fulfill Donation Modal State (Alur Pemenuhan Realistis)
+  // Shelter Profile Detail Modal State (Poin 4)
+  const [selectedShelterProfile, setSelectedShelterProfile] = useState<any | null>(null);
+
+  // Interactive Fulfill Donation Modal State (Poin 1, 2, 3)
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
-  const [selectedFoodItem, setSelectedFoodItem] = useState('Nasi Ayam Bakar Pak Kumis (Stok: 50 Porsi)');
-  const [portionedQuantity, setPortionedQuantity] = useState<number>(45);
+  const [selectedFoodId, setSelectedFoodId] = useState<string>('');
+  const [portionedQuantity, setPortionedQuantity] = useState<number>(30);
   const [deliveryMethod, setDeliveryMethod] = useState('RESCUE_COURIER');
   const [readyTime, setReadyTime] = useState('18:30 WIB');
   const [hygieneChecked, setHygieneChecked] = useState(true);
+
+  // Provider Direct Delivery Proof State (Poin 3)
+  const [providerDeliveryPhoto, setProviderDeliveryPhoto] = useState<string | null>(null);
 
   // Success QR Ticket Receipt State
   const [completedTicket, setCompletedTicket] = useState<any | null>(null);
@@ -80,14 +115,32 @@ export default function DonationsPage() {
     type: 'success',
   });
 
+  // Set default selected food item when modal opens
   const handleOpenFulfillModal = (req: any) => {
     setSelectedRequest(req);
-    setPortionedQuantity(req.beneficiariesCount || 30);
+    const initialFood = providerInventory[0];
+    if (initialFood) {
+      setSelectedFoodId(initialFood.id);
+      setPortionedQuantity(Math.min(req.beneficiariesCount || 30, initialFood.quantity));
+    }
   };
+
+  const selectedFoodObj = providerInventory.find((f) => f.id === selectedFoodId) || providerInventory[0];
 
   const handleConfirmFulfillSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRequest) return;
+    if (!selectedRequest || !selectedFoodObj) return;
+
+    // Stock Limit Logic (Poin 2)
+    if (portionedQuantity > selectedFoodObj.quantity) {
+      setToastState({
+        isOpen: true,
+        message: `Jumlah porsi (${portionedQuantity}) melebihi stok makanan surplus yang tersedia (${selectedFoodObj.quantity} Porsi)!`,
+        type: 'error',
+      });
+      return;
+    }
+
     if (!hygieneChecked) {
       alert('Anda wajib menyetujui verifikasi SOP Higienitas Pangan BPOM!');
       return;
@@ -95,7 +148,46 @@ export default function DonationsPage() {
 
     const ticketCode = `QR-DON-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Update Request status in list to MATCHED
+    // Deduct stock from Provider Inventory (Poin 2)
+    const updatedInventory = providerInventory.map((item) =>
+      item.id === selectedFoodObj.id
+        ? { ...item, quantity: Math.max(0, item.quantity - portionedQuantity) }
+        : item
+    );
+    setProviderInventory(updatedInventory);
+
+    // Save updated surplus stock to localStorage
+    try {
+      localStorage.setItem('replate_local_surplus', JSON.stringify(updatedInventory));
+    } catch (_) {}
+
+    // Register Claim Entry for Tracking Integration (Poin 3)
+    let initialClaimStatus = 'AWAITING_RESCUE_PICKUP';
+    if (deliveryMethod === 'SHELTER_PICKUP') initialClaimStatus = 'READY_FOR_PICKUP';
+    if (deliveryMethod === 'PROVIDER_DIRECT') initialClaimStatus = 'PROVIDER_DELIVERING';
+
+    const newClaimRecord = {
+      id: ticketCode,
+      claimCode: ticketCode,
+      foodName: selectedFoodObj.foodName,
+      quantity: portionedQuantity,
+      quantityUnit: selectedFoodObj.quantityUnit || 'Porsi',
+      status: initialClaimStatus,
+      deliveryMethod,
+      shelterName: selectedRequest.shelterName,
+      contactPhone: selectedRequest.contactPhone,
+      readyTime,
+      address: selectedRequest.address,
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
+      localStorage.setItem('replate_claims', JSON.stringify([newClaimRecord, ...existingClaims]));
+    } catch (_) {}
+
+    // Update Request status in list
     setRequests((prev) =>
       prev.map((item) =>
         item.id === selectedRequest.id
@@ -107,18 +199,20 @@ export default function DonationsPage() {
     setCompletedTicket({
       ticketCode,
       shelterName: selectedRequest.shelterName,
-      foodName: selectedFoodItem,
+      foodName: selectedFoodObj.foodName,
       quantity: portionedQuantity,
       deliveryMethod,
       readyTime,
       contactPhone: selectedRequest.contactPhone,
+      address: selectedRequest.address,
+      initialStatus: initialClaimStatus,
     });
 
     setSelectedRequest(null);
 
     setToastState({
       isOpen: true,
-      message: `Berhasil! Alokasi ${portionedQuantity} porsi donasi untuk ${selectedRequest.shelterName} telah berhasil diproses!`,
+      message: `Berhasil! Alokasi ${portionedQuantity} porsi donasi disalurkan & terintegrasi ke sistem Tracking & Penyelamatan!`,
       type: 'success',
     });
   };
@@ -133,15 +227,18 @@ export default function DonationsPage() {
     const newReq = {
       id: `REQ-DON-${Date.now()}`,
       shelterName: newShelterName,
-      shelterType: 'Yayasan Terverifikasi',
+      shelterType: 'Yayasan Terverifikasi Dinsos',
       beneficiariesCount: newCount,
       foodCategoryNeeded: newCategory,
       urgency: 'HIGH',
       deadline: 'Hari ini 20:00 WIB',
       location: newLocation,
+      address: `Wilayah ${newLocation}, Kota Surabaya`,
       notes: newNotes,
       status: 'OPEN',
       contactPhone: '081234567890',
+      leaderName: 'Pengurus Yayasan',
+      legalPermit: 'DINSOS-SBY/2024/9912',
     };
 
     setRequests([newReq, ...requests]);
@@ -160,27 +257,30 @@ export default function DonationsPage() {
         <div className="space-y-1.5 max-w-2xl">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md shadow-xs">
-              Modul Pemenuhan Donasi Realistis
+              Modul Donasi & Tracking Integration
             </span>
             <span className="text-xs text-slate-200 font-semibold">Proaktif Tanpa Antrean</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white">Hub Donasi & Kebutuhan Shelter Panti</h1>
           <p className="text-xs text-slate-100 leading-relaxed font-medium">
-            Panti Asuhan & Shelter mengajukan kebutuhan pangan. Provider restoran dapat mengalokasikan porsi surplus, menentukan jam pickup, dan menerbitkan Kode QR Serah Terima resmi.
+            Shelter Panti Asuhan mengajukan bantuan pangan. Provider restoran mengalokasikan stok surplus real, mengecek batas porsi, dan mengintegrasikan serah terima donasi ke sistem Tracking & Penyelamatan.
           </p>
         </div>
 
-        <Button
-          variant="gold"
-          size="md"
-          className="font-extrabold shrink-0 flex items-center gap-2 shadow-md"
-          onClick={() => setIsRequestModalOpen(true)}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Ajukan Permintaan Donasi Panti</span>
-        </Button>
+        {/* Hide button if user is PROVIDER or CONSUMER (Poin 5) */}
+        {(userRole === 'YAYASAN' || userRole === 'ADMIN') && (
+          <Button
+            variant="gold"
+            size="md"
+            className="font-extrabold shrink-0 flex items-center gap-2 shadow-md"
+            onClick={() => setIsRequestModalOpen(true)}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Ajukan Permintaan Donasi Panti</span>
+          </Button>
+        )}
       </div>
 
       {/* Grid List Permintaan Donasi Shelter */}
@@ -226,6 +326,16 @@ export default function DonationsPage() {
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
                     &quot;{req.notes}&quot;
                   </p>
+
+                  {/* Access Shelter Detail Profile Button (Poin 4) */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedShelterProfile(req)}
+                    className="text-[11px] font-bold text-[#1B3A5C] hover:underline flex items-center gap-1 pt-1"
+                  >
+                    <span>Lihat Profil Detail Shelter / Panti</span>
+                    <span>➔</span>
+                  </button>
                 </div>
 
                 <div className="border-t border-slate-100 pt-3 space-y-2">
@@ -255,7 +365,62 @@ export default function DonationsPage() {
         </div>
       </div>
 
-      {/* Modal Interactive Fulfill Donation Flow (Alur Bisnis Pemenuhan Realistis) */}
+      {/* Modal Profile Detail Shelter / Panti Asuhan (Poin 4) */}
+      <Modal
+        isOpen={!!selectedShelterProfile}
+        onClose={() => setSelectedShelterProfile(null)}
+        title={`Profil Detail: ${selectedShelterProfile?.shelterName}`}
+        size="md"
+      >
+        {selectedShelterProfile && (
+          <div className="space-y-4 text-xs">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <Badge variant="primary">{selectedShelterProfile.shelterType}</Badge>
+                <Badge variant="success" size="sm">DINSOS VERIFIED</Badge>
+              </div>
+              <h3 className="text-lg font-extrabold text-[#1B3A5C]">{selectedShelterProfile.shelterName}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                {selectedShelterProfile.notes}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div>
+                <span className="text-slate-500 font-semibold block">Ketua / Pengurus Panti:</span>
+                <span className="font-extrabold text-[#1B3A5C]">{selectedShelterProfile.leaderName}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Kontak WhatsApp:</span>
+                <span className="font-bold text-slate-800">{selectedShelterProfile.contactPhone}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Jumlah Penghuni / Anak:</span>
+                <span className="font-bold text-slate-800">{selectedShelterProfile.beneficiariesCount} Jiwa</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Izin Dinsos Resmi:</span>
+                <span className="font-mono font-bold text-slate-800">{selectedShelterProfile.legalPermit}</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-900 text-xs">
+              <span className="font-extrabold block">Alamat Lengkap Penyaluran Panti:</span>
+              <p className="text-blue-800 font-medium leading-relaxed mt-0.5">
+                {selectedShelterProfile.address}
+              </p>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>
+                Tutup Profil Shelter
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Interactive Fulfill Donation Flow (Poin 1, 2, 3) */}
       <Modal
         isOpen={!!selectedRequest}
         onClose={() => setSelectedRequest(null)}
@@ -273,28 +438,46 @@ export default function DonationsPage() {
               </p>
             </div>
 
-            {/* Select Food Surplus Stock from Provider */}
+            {/* Select Food Surplus Stock from Provider Active Inventory (Poin 1) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-[#1B3A5C]">1. Pilih Stok Makanan Surplus Toko Anda</label>
+              <label className="text-xs font-bold text-[#1B3A5C]">1. Pilih Stok Makanan Surplus Toko Anda (Real Inventory)</label>
               <select
                 className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
-                value={selectedFoodItem}
-                onChange={(e) => setSelectedFoodItem(e.target.value)}
+                value={selectedFoodId}
+                onChange={(e) => {
+                  setSelectedFoodId(e.target.value);
+                  const targetFood = providerInventory.find((f) => f.id === e.target.value);
+                  if (targetFood) {
+                    setPortionedQuantity(Math.min(selectedRequest.beneficiariesCount, targetFood.quantity));
+                  }
+                }}
               >
-                <option value="Nasi Ayam Bakar Pak Kumis (Stok: 50 Porsi)">Nasi Ayam Bakar Pak Kumis (Stok: 50 Porsi)</option>
-                <option value="Paket Bakery & Roti Manis Steril (Stok: 40 Paket)">Paket Bakery & Roti Manis Steril (Stok: 40 Paket)</option>
-                <option value="Susu UHT & Buah Potong Segar (Stok: 35 Porsi)">Susu UHT & Buah Potong Segar (Stok: 35 Porsi)</option>
+                {providerInventory.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.foodName} — (Stok Tersedia: {item.quantity} {item.quantityUnit || 'Porsi'})
+                  </option>
+                ))}
               </select>
             </div>
 
+            {/* Stock Limit Validation Input (Poin 2) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                label="2. Jumlah Porsi Yang Dialokasikan (Porsi)"
-                type="number"
-                value={portionedQuantity}
-                onChange={(e) => setPortionedQuantity(Number(e.target.value))}
-                required
-              />
+              <div className="space-y-1">
+                <Input
+                  label={`2. Jumlah Porsi Yang Dialokasikan (Maks: ${selectedFoodObj?.quantity || 0} Porsi)`}
+                  type="number"
+                  max={selectedFoodObj?.quantity || 50}
+                  min={1}
+                  value={portionedQuantity}
+                  onChange={(e) => setPortionedQuantity(Number(e.target.value))}
+                  required
+                />
+                {portionedQuantity > (selectedFoodObj?.quantity || 0) && (
+                  <p className="text-[11px] font-bold text-red-600">
+                    ⚠️ Melebihi stok ketersediaan makanan ({selectedFoodObj?.quantity} Porsi)!
+                  </p>
+                )}
+              </div>
 
               <Input
                 label="3. Jam Siap Penjemputan / Serah Terima"
@@ -305,17 +488,17 @@ export default function DonationsPage() {
               />
             </div>
 
-            {/* Select Delivery & Rescue Method */}
+            {/* Select Delivery & Rescue Method (Poin 3) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-[#1B3A5C]">4. Metode Pengiriman & Penyelamatan</label>
+              <label className="text-xs font-bold text-[#1B3A5C]">4. Metode Pengiriman & Tracking Serah Terima</label>
               <select
                 className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
                 value={deliveryMethod}
                 onChange={(e) => setDeliveryMethod(e.target.value)}
               >
-                <option value="RESCUE_COURIER">Disalurkan via Kurir Relawan Komunitas Replate</option>
-                <option value="PROVIDER_DIRECT">Diantar Langsung oleh Armada Toko / Restoran</option>
-                <option value="SHELTER_PICKUP">Diambil Mandiri oleh Pengurus Panti Asuhan</option>
+                <option value="RESCUE_COURIER">🛵 Disalurkan via Kurir Relawan Komunitas Replate (Tracking QR Code)</option>
+                <option value="PROVIDER_DIRECT">🚚 Diantar Langsung oleh Armada Toko (Upload Foto Bukti Sampai)</option>
+                <option value="SHELTER_PICKUP">🏢 Diambil Mandiri oleh Pengurus Panti Asuhan (Verifikasi Scan QR)</option>
               </select>
             </div>
 
@@ -340,26 +523,26 @@ export default function DonationsPage() {
                 Batal
               </Button>
               <Button type="submit" variant="gold" size="sm" className="font-extrabold shadow-md">
-                Proses & Terbitkan QR Resi Donasi ➔
+                Proses & Terbitkan QR Tracking Donasi ➔
               </Button>
             </div>
           </form>
         )}
       </Modal>
 
-      {/* Modal Tiket Receipt Kode QR Serah Terima Donasi */}
+      {/* Modal Tiket Receipt Kode QR & Tracking Integration (Poin 3) */}
       <Modal
         isOpen={!!completedTicket}
         onClose={() => setCompletedTicket(null)}
-        title="Resi Kode QR Serah Terima Donasi Resmi"
+        title="Resi Kode QR & Tracking Donasi Terintegrasi"
         size="md"
       >
         {completedTicket && (
           <div className="space-y-5 text-xs text-center">
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 space-y-1">
-              <span className="font-black text-sm uppercase tracking-wider block">✓ Donasi Berhasil Dialokasikan</span>
+              <span className="font-black text-sm uppercase tracking-wider block">✓ Donasi Berhasil Dialokasikan & Terintegrasi</span>
               <p className="text-xs text-emerald-800 font-medium">
-                Notifikasi WhatsApp otomatis telah dikirim ke WhatsApp pengurus <strong>{completedTicket.shelterName}</strong>.
+                Data klaim otomatis terdaftar di rute <strong>Klaim & Penyelamatan</strong> serta Pelacak Transparansi Publik Replate!
               </p>
             </div>
 
@@ -373,7 +556,7 @@ export default function DonationsPage() {
                 />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-mono block">ID TIKET DONASI RESMI:</span>
+                <span className="text-[10px] text-slate-400 font-mono block">ID RESI TRACKING DONASI:</span>
                 <span className="font-mono text-lg font-black tracking-widest text-[#D4A843]">{completedTicket.ticketCode}</span>
               </div>
             </div>
@@ -392,10 +575,42 @@ export default function DonationsPage() {
                 <span className="font-bold text-slate-800">{completedTicket.foodName}</span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Jam Penjemputan:</span>
-                <span className="font-bold text-amber-700">{completedTicket.readyTime}</span>
+                <span className="text-slate-500 font-medium block">Status Tracking:</span>
+                <span className="font-extrabold text-[#D4A843]">{completedTicket.initialStatus}</span>
               </div>
             </div>
+
+            {/* Provider Direct Delivery Photo Upload Option (Poin 3) */}
+            {completedTicket.deliveryMethod === 'PROVIDER_DIRECT' && (
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
+                <span className="font-bold text-xs text-amber-900 block">🚚 Alur Diantar Langsung oleh Provider:</span>
+                <p className="text-[11px] text-amber-800">
+                  Setelah armada Anda sampai di panti asuhan, unggah foto penyerahan sebagai bukti verifikasi penyelesaian donasi.
+                </p>
+                <label className="inline-block px-3 py-1.5 bg-[#1B3A5C] text-white font-bold text-xs rounded-xl cursor-pointer hover:bg-[#2C5A8F]">
+                  Upload Foto Bukti Sampai di Panti
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        const url = URL.createObjectURL(e.target.files[0]);
+                        setProviderDeliveryPhoto(url);
+                        setToastState({
+                          isOpen: true,
+                          message: 'Foto bukti serah terima di panti berhasil diunggah! Status donasi kini SELESAI (COMPLETED).',
+                          type: 'success',
+                        });
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                {providerDeliveryPhoto && (
+                  <p className="text-[11px] text-emerald-700 font-extrabold">✓ Foto Penyerahan Terunggah</p>
+                )}
+              </div>
+            )}
 
             <Button
               variant="gold"
@@ -403,13 +618,13 @@ export default function DonationsPage() {
               className="w-full font-extrabold"
               onClick={() => setCompletedTicket(null)}
             >
-              Selesai & Tutup Resi ➔
+              Selesai & Cek Tracking Penyelamatan ➔
             </Button>
           </div>
         )}
       </Modal>
 
-      {/* Modal Ajukan Request Baru oleh Shelter */}
+      {/* Modal Ajukan Request Baru oleh Shelter (Strictly ONLY for YAYASAN/ADMIN - Poin 5) */}
       <Modal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
