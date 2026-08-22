@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { QRScanner } from '@/components/qr/QRScanner';
 import { Toast } from '@/components/ui/Toast';
@@ -11,51 +11,93 @@ import { Input } from '@/components/ui/Input';
 
 export default function ProviderClaimsPage() {
   const [showScanner, setShowScanner] = useState(false);
+  const [manualCodeInput, setManualCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'PENDING' | 'COMPLETED'>('PENDING');
+
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
     message: '',
     type: 'success',
   });
 
-  const [pendingClaims, setPendingClaims] = useState([
+  const defaultPending = [
+    {
+      code: 'FB-DON-88192',
+      foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
+      userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
+      quantity: '45 Porsi',
+      status: 'AWAITING_RESCUE_PICKUP',
+      time: 'Hari ini 19:00 WIB',
+    },
     {
       code: 'FB-CLAIM-101',
-      foodName: 'Bakso Sapi Komplit',
+      foodName: 'Bakso Sapi Urat Super',
       userName: 'Budi Santoso (Konsumen)',
       quantity: '2 Porsi',
       status: 'PENDING PICKUP',
-      time: 'Hari ini 19:30',
-    },
-    {
-      code: 'FB-CLAIM-102',
-      foodName: 'Roti Tawar & Aneka Danish',
-      userName: 'Food Bank Surabaya (Rescue Partner)',
-      quantity: '25 Pcs',
-      status: 'MATCHED 96%',
-      time: 'Hari ini 20:00',
+      time: 'Hari ini 19:30 WIB',
     },
     {
       code: 'FB-CLAIM-103',
       foodName: 'Nasi Goreng Buffet + Ayam Bakar',
-      userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
-      quantity: '30 Porsi',
+      userName: 'Rumah Singgah Anak Jalanan (Yayasan)',
+      quantity: '25 Porsi',
       status: 'IN TRANSIT',
-      time: 'Hari ini 21:00',
+      time: 'Hari ini 21:00 WIB',
     },
-  ]);
+  ];
 
-  const [completedClaims, setCompletedClaims] = useState([
+  const defaultCompleted = [
     {
-      code: 'FB-CLAIM-099',
-      foodName: 'Buah Potong Segar',
-      userName: 'Siti Aminah (Konsumen)',
-      quantity: '5 Porsi',
-      status: 'VERIFIED',
-      time: '21 Aug 2026, 14:00',
+      code: 'FB-DON-77182',
+      foodName: 'Paket Roti Bakery Steril & Susu UHT',
+      userName: 'Panti Werdha Lansia Sejahtera',
+      quantity: '30 Paket',
+      status: 'COMPLETED',
+      time: '21 Aug 2026, 14:00 WIB',
       handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
     },
-  ]);
+  ];
+
+  const [pendingClaims, setPendingClaims] = useState<any[]>(defaultPending);
+  const [completedClaims, setCompletedClaims] = useState<any[]>(defaultCompleted);
+
+  // Sync with localStorage replate_claims
+  useEffect(() => {
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      if (savedClaimsStr) {
+        const savedClaims = JSON.parse(savedClaimsStr);
+        if (Array.isArray(savedClaims) && savedClaims.length > 0) {
+          const pending = savedClaims
+            .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED')
+            .map((c: any) => ({
+              code: c.claimCode || c.id,
+              foodName: c.foodName,
+              userName: c.shelterName || c.userName || 'Penerima Bantuan',
+              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+              status: c.status || 'AWAITING_RESCUE_PICKUP',
+              time: c.readyTime || 'Hari ini',
+            }));
+
+          const completed = savedClaims
+            .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
+            .map((c: any) => ({
+              code: c.claimCode || c.id,
+              foodName: c.foodName,
+              userName: c.shelterName || c.userName || 'Penerima Bantuan',
+              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+              status: 'COMPLETED',
+              time: c.createdAt || 'Selesai',
+              handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+            }));
+
+          if (pending.length > 0) setPendingClaims([...pending, ...defaultPending.filter(d => !pending.some(p => p.code === d.code))]);
+          if (completed.length > 0) setCompletedClaims([...completed, ...defaultCompleted.filter(d => !completed.some(c => c.code === d.code))]);
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -80,32 +122,48 @@ export default function ProviderClaimsPage() {
   const [courierName, setCourierName] = useState<string>('');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
+  // Scan QR Code Verification Integration & Global LocalStorage Sync
   const handleVerifyCode = async (code: string) => {
-    const target = pendingClaims.find((c) => c.code === code) || {
-      code,
-      foodName: 'Surplus Makanan',
-      userName: 'Penglaim Terverifikasi',
-      quantity: '1 Porsi',
-      status: 'VERIFIED',
-      time: new Date().toLocaleTimeString(),
+    const cleanCode = code.trim().toUpperCase();
+
+    const target = pendingClaims.find((c) => c.code.toUpperCase() === cleanCode) || {
+      code: cleanCode,
+      foodName: 'Surplus Makanan Steril',
+      userName: 'Panti / Kurir Relawan Replate',
+      quantity: 'Porsi Terverifikasi',
+      status: 'COMPLETED',
+      time: 'Baru Saja',
     };
 
-    setPendingClaims((prev) => prev.filter((c) => c.code !== code));
-    setCompletedClaims((prev) => [
-      {
-        ...target,
-        status: 'VERIFIED',
-        handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
-      },
-      ...prev,
-    ]);
+    // Update state lists
+    setPendingClaims((prev) => prev.filter((c) => c.code.toUpperCase() !== cleanCode));
+    const newCompletedItem = {
+      ...target,
+      status: 'COMPLETED',
+      time: 'Baru Saja (Verified via Scan QR)',
+      handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+    };
+    setCompletedClaims((prev) => [newCompletedItem, ...prev]);
+
+    // Update localStorage replate_claims globally for /dashboard/donations and /track/[id]
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
+      const updatedClaims = existingClaims.map((c: any) =>
+        (c.claimCode === cleanCode || c.id === cleanCode)
+          ? { ...c, status: 'COMPLETED' }
+          : c
+      );
+      localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
+    } catch (_) {}
 
     setToastState({
       isOpen: true,
-      message: `Transaksi ${code} Berhasil Diverifikasi! Stok tersisa telah berkurang secara otomatis.`,
+      message: `✓ BERHASIL! Kode Resi QR "${cleanCode}" Terverifikasi! Status donasi kini SELESAI (COMPLETED) & Makanan Telah Resmi Diambil.`,
       type: 'success',
     });
     setShowScanner(false);
+    setManualCodeInput('');
   };
 
   const openConfirmModal = (tx: (typeof pendingClaims)[0]) => {
@@ -135,42 +193,63 @@ export default function ProviderClaimsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* High Contrast Banner (Poin 9 & 11) */}
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      {/* High Contrast Banner */}
       <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg border border-[#2C5A8F] space-y-2">
         <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md inline-block shadow-xs">
-          Pusat Penyelamatan & Verifikasi Penjemputan
+          Pusat Penyelamatan & Integrasi QR Code
         </span>
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan</h1>
         <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
-          Verifikasi kode QR atau masukkan kode transaksi penjemputan fisik. Verifikasi sukses otomatis mengurangi porsi stok makanan secara real-time.
+          Verifikasi Kode QR atau input manual saat Kurir Relawan / Pengurus Panti mengambil makanan surplus di toko. Verifikasi sukses otomatis mengubah status transaksi menjadi SELESAI (COMPLETED).
         </p>
       </div>
 
-      {/* Dedicated Action Control Panel for Camera & QR Scanner (Poin 3) */}
-      <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
-        <div className="space-y-1">
-          <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
-            Verifikasi Penjemputan Fisik
-          </span>
-          <h3 className="text-sm font-extrabold text-white">Gunakan Pindai Kamera QR untuk Verifikasi Cepat</h3>
+      {/* Action Control Panel for Camera Scan QR & Manual Code Input */}
+      <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 text-white space-y-4 shadow-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
+              Verifikasi Penjemputan Fisik
+            </span>
+            <h3 className="text-sm font-extrabold text-white">Pindai Kamera Kode QR atau Input Kode Resi Donasi</h3>
+          </div>
+
+          <Button
+            variant="gold"
+            size="md"
+            className="font-black shadow-md flex items-center gap-2 shrink-0 text-slate-900 px-5"
+            onClick={() => setShowScanner(!showScanner)}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            </svg>
+            <span>{showScanner ? 'Tutup Pindai Kamera' : 'Buka Kamera Pindai QR Code'}</span>
+          </Button>
         </div>
 
-        <Button
-          variant="gold"
-          size="md"
-          className="font-black shadow-md flex items-center gap-2 shrink-0 text-slate-900 px-5"
-          onClick={() => setShowScanner(!showScanner)}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-          </svg>
-          <span>{showScanner ? 'Tutup Pindai Kamera' : 'Pindai Kamera / Scan QR Code'}</span>
-        </Button>
+        {/* Manual Code Input Bar */}
+        <div className="flex items-center gap-3 border-t border-slate-800 pt-3">
+          <Input
+            placeholder="Atau Ketik Manual Kode QR (Contoh: FB-DON-88192 / QR-DON-891023)..."
+            value={manualCodeInput}
+            onChange={(e) => setManualCodeInput(e.target.value)}
+            className="text-xs bg-slate-800 text-white border-slate-700 placeholder-slate-400"
+          />
+          <Button
+            variant="gold"
+            size="md"
+            disabled={!manualCodeInput.trim()}
+            onClick={() => handleVerifyCode(manualCodeInput)}
+            className="font-extrabold shrink-0 text-xs shadow-md"
+          >
+            Verifikasi & Tandai Diambil ➔
+          </Button>
+        </div>
       </div>
 
       {showScanner && (
-        <Card className="p-6 border-[#D4A843] bg-white">
+        <Card className="p-6 border-[#D4A843] bg-white shadow-md">
           <QRScanner onScanSuccess={handleVerifyCode} />
         </Card>
       )}
@@ -185,7 +264,7 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Menunggu Penjemputan ({pendingClaims.length})
+          Menunggu Penjemputan / Dalam Pengiriman ({pendingClaims.length})
         </button>
         <button
           onClick={() => setActiveTab('COMPLETED')}
@@ -195,12 +274,12 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Riwayat Selesai ({completedClaims.length})
+          Riwayat Donasi Selesai / Terambil ({completedClaims.length})
         </button>
       </div>
 
       {/* Transaction List */}
-      <Card className="bg-white border-slate-200">
+      <Card className="bg-white border-slate-200 shadow-xs">
         <CardBody className="p-4 space-y-3 text-xs">
           {(activeTab === 'PENDING' ? pendingClaims : completedClaims).length === 0 ? (
             <p className="text-center text-slate-400 py-6 font-semibold">Tidak ada transaksi di tab ini.</p>
@@ -217,10 +296,10 @@ export default function ProviderClaimsPage() {
                       {tx.quantity}
                     </Badge>
                   </div>
-                  <p className="text-slate-600 font-medium">Penerima: {tx.userName}</p>
-                  <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                  <p className="text-slate-600 font-medium">Penerima Bantuan: {tx.userName}</p>
+                  <div className="flex items-center gap-3 text-[11px] text-slate-500">
                     <span>
-                      Kode Transaksi: <strong className="font-mono text-[#1B3A5C]">{tx.code}</strong>
+                      Kode Resi QR: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
                     </span>
                     <span>•</span>
                     <span>Waktu: {tx.time}</span>
@@ -228,11 +307,12 @@ export default function ProviderClaimsPage() {
                 </div>
 
                 {activeTab === 'PENDING' ? (
-                  <Button variant="gold" size="sm" className="font-extrabold text-xs" onClick={() => openConfirmModal(tx)}>
-                    Verifikasi Kode & Foto ➔
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
+                      Verifikasi & Tandai Diambil ➔
+                    </Button>
+                  </div>
                 ) : (
-                  /* Action Detail Button for Completed Tab (Poin 10) */
                   <Button
                     variant="outline"
                     size="sm"
@@ -248,7 +328,7 @@ export default function ProviderClaimsPage() {
         </CardBody>
       </Card>
 
-      {/* Detail Modal for Completed Claim (Poin 10) */}
+      {/* Detail Modal for Completed Claim */}
       {detailModal.isOpen && (
         <Modal
           isOpen={detailModal.isOpen}
@@ -258,9 +338,9 @@ export default function ProviderClaimsPage() {
         >
           <div className="space-y-4 text-xs text-slate-700">
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-              <span className="text-emerald-900 font-black text-sm block">Status: VERIFIED & SELESAI</span>
+              <span className="text-emerald-900 font-black text-sm block">✓ Status: VERIFIED & TERAMBIL (COMPLETED)</span>
               <p className="text-emerald-800">
-                Porsi stok sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diserahkan secara utuh.
+                Porsi makanan surplus sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diambil & diverifikasi via QR Code.
               </p>
             </div>
 
@@ -300,7 +380,7 @@ export default function ProviderClaimsPage() {
           <div className="space-y-5 text-xs text-slate-700">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <span className="text-slate-500 font-semibold block">Kode Transaksi:</span>
+                <span className="text-slate-500 font-semibold block">Kode Resi QR Transaksi:</span>
                 <span className="font-mono font-extrabold text-[#1B3A5C] text-sm">{confirmModal.code}</span>
               </div>
               <div>
@@ -348,7 +428,7 @@ export default function ProviderClaimsPage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" className="font-extrabold" onClick={executeConfirm}>
-                Selesaikan Verifikasi & Potong Stok ➔
+                Selesaikan Verifikasi & Tandai Diambil ➔
               </Button>
             </div>
           </div>
