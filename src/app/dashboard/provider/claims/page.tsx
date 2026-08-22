@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/Input';
 export default function ProviderClaimsPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'PENDING' | 'COMPLETED'>('PENDING');
+  const [activeTab, setActiveTab] = useState<'PENDING' | 'IN_TRANSIT' | 'COMPLETED'>('PENDING');
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -37,12 +37,15 @@ export default function ProviderClaimsPage() {
       status: 'PENDING PICKUP',
       time: 'Hari ini 19:30 WIB',
     },
+  ];
+
+  const defaultInTransit = [
     {
       code: 'FB-CLAIM-103',
       foodName: 'Nasi Goreng Buffet + Ayam Bakar',
       userName: 'Rumah Singgah Anak Jalanan (Yayasan)',
       quantity: '25 Porsi',
-      status: 'IN TRANSIT',
+      status: 'IN_TRANSIT',
       time: 'Hari ini 21:00 WIB',
     },
   ];
@@ -60,6 +63,7 @@ export default function ProviderClaimsPage() {
   ];
 
   const [pendingClaims, setPendingClaims] = useState<any[]>(defaultPending);
+  const [inTransitClaims, setInTransitClaims] = useState<any[]>(defaultInTransit);
   const [completedClaims, setCompletedClaims] = useState<any[]>(defaultCompleted);
 
   // Sync with localStorage replate_claims
@@ -70,14 +74,25 @@ export default function ProviderClaimsPage() {
         const savedClaims = JSON.parse(savedClaimsStr);
         if (Array.isArray(savedClaims) && savedClaims.length > 0) {
           const pending = savedClaims
-            .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED')
+            .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP')
             .map((c: any) => ({
               code: c.claimCode || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
-              status: c.status || 'AWAITING_RESCUE_PICKUP',
+              status: c.status,
               time: c.readyTime || 'Hari ini',
+            }));
+
+          const inTransit = savedClaims
+            .filter((c: any) => c.status === 'IN_TRANSIT' || c.status === 'PROVIDER_DELIVERING')
+            .map((c: any) => ({
+              code: c.claimCode || c.id,
+              foodName: c.foodName,
+              userName: c.shelterName || c.userName || 'Penerima Bantuan',
+              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+              status: 'IN_TRANSIT',
+              time: 'Dalam Pengiriman OTW Panti',
             }));
 
           const completed = savedClaims
@@ -93,6 +108,7 @@ export default function ProviderClaimsPage() {
             }));
 
           if (pending.length > 0) setPendingClaims([...pending, ...defaultPending.filter(d => !pending.some(p => p.code === d.code))]);
+          if (inTransit.length > 0) setInTransitClaims([...inTransit, ...defaultInTransit.filter(d => !inTransit.some(i => i.code === d.code))]);
           if (completed.length > 0) setCompletedClaims([...completed, ...defaultCompleted.filter(d => !completed.some(c => c.code === d.code))]);
         }
       }
@@ -122,8 +138,8 @@ export default function ProviderClaimsPage() {
   const [courierName, setCourierName] = useState<string>('');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
-  // Scan QR Code Verification Integration & Global LocalStorage Sync
-  const handleVerifyCode = async (code: string) => {
+  // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW to Panti)
+  const handleVerifyCodeAtStore = async (code: string) => {
     const cleanCode = code.trim().toUpperCase();
 
     const target = pendingClaims.find((c) => c.code.toUpperCase() === cleanCode) || {
@@ -131,21 +147,55 @@ export default function ProviderClaimsPage() {
       foodName: 'Surplus Makanan Steril',
       userName: 'Panti / Kurir Relawan Replate',
       quantity: 'Porsi Terverifikasi',
-      status: 'COMPLETED',
-      time: 'Baru Saja',
+      status: 'IN_TRANSIT',
+      time: 'OTW Pengiriman',
     };
 
-    // Update state lists
+    // Update state lists: Move from pending to inTransit
     setPendingClaims((prev) => prev.filter((c) => c.code.toUpperCase() !== cleanCode));
-    const newCompletedItem = {
+    const newInTransitItem = {
       ...target,
-      status: 'COMPLETED',
-      time: 'Baru Saja (Verified via Scan QR)',
-      handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      status: 'IN_TRANSIT',
+      time: 'OTW Dalam Pengiriman Ke Panti',
     };
-    setCompletedClaims((prev) => [newCompletedItem, ...prev]);
+    setInTransitClaims((prev) => [newInTransitItem, ...prev]);
 
-    // Update localStorage replate_claims globally for /dashboard/donations and /track/[id]
+    // Update localStorage replate_claims globally to IN_TRANSIT
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
+      const updatedClaims = existingClaims.map((c: any) =>
+        (c.claimCode === cleanCode || c.id === cleanCode)
+          ? { ...c, status: 'IN_TRANSIT' }
+          : c
+      );
+      localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
+    } catch (_) {}
+
+    setToastState({
+      isOpen: true,
+      message: `🚚 QR Code "${cleanCode}" Valid! Paket Makanan Dihandover Ke Kurir. Status Diperbarui Menjadi IN_TRANSIT (OTW Ke Panti).`,
+      type: 'success',
+    });
+    setShowScanner(false);
+    setManualCodeInput('');
+  };
+
+  // Final Delivery Confirmation at Panti -> Updates Status to COMPLETED
+  const handleConfirmFinalDelivery = (item: any) => {
+    const cleanCode = item.code;
+
+    setInTransitClaims((prev) => prev.filter((c) => c.code !== cleanCode));
+    setCompletedClaims((prev) => [
+      {
+        ...item,
+        status: 'COMPLETED',
+        time: 'Baru Saja (Verified Penyerahan Panti)',
+        handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      },
+      ...prev,
+    ]);
+
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
       const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
@@ -157,13 +207,12 @@ export default function ProviderClaimsPage() {
       localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
     } catch (_) {}
 
+    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
     setToastState({
       isOpen: true,
-      message: `✓ BERHASIL! Kode Resi QR "${cleanCode}" Terverifikasi! Status donasi kini SELESAI (COMPLETED) & Makanan Telah Resmi Diambil.`,
+      message: `🎉 Donasi "${cleanCode}" Berhasil Diserahkan & Diverifikasi di Panti! Status Permanen SELESAI (COMPLETED).`,
       type: 'success',
     });
-    setShowScanner(false);
-    setManualCodeInput('');
   };
 
   const openConfirmModal = (tx: (typeof pendingClaims)[0]) => {
@@ -178,20 +227,6 @@ export default function ProviderClaimsPage() {
     setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60');
   };
 
-  const executeConfirm = async () => {
-    if (!conditionChecked) {
-      setToastState({
-        isOpen: true,
-        message: 'Harap centang verifikasi kelayakan kondisi makanan sebelum menyelesaikan transaksi.',
-        type: 'error',
-      });
-      return;
-    }
-    const code = confirmModal.code;
-    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-    await handleVerifyCode(code);
-  };
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* High Contrast Banner */}
@@ -201,7 +236,7 @@ export default function ProviderClaimsPage() {
         </span>
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan</h1>
         <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
-          Verifikasi Kode QR atau input manual saat Kurir Relawan / Pengurus Panti mengambil makanan surplus di toko. Verifikasi sukses otomatis mengubah status transaksi menjadi SELESAI (COMPLETED).
+          Scan Kode QR toko saat paket diserahkan ke Kurir (Status OTW Pengiriman). Status berubah permanen menjadi COMPLETED setelah makanan diverifikasi di Panti Asuhan.
         </p>
       </div>
 
@@ -210,9 +245,9 @@ export default function ProviderClaimsPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1">
             <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
-              Verifikasi Penjemputan Fisik
+              Penjemputan Makanan di Toko Anda
             </span>
-            <h3 className="text-sm font-extrabold text-white">Pindai Kamera Kode QR atau Input Kode Resi Donasi</h3>
+            <h3 className="text-sm font-extrabold text-white">Scan QR Toko Saat Handover Makanan Ke Kurir (Set Status OTW)</h3>
           </div>
 
           <Button
@@ -224,14 +259,14 @@ export default function ProviderClaimsPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
             </svg>
-            <span>{showScanner ? 'Tutup Pindai Kamera' : 'Buka Kamera Pindai QR Code'}</span>
+            <span>{showScanner ? 'Tutup Pindai Kamera' : 'Buka Kamera Pindai QR Toko'}</span>
           </Button>
         </div>
 
         {/* Manual Code Input Bar */}
         <div className="flex items-center gap-3 border-t border-slate-800 pt-3">
           <Input
-            placeholder="Atau Ketik Manual Kode QR (Contoh: FB-DON-88192 / QR-DON-891023)..."
+            placeholder="Atau Ketik Kode Resi (Contoh: FB-DON-88192 / QR-DON-891023)..."
             value={manualCodeInput}
             onChange={(e) => setManualCodeInput(e.target.value)}
             className="text-xs bg-slate-800 text-white border-slate-700 placeholder-slate-400"
@@ -240,17 +275,17 @@ export default function ProviderClaimsPage() {
             variant="gold"
             size="md"
             disabled={!manualCodeInput.trim()}
-            onClick={() => handleVerifyCode(manualCodeInput)}
+            onClick={() => handleVerifyCodeAtStore(manualCodeInput)}
             className="font-extrabold shrink-0 text-xs shadow-md"
           >
-            Verifikasi & Tandai Diambil ➔
+            Verifikasi Handover Toko & Set OTW ➔
           </Button>
         </div>
       </div>
 
       {showScanner && (
         <Card className="p-6 border-[#D4A843] bg-white shadow-md">
-          <QRScanner onScanSuccess={handleVerifyCode} />
+          <QRScanner onScanSuccess={handleVerifyCodeAtStore} />
         </Card>
       )}
 
@@ -264,7 +299,17 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Menunggu Penjemputan / Dalam Pengiriman ({pendingClaims.length})
+          Menunggu Penjemputan Toko ({pendingClaims.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('IN_TRANSIT')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            activeTab === 'IN_TRANSIT'
+              ? 'bg-[#1B3A5C] text-white font-black'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          🚚 Dalam Pengantaran OTW Panti ({inTransitClaims.length})
         </button>
         <button
           onClick={() => setActiveTab('COMPLETED')}
@@ -274,17 +319,17 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Riwayat Donasi Selesai / Terambil ({completedClaims.length})
+          ✓ Donasi Selesai di Panti ({completedClaims.length})
         </button>
       </div>
 
       {/* Transaction List */}
       <Card className="bg-white border-slate-200 shadow-xs">
         <CardBody className="p-4 space-y-3 text-xs">
-          {(activeTab === 'PENDING' ? pendingClaims : completedClaims).length === 0 ? (
+          {(activeTab === 'PENDING' ? pendingClaims : activeTab === 'IN_TRANSIT' ? inTransitClaims : completedClaims).length === 0 ? (
             <p className="text-center text-slate-400 py-6 font-semibold">Tidak ada transaksi di tab ini.</p>
           ) : (
-            (activeTab === 'PENDING' ? pendingClaims : completedClaims).map((tx) => (
+            (activeTab === 'PENDING' ? pendingClaims : activeTab === 'IN_TRANSIT' ? inTransitClaims : completedClaims).map((tx) => (
               <div
                 key={tx.code}
                 className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-100/60 transition-colors"
@@ -292,7 +337,7 @@ export default function ProviderClaimsPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-extrabold text-[#1B3A5C] text-sm">{tx.foodName}</span>
-                    <Badge variant={activeTab === 'PENDING' ? 'warning' : 'success'} size="sm">
+                    <Badge variant={activeTab === 'COMPLETED' ? 'success' : activeTab === 'IN_TRANSIT' ? 'warning' : 'primary'} size="sm">
                       {tx.quantity}
                     </Badge>
                   </div>
@@ -302,16 +347,23 @@ export default function ProviderClaimsPage() {
                       Kode Resi QR: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
                     </span>
                     <span>•</span>
-                    <span>Waktu: {tx.time}</span>
+                    <span>Status: <strong className="text-[#D4A843] font-bold">{tx.time}</strong></span>
                   </div>
                 </div>
 
                 {activeTab === 'PENDING' ? (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
-                      Verifikasi & Tandai Diambil ➔
-                    </Button>
-                  </div>
+                  <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
+                    Handover Ke Kurir & Set OTW ➔
+                  </Button>
+                ) : activeTab === 'IN_TRANSIT' ? (
+                  <Button
+                    variant="gold"
+                    size="sm"
+                    className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                    onClick={() => handleConfirmFinalDelivery(tx)}
+                  >
+                    ✓ Verifikasi Sampai Panti & Set COMPLETED ➔
+                  </Button>
                 ) : (
                   <Button
                     variant="outline"
@@ -338,9 +390,9 @@ export default function ProviderClaimsPage() {
         >
           <div className="space-y-4 text-xs text-slate-700">
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-              <span className="text-emerald-900 font-black text-sm block">✓ Status: VERIFIED & TERAMBIL (COMPLETED)</span>
+              <span className="text-emerald-900 font-black text-sm block">✓ Status: VERIFIED & SELESAI (COMPLETED)</span>
               <p className="text-emerald-800">
-                Porsi makanan surplus sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diambil & diverifikasi via QR Code.
+                Porsi makanan surplus sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diserahkan di panti & diverifikasi.
               </p>
             </div>
 
@@ -369,12 +421,12 @@ export default function ProviderClaimsPage() {
         </Modal>
       )}
 
-      {/* Verification Modal */}
+      {/* Verification Modal for Handover at Store */}
       {confirmModal.isOpen && (
         <Modal
           isOpen={confirmModal.isOpen}
           onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-          title="Verifikasi Bukti Serah Terima & Foto Fisik Makanan"
+          title="Konfirmasi Handover Makanan Toko Ke Kurir (Set Status OTW)"
           size="lg"
         >
           <div className="space-y-5 text-xs text-slate-700">
@@ -391,20 +443,20 @@ export default function ProviderClaimsPage() {
 
             <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
               <h4 className="font-extrabold text-[#1B3A5C] text-sm">
-                Dokumentasi Foto Bukti Serah Terima Fisik
+                Konfirmasi Penyerahan Ke Kurir Relawan
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <div className="relative h-36 bg-slate-800 rounded-xl overflow-hidden border border-slate-300">
-                  {proofPhoto && <img src={proofPhoto} alt="Foto Serah Terima" className="w-full h-full object-cover" />}
+                  {proofPhoto && <img src={proofPhoto} alt="Foto Handover" className="w-full h-full object-cover" />}
                   <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded-md font-mono">
-                    BUKTI SERAH TERIMA FISIK
+                    BUKTI HANDOVER TOKO
                   </span>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="font-bold text-slate-800 block mb-1">Nama Penjemput / Kurir Armada:</label>
+                    <label className="font-bold text-slate-800 block mb-1">Nama Kurir Armada / Relawan:</label>
                     <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="Nama lengkap kurir" />
                   </div>
                 </div>
@@ -418,7 +470,7 @@ export default function ProviderClaimsPage() {
                   className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded border-slate-300 focus:ring-[#D4A843]"
                 />
                 <span className="text-xs font-bold text-slate-800 leading-snug">
-                  Saya mengonfirmasi bahwa makanan diserahkan dalam keadaan utuh, higienis, dan sesuai dengan porsi yang terdaftar.
+                  Saya mengonfirmasi bahwa makanan diserahkan ke kurir dalam keadaan segar, higienis, dan sesuai kuantitas porsi.
                 </span>
               </label>
             </div>
@@ -427,8 +479,8 @@ export default function ProviderClaimsPage() {
               <Button variant="outline" size="sm" onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}>
                 Batal
               </Button>
-              <Button variant="gold" size="sm" className="font-extrabold" onClick={executeConfirm}>
-                Selesaikan Verifikasi & Tandai Diambil ➔
+              <Button variant="gold" size="sm" className="font-extrabold" onClick={() => handleVerifyCodeAtStore(confirmModal.code)}>
+                Konfirmasi Handover & Set Status OTW ➔
               </Button>
             </div>
           </div>
