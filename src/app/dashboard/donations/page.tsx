@@ -9,8 +9,9 @@ import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-// Poin 1: Human-Readable Indonesian Status Label Helper
+// Human-Readable Indonesian Status Label Helper
 const getHumanReadableStatusLabel = (statusCode: string) => {
   switch (statusCode) {
     case 'AWAITING_RESCUE_PICKUP':
@@ -29,13 +30,14 @@ const getHumanReadableStatusLabel = (statusCode: string) => {
 };
 
 export default function DonationsPage() {
+  const router = useRouter();
   const { data: session } = useSession();
   const userRole = session?.user?.role || 'PROVIDER';
 
   // Provider Direct Delivery Fleet Capability
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
 
-  // Search & Multi-Filter Control Bar State (Poin 5 & Poin 6)
+  // Search & Multi-Filter Control Bar State
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLocation, setFilterLocation] = useState('ALL');
   const [filterCategory, setFilterCategory] = useState('ALL');
@@ -129,15 +131,55 @@ export default function DonationsPage() {
     },
   ]);
 
-  // Provider Funded Donation History (Poin 2)
-  const [providerDonationHistory, setProviderDonationHistory] = useState<any[]>([]);
+  // Provider Funded Donation History (Default Mock ALWAYS VISIBLE)
+  const defaultHistoryMock = [
+    {
+      id: 'FB-DON-88192',
+      claimCode: 'FB-DON-88192',
+      foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
+      quantity: 45,
+      quantityUnit: 'Porsi',
+      status: 'AWAITING_RESCUE_PICKUP',
+      deliveryMethod: 'RESCUE_COURIER',
+      shelterName: 'Panti Asuhan Kasih Ibu',
+      contactPhone: '081298765432',
+      readyTime: '19:00 WIB',
+      address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+      createdAt: 'Hari ini, 18:30 WIB',
+      lat: -7.2754,
+      lng: 112.7541,
+    },
+    {
+      id: 'FB-DON-77182',
+      claimCode: 'FB-DON-77182',
+      foodName: 'Paket Roti Bakery Steril & Susu UHT',
+      quantity: 30,
+      quantityUnit: 'Paket',
+      status: 'COMPLETED',
+      deliveryMethod: 'SHELTER_PICKUP',
+      shelterName: 'Panti Werdha Lansia Sejahtera',
+      contactPhone: '081345678901',
+      readyTime: 'Kemarin 14:00 WIB',
+      address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
+      createdAt: '21 Aug 2026, 14:00 WIB',
+      lat: -7.3012,
+      lng: 112.7389,
+    },
+  ];
+
+  const [providerDonationHistory, setProviderDonationHistory] = useState<any[]>(defaultHistoryMock);
 
   useEffect(() => {
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
       if (savedClaimsStr) {
-        const claims = JSON.parse(savedClaimsStr);
-        setProviderDonationHistory(claims);
+        const savedClaims = JSON.parse(savedClaimsStr);
+        if (Array.isArray(savedClaims) && savedClaims.length > 0) {
+          // Deduplicate with default mock
+          const combined = [...savedClaims, ...defaultHistoryMock];
+          const unique = combined.filter((v, i, a) => a.findIndex(t => t.id === v.id || t.claimCode === v.claimCode) === i);
+          setProviderDonationHistory(unique);
+        }
       }
     } catch (_) {}
   }, []);
@@ -162,7 +204,7 @@ export default function DonationsPage() {
   const [readyTime, setReadyTime] = useState('18:30 WIB');
   const [hygieneChecked, setHygieneChecked] = useState(true);
 
-  // Live Tracking Modal State (Poin 2)
+  // Live Tracking Modal State
   const [activeTrackingModalItem, setActiveTrackingModalItem] = useState<any | null>(null);
 
   // Success QR Ticket Receipt State
@@ -175,7 +217,7 @@ export default function DonationsPage() {
     type: 'success',
   });
 
-  // Filtered Requests Logic (Poin 5 & Poin 6)
+  // Filtered Requests Logic
   const filteredRequests = requests.filter((req) => {
     const matchesSearch =
       req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -292,7 +334,9 @@ export default function DonationsPage() {
       contactPhone: selectedRequest.contactPhone,
       readyTime,
       address: selectedRequest.address,
-      createdAt: new Date().toISOString(),
+      createdAt: 'Hari ini, Baru Saja',
+      lat: selectedRequest.lat || -7.2754,
+      lng: selectedRequest.lng || 112.7541,
     };
 
     try {
@@ -402,7 +446,7 @@ export default function DonationsPage() {
         )}
       </div>
 
-      {/* Metric Counters Widget (Poin 7 - Developer Recommendation) */}
+      {/* Metric Counters Widget */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 border-slate-200 bg-white shadow-xs">
           <div className="flex items-center gap-3">
@@ -441,7 +485,7 @@ export default function DonationsPage() {
         </Card>
       </div>
 
-      {/* Search & Multi-Filter Control Bar (Poin 5 & Poin 6) */}
+      {/* Search & Multi-Filter Control Bar */}
       <Card className="p-4 bg-white border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-2">
@@ -454,7 +498,6 @@ export default function DonationsPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-          {/* Search Field */}
           <div className="sm:col-span-1">
             <Input
               placeholder="🔍 Cari nama panti / catatan..."
@@ -464,7 +507,6 @@ export default function DonationsPage() {
             />
           </div>
 
-          {/* Filter Wilayah */}
           <div>
             <select
               className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
@@ -480,7 +522,6 @@ export default function DonationsPage() {
             </select>
           </div>
 
-          {/* Filter Kategori Pangan */}
           <div>
             <select
               className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
@@ -494,7 +535,6 @@ export default function DonationsPage() {
             </select>
           </div>
 
-          {/* Filter Urgensi */}
           <div>
             <select
               className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
@@ -514,11 +554,9 @@ export default function DonationsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredRequests.map((req) => (
             <Card key={req.id} className="border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
-              {/* Photo Banner Header with HIGH CONTRAST BADGES (Poin 3) */}
               <div className="relative w-full h-40 bg-slate-900 overflow-hidden">
                 <img src={req.photoUrl} alt={req.shelterName} className="w-full h-full object-cover opacity-90" />
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                  {/* High Contrast Pill Badges (Poin 3) */}
                   {req.status === 'MATCHED & PROCESSED' ? (
                     <span className="px-3 py-1 bg-emerald-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
                       ✓ MATCHED
@@ -533,7 +571,6 @@ export default function DonationsPage() {
                     </span>
                   )}
                 </div>
-                {/* High Contrast Location Badge (Poin 3) */}
                 <div className="absolute bottom-2.5 right-2.5 bg-slate-900/90 text-white px-3 py-1 rounded-md text-[10px] font-mono font-bold shadow-md border border-slate-700/80 backdrop-blur-xs">
                   📍 {req.location}
                 </div>
@@ -607,6 +644,74 @@ export default function DonationsPage() {
         </div>
       </div>
 
+      {/* Provider Funded Donation History Section (ALWAYS VISIBLE & CLEAR) */}
+      <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4 mt-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+          <div>
+            <h3 className="text-sm font-extrabold text-[#1B3A5C] flex items-center gap-2">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>Seksyen Riwayat Donasi Disalurkan Toko Saya ({providerDonationHistory.length} Resi Active)</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              Pantau status penjemputan, kurir relawan, dan bukti serah terima QR Code untuk seluruh donasi dari toko Anda.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-bold text-xs shrink-0"
+            onClick={() => router.push('/dashboard/provider/claims')}
+          >
+            Kelola di Halaman Penyelamatan ➔
+          </Button>
+        </div>
+
+        <div className="space-y-3 text-xs">
+          {providerDonationHistory.map((history) => (
+            <div key={history.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono font-black text-[#D4A843] text-sm bg-[#1B3A5C] px-2.5 py-0.5 rounded-md text-white">
+                    {history.claimCode || history.id}
+                  </span>
+                  <span className="text-xs px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md">
+                    {getHumanReadableStatusLabel(history.status)}
+                  </span>
+                </div>
+                <h4 className="font-extrabold text-[#1B3A5C] text-sm mt-1">
+                  {history.shelterName} — <span className="text-emerald-700">{history.foodName} ({history.quantity} Porsi)</span>
+                </h4>
+                <p className="text-xs text-slate-500 font-medium">
+                  Lokasi: {history.address} • Jam Siap: {history.readyTime || '19:00 WIB'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {/* Button 1: Live In-Page Timeline Tracker */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTrackingModalItem(history)}
+                  className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <span>📍 Lacak Stepper Progress</span>
+                </button>
+
+                {/* Button 2: Direct Redirect to Public Transparansi Tracking Page (/track/[id]) */}
+                <button
+                  type="button"
+                  onClick={() => router.push(`/track/${history.claimCode || history.id}`)}
+                  className="px-3.5 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <span>🌐 Transparansi Publik (/track) ➔</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       {/* Modal Profile Detail Shelter / Panti Asuhan */}
       <Modal
         isOpen={!!selectedShelterProfile}
@@ -652,7 +757,6 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Direct WhatsApp Coordination Button (Poin 7) */}
             <a
               href={`https://wa.me/${selectedShelterProfile.contactPhone.replace(/^0/, '62')}`}
               target="_blank"
@@ -695,7 +799,7 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Interactive Fulfill Donation Flow (Poin 4 - HIGH CONTRAST WHITE TEXT HEADER) */}
+      {/* Modal Interactive Fulfill Donation Flow */}
       <Modal
         isOpen={!!selectedRequest}
         onClose={() => setSelectedRequest(null)}
@@ -704,7 +808,6 @@ export default function DonationsPage() {
       >
         {selectedRequest && (
           <form onSubmit={handleConfirmFulfillSubmit} className="space-y-4 text-xs">
-            {/* Target Summary Card with CRISP WHITE TEXT CONTRAST (Poin 4) */}
             <div className="p-5 bg-[#1B3A5C] text-white rounded-2xl space-y-1.5 shadow-md border border-[#2C5A8F]">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black uppercase text-[#D4A843] tracking-widest block">
@@ -715,7 +818,6 @@ export default function DonationsPage() {
                 </span>
               </div>
 
-              {/* Crisp White Title (Poin 4) */}
               <h4 className="text-xl font-black text-white leading-snug drop-shadow-xs">
                 {selectedRequest.shelterName} ({selectedRequest.beneficiariesCount} Anak/Lansia)
               </h4>
@@ -729,7 +831,6 @@ export default function DonationsPage() {
               </p>
             </div>
 
-            {/* Smart Matching 2.0 Scorecard Indicator */}
             <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3 shadow-md border border-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -753,7 +854,6 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Smart Category Matching Inventory Selector */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-[#1B3A5C]">1. Pilih Stok Makanan Surplus Toko Anda (Real Inventory)</label>
               <select
@@ -787,7 +887,6 @@ export default function DonationsPage() {
               )}
             </div>
 
-            {/* Stock Limit Validation Input */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Input
@@ -815,7 +914,6 @@ export default function DonationsPage() {
               />
             </div>
 
-            {/* Recipient-Driven Logistics & Provider Capability Warning */}
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#1B3A5C]">4. Metode Pengiriman Yang Diminta Shelter:</span>
@@ -854,7 +952,6 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Hygiene & Food Safety Checkbox Confirmation */}
             <label className="flex items-start gap-2.5 p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 cursor-pointer text-emerald-900">
               <input
                 type="checkbox"
@@ -888,7 +985,7 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Tiket Receipt Kode QR & Direct Link Live Tracking (Poin 1 & Poin 2) */}
+      {/* Modal Tiket Receipt Kode QR & Direct Redirect Action Buttons */}
       <Modal
         isOpen={!!completedTicket}
         onClose={() => setCompletedTicket(null)}
@@ -933,23 +1030,36 @@ export default function DonationsPage() {
                 <span className="font-bold text-slate-800">{completedTicket.foodName}</span>
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Status Tracking (Bahasa):</span>
-                {/* Human-Readable Status Label (Poin 1) */}
+                <span className="text-slate-500 font-medium block">Status Tracking:</span>
                 <span className="font-extrabold text-[#D4A843] block mt-0.5">
                   {getHumanReadableStatusLabel(completedTicket.initialStatus)}
                 </span>
               </div>
             </div>
 
-            {/* Direct Link to Claims & Live Tracking (Poin 2) */}
-            <div className="space-y-2">
-              <Link
-                href="/dashboard/provider/claims"
-                onClick={() => setCompletedTicket(null)}
-                className="w-full py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-900 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors"
+            {/* Direct Navigation Buttons to Public Track & Provider Claims */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setCompletedTicket(null);
+                  router.push(`/track/${completedTicket.ticketCode}`);
+                }}
+                className="w-full py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
               >
-                <span>Lacak Penyelamatan Real-Time di Menu Klaim ➔</span>
-              </Link>
+                <span>🌐 Halaman Transparansi Publik ➔</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCompletedTicket(null);
+                  router.push('/dashboard/provider/claims');
+                }}
+                className="w-full py-3 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
+              >
+                <span>🏢 Halaman Penyelamatan ➔</span>
+              </button>
             </div>
 
             {completedTicket.deliveryMethod === 'PROVIDER_DIRECT' && (
@@ -986,84 +1096,71 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Provider Funded Donation History Section (Poin 2) */}
-      {providerDonationHistory.length > 0 && (
-        <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-extrabold text-[#1B3A5C] flex items-center gap-2">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <span>Riwayat Donasi Disalurkan Toko Saya ({providerDonationHistory.length} Resi)</span>
-            </h3>
-            <Link href="/dashboard/provider/claims" className="text-xs font-bold text-[#1B3A5C] hover:underline">
-              Kelola di Penyelamatan ➔
-            </Link>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            {providerDonationHistory.map((history) => (
-              <div key={history.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-black text-[#D4A843]">{history.claimCode || history.id}</span>
-                    <span className="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md">
-                      {getHumanReadableStatusLabel(history.status)}
-                    </span>
-                  </div>
-                  <h4 className="font-bold text-[#1B3A5C] mt-0.5">{history.shelterName} — {history.foodName} ({history.quantity} Porsi)</h4>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTrackingModalItem(history)}
-                    className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-lg transition-colors"
-                  >
-                    Lacak Status Penyelamatan ➔
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Live Tracking Status Modal (Poin 2) */}
+      {/* Live Tracking Stepper Progress Modal */}
       <Modal
         isOpen={!!activeTrackingModalItem}
         onClose={() => setActiveTrackingModalItem(null)}
         title={`Pelacak Status Penyelamatan: ${activeTrackingModalItem?.claimCode}`}
-        size="md"
+        size="lg"
       >
         {activeTrackingModalItem && (
           <div className="space-y-4 text-xs">
             <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-2">
               <span className="text-[10px] text-slate-400 font-mono block">RESI STATUS REAL-TIME:</span>
-              <h3 className="text-lg font-black text-[#D4A843]">{activeTrackingModalItem.claimCode}</h3>
+              <h3 className="text-xl font-black text-[#D4A843]">{activeTrackingModalItem.claimCode}</h3>
               <p className="text-xs text-slate-200">
                 Penerima: <strong>{activeTrackingModalItem.shelterName}</strong> • {activeTrackingModalItem.foodName} ({activeTrackingModalItem.quantity} Porsi)
               </p>
             </div>
 
-            {/* Stepper Timeline */}
+            {/* Google Maps Delivery Route Embed */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Peta Rute Logistik Penyelamatan Panti</h4>
+                <span className="text-[10px] font-mono font-bold text-slate-500">Surabaya Geofencing Active</span>
+              </div>
+              <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+                <iframe
+                  title="Tracking Route Map"
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  scrolling="no"
+                  src={`https://maps.google.com/maps?q=${activeTrackingModalItem.lat || -7.2754},${activeTrackingModalItem.lng || 112.7541}&z=15&output=embed`}
+                  className="w-full h-full filter saturate-150"
+                />
+                <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
+                  📍 Lokasi Pengiriman: {activeTrackingModalItem.shelterName}
+                </div>
+              </div>
+            </div>
+
+            {/* Stepper Timeline Progress */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <span className="font-extrabold text-[#1B3A5C] block">Timeline Status Penyelamatan:</span>
-              <div className="space-y-2.5 pl-3 border-l-2 border-[#1B3A5C]">
+              <span className="font-extrabold text-[#1B3A5C] block">Timeline Progress Penyelamatan Real-Time:</span>
+              <div className="space-y-3 pl-3 border-l-2 border-[#1B3A5C]">
                 <div className="relative pl-3">
-                  <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 bg-emerald-500 rounded-full" />
-                  <span className="font-bold text-slate-900 block">1. Donasi Dialokasikan & Resi Diterbitkan</span>
-                  <span className="text-[10px] text-slate-500">{activeTrackingModalItem.createdAt || 'Baru Saja'}</span>
+                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+                  <span className="font-extrabold text-emerald-800 block text-xs">1. Donasi Dialokasikan & Resi QR Diterbitkan</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Tiket {activeTrackingModalItem.claimCode} berhasil dicatat di ledger Replate.</span>
                 </div>
                 <div className="relative pl-3">
-                  <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 bg-amber-500 rounded-full" />
-                  <span className="font-bold text-slate-900 block">2. Status Saat Ini: {getHumanReadableStatusLabel(activeTrackingModalItem.status)}</span>
-                  <span className="text-[10px] text-slate-500">Penjemputan disiapkan di lokasi toko</span>
+                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white animate-pulse" />
+                  <span className="font-extrabold text-amber-900 block text-xs">
+                    2. Status Saat Ini: {getHumanReadableStatusLabel(activeTrackingModalItem.status)}
+                  </span>
+                  <span className="text-[11px] text-slate-600 font-medium">
+                    {activeTrackingModalItem.deliveryMethod === 'RESCUE_COURIER'
+                      ? 'Kurir Relawan Replate dalam perjalanan menuju lokasi toko Anda.'
+                      : activeTrackingModalItem.deliveryMethod === 'PROVIDER_DIRECT'
+                      ? 'Armada toko Anda dalam alur pengiriman langsung ke panti.'
+                      : 'Pengurus panti asuhan dalam alur pengambilan mandiri di toko.'}
+                  </span>
                 </div>
                 <div className="relative pl-3 opacity-60">
-                  <span className="absolute -left-[19px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full" />
-                  <span className="font-bold text-slate-700 block">3. Verifikasi QR Scan & Serah Terima Selesai</span>
-                  <span className="text-[10px] text-slate-400">Menunggu scan fisik di lokasi panti</span>
+                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-slate-300 rounded-full border-2 border-white" />
+                  <span className="font-bold text-slate-700 block text-xs">3. Verifikasi QR Scan & Serah Terima Selesai</span>
+                  <span className="text-[11px] text-slate-500 font-medium">QR Code discan oleh penerima saat paket makanan tiba di lokasi.</span>
                 </div>
               </div>
             </div>
@@ -1072,11 +1169,18 @@ export default function DonationsPage() {
               <Button variant="outline" size="sm" onClick={() => setActiveTrackingModalItem(null)}>
                 Tutup Pelacak
               </Button>
-              <Link href="/dashboard/provider/claims">
-                <Button variant="gold" size="sm" className="font-extrabold">
-                  Buka Kelola Penyelamatan ➔
-                </Button>
-              </Link>
+
+              {/* Direct Redirect Button to Public Tracking Page */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTrackingModalItem(null);
+                  router.push(`/track/${activeTrackingModalItem.claimCode || activeTrackingModalItem.id}`);
+                }}
+                className="px-4 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+              >
+                <span>🌐 Buka Halaman Transparansi Publik (/track) ➔</span>
+              </button>
             </div>
           </div>
         )}
