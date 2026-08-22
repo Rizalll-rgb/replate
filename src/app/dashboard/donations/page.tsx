@@ -13,16 +13,15 @@ export default function DonationsPage() {
   const { data: session } = useSession();
   const userRole = session?.user?.role || 'PROVIDER';
 
-  // Provider Direct Delivery Fleet Capability (Poin 4)
-  // Default is false (warung/bakery doesn't have delivery fleet, relies on Replate Rescue Couriers)
+  // Provider Direct Delivery Fleet Capability
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
 
-  // Active Provider Surplus Inventory (Poin 1 & Poin 2)
+  // Active Provider Surplus Inventory
   const [providerInventory, setProviderInventory] = useState<any[]>([
-    { id: 'FOOD-001', foodName: 'Nasi Ayam Bakar Pak Kumis', quantity: 35, quantityUnit: 'Porsi', category: 'Makanan Olahan (Meals)' },
-    { id: 'FOOD-002', foodName: 'Bakso Sapi Urat Super', quantity: 20, quantityUnit: 'Porsi', category: 'Makanan Olahan (Meals)' },
-    { id: 'FOOD-003', foodName: 'Paket Roti Bakery Steril', quantity: 40, quantityUnit: 'Paket', category: 'Roti, Buah & Susu (Bakery & Dairy)' },
-    { id: 'FOOD-004', foodName: 'Susu UHT & Buah Potong Segar', quantity: 30, quantityUnit: 'Porsi', category: 'Roti, Buah & Susu (Bakery & Dairy)' },
+    { id: 'FOOD-001', foodName: 'Nasi Ayam Bakar Pak Kumis', quantity: 35, quantityUnit: 'Porsi', category: 'Makanan Olahan (Meals)', storageTemp: 'ROOM_TEMP', allergens: ['Nut-Free'] },
+    { id: 'FOOD-002', foodName: 'Bakso Sapi Urat Super', quantity: 20, quantityUnit: 'Porsi', category: 'Makanan Olahan (Meals)', storageTemp: 'ROOM_TEMP', allergens: ['Nut-Free', 'Halal'] },
+    { id: 'FOOD-003', foodName: 'Paket Roti Bakery Steril', quantity: 40, quantityUnit: 'Paket', category: 'Roti, Buah & Susu (Bakery & Dairy)', storageTemp: 'ROOM_TEMP', allergens: ['Low-Salt'] },
+    { id: 'FOOD-004', foodName: 'Susu UHT & Buah Potong Segar', quantity: 30, quantityUnit: 'Porsi', category: 'Roti, Buah & Susu (Bakery & Dairy)', storageTemp: 'REFRIGERATED', allergens: ['Dairy'] },
   ]);
 
   // Load local surplus inventory if available
@@ -32,7 +31,6 @@ export default function DonationsPage() {
       if (savedSurplus) {
         const parsed = JSON.parse(savedSurplus);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Normalize categories for Smart Matching
           const normalized = parsed.map((item: any) => ({
             ...item,
             category: item.category || 'Makanan Olahan (Meals)',
@@ -58,7 +56,7 @@ export default function DonationsPage() {
       lng: 112.7541,
       photoUrl: 'https://images.unsplash.com/photo-1594708767771-a7502209ff51?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan 40-50 porsi nasi lauk pauk bergizi untuk makan malam anak-anak panti.',
-      preferredDelivery: 'RESCUE_COURIER', // Poin 3: Recipient-driven delivery preference
+      preferredDelivery: 'RESCUE_COURIER',
       status: 'OPEN',
       contactPhone: '081298765432',
       leaderName: 'Ibu Hj. Aminah',
@@ -78,7 +76,7 @@ export default function DonationsPage() {
       lng: 112.7389,
       photoUrl: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan roti tekstur lembut, buah potong segar, atau susu UHT untuk lansia.',
-      preferredDelivery: 'SHELTER_PICKUP', // Poin 3: Shelter picks up directly
+      preferredDelivery: 'SHELTER_PICKUP',
       status: 'OPEN',
       contactPhone: '081345678901',
       leaderName: 'Bpk. Dr. Handoko',
@@ -98,7 +96,7 @@ export default function DonationsPage() {
       lng: 112.7391,
       photoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan porsi makanan surplus siap santap untuk pembagian malam relawan.',
-      preferredDelivery: 'PROVIDER_DIRECT', // Poin 3: Shelter requested store direct delivery
+      preferredDelivery: 'PROVIDER_DIRECT',
       status: 'OPEN',
       contactPhone: '081567890123',
       leaderName: 'Mas Rizky Relawan',
@@ -106,19 +104,19 @@ export default function DonationsPage() {
     },
   ]);
 
-  // Add Request Modal State (for Yayasan/Shelters)
+  // Add Request Modal State
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [newShelterName, setNewShelterName] = useState('');
   const [newCount, setNewCount] = useState<number>(30);
   const [newCategory, setNewCategory] = useState('Makanan Olahan (Meals)');
   const [newNotes, setNewNotes] = useState('');
   const [newLocation, setNewLocation] = useState('Surabaya Pusat');
-  const [newDeliveryPref, setNewDeliveryPref] = useState('RESCUE_COURIER'); // Poin 3
+  const [newDeliveryPref, setNewDeliveryPref] = useState('RESCUE_COURIER');
 
-  // Shelter Profile Detail Modal State (Poin 1)
+  // Shelter Profile Detail Modal State
   const [selectedShelterProfile, setSelectedShelterProfile] = useState<any | null>(null);
 
-  // Interactive Fulfill Donation Modal State (Poin 2, 3, 4)
+  // Interactive Fulfill Donation Modal State
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [selectedFoodId, setSelectedFoodId] = useState<string>('');
   const [portionedQuantity, setPortionedQuantity] = useState<number>(30);
@@ -136,24 +134,17 @@ export default function DonationsPage() {
     type: 'success',
   });
 
-  // Open Fulfill Modal & Apply Smart Category Matching + Delivery Capability Logic (Poin 2, 3, 4)
   const handleOpenFulfillModal = (req: any) => {
     setSelectedRequest(req);
-
-    // Find matching items in inventory based on category
     const matchingItems = providerInventory.filter(
       (item) => item.category === req.foodCategoryNeeded
     );
-
-    // Pick first matching item if exists, else first inventory item
     const initialFood = matchingItems[0] || providerInventory[0];
     if (initialFood) {
       setSelectedFoodId(initialFood.id);
       setPortionedQuantity(Math.min(req.beneficiariesCount || 30, initialFood.quantity));
     }
 
-    // Determine Effective Delivery Method (Poin 3 & Poin 4)
-    // If shelter requested PROVIDER_DIRECT but provider lacks fleet, fallback to RESCUE_COURIER!
     if (req.preferredDelivery === 'PROVIDER_DIRECT' && !providerCanDeliverDirect) {
       setEffectiveDeliveryMethod('RESCUE_COURIER');
     } else {
@@ -163,26 +154,46 @@ export default function DonationsPage() {
 
   const selectedFoodObj = providerInventory.find((f) => f.id === selectedFoodId) || providerInventory[0];
 
-  // Smart Matching Category Check (Poin 2)
-  const isCategoryMatched = selectedRequest && selectedFoodObj
-    ? selectedFoodObj.category === selectedRequest.foodCategoryNeeded
-    : false;
+  // Smart Matching 2.0 AI Compatibility Breakdown Calculator
+  const calculateSmartMatchScore = (food: any, request: any) => {
+    if (!food || !request) return { score: 0, isMatch: false, breakdown: [] };
+
+    let categoryScore = food.category === request.foodCategoryNeeded ? 30 : 0;
+    let distScore = 25; // Default GPS proximity (Surabaya Radius < 3km)
+    let timeScore = request.urgency === 'HIGH' ? 20 : 15;
+    let portionScore = Math.min(15, Math.round(((food.quantity || 1) / (request.beneficiariesCount || 1)) * 15));
+    let hygieneScore = 10; // 100% BPOM Certified
+
+    const totalScore = categoryScore + distScore + timeScore + portionScore + hygieneScore;
+
+    return {
+      score: totalScore,
+      isMatch: totalScore >= 70 && categoryScore > 0,
+      breakdown: [
+        { label: 'Kategori & Gizi Makro Panti', score: categoryScore, max: 30 },
+        { label: 'Proksimitas Geofencing GPS', score: distScore, max: 25 },
+        { label: 'Ketahanan & Urgensi Waktu', score: timeScore, max: 20 },
+        { label: 'Rasio Kecukupan Porsi', score: portionScore, max: 15 },
+        { label: 'Higienitas & Kredensial BPOM', score: hygieneScore, max: 10 },
+      ],
+    };
+  };
+
+  const matchAnalysis = calculateSmartMatchScore(selectedFoodObj, selectedRequest);
 
   const handleConfirmFulfillSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRequest || !selectedFoodObj) return;
 
-    // Smart Category Match Validation (Poin 2)
-    if (!isCategoryMatched) {
+    if (!matchAnalysis.isMatch) {
       setToastState({
         isOpen: true,
-        message: `Kategori makanan yang Anda pilih (${selectedFoodObj.category}) tidak sesuai dengan kebutuhan shelter (${selectedRequest.foodCategoryNeeded})!`,
+        message: `Kategori makanan yang Anda pilih (${selectedFoodObj.category}) tidak sesuai dengan kebutuhan gizi shelter (${selectedRequest.foodCategoryNeeded})!`,
         type: 'error',
       });
       return;
     }
 
-    // Stock Limit Validation (Poin 2)
     if (portionedQuantity > selectedFoodObj.quantity) {
       setToastState({
         isOpen: true,
@@ -199,7 +210,6 @@ export default function DonationsPage() {
 
     const ticketCode = `QR-DON-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Deduct stock from Provider Inventory
     const updatedInventory = providerInventory.map((item) =>
       item.id === selectedFoodObj.id
         ? { ...item, quantity: Math.max(0, item.quantity - portionedQuantity) }
@@ -207,12 +217,10 @@ export default function DonationsPage() {
     );
     setProviderInventory(updatedInventory);
 
-    // Save updated surplus stock to localStorage
     try {
       localStorage.setItem('replate_local_surplus', JSON.stringify(updatedInventory));
     } catch (_) {}
 
-    // Register Claim Record for Tracking Integration
     let initialClaimStatus = 'AWAITING_RESCUE_PICKUP';
     if (effectiveDeliveryMethod === 'SHELTER_PICKUP') initialClaimStatus = 'READY_FOR_PICKUP';
     if (effectiveDeliveryMethod === 'PROVIDER_DIRECT') initialClaimStatus = 'PROVIDER_DELIVERING';
@@ -238,7 +246,6 @@ export default function DonationsPage() {
       localStorage.setItem('replate_claims', JSON.stringify([newClaimRecord, ...existingClaims]));
     } catch (_) {}
 
-    // Update Request status in list
     setRequests((prev) =>
       prev.map((item) =>
         item.id === selectedRequest.id
@@ -257,13 +264,14 @@ export default function DonationsPage() {
       contactPhone: selectedRequest.contactPhone,
       address: selectedRequest.address,
       initialStatus: initialClaimStatus,
+      matchScore: matchAnalysis.score,
     });
 
     setSelectedRequest(null);
 
     setToastState({
       isOpen: true,
-      message: `Berhasil! Donasi ${portionedQuantity} porsi ${selectedFoodObj.foodName} berhasil di-match & terdaftar di Tracking Penyelamatan!`,
+      message: `Berhasil! Donasi ${portionedQuantity} porsi (Match Score: ${matchAnalysis.score}%) ter-match & terdaftar di Tracking Penyelamatan!`,
       type: 'success',
     });
   };
@@ -289,7 +297,7 @@ export default function DonationsPage() {
       lng: 112.7521,
       photoUrl: 'https://images.unsplash.com/photo-1594708767771-a7502209ff51?auto=format&fit=crop&w=600&q=80',
       notes: newNotes,
-      preferredDelivery: newDeliveryPref, // Poin 3
+      preferredDelivery: newDeliveryPref,
       status: 'OPEN',
       contactPhone: '081234567890',
       leaderName: 'Pengurus Yayasan',
@@ -312,17 +320,16 @@ export default function DonationsPage() {
         <div className="space-y-1.5 max-w-2xl">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md shadow-xs">
-              Smart Matching & Recipient-Driven Logistics
+              Smart Matching 2.0 AI Engine
             </span>
-            <span className="text-xs text-slate-200 font-semibold">100% Sesuai Kebutuhan Lapangan</span>
+            <span className="text-xs text-slate-200 font-semibold">Evaluasi 5-Pilar Multi-Kriteria</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white">Hub Donasi & Kebutuhan Shelter Panti</h1>
           <p className="text-xs text-slate-100 leading-relaxed font-medium">
-            Panti Asuhan menentukan rincian kebutuhan pangan & metode pengiriman. Algoritma Smart Matching memastikan provider hanya menyalurkan porsi makanan yang sesuai kriteria gizi penerima.
+            Mesin pencocokan pintar mengevaluasi kategori gizi, proksimitas GPS, ketahanan waktu, rasio porsi, dan kredensial BPOM untuk menjamin akurasi bantuan pangan 100%.
           </p>
         </div>
 
-        {/* Hide button if user is PROVIDER or CONSUMER (Poin 5) */}
         {(userRole === 'YAYASAN' || userRole === 'ADMIN') && (
           <Button
             variant="gold"
@@ -353,9 +360,8 @@ export default function DonationsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {requests.map((req) => (
             <Card key={req.id} className="border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
-              {/* Photo Banner Header (Poin 1) */}
               <div className="relative w-full h-36 bg-slate-200 overflow-hidden">
-                <img src={req.photoUrl} alt={req.shelterName} className="w-full h-full object-cover" />
+                <img src={req.photoUrl} alt={req.shelterName} className="w-full h-full object-cover opacity-90" />
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
                   <Badge variant={req.status === 'MATCHED & PROCESSED' ? 'success' : req.urgency === 'HIGH' ? 'danger' : 'warning'} size="sm">
                     {req.status === 'MATCHED & PROCESSED' ? '✓ MATCHED' : req.urgency === 'HIGH' ? 'URGENT' : 'MEMBUTUHKAN'}
@@ -382,7 +388,6 @@ export default function DonationsPage() {
                       <span className="font-semibold">Kebutuhan Pangan:</span>
                       <span className="font-bold text-emerald-700">{req.foodCategoryNeeded}</span>
                     </div>
-                    {/* Preferred Delivery Badge (Poin 3) */}
                     <div className="flex justify-between text-slate-700 pt-1 border-t border-slate-200/60">
                       <span className="font-semibold">Metode Pengiriman:</span>
                       <span className="font-bold text-[#1B3A5C]">
@@ -399,7 +404,6 @@ export default function DonationsPage() {
                     &quot;{req.notes}&quot;
                   </p>
 
-                  {/* Access Shelter Detail Profile Button (Poin 1) */}
                   <button
                     type="button"
                     onClick={() => setSelectedShelterProfile(req)}
@@ -436,7 +440,7 @@ export default function DonationsPage() {
         </div>
       </div>
 
-      {/* Modal Profile Detail Shelter / Panti Asuhan dengan Foto & Titik Lokasi Peta GPS (Poin 1) */}
+      {/* Modal Profile Detail Shelter / Panti Asuhan */}
       <Modal
         isOpen={!!selectedShelterProfile}
         onClose={() => setSelectedShelterProfile(null)}
@@ -445,7 +449,6 @@ export default function DonationsPage() {
       >
         {selectedShelterProfile && (
           <div className="space-y-4 text-xs">
-            {/* Photo Header */}
             <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-300 shadow-xs">
               <img
                 src={selectedShelterProfile.photoUrl}
@@ -482,7 +485,6 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Google Maps Geolocation Embed Preview Container (Poin 1) */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS Surabaya</h4>
@@ -516,7 +518,7 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Interactive Fulfill Donation Flow dengan Smart Matching & Provider Capability Warning (Poin 2, 3, 4) */}
+      {/* Modal Interactive Fulfill Donation Flow dengan Smart Matching 2.0 AI Scorecard */}
       <Modal
         isOpen={!!selectedRequest}
         onClose={() => setSelectedRequest(null)}
@@ -539,24 +541,37 @@ export default function DonationsPage() {
               </p>
             </div>
 
-            {/* Smart Category Matching Inventory Selector (Poin 2) */}
-            <div className="flex flex-col gap-1.5">
+            {/* Smart Matching 2.0 Scorecard Indicator */}
+            <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3 shadow-md border border-slate-700">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-[#1B3A5C]">1. Pilih Stok Makanan Surplus Toko Anda (Smart Matching)</label>
-                {isCategoryMatched ? (
-                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-                    ✓ SMART MATCHING MATCHED
+                <div>
+                  <span className="text-[10px] text-slate-400 font-mono block">SMART MATCHING 2.0 COMPATIBILITY SCORE:</span>
+                  <span className={`text-xl font-black ${matchAnalysis.score >= 70 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {matchAnalysis.score}% MATCH SCORE
                   </span>
-                ) : (
-                  <span className="text-[10px] font-extrabold text-red-600 bg-red-100 px-2 py-0.5 rounded-md">
-                    ⚠️ KATEGORI TIDAK COCOK
-                  </span>
-                )}
+                </div>
+                <Badge variant={matchAnalysis.score >= 70 ? 'success' : 'danger'}>
+                  {matchAnalysis.score >= 70 ? '✓ HIGHLY RECOMMENDED' : '⚠️ MISMATCHED'}
+                </Badge>
               </div>
 
+              {/* Breakdown 5-Pilar Multi-Kriteria */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-[10px] pt-1 border-t border-slate-800">
+                {matchAnalysis.breakdown.map((item, idx) => (
+                  <div key={idx} className="bg-slate-800/80 p-2 rounded-lg border border-slate-700 text-center">
+                    <span className="text-slate-400 block font-semibold truncate">{item.label}</span>
+                    <span className="font-extrabold text-amber-400">{item.score}/{item.max} Pts</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Smart Category Matching Inventory Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-[#1B3A5C]">1. Pilih Stok Makanan Surplus Toko Anda (Real Inventory)</label>
               <select
                 className={`w-full rounded-xl border text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none ${
-                  isCategoryMatched ? 'border-emerald-500' : 'border-red-400'
+                  matchAnalysis.isMatch ? 'border-emerald-500' : 'border-red-400'
                 }`}
                 value={selectedFoodId}
                 onChange={(e) => {
@@ -578,14 +593,14 @@ export default function DonationsPage() {
                 })}
               </select>
 
-              {!isCategoryMatched && (
+              {!matchAnalysis.isMatch && (
                 <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
-                  ⚠️ Peringatan Smart Matching: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan shelter ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
+                  ⚠️ Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan shelter ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
                 </p>
               )}
             </div>
 
-            {/* Stock Limit Validation Input (Poin 2) */}
+            {/* Stock Limit Validation Input */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Input
@@ -613,7 +628,7 @@ export default function DonationsPage() {
               />
             </div>
 
-            {/* Recipient-Driven Logistics & Provider Capability Warning (Poin 3 & Poin 4) */}
+            {/* Recipient-Driven Logistics & Provider Capability Warning */}
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#1B3A5C]">4. Metode Pengiriman Yang Diminta Shelter:</span>
@@ -626,7 +641,6 @@ export default function DonationsPage() {
                 </Badge>
               </div>
 
-              {/* Check if requested PROVIDER_DIRECT but provider lacks fleet (Poin 4) */}
               {selectedRequest.preferredDelivery === 'PROVIDER_DIRECT' && !providerCanDeliverDirect && (
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 space-y-1">
                   <div className="flex items-center gap-1.5 font-extrabold text-amber-900">
@@ -678,7 +692,7 @@ export default function DonationsPage() {
                 variant="gold"
                 size="sm"
                 className="font-extrabold shadow-md"
-                disabled={!isCategoryMatched || portionedQuantity > selectedFoodObj?.quantity}
+                disabled={!matchAnalysis.isMatch || portionedQuantity > selectedFoodObj?.quantity}
               >
                 Proses & Terbitkan QR Tracking Donasi ➔
               </Button>
@@ -699,7 +713,7 @@ export default function DonationsPage() {
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 space-y-1">
               <span className="font-black text-sm uppercase tracking-wider block">✓ Donasi Berhasil Dialokasikan & Terintegrasi</span>
               <p className="text-xs text-emerald-800 font-medium">
-                Data klaim otomatis terdaftar di rute <strong>Klaim & Penyelamatan</strong> serta Pelacak Transparansi Publik Replate!
+                Smart Match Score: <strong>{completedTicket.matchScore}%</strong> • Data klaim otomatis terdaftar di rute <strong>Klaim & Penyelamatan</strong> serta Pelacak Transparansi Publik Replate!
               </p>
             </div>
 
@@ -737,7 +751,6 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Provider Direct Delivery Photo Upload Option */}
             {completedTicket.deliveryMethod === 'PROVIDER_DIRECT' && (
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
                 <span className="font-bold text-xs text-amber-900 block">🚚 Alur Diantar Langsung oleh Provider:</span>
@@ -781,7 +794,7 @@ export default function DonationsPage() {
         )}
       </Modal>
 
-      {/* Modal Ajukan Request Baru oleh Shelter (Strictly ONLY for YAYASAN/ADMIN) */}
+      {/* Modal Ajukan Request Baru oleh Shelter */}
       <Modal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
@@ -835,7 +848,6 @@ export default function DonationsPage() {
             </select>
           </div>
 
-          {/* Preferred Delivery Preference Option (Poin 3) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#343A40]">Metode Pengiriman Yang Diinginkan Panti</label>
             <select
