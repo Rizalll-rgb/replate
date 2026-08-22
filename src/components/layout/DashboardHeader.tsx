@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar } from '../ui/Avatar';
 import { DropdownMenu } from '../ui/DropdownMenu';
 import { Modal } from '../ui/Modal';
@@ -26,13 +27,15 @@ export interface DashboardHeaderProps {
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 'Dashboard Overview' }) => {
+  const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Editable Account Form State (Poin 9)
   const [orgName, setOrgName] = useState(user?.name || 'Warung Bakso Pak Kumis');
-  const [phone, setPhone] = useState(user?.phone || '081234567891');
-  const [address, setAddress] = useState(user?.address || 'Jl. Genteng Kali No. 45, Genteng, Surabaya');
+  const [phone, setPhone] = useState((user as any)?.phone || '081234567891');
+  const [email, setEmail] = useState(user?.email || 'mitra@replate.id');
+  const [address, setAddress] = useState((user as any)?.address || 'Jl. Genteng Kali No. 45, Genteng, Surabaya');
   const [nib, setNib] = useState('NIB-9120481023912');
   const [district, setDistrict] = useState('Surabaya Pusat');
 
@@ -66,7 +69,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
   const menuItems = [
     {
       id: 'profile',
-      label: isAdmin ? 'Profil Superadmin' : 'Pengaturan & Manajemen Akun',
+      label: isAdmin ? 'Pengaturan Admin' : 'Pengaturan Outlet',
       icon: (
         <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -74,8 +77,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
         </svg>
       ),
       onClick: () => {
-        setIsProfileOpen(true);
-        setIsEditMode(false);
+        if (isAdmin) {
+          router.push('/dashboard/admin/settings');
+        } else {
+          router.push('/dashboard/provider/settings');
+        }
       },
     },
     {
