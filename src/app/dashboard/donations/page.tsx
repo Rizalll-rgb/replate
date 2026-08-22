@@ -330,7 +330,7 @@ export default function DonationsPage() {
               <div className="space-y-0.5">
                 <span className="font-extrabold block text-xs">Konfirmasi SOP Keamanan Pangan BPOM RI</span>
                 <span className="text-[11px] block text-emerald-800 leading-relaxed font-medium">
-                  Saya mengonfirmasi bahwa porsi makanan surplus yang dihibahkan dalam kondisi segar, siap santap < 4 jam, dikemas steril, dan lulus 8-Checklist Higienitas Replate.
+                  Saya mengonfirmasi bahwa porsi makanan surplus yang dihibahkan dalam kondisi segar, siap santap &lt; 4 jam, dikemas steril, dan lulus 8-Checklist Higienitas Replate.
                 </span>
               </div>
             </label>
