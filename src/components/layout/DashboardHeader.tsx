@@ -154,155 +154,130 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
         </div>
       </header>
 
-      {/* Comprehensive Role Account Management Modal (Poin 9) */}
+      {/* Role Conditional Profile Details Modal (Purely Readonly View) */}
       <Modal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
-        title={isEditMode ? 'Edit & Setup Manajemen Akun' : 'Profil Akun & Legalitas Mitra Organisasi'}
+        title={isAdmin ? 'Profil Otoritas Superadmin Platform' : 'Kartu Profil & Legalitas Mitra Organisasi'}
         size="lg"
       >
         <div className="space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <div className="flex items-center gap-4">
-              <Avatar src={user?.profileImage} name={orgName} size="xl" className="border-2 border-[#1B3A5C]" />
-              <div className="min-w-0">
-                <h3 className="text-lg font-extrabold text-[#1B3A5C] truncate">{orgName}</h3>
-                <p className="text-xs text-slate-500 font-medium truncate">{user?.email || 'mitra@replate.id'}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <Badge variant={isAdmin ? 'primary' : 'gold'} size="sm">
-                    {userRole}
-                  </Badge>
-                  <Badge variant="success" size="sm">
-                    {isAdmin ? 'FULL SYSTEM ACCESS' : 'VERIFIED BPOM SOP'}
-                  </Badge>
-                </div>
+          <div className="flex items-center gap-4 border-b border-slate-200 pb-4">
+            <Avatar src={user?.profileImage} name={orgName} size="xl" className="border-2 border-[#1B3A5C]" />
+            <div className="min-w-0">
+              <h3 className="text-lg font-extrabold text-[#1B3A5C] truncate">{orgName}</h3>
+              <p className="text-xs text-slate-500 font-medium truncate">{user?.email || 'mitra@replate.id'}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <Badge variant={isAdmin ? 'primary' : 'gold'} size="sm">
+                  {userRole}
+                </Badge>
+                <Badge variant="success" size="sm">
+                  {isAdmin ? 'FULL SYSTEM ACCESS' : 'VERIFIED BPOM SOP'}
+                </Badge>
               </div>
             </div>
-
-            <Button
-              variant={isEditMode ? 'outline' : 'gold'}
-              size="sm"
-              onClick={() => setIsEditMode(!isEditMode)}
-              className="font-bold shrink-0 flex items-center gap-1.5"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>{isEditMode ? 'Batal Edit' : 'Edit Profil Akun'}</span>
-            </Button>
           </div>
 
-          {!isEditMode ? (
-            /* Readonly View Mode */
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <div>
-                  <span className="text-slate-500 font-semibold block">Nama Organisasi / Toko</span>
-                  <span className="font-extrabold text-[#1B3A5C] text-sm">{orgName}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 font-semibold block">Wilayah Operasional</span>
-                  <span className="font-extrabold text-slate-800 text-sm">{district}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 font-semibold block">NIB / Izin Usaha</span>
-                  <span className="font-mono font-bold text-slate-800 text-sm">{nib}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <div>
-                  <span className="text-slate-500 font-semibold block">No. Telepon PIC Penjemputan</span>
-                  <span className="font-bold text-slate-800">{phone}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 font-semibold block">Alamat Utama Penjemputan</span>
-                  <span className="font-bold text-slate-800">{address}</span>
-                </div>
-              </div>
-
-              <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs space-y-1">
-                <span className="font-extrabold block">Status Kredensial Keamanan Pangan:</span>
-                <p className="text-amber-800 font-normal leading-relaxed">
-                  Akun ini telah terverifikasi resmi oleh Admin Replate & memenuhi SOP higienitas 8-Poin Keamanan Pangan BPOM & WHO.
-                </p>
-              </div>
-            </div>
-          ) : (
-            /* Editable Form Mode (Poin 9) */
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Nama Organisasi / Bisnis Toko"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  placeholder="Contoh: Warung Bakso Pak Kumis"
-                  required
-                />
-
-                <Input
-                  label="Nomor Telepon PIC Penjemputan"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="081234567891"
-                  required
-                />
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-[#343A40]">Wilayah Surabaya</label>
-                  <select
-                    className="w-full rounded-lg border border-[#DEE2E6] text-sm px-3.5 py-2 bg-white focus:border-[#1B3A5C] focus:outline-none"
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                  >
-                    <option value="Surabaya Pusat">Surabaya Pusat (Genteng, Tegalsari, Bubutan)</option>
-                    <option value="Surabaya Timur">Surabaya Timur (Gubeng, Sukolilo, Rungkut)</option>
-                    <option value="Surabaya Barat">Surabaya Barat (Tandes, Sambikerep)</option>
-                    <option value="Surabaya Selatan">Surabaya Selatan (Wonokromo, Gayungan)</option>
-                    <option value="Surabaya Utara">Surabaya Utara (Pabean, Semampir)</option>
-                  </select>
+          <div className="space-y-4 text-xs">
+            {isAdmin ? (
+              /* SUPERADMIN Specific Profile Details */
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Tipe Akun</span>
+                    <span className="font-extrabold text-[#1B3A5C] text-sm">Superadministrator</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Wilayah Otoritas</span>
+                    <span className="font-extrabold text-slate-800 text-sm">Kota Surabaya (Pusat)</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold block">ID Otentikasi Admin</span>
+                    <span className="font-mono font-bold text-slate-800 text-sm">ADM-SBY-001</span>
+                  </div>
                 </div>
 
-                <Input
-                  label="Nomor NIB / Legalitas Izin Usaha"
-                  value={nib}
-                  onChange={(e) => setNib(e.target.value)}
-                  placeholder="NIB-9120481023912"
-                />
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Kontak Otoritas Sistem</span>
+                    <span className="font-bold text-slate-800">admin@replate.id (+62 812-3456-7890)</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Hak Pengawasan Sistem</span>
+                    <span className="font-bold text-emerald-700">Persetujuan Akun, Algoritma, Monitoring</span>
+                  </div>
+                </div>
 
-              <Input
-                label="Alamat Utama Penjemputan Makanan"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Jl. Genteng Kali No. 45, Genteng, Surabaya"
-                required
-              />
+                <div className="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-900 text-xs space-y-1">
+                  <span className="font-extrabold block">Wewenang Control Tower:</span>
+                  <p className="text-blue-800 font-normal leading-relaxed">
+                    Akun ini memegang otoritas penuh untuk menyetujui pendaftaran mitra provider, mengonfigurasi parameter bobot Smart Matching Engine, dan memantau lalu lintas emisi CO2 redistribusi pangan Surabaya.
+                  </p>
+                </div>
+              </>
+            ) : (
+              /* PROVIDER / PARTNER / CONSUMER Readonly Details */
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Nama Organisasi / Toko</span>
+                    <span className="font-extrabold text-[#1B3A5C] text-sm">{orgName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Wilayah Operasional</span>
+                    <span className="font-extrabold text-slate-800 text-sm">{district}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold block">NIB / Izin Usaha</span>
+                    <span className="font-mono font-bold text-slate-800 text-sm">{nib}</span>
+                  </div>
+                </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
-                  Batal
-                </Button>
-                <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveProfile}>
-                  Simpan Perubahan Profil Akun ➔
-                </Button>
-              </div>
-            </div>
-          )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <span className="text-slate-500 font-semibold block">No. Telepon PIC Penjemputan</span>
+                    <span className="font-bold text-slate-800">{phone}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold block">Alamat Utama Penjemputan</span>
+                    <span className="font-bold text-slate-800">{address}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs space-y-1">
+                  <span className="font-extrabold block">Status Kredensial Keamanan Pangan:</span>
+                  <p className="text-amber-800 font-normal leading-relaxed">
+                    Akun ini telah terverifikasi resmi oleh Admin Replate & memenuhi SOP higienitas 8-Poin Keamanan Pangan BPOM & WHO.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
 
           <div className="flex justify-between items-center border-t border-slate-200 pt-4">
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-xl transition-colors"
+              onClick={() => {
+                setIsProfileOpen(false);
+                router.push('/dashboard/provider/settings');
+              }}
+              className="px-4 py-2 bg-[#1B3A5C]/10 hover:bg-[#1B3A5C]/20 text-[#1B3A5C] font-extrabold text-xs rounded-xl transition-colors flex items-center gap-1.5"
             >
-              Keluar (Logout)
+              <span>Buka Pengaturan Outlet Lengkap ➔</span>
             </button>
-            <button
-              onClick={() => setIsProfileOpen(false)}
-              className="px-4 py-2 bg-[#1B3A5C] text-white font-extrabold text-xs rounded-xl hover:bg-[#2C5A8F] transition-colors"
-            >
-              Tutup
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-xl transition-colors"
+              >
+                Keluar (Logout)
+              </button>
+              <button
+                onClick={() => setIsProfileOpen(false)}
+                className="px-4 py-2 bg-[#1B3A5C] text-white font-extrabold text-xs rounded-xl hover:bg-[#2C5A8F] transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
