@@ -67,6 +67,10 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     locationAccurate: true,
   });
 
+  // Custom Select Dropdown CSS Class (Poin 2 - Custom Authentic Replate Dropdown)
+  const customSelectClass =
+    "w-full rounded-xl border border-slate-300 text-xs sm:text-sm px-4 py-2.5 bg-white text-[#1B3A5C] font-bold focus:border-[#1B3A5C] focus:ring-2 focus:ring-[#1B3A5C]/20 focus:outline-none shadow-xs appearance-none cursor-pointer bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231B3A5C%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_1rem_center] bg-[length:1.25rem_1.25rem] pr-10 hover:border-[#1B3A5C] transition-all";
+
   // Quick Preset Date Time Handler
   const handleQuickPresetTime = (hoursFromNow: number, setFixedHour?: number) => {
     const target = new Date();
@@ -140,7 +144,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       rescueReadiness: checklistData,
     };
 
-    // Store in localStorage cache so newly added items show in My Listings immediately (Poin 5)
+    // Store in localStorage cache so newly added items show in My Listings immediately
     try {
       const existing = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
       const newItem = {
@@ -159,7 +163,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 text-slate-800">
-      {/* Skema Distribusi & Logika Harga (Poin 7 & 8) */}
+      {/* Skema Distribusi & Logika Harga */}
       <div className="p-5 bg-[#1B3A5C]/5 border border-[#1B3A5C]/20 rounded-2xl space-y-3">
         <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-2">
           <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +182,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <span className="font-extrabold text-slate-900 block text-xs">🏷️ Rescue Sale (Diskon)</span>
+            <span className="font-extrabold text-slate-900 block text-xs">Rescue Sale (Diskon)</span>
             <p className="text-[11px] text-slate-500 mt-1 leading-snug">
               Dijual murah di bawah harga normal untuk masyarakat umum & anak kos.
             </p>
@@ -193,7 +197,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <span className="font-extrabold text-slate-900 block text-xs">🏛️ Donasi Yayasan / Panti</span>
+            <span className="font-extrabold text-slate-900 block text-xs">Donasi Yayasan / Panti</span>
             <p className="text-[11px] text-slate-500 mt-1 leading-snug">
               Gratis 100% (Porsi Besar). Otomatis masuk Smart Matching Panti Surabaya.
             </p>
@@ -208,7 +212,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <span className="font-extrabold text-slate-900 block text-xs">🤝 Donasi Gratis Individu</span>
+            <span className="font-extrabold text-slate-900 block text-xs">Donasi Gratis Individu</span>
             <p className="text-[11px] text-slate-500 mt-1 leading-snug">
               Gratis 100% (Porsi Sedikit). Untuk warga / individu yang membutuhkan.
             </p>
@@ -216,7 +220,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         </div>
       </div>
 
-      {/* Photo Upload Section with Hint Ratio & Preview (Poin 3) */}
+      {/* Photo Upload Section */}
       <div className="space-y-2">
         <label className="text-xs font-extrabold text-[#1B3A5C] block">
           Upload Foto Produk Surplus Makanan
@@ -249,7 +253,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         </div>
       </div>
 
-      {/* Main Product Info Fields */}
+      {/* Main Product Info Fields with Custom Styled Dropdowns (Poin 2) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Nama Makanan Surplus"
@@ -262,7 +266,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-[#343A40]">Kategori Makanan</label>
           <select
-            className="w-full rounded-lg border border-[#DEE2E6] text-sm px-3.5 py-2 bg-white focus:border-[#1B3A5C] focus:outline-none"
+            className={customSelectClass}
             value={formData.foodCategory}
             onChange={(e) => setFormData({ ...formData, foodCategory: e.target.value })}
           >
@@ -297,14 +301,14 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         ) : (
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#343A40]">Harga Penyelamatan</label>
-            <div className="px-3.5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-sm rounded-lg">
+            <div className="px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-xs sm:text-sm rounded-xl">
               GRATIS (Rp 0 - Skema Donasi Sosial)
             </div>
           </div>
         )}
       </div>
 
-      {/* Custom Authentic Date & Time Picker with Preset Chips (Poin 4) */}
+      {/* Custom Date & Time Picker */}
       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-xs font-extrabold text-[#1B3A5C]">
@@ -353,11 +357,12 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         />
       </div>
 
+      {/* Logistik & Penyimpanan Dropdowns (Poin 2 - Custom Styled Select) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-[#343A40]">Metode Penjemputan / Logistik (Poin 8)</label>
+          <label className="text-xs font-semibold text-[#343A40]">Metode Penjemputan / Logistik</label>
           <select
-            className="w-full rounded-lg border border-[#DEE2E6] text-sm px-3.5 py-2 bg-white focus:border-[#1B3A5C] focus:outline-none font-medium"
+            className={customSelectClass}
             value={deliveryMethod}
             onChange={(e) => setDeliveryMethod(e.target.value as 'SELF_PICKUP' | 'RESCUE_PARTNER')}
           >
@@ -369,7 +374,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-[#343A40]">Kondisi Penyimpanan</label>
           <select
-            className="w-full rounded-lg border border-[#DEE2E6] text-sm px-3.5 py-2 bg-white focus:border-[#1B3A5C] focus:outline-none"
+            className={customSelectClass}
             value={formData.storageCondition}
             onChange={(e) => setFormData({ ...formData, storageCondition: e.target.value })}
           >
@@ -380,7 +385,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         </div>
       </div>
 
-      {/* Auto-Fill Address Toggle (Poin 5) */}
+      {/* Auto-Fill Address Toggle */}
       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-xs font-extrabold text-[#1B3A5C]">Alamat Penjemputan Makanan</label>
