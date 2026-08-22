@@ -1138,31 +1138,52 @@ export default function DonationsPage() {
             {/* Stepper Timeline Progress */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
               <span className="font-extrabold text-[#1B3A5C] block">Timeline Progress Penyelamatan Real-Time:</span>
-              <div className="space-y-3 pl-3 border-l-2 border-[#1B3A5C]">
-                <div className="relative pl-3">
-                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
-                  <span className="font-extrabold text-emerald-800 block text-xs">1. Donasi Dialokasikan & Resi QR Diterbitkan</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Tiket {activeTrackingModalItem.claimCode} berhasil dicatat di ledger Replate.</span>
-                </div>
-                <div className="relative pl-3">
-                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white animate-pulse" />
-                  <span className="font-extrabold text-amber-900 block text-xs">
-                    2. Status Saat Ini: {getHumanReadableStatusLabel(activeTrackingModalItem.status)}
-                  </span>
-                  <span className="text-[11px] text-slate-600 font-medium">
-                    {activeTrackingModalItem.deliveryMethod === 'RESCUE_COURIER'
-                      ? 'Kurir Relawan Replate dalam perjalanan menuju lokasi toko Anda.'
-                      : activeTrackingModalItem.deliveryMethod === 'PROVIDER_DIRECT'
-                      ? 'Armada toko Anda dalam alur pengiriman langsung ke panti.'
-                      : 'Pengurus panti asuhan dalam alur pengambilan mandiri di toko.'}
-                  </span>
-                </div>
-                <div className="relative pl-3 opacity-60">
-                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-slate-300 rounded-full border-2 border-white" />
-                  <span className="font-bold text-slate-700 block text-xs">3. Verifikasi QR Scan & Serah Terima Selesai</span>
-                  <span className="text-[11px] text-slate-500 font-medium">QR Code discan oleh penerima saat paket makanan tiba di lokasi.</span>
-                </div>
-              </div>
+              
+              {(() => {
+                const isDone = activeTrackingModalItem.status === 'COMPLETED' || activeTrackingModalItem.status === 'VERIFIED';
+                return (
+                  <div className="space-y-3 pl-3 border-l-2 border-[#1B3A5C]">
+                    {/* Step 1 */}
+                    <div className="relative pl-3">
+                      <span className="absolute -left-[19px] top-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+                      <span className="font-extrabold text-emerald-800 block text-xs">1. Donasi Dialokasikan & Resi QR Diterbitkan</span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Tiket resi {activeTrackingModalItem.claimCode || activeTrackingModalItem.id} berhasil dicatat di ledger Replate.
+                      </span>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="relative pl-3">
+                      <span className={`absolute -left-[19px] top-1 w-3 h-3 rounded-full border-2 border-white ${isDone ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                      <span className={`font-extrabold block text-xs ${isDone ? 'text-emerald-800' : 'text-amber-900'}`}>
+                        {isDone ? '2. Makanan Diambil & Dalam Penyaluran Ke Panti' : `2. Status Penyaluran: ${getHumanReadableStatusLabel(activeTrackingModalItem.status)}`}
+                      </span>
+                      <span className="text-[11px] text-slate-600 font-medium leading-relaxed block">
+                        {isDone
+                          ? `Kurir Relawan Replate telah mengambil makanan surplus dari toko Anda & sukses mengantarkan ke lokasi penerima (${activeTrackingModalItem.shelterName}).`
+                          : activeTrackingModalItem.deliveryMethod === 'PROVIDER_DIRECT'
+                          ? `Armada toko Anda dalam alur pengiriman langsung menuju lokasi penerima (${activeTrackingModalItem.shelterName}).`
+                          : activeTrackingModalItem.deliveryMethod === 'SHELTER_PICKUP'
+                          ? `Pengurus Panti Asuhan (${activeTrackingModalItem.shelterName}) dalam alur penjemputan mandiri ke toko Anda.`
+                          : `Kurir Relawan Replate telah mengambil makanan di toko & sedang dalam perjalanan menuju lokasi penerima (${activeTrackingModalItem.shelterName}).`}
+                      </span>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="relative pl-3">
+                      <span className={`absolute -left-[19px] top-1 w-3 h-3 rounded-full border-2 border-white ${isDone ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                      <span className={`font-bold block text-xs ${isDone ? 'text-emerald-800 font-extrabold' : 'text-slate-700'}`}>
+                        {isDone ? '3. ✓ Verifikasi QR Scan & Serah Terima Selesai' : '3. Verifikasi QR Scan & Serah Terima Selesai'}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium block">
+                        {isDone
+                          ? `✓ Makanan surplus (${activeTrackingModalItem.quantity}) telah resmi diserahkan & diverifikasi via Kode QR oleh pengurus ${activeTrackingModalItem.shelterName}.`
+                          : `Menunggu verifikasi scan Kode QR saat armada kurir tiba di lokasi penerima (${activeTrackingModalItem.shelterName}).`}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
