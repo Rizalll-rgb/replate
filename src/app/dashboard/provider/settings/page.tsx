@@ -33,11 +33,21 @@ export default function ProviderSettingsPage() {
   const [lng, setLng] = useState<number>(112.7521);
   const [uploadedNibDoc, setUploadedNibDoc] = useState<string | null>('Dokumen_NIB_PakKumis_Verified.pdf');
 
-  // Media & Photo Profile State (SOP Media Branding)
+  // Media & Photo Profile State
   const [profileImage, setProfileImage] = useState<string | null>(session?.user?.image || null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
 
-  // Password & Account Security State (SOP Security)
+  // Bank & Payout Account State (Poin 1)
+  const [bankName, setBankName] = useState('Bank Central Asia (BCA)');
+  const [accountNumber, setAccountNumber] = useState('8291048129');
+  const [accountHolder, setAccountHolder] = useState('Warung Bakso Pak Kumis');
+  const [autoInfaqPercent, setAutoInfaqPercent] = useState('5% (Donasi Otomatis ke Panti)');
+
+  // Food Waste Disposal & Policy State (Poin 2)
+  const [gracePeriodMins, setGracePeriodMins] = useState('30 Menit');
+  const [autoCompostRedirect, setAutoCompostRedirect] = useState(true);
+
+  // Password & Account Security State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -79,7 +89,7 @@ export default function ProviderSettingsPage() {
     e.preventDefault();
     setToastState({
       isOpen: true,
-      message: 'Seluruh pengaturan outlet, koordinat GPS, & media profil berhasil disimpan!',
+      message: 'Seluruh 8 pilar pengaturan outlet & profil usaha berhasil disimpan!',
       type: 'success',
     });
   };
@@ -121,7 +131,6 @@ export default function ProviderSettingsPage() {
     });
   };
 
-  // Password strength calculation
   const getPasswordStrength = (pass: string) => {
     if (!pass) return { label: 'Kosong', percent: 0, color: 'bg-slate-200' };
     if (pass.length < 6) return { label: 'Sangat Lemah 🔴', percent: 25, color: 'bg-red-500' };
@@ -153,11 +162,11 @@ export default function ProviderSettingsPage() {
 
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Pengaturan Outlet & Profil Usaha</h1>
         <p className="text-xs text-slate-100 leading-relaxed max-w-3xl font-medium">
-          Pusat kendali operasional mitra restoran: kelola kredensial legalitas NIB, foto logo/banner etalase, titik GPS Surabaya, jam pickup, kriteria higienitas BPOM, dan keamanan kata sandi.
+          Pusat kendali operasional mitra restoran: kelola kredensial legalitas NIB, foto logo/banner, titik GPS Surabaya, jam pickup, rekening pencairan hasil rescue sale, kebijakan limbah organik, dan keamanan sandi.
         </p>
       </div>
 
-      {/* Section 1: Upload Foto Profil & Banner Etalase Usaha (SOP Media Branding) */}
+      {/* Section 1: Upload Foto Profil & Banner Etalase Usaha */}
       <Card className="border-slate-200 shadow-xs">
         <CardBody className="p-6 space-y-4">
           <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
@@ -171,7 +180,6 @@ export default function ProviderSettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            {/* Foto Profil Avatar Upload Box */}
             <div className="flex flex-col items-center text-center space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
               <div className="relative w-24 h-24 rounded-full border-4 border-[#1B3A5C] overflow-hidden bg-slate-200 shadow-md flex items-center justify-center">
                 {profileImage ? (
@@ -219,7 +227,6 @@ export default function ProviderSettingsPage() {
               </div>
             </div>
 
-            {/* Banner Header Etalase Toko */}
             <div className="md:col-span-2 space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -316,7 +323,6 @@ export default function ProviderSettingsPage() {
               />
             </div>
 
-            {/* Upload Dokumen NIB Verification */}
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-0.5">
                 <span className="font-extrabold text-[#1B3A5C] block">Dokumen Legalitas NIB / Izin Usaha:</span>
@@ -390,7 +396,6 @@ export default function ProviderSettingsPage() {
               </div>
             </div>
 
-            {/* Interactive GPS Pin Point Map Section */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
@@ -458,7 +463,116 @@ export default function ProviderSettingsPage() {
           </CardBody>
         </Card>
 
-        {/* Section 4: Standar Kredensial Keamanan Pangan & BPOM */}
+        {/* Section 4: Rekening Bank Pencairan Hasil Rescue Sale & Infaq Otomatis (Poin 1 - New Enterprise Section) */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
+                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span>4. Rekening Bank Pencairan Hasil Rescue Sale & Infaq Otomatis</span>
+              </h3>
+              <Badge variant="gold">PAYOUT SETTLEMENT</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#343A40]">Nama Bank / E-Wallet Kliring</label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                >
+                  <option value="Bank Central Asia (BCA)">Bank Central Asia (BCA)</option>
+                  <option value="Bank Mandiri">Bank Mandiri</option>
+                  <option value="Bank Rakyat Indonesia (BRI)">Bank Rakyat Indonesia (BRI)</option>
+                  <option value="Bank Negara Indonesia (BNI)">Bank Negara Indonesia (BNI)</option>
+                  <option value="Bank Syariah Indonesia (BSI)">Bank Syariah Indonesia (BSI)</option>
+                </select>
+              </div>
+
+              <Input
+                label="Nomor Rekening Bank Operasional"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Nama Pemilik Rekening (Sesuai NIB)"
+                value={accountHolder}
+                onChange={(e) => setAccountHolder(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <span className="font-extrabold text-[#1B3A5C] block">Donasi Infaq Otomatis Hasil Penjualan Rescue Sale:</span>
+                <span className="text-slate-600 font-medium">Potongan {autoInfaqPercent} langsung disalurkan ke panti asuhan terdaftar.</span>
+              </div>
+              <select
+                className="rounded-xl border border-amber-300 text-xs px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                value={autoInfaqPercent}
+                onChange={(e) => setAutoInfaqPercent(e.target.value)}
+              >
+                <option value="0% (Tanpa Donasi Infaq)">0% (Tanpa Donasi Infaq)</option>
+                <option value="2.5% (Zakat Pangan)">2.5% (Zakat Pangan)</option>
+                <option value="5% (Donasi Otomatis ke Panti)">5% (Donasi Otomatis ke Panti)</option>
+                <option value="10% (Program Kemanusiaan Pro)">10% (Program Kemanusiaan Pro)</option>
+              </select>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Section 5: Kebijakan Retur & Pengolahan Limbah Organik (Poin 2 - New Enterprise Section) */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>5. Toleransi Grace Period & Pengolahan Kompos Organik Zero-Waste</span>
+              </h3>
+              <Badge variant="success">ZERO WASTE POLICY</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#343A40]">Batas Toleransi Keterlambatan Pickup (Grace Period)</label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+                  value={gracePeriodMins}
+                  onChange={(e) => setGracePeriodMins(e.target.value)}
+                >
+                  <option value="15 Menit">15 Menit</option>
+                  <option value="30 Menit">30 Menit (Standar Recommendation)</option>
+                  <option value="45 Menit">45 Menit</option>
+                  <option value="60 Menit">60 Menit</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col justify-center">
+                <label className="flex items-center justify-between p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 cursor-pointer">
+                  <div>
+                    <span className="font-extrabold text-emerald-900 block">Otomatiskan Penyaluran Komposter Organik</span>
+                    <span className="text-emerald-700 block text-[11px]">Jika tidak diambil, alihkan makanan surplus ke mitra pengolah pakan ternak / komposter TPA Benowo.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={autoCompostRedirect}
+                    onChange={(e) => setAutoCompostRedirect(e.target.checked)}
+                    className="w-5 h-5 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer"
+                  />
+                </label>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Section 6: Standar Kredensial Keamanan Pangan & BPOM */}
         <Card className="border-slate-200 shadow-xs">
           <CardBody className="p-6 space-y-4">
             <div className="border-b border-slate-200 pb-3">
@@ -466,7 +580,7 @@ export default function ProviderSettingsPage() {
                 <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>4. Standar Kredensial Higienitas & Halal BPOM</span>
+                <span>6. Standar Kredensial Higienitas & Halal BPOM</span>
               </h3>
             </div>
 
@@ -493,14 +607,69 @@ export default function ProviderSettingsPage() {
           </CardBody>
         </Card>
 
+        {/* Section 7: Preferensi Otomatisasi & Notifikasi */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span>7. Preferensi Smart Matching & Notifikasi WhatsApp</span>
+              </h3>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <label className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-[#1B3A5C] block">Otomatiskan Match Panti Asuhan Surabaya</span>
+                  <span className="text-slate-500 block text-[11px]">Ijinkan Smart Matching Engine langsung menyalurkan donasi surplus porsi besar ke panti terverifikasi.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={autoMatchPanti}
+                  onChange={(e) => setAutoMatchPanti(e.target.checked)}
+                  className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-[#1B3A5C] block">Notifikasi WhatsApp Real-Time</span>
+                  <span className="text-slate-500 block text-[11px]">Kirimkan notifikasi WhatsApp instan setiap ada klaim baru atau verifikasi Kode QR.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={waAlerts}
+                  onChange={(e) => setWaAlerts(e.target.checked)}
+                  className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-[#1B3A5C] block">Peringatan Otomatis 30 Menit Sebelum Pickup Expire</span>
+                  <span className="text-slate-500 block text-[11px]">Sistem akan mengirim peringatan jika ada listing yang mendekati batas waktu penjemputan.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={autoExpireAlert}
+                  onChange={(e) => setAutoExpireAlert(e.target.checked)}
+                  className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
+                />
+              </label>
+            </div>
+          </CardBody>
+        </Card>
+
         <div className="flex justify-end gap-3 pt-2">
           <Button type="submit" variant="gold" size="lg" className="font-extrabold shadow-md">
-            Simpan Seluruh Pengaturan Outlet ➔
+            Simpan Seluruh 8 Pengaturan Outlet ➔
           </Button>
         </div>
       </form>
 
-      {/* Section 5: Keamanan Akun & Perubahan Kata Sandi (SOP Password Security) */}
+      {/* Section 8: Keamanan Akun & Perubahan Kata Sandi */}
       <Card className="border-slate-200 shadow-xs">
         <CardBody className="p-6 space-y-4">
           <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
@@ -508,14 +677,13 @@ export default function ProviderSettingsPage() {
               <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              <span>5. Keamanan Akun & Perubahan Kata Sandi (Password Reset)</span>
+              <span>8. Keamanan Akun & Perubahan Kata Sandi (Password Reset)</span>
             </h3>
-            <Badge variant="primary">SOP KEAMANAN STANDAR GOOGLE/LINKEDIN</Badge>
+            <Badge variant="primary">SOP KEAMANAN ENTERPRISE</Badge>
           </div>
 
           <form onSubmit={handleUpdatePassword} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Current Password Field */}
               <div className="relative">
                 <Input
                   label="Kata Sandi Saat Ini"
@@ -534,7 +702,6 @@ export default function ProviderSettingsPage() {
                 </button>
               </div>
 
-              {/* New Password Field */}
               <div className="relative">
                 <Input
                   label="Kata Sandi Baru (Min. 8 Karakter)"
@@ -553,7 +720,6 @@ export default function ProviderSettingsPage() {
                 </button>
               </div>
 
-              {/* Confirm New Password Field */}
               <Input
                 label="Konfirmasi Kata Sandi Baru"
                 type="password"
@@ -564,7 +730,6 @@ export default function ProviderSettingsPage() {
               />
             </div>
 
-            {/* Password Strength Meter */}
             {newPassword && (
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
                 <div className="flex items-center justify-between text-[11px] font-bold">
