@@ -12,9 +12,9 @@ export default function ProviderSettingsPage() {
   const { data: session } = useSession();
 
   const [orgName, setOrgName] = useState(session?.user?.name || 'Warung Bakso Pak Kumis');
-  const [phone, setPhone] = useState(session?.user?.phone || '081234567891');
+  const [phone, setPhone] = useState((session?.user as any)?.phone || '081234567891');
   const [email, setEmail] = useState(session?.user?.email || 'mitra@replate.id');
-  const [address, setAddress] = useState(session?.user?.address || 'Jl. Genteng Kali No. 45, Genteng, Surabaya');
+  const [address, setAddress] = useState((session?.user as any)?.address || 'Jl. Genteng Kali No. 45, Genteng, Surabaya');
   const [district, setDistrict] = useState('Surabaya Pusat (Genteng)');
   const [nib, setNib] = useState('NIB-9120481023912');
   const [businessCategory, setBusinessCategory] = useState('Restoran / Warung Kuliner');
