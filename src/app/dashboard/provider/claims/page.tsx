@@ -809,6 +809,17 @@ export default function ProviderClaimsPage() {
                     <label className="font-bold text-slate-800 block mb-1">Atau Nama Kurir / Penerima Mandiri:</label>
                     <Input value={courierNameInput} onChange={(e) => setCourierNameInput(e.target.value)} placeholder="Nama lengkap kurir" />
                   </div>
+
+                  <a
+                    href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                      `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
+                  >
+                    <span>💬 Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
+                  </a>
                 </div>
               </div>
 
