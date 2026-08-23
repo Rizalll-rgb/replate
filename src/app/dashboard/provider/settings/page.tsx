@@ -153,6 +153,18 @@ export default function ProviderSettingsPage() {
   const [accountNumber, setAccountNumber] = useState('8291048129');
   const [accountHolder, setAccountHolder] = useState('Warung Bakso Pak Kumis');
   const [autoInfaqPercent, setAutoInfaqPercent] = useState('5% (Donasi Otomatis ke Panti)');
+  const [qrisPhoto, setQrisPhoto] = useState<string>(
+    'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60'
+  );
+
+  React.useEffect(() => {
+    try {
+      const savedQris = localStorage.getItem('replate_provider_qris_photo');
+      if (savedQris) {
+        setQrisPhoto(savedQris);
+      }
+    } catch (_) {}
+  }, []);
 
   // Food Waste Disposal & Policy State (Poin 2)
   const [gracePeriodMins, setGracePeriodMins] = useState('30 Menit');
@@ -1346,6 +1358,100 @@ export default function ProviderSettingsPage() {
                 onChange={(e) => setAccountHolder(e.target.value)}
                 required
               />
+            </div>
+
+            {/* Setup Foto QRIS Statis Kasir Toko Provider (Untuk Pembayaran Rescue Sale) */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                <div>
+                  <h4 className="font-extrabold text-xs text-[#1B3A5C] flex items-center gap-1.5">
+                    <span>📲 QRIS Statis Pembayaran Toko (Rescue Sale)</span>
+                    <Badge variant="gold" size="sm">STANDAR QRIS TOKO</Badge>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Unggah foto QRIS Standee kasir toko Anda. Gambar QRIS ini akan ditampilkan kepada pembeli saat checkout *Rescue Sale*.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                <div className="relative h-36 bg-slate-900 rounded-xl overflow-hidden border border-slate-300 shadow-xs flex items-center justify-center">
+                  <img src={qrisPhoto} alt="QRIS Statis Toko" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded">
+                    ✓ QRIS TOKO ACTIVE
+                  </span>
+                </div>
+
+                <div className="sm:col-span-2 space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDocPreviewModal({
+                          isOpen: true,
+                          title: 'Panduan & Contoh Foto QRIS Statis Toko Yang Benar',
+                          docType: 'QRIS Statis Kasir Toko',
+                          sampleImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80',
+                          currentImage: qrisPhoto,
+                          hintText: 'Pastikan gambar QRIS terang, jelas, dan dapat di-scan oleh kamera smartphone pembeli.',
+                          checklist: [
+                            'Kode QR terlihat utuh tanpa terpotong',
+                            'Nama Toko / Merchant pada QRIS sesuai dengan nama outlet terdaftar',
+                            'Pencahayaan terang dan foto tidak buram',
+                          ],
+                          mode: 'HINT',
+                        })
+                      }
+                      className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg text-xs transition-all"
+                    >
+                      💡 Contoh QRIS Yang Benar 👁️
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDocPreviewModal({
+                          isOpen: true,
+                          title: 'Preview Hasil Upload QRIS Toko',
+                          docType: 'QRIS Statis Kasir Toko',
+                          sampleImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80',
+                          currentImage: qrisPhoto,
+                          hintText: 'Periksa kejelasan QRIS toko yang baru Anda unggah.',
+                          checklist: ['QR Code jelas & siap di-scan', 'Merchant Name sesuai'],
+                          mode: 'USER_PREVIEW',
+                        })
+                      }
+                      className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-lg text-xs transition-all"
+                    >
+                      🔍 Preview QRIS Toko 👁️
+                    </button>
+                  </div>
+
+                  <label className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl cursor-pointer inline-block shadow-xs transition-all">
+                    <span>📤 Unggah / Ganti Foto QRIS Toko</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = URL.createObjectURL(file);
+                          setQrisPhoto(url);
+                          try {
+                            localStorage.setItem('replate_provider_qris_photo', url);
+                          } catch (_) {}
+                          setToastState({
+                            isOpen: true,
+                            message: '📲 Foto QRIS Statis Toko Berhasil Diperbarui & Disimpan!',
+                            type: 'success',
+                          });
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
