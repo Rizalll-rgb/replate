@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/provider/donations',
+      href: '/dashboard/donations',
       label: 'Permintaan Donasi',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,7 +292,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsOpenMobile(!isOpenMobile)}
-        className="lg:hidden fixed bottom-4 right-4 z-40 p-3 bg-[#1B3A5C] text-white rounded-full shadow-lg hover:bg-[#2C5A8F] transition-colors"
+        className="lg:hidden fixed bottom-4 right-4 z-50 p-3 bg-[#1B3A5C] text-white rounded-full shadow-lg hover:bg-[#2C5A8F] transition-colors"
         aria-label="Toggle Sidebar"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,14 +304,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       {isOpenMobile && (
         <div
           onClick={() => setIsOpenMobile(false)}
-          className="lg:hidden fixed inset-0 bg-slate-900/60 z-30 backdrop-blur-xs"
+          className="lg:hidden fixed inset-0 bg-slate-900/60 z-40 backdrop-blur-xs"
         />
       )}
 
-      {/* Sidebar Content */}
+      {/* Sidebar Content (Fixed 100vh height & sticky top-0) */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#1B3A5C] text-white flex flex-col justify-between p-4 min-h-[calc(100vh-4rem)] border-r border-[#142C47] transform transition-transform duration-300 ${
-          isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:sticky lg:top-0 lg:h-screen w-64 shrink-0 bg-[#1B3A5C] text-white flex flex-col justify-between p-4 border-r border-[#142C47] overflow-y-auto z-40 transform transition-transform duration-300 ${
+          isOpenMobile ? 'translate-x-0 inset-y-0 left-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="space-y-6">
@@ -347,7 +347,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
         </div>
 
         {/* Public Track Quick Link */}
-        <div className="p-3.5 bg-[#142C47] rounded-xl border border-[#2C5A8F]/50 text-xs mt-4">
+        <div className="p-3.5 bg-[#142C47] rounded-xl border border-[#2C5A8F]/50 text-xs mt-4 shrink-0">
           <p className="font-extrabold text-[#D4A843]">Lacak Food Rescue ID</p>
           <p className="text-slate-300 text-[11px] mt-0.5">Cek status transparansi publik</p>
           <Link

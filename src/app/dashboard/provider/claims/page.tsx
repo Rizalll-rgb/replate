@@ -8,8 +8,10 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import { useRouter } from 'next/navigation';
 
 export default function ProviderClaimsPage() {
+  const router = useRouter();
   const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'PENDING' | 'IN_TRANSIT' | 'COMPLETED'>('PENDING');
@@ -25,18 +27,27 @@ export default function ProviderClaimsPage() {
       code: 'FB-DON-88192',
       foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
       userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
+      recipientType: 'Panti Asuhan Anak',
       quantity: '45 Porsi',
       status: 'AWAITING_RESCUE_PICKUP',
       deliveryMethod: 'RESCUE_COURIER',
+      courierName: 'Budi Santoso (Relawan ID #RC-881)',
+      courierOrg: 'Food Bank Surabaya Logistik',
+      courierPhone: '0812-9876-5432',
+      address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
       time: 'Hari ini 19:00 WIB',
     },
     {
       code: 'FB-CLAIM-101',
       foodName: 'Bakso Sapi Urat Super',
-      userName: 'Budi Santoso (Konsumen)',
+      userName: 'Budi Santoso (Konsumen Individu)',
+      recipientType: 'Konsumen / Individu',
       quantity: '2 Porsi',
       status: 'READY_FOR_PICKUP',
       deliveryMethod: 'SHELTER_PICKUP',
+      pickerName: 'Budi Santoso (Pembeli Mandiri)',
+      pickerPhone: '0813-4567-8901',
+      address: 'Outlet Pak Kumis (Ambil Mandiri)',
       time: 'Hari ini 19:30 WIB',
     },
   ];
@@ -45,10 +56,15 @@ export default function ProviderClaimsPage() {
     {
       code: 'FB-CLAIM-103',
       foodName: 'Nasi Goreng Buffet + Ayam Bakar',
-      userName: 'Rumah Singgah Anak Jalanan (Yayasan)',
+      userName: 'Rumah Singgah Anak Jalanan (Shelter)',
+      recipientType: 'Shelter & Rumah Singgah',
       quantity: '25 Porsi',
       status: 'IN_TRANSIT',
       deliveryMethod: 'RESCUE_COURIER',
+      courierName: 'Mas Rizky (Relawan Komunitas Surabaya)',
+      courierOrg: 'Replate Volunteer Fleet',
+      courierPhone: '0815-6789-0123',
+      address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
       time: 'Hari ini 21:00 WIB',
     },
   ];
@@ -58,11 +74,30 @@ export default function ProviderClaimsPage() {
       code: 'FB-DON-77182',
       foodName: 'Paket Roti Bakery Steril & Susu UHT',
       userName: 'Panti Werdha Lansia Sejahtera',
+      recipientType: 'Panti Werdha (Lansia)',
       quantity: '30 Paket',
       status: 'COMPLETED',
-      deliveryMethod: 'SHELTER_PICKUP',
+      deliveryMethod: 'RESCUE_COURIER',
+      courierName: 'Mas Rizky Relawan (#RC-104)',
+      courierOrg: 'Food Bank Surabaya Logistik',
+      courierPhone: '0813-4567-8901',
+      address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
       time: '21 Aug 2026, 14:00 WIB',
       handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+    },
+    {
+      code: 'FB-DON-66102',
+      foodName: 'Nasi Paket Ayam Goreng Buffet',
+      userName: 'Keluarga Ibu Ratna (Masyarakat Rentan)',
+      recipientType: 'Individu / Warga Rentan',
+      quantity: '10 Porsi',
+      status: 'COMPLETED',
+      deliveryMethod: 'PROVIDER_DIRECT',
+      driverName: 'Mas Doni (Driver Armada Toko Pak Kumis)',
+      driverPhone: '0812-3456-7891',
+      address: 'Jl. Krembangan Barat No. 8, Surabaya',
+      time: '20 Aug 2026, 18:30 WIB',
+      handoverProof: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60',
     },
   ];
 
@@ -83,9 +118,14 @@ export default function ProviderClaimsPage() {
               code: c.claimCode || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
+              recipientType: c.shelterType || 'Penerima Manfaat',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
               status: c.status,
               deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+              courierName: c.courierName || 'Kurir Relawan Replate',
+              courierOrg: c.courierOrg || 'Tim Logistik Rescue',
+              courierPhone: c.contactPhone || '0812-9876-5432',
+              address: c.address || 'Kota Surabaya',
               time: c.readyTime || 'Hari ini',
             }));
 
@@ -95,9 +135,14 @@ export default function ProviderClaimsPage() {
               code: c.claimCode || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
+              recipientType: c.shelterType || 'Penerima Manfaat',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
               status: 'IN_TRANSIT',
               deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+              courierName: c.courierName || 'Kurir Relawan Replate',
+              courierOrg: c.courierOrg || 'Tim Logistik Rescue',
+              courierPhone: c.contactPhone || '0812-9876-5432',
+              address: c.address || 'Kota Surabaya',
               time: 'Dalam Pengiriman OTW',
             }));
 
@@ -107,14 +152,18 @@ export default function ProviderClaimsPage() {
               code: c.claimCode || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
+              recipientType: c.shelterType || 'Penerima Manfaat',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
               status: 'COMPLETED',
               deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+              courierName: c.courierName || 'Mas Relawan Surabaya',
+              courierOrg: c.courierOrg || 'Komunitas Food Rescue',
+              courierPhone: c.contactPhone || '0812-9876-5432',
+              address: c.address || 'Kota Surabaya',
               time: c.createdAt || 'Selesai',
               handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
             }));
 
-          // Deduplicate arrays using Map by code (Fix Poin 4: React duplicate key)
           const mergeUnique = (arr1: any[], arr2: any[]) => {
             const map = new Map();
             [...arr1, ...arr2].forEach(item => map.set(item.code, item));
@@ -143,16 +192,17 @@ export default function ProviderClaimsPage() {
     quantity: '',
   });
 
+  // Detailed Modal for Completed Claim (Fix Poin 1: Rich Identity Breakdown)
   const [detailModal, setDetailModal] = useState<{ isOpen: boolean; claim: any | null }>({
     isOpen: false,
     claim: null,
   });
 
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
-  const [courierName, setCourierName] = useState<string>('');
+  const [courierNameInput, setCourierNameInput] = useState<string>('');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
-  // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW) & Auto Closes Modal (Fix Poin 2 & Poin 3)
+  // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW) & Auto Closes Modal
   const handleVerifyCodeAtStore = async (code: string) => {
     const cleanCode = code.trim().toUpperCase();
 
@@ -163,10 +213,13 @@ export default function ProviderClaimsPage() {
       quantity: 'Porsi Terverifikasi',
       status: 'IN_TRANSIT',
       deliveryMethod: 'RESCUE_COURIER',
+      courierName: courierNameInput || 'Budi Santoso (Relawan ID #RC-881)',
+      courierOrg: 'Replate Rescue Fleet',
+      courierPhone: '0812-9876-5432',
+      address: 'Kota Surabaya',
       time: 'OTW Pengiriman',
     };
 
-    // Update state lists: Move from pending to inTransit
     setPendingClaims((prev) => prev.filter((c) => c.code.toUpperCase() !== cleanCode));
     const newInTransitItem = {
       ...target,
@@ -175,7 +228,6 @@ export default function ProviderClaimsPage() {
     };
     setInTransitClaims((prev) => Array.from(new Map([...prev, newInTransitItem].map(i => [i.code, i])).values()));
 
-    // Update localStorage replate_claims globally to IN_TRANSIT
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
       const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
@@ -187,7 +239,6 @@ export default function ProviderClaimsPage() {
       localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
     } catch (_) {}
 
-    // Auto-Close Modal (Fix Poin 2)
     setConfirmModal({
       isOpen: false,
       code: '',
@@ -205,7 +256,7 @@ export default function ProviderClaimsPage() {
     setManualCodeInput('');
   };
 
-  // Direct Pickup Verification at Store for Ambil Mandiri (Fix Poin 5)
+  // Direct Pickup Verification at Store for Ambil Mandiri
   const handleDirectPickupCompleteAtStore = (item: any) => {
     const cleanCode = item.code;
 
@@ -244,7 +295,7 @@ export default function ProviderClaimsPage() {
       userName: tx.userName,
       quantity: tx.quantity,
     });
-    setCourierName(tx.userName);
+    setCourierNameInput(tx.courierName || tx.userName);
     setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60');
   };
 
@@ -253,11 +304,11 @@ export default function ProviderClaimsPage() {
       {/* High Contrast Banner */}
       <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg border border-[#2C5A8F] space-y-2">
         <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md inline-block shadow-xs">
-          Pusat Penyelamatan & Integrasi QR Code
+          Pusat Penyelamatan & Integrasi Logistik QR
         </span>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan Toko Saya</h1>
         <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
-          Scan Kode QR toko saat paket diserahkan ke Kurir (Status OTW Pengiriman). Konfirmasi pengiriman selesai dilakukan oleh Kurir saat paket tiba di lokasi penerima.
+          Kelola penjemputan fisik, verifikasi handover QR Code kurir relawan/konsumen, dan pantau identitas detail serah terima donasi toko Anda secara transparan.
         </p>
       </div>
 
@@ -284,7 +335,7 @@ export default function ProviderClaimsPage() {
           </Button>
         </div>
 
-        {/* Manual Code Input Bar (Fix Poin 3: Diksi 'Konfirmasi ➔') */}
+        {/* Manual Code Input Bar */}
         <div className="flex items-center gap-3 border-t border-slate-800 pt-3">
           <Input
             placeholder="Atau Ketik Kode Resi (Contoh: FB-DON-88192 / QR-DON-891023)..."
@@ -310,7 +361,7 @@ export default function ProviderClaimsPage() {
         </Card>
       )}
 
-      {/* Tabs Filter (Fix Poin 1: Hapus kata 'Panti') */}
+      {/* Tabs Filter (Poin 2: Consolidated History & Claims) */}
       <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold">
         <button
           onClick={() => setActiveTab('PENDING')}
@@ -340,11 +391,11 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          ✓ Donasi Selesai ({completedClaims.length})
+          ✓ Donasi Selesai / Disalurkan ({completedClaims.length})
         </button>
       </div>
 
-      {/* Transaction List (Fix Poin 4: Unique Key with `${tx.code}-${idx}`) */}
+      {/* Transaction List */}
       <Card className="bg-white border-slate-200 shadow-xs">
         <CardBody className="p-4 space-y-3 text-xs">
           {(activeTab === 'PENDING' ? pendingClaims : activeTab === 'IN_TRANSIT' ? inTransitClaims : completedClaims).length === 0 ? (
@@ -362,13 +413,15 @@ export default function ProviderClaimsPage() {
                       {tx.quantity}
                     </Badge>
                   </div>
-                  <p className="text-slate-600 font-medium">Penerima Bantuan: {tx.userName}</p>
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                  <p className="text-slate-600 font-medium">Penerima Bantuan: <strong>{tx.userName}</strong> ({tx.recipientType || 'Penerima'})</p>
+                  <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
                     <span>
-                      Kode Resi QR: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
+                      Kode Resi: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
                     </span>
                     <span>•</span>
-                    <span>Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : '🛵 Kurir Relawan'}</strong></span>
+                    <span>
+                      Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🛵 Kurir Relawan'}</strong>
+                    </span>
                   </div>
                 </div>
 
@@ -377,7 +430,6 @@ export default function ProviderClaimsPage() {
                     Konfirmasi Handover ➔
                   </Button>
                 ) : activeTab === 'IN_TRANSIT' ? (
-                  /* Fix Poin 5: For Courier Delivery, Provider cannot set completed directly. Only for Shelter Pickup (Ambil Mandiri) */
                   tx.deliveryMethod === 'SHELTER_PICKUP' ? (
                     <Button
                       variant="gold"
@@ -400,7 +452,7 @@ export default function ProviderClaimsPage() {
                     className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
                     onClick={() => setDetailModal({ isOpen: true, claim: tx })}
                   >
-                    Lihat Detail & Foto Serah Terima ➔
+                    Lihat Identitas & Detail Serah Terima ➔
                   </Button>
                 )}
               </div>
@@ -409,44 +461,134 @@ export default function ProviderClaimsPage() {
         </CardBody>
       </Card>
 
-      {/* Detail Modal for Completed Claim */}
+      {/* Detail Modal for Completed Claim (Fix Poin 1: Rich Identity Breakdown for Courier, Consumer, & Store) */}
       {detailModal.isOpen && (
         <Modal
           isOpen={detailModal.isOpen}
           onClose={() => setDetailModal({ isOpen: false, claim: null })}
-          title={`Detail Transaksi Selesai: ${detailModal.claim?.code}`}
-          size="md"
+          title={`Detail Identitas & Serah Terima Selesai: ${detailModal.claim?.code}`}
+          size="lg"
         >
-          <div className="space-y-4 text-xs text-slate-700">
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-              <span className="text-emerald-900 font-black text-sm block">✓ Status: VERIFIED & SELESAI (COMPLETED)</span>
-              <p className="text-emerald-800">
-                Porsi makanan surplus sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diserahkan & diverifikasi.
-              </p>
-            </div>
+          {detailModal.claim && (
+            <div className="space-y-4 text-xs text-slate-800">
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-emerald-900 font-black text-sm block">✓ STATUS: VERIFIED & SELESAI (COMPLETED)</span>
+                  <span className="font-mono font-bold text-xs bg-emerald-700 text-white px-2.5 py-0.5 rounded-md">
+                    {detailModal.claim.code}
+                  </span>
+                </div>
+                <p className="text-emerald-800 font-medium">
+                  Donasi sebanyak <strong>{detailModal.claim.quantity} ({detailModal.claim.foodName})</strong> telah berhasil diserahkan & terverifikasi.
+                </p>
+              </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-              <div>
-                <span className="text-slate-500 block">Item Makanan:</span>
-                <span className="font-bold text-slate-900">{detailModal.claim?.foodName}</span>
+              {/* Identity Breakdown Card based on Delivery Method (Fix Poin 1) */}
+              <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3 shadow-md border border-slate-700">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-wider">
+                    IDENTITAS PIHAK PENJEMPUT / KURIR / PENERIMA
+                  </span>
+                  <Badge variant="gold">
+                    {detailModal.claim.deliveryMethod === 'RESCUE_COURIER'
+                      ? '🛵 KURIR RELAWAN KOMUNITAS'
+                      : detailModal.claim.deliveryMethod === 'SHELTER_PICKUP'
+                      ? '🏢 PENGAMBILAN MANDIRI'
+                      : '🚚 DIANTAR ARMADA TOKO'}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {detailModal.claim.deliveryMethod === 'RESCUE_COURIER' ? (
+                    <>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Nama Kurir Relawan:</span>
+                        <span className="font-extrabold text-white text-sm block">{detailModal.claim.courierName || 'Budi Santoso (Relawan ID #RC-881)'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Komunitas Logistik:</span>
+                        <span className="font-bold text-amber-400 block">{detailModal.claim.courierOrg || 'Food Bank Surabaya Logistik'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">No. Kontak WhatsApp Kurir:</span>
+                        <span className="font-mono font-bold text-white block">{detailModal.claim.courierPhone || '0812-9876-5432'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Tujuan Alokasi Penerima:</span>
+                        <span className="font-bold text-white block">{detailModal.claim.userName} ({detailModal.claim.address})</span>
+                      </div>
+                    </>
+                  ) : detailModal.claim.deliveryMethod === 'SHELTER_PICKUP' ? (
+                    <>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Nama Pengambil / Perwakilan:</span>
+                        <span className="font-extrabold text-white text-sm block">{detailModal.claim.pickerName || detailModal.claim.userName}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Tipe Penerima Manfaat:</span>
+                        <span className="font-bold text-amber-400 block">{detailModal.claim.recipientType || 'Konsumen Mandiri / Pengurus'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">No. Kontak WA Pengambil:</span>
+                        <span className="font-mono font-bold text-white block">{detailModal.claim.pickerPhone || '0813-4567-8901'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Lokasi Verifikasi Handover:</span>
+                        <span className="font-bold text-white block">Kasir / Outlet Toko Provider</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Driver Armada Toko:</span>
+                        <span className="font-extrabold text-white text-sm block">{detailModal.claim.driverName || 'Mas Doni (Armada Toko Pak Kumis)'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Kontak Driver Toko:</span>
+                        <span className="font-mono font-bold text-amber-400 block">{detailModal.claim.driverPhone || '0812-3456-7891'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Target Penerima Bantuan:</span>
+                        <span className="font-bold text-white block">{detailModal.claim.userName}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Alamat Tujuan:</span>
+                        <span className="font-bold text-white block">{detailModal.claim.address}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-              <div>
-                <span className="text-slate-500 block">Nama Penerima:</span>
-                <span className="font-bold text-slate-900">{detailModal.claim?.userName}</span>
+
+              {detailModal.claim.handoverProof && (
+                <div className="space-y-1">
+                  <span className="font-extrabold text-[#1B3A5C] block">Foto Dokumentasi Serah Terima Fisik:</span>
+                  <img
+                    src={detailModal.claim.handoverProof}
+                    alt="Bukti Serah Terima"
+                    className="w-full h-48 object-cover rounded-2xl border border-slate-300 shadow-sm"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDetailModal({ isOpen: false, claim: null });
+                    router.push(`/track/${detailModal.claim.code}`);
+                  }}
+                  className="px-4 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <span>🌐 Transparansi Publik (/track) ➔</span>
+                </button>
+
+                <Button variant="outline" size="sm" onClick={() => setDetailModal({ isOpen: false, claim: null })}>
+                  Tutup Detail
+                </Button>
               </div>
             </div>
-
-            {detailModal.claim?.handoverProof && (
-              <div className="space-y-1">
-                <span className="font-extrabold text-[#1B3A5C] block">Foto Dokumentasi Serah Terima:</span>
-                <img
-                  src={detailModal.claim.handoverProof}
-                  alt="Bukti Serah Terima"
-                  className="w-full h-44 object-cover rounded-xl border border-slate-300"
-                />
-              </div>
-            )}
-          </div>
+          )}
         </Modal>
       )}
 
@@ -486,7 +628,7 @@ export default function ProviderClaimsPage() {
                 <div className="space-y-3">
                   <div>
                     <label className="font-bold text-slate-800 block mb-1">Nama Kurir Armada / Relawan:</label>
-                    <Input value={courierName} onChange={(e) => setCourierName(e.target.value)} placeholder="Nama lengkap kurir" />
+                    <Input value={courierNameInput} onChange={(e) => setCourierNameInput(e.target.value)} placeholder="Nama lengkap kurir" />
                   </div>
                 </div>
               </div>
