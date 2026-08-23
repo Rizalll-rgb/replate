@@ -15,6 +15,79 @@ export default function PublicTrackPage() {
   const [foodName, setFoodName] = useState<string>('Bakso Sapi Komplit');
 
   useEffect(() => {
+    // 1. Check dynamic local storage claims for real-time resi tracking
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      if (savedClaimsStr) {
+        const parsed = JSON.parse(savedClaimsStr);
+        const cleanId = currentId.trim().toUpperCase();
+        const matched = parsed.find(
+          (c: any) =>
+            (c.claimCode && c.claimCode.toUpperCase() === cleanId) ||
+            (c.code && c.code.toUpperCase() === cleanId) ||
+            (c.id && c.id.toUpperCase() === cleanId)
+        );
+
+        if (matched) {
+          setFoodName(matched.foodName || 'Makanan Surplus Steril');
+          const isDone = matched.status === 'COMPLETED' || matched.status === 'VERIFIED';
+          const isOTW = matched.status === 'IN_TRANSIT' || matched.status === 'PROVIDER_DELIVERING';
+
+          setSteps([
+            {
+              status: 'LISTED',
+              title: '📦 1. Surplus Dipublikasikan di Replate Engine',
+              description: 'Provider mengunggah makanan surplus & lulus 8 Checklist Kelayakan Pangan BPOM RI.',
+              timestamp: matched.createdAt || new Date(Date.now() - 3600000 * 4).toISOString(),
+              actor: matched.storeName || 'Warung Bakso Pak Kumis',
+              completed: true,
+              current: false,
+            },
+            {
+              status: 'MATCHED',
+              title: '🔍 2. Smart Matching Engine 2.0 Calculated',
+              description: 'Algoritma memberikan skor kecocokan gizi & jarak lokasi terdekat.',
+              timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
+              actor: 'Replate Smart Engine',
+              completed: true,
+              current: false,
+            },
+            {
+              status: 'CLAIMED',
+              title: '✅ 3. Penyelamatan Makanan Disetujui',
+              description: 'Klaim booking diverifikasi lunas & Kode Resi QR aktif.',
+              timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+              actor: matched.userName || 'Panti Asuhan / Konsumen',
+              completed: true,
+              current: false,
+            },
+            {
+              status: 'IN_TRANSIT',
+              title: '🚚 4. Pengiriman / Penjemputan Makanan OTW',
+              description: `Makanan sedang diantar oleh ${matched.courierName || matched.driverName || 'Armada Toko Direct'}.`,
+              timestamp: new Date(Date.now() - 3600000 * 1).toISOString(),
+              actor: matched.courierName || matched.driverName || 'Armada Toko Direct',
+              completed: isDone || isOTW,
+              current: isOTW && !isDone,
+            },
+            {
+              status: 'VERIFIED',
+              title: '✔️ 5. Verifikasi Makanan Sampai di Tujuan (Selesai)',
+              description: isDone
+                ? `Makanan telah diterima dengan baik di ${matched.address || 'lokasi tujuan'}. Bukti foto serah terima terverifikasi.`
+                : 'Menunggu konfirmasi foto serah terima & QR scan dari penerima.',
+              timestamp: isDone ? new Date().toISOString() : undefined,
+              actor: matched.userName || 'Pengurus Penerima',
+              completed: isDone,
+              current: isDone,
+            },
+          ]);
+          return;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fallback API fetch
     fetch(`/api/tracking/${currentId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -47,22 +120,22 @@ export default function PublicTrackPage() {
               title: '✅ 3. Penyelamatan Diklaim & Disetujui',
               description: 'Tugas rescue diterima dan QR verification code diterbitkan.',
               timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-              actor: 'Food Bank Surabaya',
+              actor: 'Panti Asuhan Kasih Ibu',
               completed: true,
               current: false,
             },
             {
               status: 'PICKUP_READY',
-              title: '📋 4. Dalam Penjemputan (Pickup Ready)',
-              description: 'Kurir dalam perjalanan menuju lokasi Provider.',
+              title: '🚚 4. Dalam Pengantaran / Penjemputan (OTW)',
+              description: 'Driver Armada Toko Mas Agus dalam perjalanan menuju lokasi tujuan.',
               timestamp: new Date(Date.now() - 3600000 * 1).toISOString(),
-              actor: 'Tim Armada Rescue',
+              actor: 'Driver B: Mas Agus (Plat L 1234 XYZ)',
               completed: true,
               current: true,
             },
             {
               status: 'VERIFIED',
-              title: '✔️ 5. Verifikasi Keamanan Pangan & Selesai',
+              title: '✔️ 5. Verifikasi Keamanan Pangan & Serah Terima Selesai',
               description: 'QR Code di-scan, SOP 5-point food safety diverifikasi.',
               completed: false,
               current: false,
