@@ -231,7 +231,14 @@ export default function ProviderClaimsPage() {
 
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
   const [courierNameInput, setCourierNameInput] = useState<string>('');
+  const [selectedStoreDriver, setSelectedStoreDriver] = useState<string>('Driver A: Mas Doni (Plat L 4582 ABC)');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
+
+  // List of Registered Store Fleet Drivers
+  const storeDriversList = [
+    { id: 'drv-1', name: 'Driver A: Mas Doni', vehicle: 'Motor Box Steril (Plat L 4582 ABC)', phone: '0812-3456-7890' },
+    { id: 'drv-2', name: 'Driver B: Mas Agus', vehicle: 'Mobil Blind Van Pendingin (Plat L 1234 XYZ)', phone: '0813-9876-5432' },
+  ];
 
   // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW) & Auto Closes Modal
   const handleVerifyCodeAtStore = async (code: string) => {
@@ -730,7 +737,25 @@ export default function ProviderClaimsPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="font-bold text-slate-800 block mb-1">Nama Kurir Armada / Relawan:</label>
+                    <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
+                    <select
+                      className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                      value={selectedStoreDriver}
+                      onChange={(e) => {
+                        setSelectedStoreDriver(e.target.value);
+                        setCourierNameInput(e.target.value);
+                      }}
+                    >
+                      {storeDriversList.map((drv) => (
+                        <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
+                          {drv.name} - {drv.vehicle}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Atau Nama Kurir / Penerima Mandiri:</label>
                     <Input value={courierNameInput} onChange={(e) => setCourierNameInput(e.target.value)} placeholder="Nama lengkap kurir" />
                   </div>
                 </div>
