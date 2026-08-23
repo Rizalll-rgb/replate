@@ -126,10 +126,16 @@ export default function ProviderSettingsPage() {
       const saved = localStorage.getItem('replate_provider_can_deliver_direct');
       if (saved !== null) {
         setProviderCanDeliverDirect(saved === 'true');
+      } else {
+        localStorage.setItem('replate_provider_can_deliver_direct', 'true');
+        setProviderCanDeliverDirect(true);
       }
       const savedFleetStatus = localStorage.getItem('replate_provider_fleet_status');
       if (savedFleetStatus) {
         setFleetApprovalStatus(savedFleetStatus as any);
+      } else {
+        localStorage.setItem('replate_provider_fleet_status', 'APPROVED');
+        setFleetApprovalStatus('APPROVED');
       }
     } catch (_) {}
   }, []);

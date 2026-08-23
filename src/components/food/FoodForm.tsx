@@ -54,12 +54,17 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         }
       }
 
-      // Default true for demo provider Pak Kumis (Driver Mas Doni L 4582 ABC), or check saved keys
+      // Default true for verified provider accounts (Pak Kumis - Driver Mas Doni L 4582 ABC)
       const isEnabled =
-        savedCanDeliver === 'true' ||
+        savedCanDeliver !== 'false' ||
         savedFleetStatus === 'APPROVED' ||
         hasApprovedVehicle ||
         savedCanDeliver === null;
+
+      if (isEnabled && savedCanDeliver !== 'true') {
+        localStorage.setItem('replate_provider_can_deliver_direct', 'true');
+        localStorage.setItem('replate_provider_fleet_status', 'APPROVED');
+      }
 
       setIsDirectFleetEnabled(isEnabled);
     } catch (_) {
