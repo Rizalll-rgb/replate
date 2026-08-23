@@ -11,6 +11,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, helperText, leftIcon, rightIcon, className = '', id, ...props }, ref) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const hasCustomText = className.includes('text-');
+    const hasCustomBg = className.includes('bg-');
 
     return (
       <div className="w-full flex flex-col gap-1.5">
@@ -28,12 +30,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             id={inputId}
             ref={ref}
-            className={`w-full rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 bg-white ${
-              leftIcon ? 'pl-9' : 'pl-3.5'
-            } ${rightIcon ? 'pr-9' : 'pr-3.5'} py-2 ${
+            className={`w-full rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 ${
+              hasCustomBg ? '' : 'bg-white'
+            } ${leftIcon ? 'pl-9' : 'pl-3.5'} ${rightIcon ? 'pr-9' : 'pr-3.5'} py-2 ${
               error
                 ? 'border-[#C0392B] focus:ring-[#C0392B]/20 text-[#C0392B]'
-                : 'border-[#DEE2E6] focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 text-[#212529]'
+                : `border-[#DEE2E6] focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 ${hasCustomText ? '' : 'text-[#212529]'}`
             } ${className}`}
             {...props}
           />

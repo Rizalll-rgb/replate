@@ -23,14 +23,23 @@ export default function ProviderSettingsPage() {
   const [halalCertNo, setHalalCertNo] = useState('ID35110001298450123');
   const [defaultPackaging, setDefaultPackaging] = useState('Kemasan Boks Biodegradable (Steril)');
 
-  // Provider Direct Delivery Fleet Capability State
+  // Provider Direct Delivery Fleet Capability & Approval Workflow State
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
+  const [fleetApprovalStatus, setFleetApprovalStatus] = useState<'UNSUBMITTED' | 'PENDING' | 'APPROVED'>('UNSUBMITTED');
+  const [fleetDriverNameInput, setFleetDriverNameInput] = useState('Mas Doni (Driver Toko Pak Kumis)');
+  const [fleetDriverPhoneInput, setFleetDriverPhoneInput] = useState('0812-3456-7891');
+  const [fleetVehicleTypeInput, setFleetVehicleTypeInput] = useState('Sepeda Motor Box Cooler (Steril)');
+  const [fleetPlateNumberInput, setFleetPlateNumberInput] = useState('L 4582 ABC');
 
   React.useEffect(() => {
     try {
       const saved = localStorage.getItem('replate_provider_can_deliver_direct');
       if (saved !== null) {
         setProviderCanDeliverDirect(saved === 'true');
+      }
+      const savedFleetStatus = localStorage.getItem('replate_provider_fleet_status');
+      if (savedFleetStatus) {
+        setFleetApprovalStatus(savedFleetStatus as any);
       }
     } catch (_) {}
   }, []);
@@ -408,7 +417,7 @@ export default function ProviderSettingsPage() {
               </div>
             </div>
 
-            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card (Comprehensive Verification & Credential Submission) */}
+            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card (Comprehensive Verification & Credential Submission Workflow) */}
             <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-slate-900 to-[#142C47] text-white rounded-2xl space-y-4 border border-slate-700 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                 <div className="space-y-1">
@@ -419,84 +428,144 @@ export default function ProviderSettingsPage() {
                     <Badge variant="gold">DIRECT FLEET VERIFICATION</Badge>
                   </div>
                   <h4 className="text-sm font-extrabold text-white">
-                    Registrasi Armada Toko Mandiri (No. Polisi, Driver, KTP, SIM & STNK)
+                    Registrasi Armada Toko Mandiri (No. Polisi, Driver, Foto, KTP, SIM & STNK)
                   </h4>
                   <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                    Daftarkan armada kendaraan toko (No. Plat), identitas driver (KTP & SIM A/C), serta STNK resmi agar outlet Anda memiliki lisensi pengantaran langsung ke panti/shelter.
+                    Isi formulir administrasi armada toko, No. Plat, foto driver, foto kendaraan, KTP, SIM, dan STNK untuk diajukan ke Admin Replate sebelum diaktifkan.
                   </p>
                 </div>
 
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newStatus = !providerCanDeliverDirect;
-                      setProviderCanDeliverDirect(newStatus);
-                      try {
-                        localStorage.setItem('replate_provider_can_deliver_direct', String(newStatus));
-                      } catch (_) {}
-                      setToastState({
-                        isOpen: true,
-                        message: newStatus
-                          ? '🚚 Kapabilitas Armada Toko Mandiri Berhasil Diaktifkan! Opsi pengantaran langsung toko kini terbuka pada modul Donasi & Surplus.'
-                          : '🛵 Kapabilitas Armada Toko Dinonaktifkan. Pengiriman makanan dialihkan kembali ke Kurir Relawan Replate.',
-                        type: 'success',
-                      });
-                    }}
-                    className={`px-4 py-2.5 rounded-xl font-extrabold text-xs shadow-md transition-all ${
-                      providerCanDeliverDirect
-                        ? 'bg-emerald-500 hover:bg-emerald-600 text-slate-950'
-                        : 'bg-[#D4A843] hover:bg-[#b88f32] text-slate-950'
-                    }`}
-                  >
-                    {providerCanDeliverDirect ? '✓ ARMADA TOKO AKTIF (Klik Nonaktifkan)' : '⚡ Aktifkan Armada Toko Mandiri Sekarang'}
-                  </button>
+                <div className="shrink-0 flex items-center gap-2 flex-wrap">
+                  {providerCanDeliverDirect ? (
+                    <span className="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs">
+                      ✓ ARMADA TERVERIFIKASI AKTIF
+                    </span>
+                  ) : fleetApprovalStatus === 'PENDING' ? (
+                    <span className="px-3.5 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs">
+                      ⏳ MENUNGGU APPROVAL ADMIN
+                    </span>
+                  ) : (
+                    <span className="px-3.5 py-1.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl border border-slate-700">
+                      BELUM DIAJUKAN
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Comprehensive Fleet Registration Form */}
-              {providerCanDeliverDirect && (
-                <div className="space-y-4 pt-1 text-xs">
-                  <div className="p-3 bg-emerald-950/80 border border-emerald-500/40 rounded-xl flex items-center justify-between text-emerald-300 font-bold">
-                    <span className="flex items-center gap-2">
-                      <span>✓ LISENSI ARMADA TOKO TERVERIFIKASI AKTIF (VERIFIED BY ADMIN REPLATE)</span>
+              {/* Status Banner Display */}
+              {providerCanDeliverDirect ? (
+                <div className="p-3.5 bg-emerald-950/90 border border-emerald-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-300 font-bold text-xs">
+                  <div className="space-y-0.5">
+                    <span className="text-emerald-400 font-extrabold block">
+                      ✓ LISENSI ARMADA TOKO TERVERIFIKASI AKTIF (VERIFIED BY ADMIN REPLATE)
                     </span>
-                    <span className="text-[10px] font-mono bg-emerald-900 text-white px-2 py-0.5 rounded-md">
-                      FLEET-ID #SBY-FLT-881
-                    </span>
+                    <p className="text-slate-300 text-[11px] font-medium">
+                      Driver: <strong>{fleetDriverNameInput}</strong> • No. Polisi: <strong className="font-mono text-amber-300">{fleetPlateNumberInput}</strong> • Berkas KTP/SIM/STNK Lulus Audit.
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProviderCanDeliverDirect(false);
+                      setFleetApprovalStatus('UNSUBMITTED');
+                      try {
+                        localStorage.setItem('replate_provider_can_deliver_direct', 'false');
+                        localStorage.setItem('replate_provider_fleet_status', 'UNSUBMITTED');
+                      } catch (_) {}
+                      setToastState({
+                        isOpen: true,
+                        message: 'Kapabilitas armada toko dinonaktifkan.',
+                        type: 'success',
+                      });
+                    }}
+                    className="px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-white font-bold text-xs rounded-xl shrink-0"
+                  >
+                    Nonaktifkan Armada Toko
+                  </button>
+                </div>
+              ) : fleetApprovalStatus === 'PENDING' ? (
+                <div className="p-4 bg-amber-950/90 border border-amber-500/50 rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-amber-300 text-sm block">
+                      ⏳ ANTREAN PENGESAHAN ARMADA TOKO (PENDING VERIFIKASI ADMIN)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProviderCanDeliverDirect(true);
+                        setFleetApprovalStatus('APPROVED');
+                        try {
+                          localStorage.setItem('replate_provider_can_deliver_direct', 'true');
+                          localStorage.setItem('replate_provider_fleet_status', 'APPROVED');
+                        } catch (_) {}
+                        setToastState({
+                          isOpen: true,
+                          message: '⚡ [DEMO] Admin Replate me-approve permohonan armada toko! Kapabilitas armada toko kini TERVERIFIKASI AKTIF.',
+                          type: 'success',
+                        });
+                      }}
+                      className="px-3 py-1 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-[11px] rounded-lg shadow-xs"
+                    >
+                      ⚡ Simulasi Approve Admin (Demo) ➔
+                    </button>
+                  </div>
+                  <p className="text-slate-200 font-medium leading-relaxed">
+                    Berkas administrasi <strong>No. Polisi ({fleetPlateNumberInput})</strong>, pasfoto driver, foto fisik kendaraan, KTP, SIM, dan STNK telah terkirim dan sedang diverifikasi oleh Admin Replate. Status armada toko akan diaktifkan secara otomatis setelah disetujui Admin.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-xl space-y-1 text-xs">
+                  <span className="font-extrabold text-white block">
+                    📝 Isi Formulir Administrasi Berkas Armada Toko Di Bawah Ini:
+                  </span>
+                  <p className="text-slate-300 text-[11px] font-medium">
+                    Lengkapi identitas driver, No. Plat kendaraan, serta 5 foto berkas fisik sebelum mengeklik tombol pengajuan ke Admin.
+                  </p>
+                </div>
+              )}
 
+              {/* Comprehensive Fleet Registration Form Inputs */}
+              {!providerCanDeliverDirect && (
+                <div className="space-y-4 pt-1 text-xs">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
                       <label className="text-slate-300 font-bold block mb-1">1. Nama Driver Toko:</label>
                       <Input
                         placeholder="Contoh: Mas Doni"
-                        defaultValue="Mas Doni (Driver Toko Pak Kumis)"
+                        value={fleetDriverNameInput}
+                        onChange={(e) => setFleetDriverNameInput(e.target.value)}
                         className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                        required
                       />
                     </div>
                     <div>
                       <label className="text-slate-300 font-bold block mb-1">2. No. WhatsApp Driver:</label>
                       <Input
                         placeholder="Contoh: 0812-3456-7891"
-                        defaultValue="0812-3456-7891"
+                        value={fleetDriverPhoneInput}
+                        onChange={(e) => setFleetDriverPhoneInput(e.target.value)}
                         className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                        required
                       />
                     </div>
                     <div>
                       <label className="text-slate-300 font-bold block mb-1">3. Jenis Kendaraan:</label>
                       <Input
                         placeholder="Contoh: Honda Vario Box Steril / Pick Up"
-                        defaultValue="Sepeda Motor Box Cooler (Steril)"
+                        value={fleetVehicleTypeInput}
+                        onChange={(e) => setFleetVehicleTypeInput(e.target.value)}
                         className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                        required
                       />
                     </div>
                     <div>
                       <label className="text-slate-300 font-bold block mb-1">4. Nomor Polisi (No. Plat):</label>
                       <Input
                         placeholder="Contoh: L 1234 ABC"
-                        defaultValue="L 4582 ABC"
+                        value={fleetPlateNumberInput}
+                        onChange={(e) => setFleetPlateNumberInput(e.target.value)}
                         className="bg-slate-800 text-white border-slate-700 text-xs font-mono font-black text-amber-400"
+                        required
                       />
                     </div>
                   </div>
@@ -510,7 +579,7 @@ export default function ProviderSettingsPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                       {/* 1. Foto Driver Toko */}
                       <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">👤 Foto Driver / Kurir Toko</span>
+                        <span className="font-extrabold text-white block text-[11px]">👤 Pasfoto Driver Toko</span>
                         <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
                           <img
                             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60"
@@ -518,11 +587,11 @@ export default function ProviderSettingsPage() {
                             className="w-full h-full object-cover opacity-90"
                           />
                           <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ DRIVER VERIFIED
+                            ✓ DRIVER PHOTO
                           </span>
                         </div>
                         <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Ganti Foto Driver
+                          Upload Pasfoto
                           <input type="file" accept="image/*" className="hidden" />
                         </label>
                       </div>
@@ -537,11 +606,11 @@ export default function ProviderSettingsPage() {
                             className="w-full h-full object-cover opacity-90"
                           />
                           <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ ARMADA VERIFIED
+                            ✓ VEHICLE PHOTO
                           </span>
                         </div>
                         <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Ganti Foto Armada
+                          Upload Foto Armada
                           <input type="file" accept="image/*" className="hidden" />
                         </label>
                       </div>
@@ -556,11 +625,11 @@ export default function ProviderSettingsPage() {
                             className="w-full h-full object-cover opacity-90"
                           />
                           <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ KTP VERIFIED
+                            ✓ KTP ATTACHED
                           </span>
                         </div>
                         <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Ganti KTP
+                          Upload KTP
                           <input type="file" accept="image/*" className="hidden" />
                         </label>
                       </div>
@@ -575,18 +644,18 @@ export default function ProviderSettingsPage() {
                             className="w-full h-full object-cover opacity-90"
                           />
                           <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ SIM VERIFIED
+                            ✓ SIM ATTACHED
                           </span>
                         </div>
                         <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Ganti SIM
+                          Upload SIM
                           <input type="file" accept="image/*" className="hidden" />
                         </label>
                       </div>
 
                       {/* 5. Upload STNK */}
                       <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">📄 Foto STNK (Plat: L 4582 ABC)</span>
+                        <span className="font-extrabold text-white block text-[11px]">📄 Foto STNK (No. Pol: {fleetPlateNumberInput})</span>
                         <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
                           <img
                             src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60"
@@ -594,15 +663,64 @@ export default function ProviderSettingsPage() {
                             className="w-full h-full object-cover opacity-90"
                           />
                           <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ STNK VERIFIED
+                            ✓ STNK ATTACHED
                           </span>
                         </div>
                         <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Ganti STNK
+                          Upload STNK
                           <input type="file" accept="image/*" className="hidden" />
                         </label>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2 border-t border-slate-800">
+                    <Button
+                      type="button"
+                      variant="gold"
+                      size="md"
+                      className="font-extrabold shadow-md text-slate-950 text-xs px-6"
+                      onClick={() => {
+                        if (!fleetDriverNameInput || !fleetPlateNumberInput) {
+                          alert('Mohon isi nama driver toko dan nomor polisi (No. Plat) kendaraan!');
+                          return;
+                        }
+                        setFleetApprovalStatus('PENDING');
+                        try {
+                          localStorage.setItem('replate_provider_fleet_status', 'PENDING');
+                          localStorage.setItem('replate_provider_can_deliver_direct', 'false');
+                        } catch (_) {}
+
+                        // Push entry into admin queue
+                        try {
+                          const existing = JSON.parse(localStorage.getItem('replate_admin_fleet_queue') || '[]');
+                          const newEntry = {
+                            id: `flt-${Date.now()}`,
+                            providerName: orgName || 'Warung Bakso Pak Kumis',
+                            driverName: fleetDriverNameInput,
+                            driverPhone: fleetDriverPhoneInput,
+                            vehicleType: fleetVehicleTypeInput,
+                            plateNumber: fleetPlateNumberInput,
+                            driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+                            vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
+                            ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+                            simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+                            stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+                            status: 'PENDING_VERIFICATION',
+                            submittedAt: 'Baru Saja',
+                          };
+                          localStorage.setItem('replate_admin_fleet_queue', JSON.stringify([newEntry, ...existing]));
+                        } catch (_) {}
+
+                        setToastState({
+                          isOpen: true,
+                          message: '🚀 Berkas administrasi armada toko berhasil dikirim! Status kini PENDING menantikan approval Admin Replate.',
+                          type: 'success',
+                        });
+                      }}
+                    >
+                      🚀 Ajukan Berkas Verifikasi Armada Toko ke Admin ➔
+                    </Button>
                   </div>
                 </div>
               )}
