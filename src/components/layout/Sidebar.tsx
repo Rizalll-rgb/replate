@@ -326,7 +326,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
           <nav className="space-y-1.5">
             {allLinks.map((link) => {
-              const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
+              const isOverviewRoute =
+                link.href === '/dashboard' ||
+                link.href === '/dashboard/provider' ||
+                link.href === '/dashboard/admin' ||
+                link.href === '/dashboard/rescue-partner' ||
+                link.href === '/dashboard/consumer' ||
+                link.href === '/dashboard/yayasan';
+
+              const isActive =
+                pathname === link.href ||
+                (!isOverviewRoute && pathname.startsWith(link.href));
               return (
                 <Link
                   key={link.href}

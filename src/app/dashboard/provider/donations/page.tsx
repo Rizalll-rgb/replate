@@ -1,6 +1,6 @@
 'use client';
 
-import DonationsPage from '@/app/dashboard/donations/page';
+import DonationsPage from '../../donations/page';
 
 export default function ProviderDonationsPage() {
   return <DonationsPage />;

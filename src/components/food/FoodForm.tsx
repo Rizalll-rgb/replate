@@ -40,6 +40,16 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
   const [pricingScheme, setPricingScheme] = useState<'RESCUE_SALE' | 'DONATION_YAYASAN' | 'DONATION_INDIVIDUAL'>('RESCUE_SALE');
   const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'RESCUE_PARTNER'>('SELF_PICKUP');
 
+  // Helper to format local Date into YYYY-MM-DDTHH:mm input string
+  const formatLocalDateTime = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const date = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${date}T${hours}:${minutes}`;
+  };
+
   const [formData, setFormData] = useState<Partial<FoodFormData>>({
     foodCategory: 'MEALS',
     quantityUnit: 'porsi',
@@ -52,26 +62,10 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     address: defaultAddress,
     latitude: -7.2575,
     longitude: 112.7521,
-    pickupDeadline: new Date(Date.now() + 4 * 3600000).toISOString().slice(0, 16),
+    pickupDeadline: formatLocalDateTime(new Date(Date.now() + 4 * 3600000)),
   });
 
-  const [checklistReady, setChecklistReady] = useState<boolean>(true);
-  const [checklistData, setChecklistData] = useState<RescueReadinessChecklist>({
-    infoComplete: true,
-    notExpired: true,
-    storageProper: true,
-    packagingIntact: true,
-    noSpoilage: true,
-    photoClear: true,
-    pickupRealistic: true,
-    locationAccurate: true,
-  });
-
-  // Custom Select Dropdown CSS Class (Poin 2 - Custom Authentic Replate Dropdown)
-  const customSelectClass =
-    "w-full rounded-xl border border-slate-300 text-xs sm:text-sm px-4 py-2.5 bg-white text-[#1B3A5C] font-bold focus:border-[#1B3A5C] focus:ring-2 focus:ring-[#1B3A5C]/20 focus:outline-none shadow-xs appearance-none cursor-pointer bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231B3A5C%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_1rem_center] bg-[length:1.25rem_1.25rem] pr-10 hover:border-[#1B3A5C] transition-all";
-
-  // Quick Preset Date Time Handler
+  // Quick Preset Date Time Handler (Local Timezone Corrected)
   const handleQuickPresetTime = (hoursFromNow: number, setFixedHour?: number) => {
     const target = new Date();
     if (setFixedHour !== undefined) {
@@ -80,10 +74,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         target.setDate(target.getDate() + 1);
       }
     } else {
-      target.setTime(target.getTime() + hoursFromNow * 3600000);
+      target.setHours(target.getHours() + hoursFromNow);
     }
-    const formattedStr = target.toISOString().slice(0, 16);
-    setFormData((prev) => ({ ...prev, pickupDeadline: formattedStr }));
+    setFormData((prev) => ({ ...prev, pickupDeadline: formatLocalDateTime(target) }));
   };
 
   const handlePhotoUploadMock = (e: React.ChangeEvent<HTMLInputElement>) => {
