@@ -577,6 +577,25 @@ export default function ProviderClaimsPage() {
                     >
                       ✓ Verifikasi Serah Terima Langsung Toko ➔
                     </Button>
+                  ) : tx.deliveryMethod === 'PROVIDER_DIRECT' ? (
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <a
+                        href={`/driver-manifest/${tx.code}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0"
+                      >
+                        <span>📲 Web Surat Jalan Driver (No-Login) ➔</span>
+                      </a>
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        className="font-black text-xs shadow-xs"
+                        onClick={() => handleDirectPickupCompleteAtStore(tx)}
+                      >
+                        ✓ Konfirmasi Selesai ➔
+                      </Button>
+                    </div>
                   ) : (
                     <div className="px-3.5 py-2 bg-amber-50 text-amber-900 border border-amber-200 font-bold text-[11px] rounded-xl text-center">
                       🚚 Dalam Pengiriman Kurir <br />
