@@ -369,7 +369,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
               className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded"
             />
             <div>
-              <span className="font-extrabold text-slate-800 block flex items-center gap-1">
+              <span className="font-extrabold text-slate-800 flex items-center gap-1">
                 🚚 Armada Toko Direct
               </span>
               <span className="text-[10px] text-slate-500 font-medium block">

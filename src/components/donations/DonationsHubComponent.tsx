@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -220,20 +220,22 @@ export function DonationsHubComponent() {
     type: 'success',
   });
 
-  // Filtered Requests Logic (Panti, Shelter, Yayasan, Individu)
-  const filteredRequests = requests.filter((req) => {
-    const matchesSearch =
-      req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.location.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filtered Requests Logic (Panti, Shelter, Yayasan, Individu) - Memoized for Fast Rendering
+  const filteredRequests = useMemo(() => {
+    return requests.filter((req) => {
+      const matchesSearch =
+        req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesLocation = filterLocation === 'ALL' || req.location === filterLocation;
-    const matchesCategory = filterCategory === 'ALL' || req.foodCategoryNeeded === filterCategory;
-    const matchesType = filterRecipientType === 'ALL' || req.recipientCategory === filterRecipientType;
-    const matchesUrgency = filterUrgency === 'ALL' || req.urgency === filterUrgency;
+      const matchesLocation = filterLocation === 'ALL' || req.location === filterLocation;
+      const matchesCategory = filterCategory === 'ALL' || req.foodCategoryNeeded === filterCategory;
+      const matchesType = filterRecipientType === 'ALL' || req.recipientCategory === filterRecipientType;
+      const matchesUrgency = filterUrgency === 'ALL' || req.urgency === filterUrgency;
 
-    return matchesSearch && matchesLocation && matchesCategory && matchesType && matchesUrgency;
-  });
+      return matchesSearch && matchesLocation && matchesCategory && matchesType && matchesUrgency;
+    });
+  }, [requests, searchQuery, filterLocation, filterCategory, filterRecipientType, filterUrgency]);
 
   const handleOpenFulfillModal = (req: any) => {
     setSelectedRequest(req);
