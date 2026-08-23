@@ -27,6 +27,7 @@ export default function ProviderClaimsPage() {
       userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
       quantity: '45 Porsi',
       status: 'AWAITING_RESCUE_PICKUP',
+      deliveryMethod: 'RESCUE_COURIER',
       time: 'Hari ini 19:00 WIB',
     },
     {
@@ -34,7 +35,8 @@ export default function ProviderClaimsPage() {
       foodName: 'Bakso Sapi Urat Super',
       userName: 'Budi Santoso (Konsumen)',
       quantity: '2 Porsi',
-      status: 'PENDING PICKUP',
+      status: 'READY_FOR_PICKUP',
+      deliveryMethod: 'SHELTER_PICKUP',
       time: 'Hari ini 19:30 WIB',
     },
   ];
@@ -46,6 +48,7 @@ export default function ProviderClaimsPage() {
       userName: 'Rumah Singgah Anak Jalanan (Yayasan)',
       quantity: '25 Porsi',
       status: 'IN_TRANSIT',
+      deliveryMethod: 'RESCUE_COURIER',
       time: 'Hari ini 21:00 WIB',
     },
   ];
@@ -57,6 +60,7 @@ export default function ProviderClaimsPage() {
       userName: 'Panti Werdha Lansia Sejahtera',
       quantity: '30 Paket',
       status: 'COMPLETED',
+      deliveryMethod: 'SHELTER_PICKUP',
       time: '21 Aug 2026, 14:00 WIB',
       handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
     },
@@ -66,7 +70,7 @@ export default function ProviderClaimsPage() {
   const [inTransitClaims, setInTransitClaims] = useState<any[]>(defaultInTransit);
   const [completedClaims, setCompletedClaims] = useState<any[]>(defaultCompleted);
 
-  // Sync with localStorage replate_claims
+  // Sync with localStorage replate_claims & deduplicate unique keys
   useEffect(() => {
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
@@ -81,6 +85,7 @@ export default function ProviderClaimsPage() {
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
               status: c.status,
+              deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
               time: c.readyTime || 'Hari ini',
             }));
 
@@ -92,7 +97,8 @@ export default function ProviderClaimsPage() {
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
               status: 'IN_TRANSIT',
-              time: 'Dalam Pengiriman OTW Panti',
+              deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+              time: 'Dalam Pengiriman OTW',
             }));
 
           const completed = savedClaims
@@ -103,13 +109,21 @@ export default function ProviderClaimsPage() {
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
               status: 'COMPLETED',
+              deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
               time: c.createdAt || 'Selesai',
               handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
             }));
 
-          if (pending.length > 0) setPendingClaims([...pending, ...defaultPending.filter(d => !pending.some(p => p.code === d.code))]);
-          if (inTransit.length > 0) setInTransitClaims([...inTransit, ...defaultInTransit.filter(d => !inTransit.some(i => i.code === d.code))]);
-          if (completed.length > 0) setCompletedClaims([...completed, ...defaultCompleted.filter(d => !completed.some(c => c.code === d.code))]);
+          // Deduplicate arrays using Map by code (Fix Poin 4: React duplicate key)
+          const mergeUnique = (arr1: any[], arr2: any[]) => {
+            const map = new Map();
+            [...arr1, ...arr2].forEach(item => map.set(item.code, item));
+            return Array.from(map.values());
+          };
+
+          setPendingClaims(mergeUnique(pending, defaultPending));
+          setInTransitClaims(mergeUnique(inTransit, defaultInTransit));
+          setCompletedClaims(mergeUnique(completed, defaultCompleted));
         }
       }
     } catch (_) {}
@@ -138,16 +152,17 @@ export default function ProviderClaimsPage() {
   const [courierName, setCourierName] = useState<string>('');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
-  // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW to Panti)
+  // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW) & Auto Closes Modal (Fix Poin 2 & Poin 3)
   const handleVerifyCodeAtStore = async (code: string) => {
     const cleanCode = code.trim().toUpperCase();
 
     const target = pendingClaims.find((c) => c.code.toUpperCase() === cleanCode) || {
       code: cleanCode,
       foodName: 'Surplus Makanan Steril',
-      userName: 'Panti / Kurir Relawan Replate',
+      userName: 'Penerima Bantuan / Kurir Relawan',
       quantity: 'Porsi Terverifikasi',
       status: 'IN_TRANSIT',
+      deliveryMethod: 'RESCUE_COURIER',
       time: 'OTW Pengiriman',
     };
 
@@ -156,9 +171,9 @@ export default function ProviderClaimsPage() {
     const newInTransitItem = {
       ...target,
       status: 'IN_TRANSIT',
-      time: 'OTW Dalam Pengiriman Ke Panti',
+      time: 'OTW Dalam Pengiriman',
     };
-    setInTransitClaims((prev) => [newInTransitItem, ...prev]);
+    setInTransitClaims((prev) => Array.from(new Map([...prev, newInTransitItem].map(i => [i.code, i])).values()));
 
     // Update localStorage replate_claims globally to IN_TRANSIT
     try {
@@ -172,29 +187,36 @@ export default function ProviderClaimsPage() {
       localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
     } catch (_) {}
 
+    // Auto-Close Modal (Fix Poin 2)
+    setConfirmModal({
+      isOpen: false,
+      code: '',
+      foodName: '',
+      userName: '',
+      quantity: '',
+    });
+
     setToastState({
       isOpen: true,
-      message: `🚚 QR Code "${cleanCode}" Valid! Paket Makanan Dihandover Ke Kurir. Status Diperbarui Menjadi IN_TRANSIT (OTW Ke Panti).`,
+      message: `🚚 QR Code "${cleanCode}" Valid! Paket Makanan Dihandover Ke Kurir. Status Diperbarui Menjadi IN_TRANSIT (OTW).`,
       type: 'success',
     });
     setShowScanner(false);
     setManualCodeInput('');
   };
 
-  // Final Delivery Confirmation at Panti -> Updates Status to COMPLETED
-  const handleConfirmFinalDelivery = (item: any) => {
+  // Direct Pickup Verification at Store for Ambil Mandiri (Fix Poin 5)
+  const handleDirectPickupCompleteAtStore = (item: any) => {
     const cleanCode = item.code;
 
+    setPendingClaims((prev) => prev.filter((c) => c.code !== cleanCode));
     setInTransitClaims((prev) => prev.filter((c) => c.code !== cleanCode));
-    setCompletedClaims((prev) => [
-      {
-        ...item,
-        status: 'COMPLETED',
-        time: 'Baru Saja (Verified Penyerahan Panti)',
-        handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
-      },
-      ...prev,
-    ]);
+    setCompletedClaims((prev) => Array.from(new Map([...prev, {
+      ...item,
+      status: 'COMPLETED',
+      time: 'Baru Saja (Verified Ambil Mandiri Toko)',
+      handoverProof: proofPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+    }].map(i => [i.code, i])).values()));
 
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
@@ -207,10 +229,9 @@ export default function ProviderClaimsPage() {
       localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
     } catch (_) {}
 
-    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
     setToastState({
       isOpen: true,
-      message: `🎉 Donasi "${cleanCode}" Berhasil Diserahkan & Diverifikasi di Panti! Status Permanen SELESAI (COMPLETED).`,
+      message: `✓ Pengambilan Mandiri "${cleanCode}" Terverifikasi Selesai di Toko! Status Permanen COMPLETED.`,
       type: 'success',
     });
   };
@@ -236,7 +257,7 @@ export default function ProviderClaimsPage() {
         </span>
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan</h1>
         <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
-          Scan Kode QR toko saat paket diserahkan ke Kurir (Status OTW Pengiriman). Status berubah permanen menjadi COMPLETED setelah makanan diverifikasi di Panti Asuhan.
+          Scan Kode QR toko saat paket diserahkan ke Kurir (Status OTW Pengiriman). Konfirmasi pengiriman selesai dilakukan oleh Kurir saat paket tiba di lokasi penerima.
         </p>
       </div>
 
@@ -247,7 +268,7 @@ export default function ProviderClaimsPage() {
             <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
               Penjemputan Makanan di Toko Anda
             </span>
-            <h3 className="text-sm font-extrabold text-white">Scan QR Toko Saat Handover Makanan Ke Kurir (Set Status OTW)</h3>
+            <h3 className="text-sm font-extrabold text-white">Scan QR Toko Saat Handover Makanan Ke Kurir</h3>
           </div>
 
           <Button
@@ -263,7 +284,7 @@ export default function ProviderClaimsPage() {
           </Button>
         </div>
 
-        {/* Manual Code Input Bar */}
+        {/* Manual Code Input Bar (Fix Poin 3: Diksi 'Konfirmasi ➔') */}
         <div className="flex items-center gap-3 border-t border-slate-800 pt-3">
           <Input
             placeholder="Atau Ketik Kode Resi (Contoh: FB-DON-88192 / QR-DON-891023)..."
@@ -278,7 +299,7 @@ export default function ProviderClaimsPage() {
             onClick={() => handleVerifyCodeAtStore(manualCodeInput)}
             className="font-extrabold shrink-0 text-xs shadow-md"
           >
-            Verifikasi Handover Toko & Set OTW ➔
+            Konfirmasi Handover ➔
           </Button>
         </div>
       </div>
@@ -289,7 +310,7 @@ export default function ProviderClaimsPage() {
         </Card>
       )}
 
-      {/* Tabs Filter */}
+      {/* Tabs Filter (Fix Poin 1: Hapus kata 'Panti') */}
       <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold">
         <button
           onClick={() => setActiveTab('PENDING')}
@@ -309,7 +330,7 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          🚚 Dalam Pengantaran OTW Panti ({inTransitClaims.length})
+          🚚 Dalam Pengantaran OTW ({inTransitClaims.length})
         </button>
         <button
           onClick={() => setActiveTab('COMPLETED')}
@@ -319,19 +340,19 @@ export default function ProviderClaimsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          ✓ Donasi Selesai di Panti ({completedClaims.length})
+          ✓ Donasi Selesai ({completedClaims.length})
         </button>
       </div>
 
-      {/* Transaction List */}
+      {/* Transaction List (Fix Poin 4: Unique Key with `${tx.code}-${idx}`) */}
       <Card className="bg-white border-slate-200 shadow-xs">
         <CardBody className="p-4 space-y-3 text-xs">
           {(activeTab === 'PENDING' ? pendingClaims : activeTab === 'IN_TRANSIT' ? inTransitClaims : completedClaims).length === 0 ? (
             <p className="text-center text-slate-400 py-6 font-semibold">Tidak ada transaksi di tab ini.</p>
           ) : (
-            (activeTab === 'PENDING' ? pendingClaims : activeTab === 'IN_TRANSIT' ? inTransitClaims : completedClaims).map((tx) => (
+            (activeTab === 'PENDING' ? pendingClaims : activeTab === 'IN_TRANSIT' ? inTransitClaims : completedClaims).map((tx, idx) => (
               <div
-                key={tx.code}
+                key={`${tx.code}-${idx}`}
                 className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-100/60 transition-colors"
               >
                 <div className="space-y-1">
@@ -347,23 +368,31 @@ export default function ProviderClaimsPage() {
                       Kode Resi QR: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
                     </span>
                     <span>•</span>
-                    <span>Status: <strong className="text-[#D4A843] font-bold">{tx.time}</strong></span>
+                    <span>Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : '🛵 Kurir Relawan'}</strong></span>
                   </div>
                 </div>
 
                 {activeTab === 'PENDING' ? (
                   <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
-                    Handover Ke Kurir & Set OTW ➔
+                    Konfirmasi Handover ➔
                   </Button>
                 ) : activeTab === 'IN_TRANSIT' ? (
-                  <Button
-                    variant="gold"
-                    size="sm"
-                    className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                    onClick={() => handleConfirmFinalDelivery(tx)}
-                  >
-                    ✓ Verifikasi Sampai Panti & Set COMPLETED ➔
-                  </Button>
+                  /* Fix Poin 5: For Courier Delivery, Provider cannot set completed directly. Only for Shelter Pickup (Ambil Mandiri) */
+                  tx.deliveryMethod === 'SHELTER_PICKUP' ? (
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                      onClick={() => handleDirectPickupCompleteAtStore(tx)}
+                    >
+                      ✓ Verifikasi Serah Terima Langsung Toko ➔
+                    </Button>
+                  ) : (
+                    <div className="px-3.5 py-2 bg-amber-50 text-amber-900 border border-amber-200 font-bold text-[11px] rounded-xl text-center">
+                      🚚 Dalam Pengiriman Kurir <br />
+                      <span className="text-[10px] text-amber-700 font-normal">(Menunggu Konfirmasi Sampai dari Kurir)</span>
+                    </div>
+                  )
                 ) : (
                   <Button
                     variant="outline"
@@ -392,7 +421,7 @@ export default function ProviderClaimsPage() {
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
               <span className="text-emerald-900 font-black text-sm block">✓ Status: VERIFIED & SELESAI (COMPLETED)</span>
               <p className="text-emerald-800">
-                Porsi makanan surplus sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diserahkan di panti & diverifikasi.
+                Porsi makanan surplus sebanyak <strong>{detailModal.claim?.quantity}</strong> telah berhasil diserahkan & diverifikasi.
               </p>
             </div>
 
@@ -426,7 +455,7 @@ export default function ProviderClaimsPage() {
         <Modal
           isOpen={confirmModal.isOpen}
           onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-          title="Konfirmasi Handover Makanan Toko Ke Kurir (Set Status OTW)"
+          title="Konfirmasi Handover Makanan Toko Ke Kurir"
           size="lg"
         >
           <div className="space-y-5 text-xs text-slate-700">
@@ -443,7 +472,7 @@ export default function ProviderClaimsPage() {
 
             <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
               <h4 className="font-extrabold text-[#1B3A5C] text-sm">
-                Konfirmasi Penyerahan Ke Kurir Relawan
+                Konfirmasi Penyerahan Ke Kurir Relawan / Penerima
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
@@ -480,7 +509,7 @@ export default function ProviderClaimsPage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" className="font-extrabold" onClick={() => handleVerifyCodeAtStore(confirmModal.code)}>
-                Konfirmasi Handover & Set Status OTW ➔
+                Konfirmasi Handover ➔
               </Button>
             </div>
           </div>
