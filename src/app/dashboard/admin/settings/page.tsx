@@ -7,11 +7,19 @@ import { Input } from '@/components/ui/Input';
 import { Toast } from '@/components/ui/Toast';
 
 export default function AdminSettingsPage() {
-  const [activeTab, setActiveTab] = useState<'MATCHING' | 'BPOM' | 'DISCOUNT' | 'ALERTS'>('BPOM');
+  const [activeTab, setActiveTab] = useState<'MATCHING' | 'BPOM' | 'DISCOUNT' | 'ALERTS' | 'INFAQ'>('BPOM');
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
     message: '',
     type: 'success',
+  });
+
+  const [infaqRules, setInfaqRules] = useState({
+    defaultInfaqPercent: 5,
+    courierSubsidyPerDelivery: 10000,
+    packagingSubsidyPerBox: 2500,
+    totalPoolAccumulated: 4850000,
+    totalDisbursed: 3200000,
   });
 
   // State parameter bisnis
@@ -50,7 +58,7 @@ export default function AdminSettingsPage() {
   const handleSave = () => {
     setToastState({
       isOpen: true,
-      message: 'Seluruh 8 Konfigurasi Parameter SOP Kelayakan Pangan BPOM RI & Bisnis Platform Berhasil Disimpan!',
+      message: 'Seluruh Parameter SOP BPOM, Bisnis & Dana Kemanusiaan Infaq Berhasil Disimpan!',
       type: 'success',
     });
   };
@@ -61,7 +69,7 @@ export default function AdminSettingsPage() {
       <div className="border-b border-slate-200 pb-4">
         <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Konfigurasi Sistem & Pengaturan Bisnis Platform</h2>
         <p className="text-xs text-slate-500 font-medium">
-          Kelola parameter algoritma Smart Matching, 8 aturan SOP kelayakan BPOM RI, batas diskon Rescue Sale, dan alert darurat.
+          Kelola parameter algoritma Smart Matching, 8 aturan SOP kelayakan BPOM RI, batas diskon, radius, serta Manajemen Dana Kemanusiaan Infaq.
         </p>
       </div>
 
@@ -106,6 +114,16 @@ export default function AdminSettingsPage() {
           }`}
         >
           4. Radius & Alert Darurat
+        </button>
+        <button
+          onClick={() => setActiveTab('INFAQ')}
+          className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-colors ${
+            activeTab === 'INFAQ'
+              ? 'bg-[#1B3A5C] text-white shadow-xs'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          5. Dana Kemanusiaan & Infaq
         </button>
       </div>
 
@@ -310,6 +328,93 @@ export default function AdminSettingsPage() {
                   <span className="font-bold text-slate-600">Menit Sebelum Deadline</span>
                 </div>
               </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Tab Content 5: Dana Kemanusiaan & Alokasi Infaq */}
+      {activeTab === 'INFAQ' && (
+        <Card className="bg-white border-slate-200 p-6 space-y-4">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <CardTitle className="text-base font-extrabold text-[#1B3A5C]">
+                Pengelolaan Kas Dana Kemanusiaan Replate & Subsidisi Alokasi
+              </CardTitle>
+              <p className="text-xs text-slate-500 font-medium">
+                Kas infaq yang terakumulasi dari transaksi Rescue Sale disalurkan untuk mensubsidi boks steril dan ongkir relawan Panti Asuhan.
+              </p>
+            </div>
+            <div className="bg-[#1B3A5C] text-amber-300 px-4 py-2 rounded-xl text-right shrink-0 border border-amber-400/30 shadow-xs">
+              <span className="text-[10px] uppercase font-extrabold block text-slate-300">TOTAL SALDO KAS TERKUMPUL</span>
+              <span className="text-lg font-black font-mono">Rp {infaqRules.totalPoolAccumulated.toLocaleString('id-ID')}</span>
+            </div>
+          </CardHeader>
+          <CardBody className="space-y-4 text-xs text-slate-700">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <label className="font-extrabold text-[#1B3A5C] block">Potongan Auto-Infaq Default Outlet:</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={infaqRules.defaultInfaqPercent}
+                    onChange={(e) => setInfaqRules({ ...infaqRules, defaultInfaqPercent: parseInt(e.target.value) || 0 })}
+                    className="w-24 font-bold"
+                  />
+                  <span className="font-bold text-slate-600">% Dari Transaksi Rescue Sale</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <label className="font-extrabold text-[#1B3A5C] block">Subsidi Bensin Kurir Relawan / Paket:</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={infaqRules.courierSubsidyPerDelivery}
+                    onChange={(e) => setInfaqRules({ ...infaqRules, courierSubsidyPerDelivery: parseInt(e.target.value) || 0 })}
+                    className="w-32 font-bold"
+                  />
+                  <span className="font-bold text-slate-600">Rupiah (Rp) / Pengantaran</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <label className="font-extrabold text-[#1B3A5C] block">Subsidi Boks Kemasan Steril Panti:</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={infaqRules.packagingSubsidyPerBox}
+                    onChange={(e) => setInfaqRules({ ...infaqRules, packagingSubsidyPerBox: parseInt(e.target.value) || 0 })}
+                    className="w-32 font-bold"
+                  />
+                  <span className="font-bold text-slate-600">Rupiah (Rp) / Boks Makanan</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900">
+              <div className="space-y-0.5">
+                <span className="font-extrabold text-xs block text-amber-950">Statistik Alokasi Pencairan Dana Kemanusiaan:</span>
+                <p className="text-[11px] font-medium text-amber-800">
+                  Total Disbursed Subsidi: <strong>Rp {infaqRules.totalDisbursed.toLocaleString('id-ID')}</strong> (Telah mendanai 320 pengantaran donasi gratis panti & 1.280 boks kemasan steril).
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="gold"
+                size="sm"
+                className="font-extrabold text-slate-950 shrink-0"
+                onClick={() => {
+                  setInfaqRules((prev) => ({ ...prev, totalDisbursed: prev.totalDisbursed + 500000 }));
+                  setToastState({
+                    isOpen: true,
+                    message: '✅ Dana Subsidi Sebesar Rp 500.000 Berhasil Dicairkan Ke Kas Kurir Relawan Komunitas!',
+                    type: 'success',
+                  });
+                }}
+              >
+                💸 Cairkan Subsidi Kurir Relawan (Rp 500rb) ➔
+              </Button>
             </div>
           </CardBody>
         </Card>
