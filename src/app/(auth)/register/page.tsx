@@ -187,6 +187,63 @@ export default function RegisterPage() {
                         </div>
                     </div>
 
+                    {formData.role === 'CONSUMER' && (
+                        <div className={styles.conditionalFields}>
+                            <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-700 text-white space-y-3 mb-4">
+                                <label className="text-xs font-bold text-[#D4A843] uppercase tracking-wider block">
+                                    Pilih Kategori Akun Konsumen Replate
+                                </label>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                    <div
+                                        onClick={() => setFormData({ ...formData, organizationType: 'REGULAR_CONSUMER' })}
+                                        className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                                            formData.organizationType !== 'BENEFICIARY_CONSUMER'
+                                                ? 'bg-[#1B3A5C] border-[#D4A843] text-white shadow-xs'
+                                                : 'bg-slate-800 border-slate-700 text-slate-300'
+                                        }`}
+                                    >
+                                        <span className="font-extrabold block text-xs">🛒 Konsumen Biasa (Rescue Sale)</span>
+                                        <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                            Masyarakat umum & anak kos yang membeli makanan surplus berdiskon murah.
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        onClick={() => setFormData({ ...formData, organizationType: 'BENEFICIARY_CONSUMER' })}
+                                        className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                                            formData.organizationType === 'BENEFICIARY_CONSUMER'
+                                                ? 'bg-emerald-900 border-emerald-400 text-white shadow-xs'
+                                                : 'bg-slate-800 border-slate-700 text-slate-300'
+                                        }`}
+                                    >
+                                        <span className="font-extrabold block text-xs">🤝 Penerima Bantuan (Donasi Rp 0)</span>
+                                        <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                            Warga rentan/kurang mampu yang membutuhkan akses donasi gratis 100%.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {formData.organizationType === 'BENEFICIARY_CONSUMER' && (
+                                    <div className="pt-2 border-t border-slate-800 space-y-1">
+                                        <label className={styles.formLabel}>No. Kartu Bansos / SKTM Kelurahan (Verifikasi)</label>
+                                        <input
+                                            type="text"
+                                            className={styles.formInput}
+                                            placeholder="Contoh: No. KIS / KKS / PKH / SKTM Kelurahan..."
+                                            value={formData.organizationName}
+                                            onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+                                            required
+                                        />
+                                        <span className="text-[10px] text-emerald-400 block font-medium">
+                                            *Data ini diverifikasi oleh tim Replate agar bantuan donasi makanan 100% tepat sasaran.
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {showOrgFields && (
                         <div className={styles.conditionalFields}>
                             <div className={styles.formRow}>
