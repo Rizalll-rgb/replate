@@ -166,6 +166,11 @@ export default function ProviderSettingsPage() {
     } catch (_) {}
   }, []);
 
+  // Preferred Rescue Partner Drop State (Kemitraan Langganan Rutin Panti)
+  const [preferredPartnerEnabled, setPreferredPartnerEnabled] = useState(true);
+  const [preferredPartnerName, setPreferredPartnerName] = useState('Panti Asuhan Kasih Ibu (Yayasan)');
+  const [preferredPartnerFrequency, setPreferredPartnerFrequency] = useState('Jumat Barokah & Setiap Hari');
+
   // Food Waste Disposal & Policy State (Poin 2)
   const [gracePeriodMins, setGracePeriodMins] = useState('30 Menit');
   const [autoCompostRedirect, setAutoCompostRedirect] = useState(true);
@@ -1469,6 +1474,75 @@ export default function ProviderSettingsPage() {
                 <option value="5% (Donasi Otomatis ke Panti)">5% (Donasi Otomatis ke Panti)</option>
                 <option value="10% (Program Kemanusiaan Pro)">10% (Program Kemanusiaan Pro)</option>
               </select>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Section Preferred Rescue Partner Drop (Kemitraan Langganan Rutin Panti) */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
+                <span>🤝 Kemitraan Langganan Rutin Prioritas Panti Asuhan (Preferred Partner Drop)</span>
+              </h3>
+              <Badge variant="gold">PREFERRED BENEFICIARY</Badge>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <span className="font-extrabold text-xs text-[#1B3A5C] block">
+                    Alokasikan Otomatis Makanan Surplus Ke Panti Asuhan Langganan Utama:
+                  </span>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Makanan donasi dari toko Anda akan diprioritaskan terlebih dahulu ke panti pilihan sebelum dilempar ke pool umum.
+                  </p>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
+                  <input
+                    type="checkbox"
+                    checked={preferredPartnerEnabled}
+                    onChange={(e) => setPreferredPartnerEnabled(e.target.checked)}
+                    className="w-4 h-4 text-[#1B3A5C] rounded border-slate-300 focus:ring-0"
+                  />
+                  <span className="text-xs font-bold text-[#1B3A5C]">
+                    {preferredPartnerEnabled ? '✓ MITRA LANGGANAN AKTIF' : 'Nonaktif (Open-Pool Default)'}
+                  </span>
+                </label>
+              </div>
+
+              {preferredPartnerEnabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-semibold text-slate-800">Pilih Lembaga Panti Asuhan / Shelter Tujuan Utama:</label>
+                    <select
+                      className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                      value={preferredPartnerName}
+                      onChange={(e) => setPreferredPartnerName(e.target.value)}
+                    >
+                      <option value="Panti Asuhan Kasih Ibu (Yayasan)">Panti Asuhan Kasih Ibu (Yayasan) - Surabaya Timur</option>
+                      <option value="Panti Werdha Lansia Sejahtera">Panti Werdha Lansia Sejahtera - Surabaya Selatan</option>
+                      <option value="Rumah Singgah Anak Jalanan">Rumah Singgah Anak Jalanan - Surabaya Pusat</option>
+                      <option value="Komunitas Dapur Umum Sosmas Ketintang">Komunitas Dapur Umum Sosmas Ketintang - Surabaya Selatan</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-semibold text-slate-800">Frekuensi Penyaluran Rutin:</label>
+                    <select
+                      className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                      value={preferredPartnerFrequency}
+                      onChange={(e) => setPreferredPartnerFrequency(e.target.value)}
+                    >
+                      <option value="Jumat Barokah & Setiap Hari">Jumat Barokah & Setiap Hari (Setiap Malam)</option>
+                      <option value="Setiap Hari Jumat Saja">Setiap Hari Jumat Saja</option>
+                      <option value="Senin - Jumat (Weekday Only)">Senin - Jumat (Weekday Only)</option>
+                      <option value="Sabtu & Minggu (Weekend Special)">Sabtu & Minggu (Weekend Special)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>
