@@ -597,7 +597,7 @@ export default function ProviderSettingsPage() {
                     {currentFleet.status === 'APPROVED' ? (
                       <div className="p-3.5 bg-emerald-950/90 border border-emerald-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-300 font-bold text-xs">
                         <div className="space-y-0.5">
-                          <span className="text-emerald-400 font-extrabold block flex items-center gap-2">
+                          <span className="text-emerald-400 font-extrabold flex items-center gap-2">
                             <span>✓ LISENSI ARMADA #{currentFleet.plateNumber} TERVERIFIKASI AKTIF (VERIFIED BY ADMIN REPLATE)</span>
                           </span>
                           <p className="text-slate-300 text-[11px] font-medium">
@@ -1716,7 +1716,7 @@ export default function ProviderSettingsPage() {
         >
           <div className="space-y-4 text-xs text-slate-700">
             <div className="p-3.5 bg-emerald-950 text-emerald-200 rounded-xl space-y-1.5 border border-emerald-500/30">
-              <span className="font-extrabold text-emerald-400 block text-xs flex items-center gap-1.5">
+              <span className="font-extrabold text-emerald-400 text-xs flex items-center gap-1.5">
                 <span>📲 Kode OTP 6-Digit Dikirim via WhatsApp:</span>
               </span>
               <p className="text-[11px] font-medium text-slate-200 leading-relaxed">
