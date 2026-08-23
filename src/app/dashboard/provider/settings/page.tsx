@@ -25,7 +25,27 @@ export default function ProviderSettingsPage() {
   const [defaultPackaging, setDefaultPackaging] = useState('Kemasan Boks Biodegradable (Steril)');
 
   // Multi-Fleet Vehicles & Driver WhatsApp Contact Verification State
-  const defaultFleetList = [
+  interface FleetVehicle {
+    id: string;
+    driverName: string;
+    driverPhone: string;
+    isPhoneVerified: boolean;
+    vehicleType: string;
+    plateNumber: string;
+    status: 'UNSUBMITTED' | 'PENDING' | 'APPROVED';
+    docs: {
+      driverPhoto: string;
+      vehiclePhoto: string;
+      ktpPhoto: string;
+      simPhoto: string;
+      stnkPhoto: string;
+    };
+  }
+
+  const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(true);
+  const [fleetApprovalStatus, setFleetApprovalStatus] = useState<'UNSUBMITTED' | 'PENDING' | 'APPROVED'>('APPROVED');
+
+  const defaultFleetList: FleetVehicle[] = [
     {
       id: 'flt-101',
       driverName: 'Mas Doni (Driver Outlet Pak Kumis)',
@@ -33,7 +53,7 @@ export default function ProviderSettingsPage() {
       isPhoneVerified: true,
       vehicleType: 'Sepeda Motor Box Cooler (Steril)',
       plateNumber: 'L 4582 ABC',
-      status: 'APPROVED' as const,
+      status: 'APPROVED',
       docs: {
         driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
         vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
@@ -49,7 +69,7 @@ export default function ProviderSettingsPage() {
       isPhoneVerified: true,
       vehicleType: 'Mobil Box Steril Replate',
       plateNumber: 'L 9912 XYZ',
-      status: 'PENDING' as const,
+      status: 'PENDING',
       docs: {
         driverPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60',
         vehiclePhoto: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=500&auto=format&fit=crop&q=60',
@@ -60,7 +80,7 @@ export default function ProviderSettingsPage() {
     },
   ];
 
-  const [fleetList, setFleetList] = useState(defaultFleetList);
+  const [fleetList, setFleetList] = useState<FleetVehicle[]>(defaultFleetList);
   const [selectedFleetId, setSelectedFleetId] = useState<string>('flt-101');
 
   // WhatsApp OTP Verification Modal State
