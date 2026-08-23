@@ -79,6 +79,22 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     setFormData((prev) => ({ ...prev, pickupDeadline: formatLocalDateTime(target) }));
   };
 
+  const [checklistReady, setChecklistReady] = useState<boolean>(true);
+  const [checklistData, setChecklistData] = useState<RescueReadinessChecklist>({
+    infoComplete: true,
+    notExpired: true,
+    storageProper: true,
+    packagingIntact: true,
+    noSpoilage: true,
+    photoClear: true,
+    pickupRealistic: true,
+    locationAccurate: true,
+  });
+
+  // Custom Select Dropdown CSS Class
+  const customSelectClass =
+    "w-full rounded-xl border border-slate-300 text-xs sm:text-sm px-4 py-2.5 bg-white text-[#1B3A5C] font-bold focus:border-[#1B3A5C] focus:ring-2 focus:ring-[#1B3A5C]/20 focus:outline-none shadow-xs appearance-none cursor-pointer bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231B3A5C%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_1rem_center] bg-[length:1.25rem_1.25rem] pr-10 hover:border-[#1B3A5C] transition-all";
+
   const handlePhotoUploadMock = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
