@@ -1,7 +1,7 @@
 'use client';
 
-import DonationsPage from '../../donations/page';
+import { DonationsHubComponent } from '@/components/donations/DonationsHubComponent';
 
 export default function ProviderDonationsPage() {
-  return <DonationsPage />;
+  return <DonationsHubComponent />;
 }

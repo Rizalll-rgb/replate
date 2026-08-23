@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/donations',
+      href: '/dashboard/provider/donations',
       label: 'Permintaan Donasi',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
