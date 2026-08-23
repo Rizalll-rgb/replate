@@ -1,0 +1,18 @@
+{
+  "name": "Replate — Platform Penyelamatan Makanan",
+  "short_name": "Replate",
+  "description": "Platform redistribusi makanan berlebih zero-waste Surabaya",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F1923",
+  "theme_color": "#1B3A5C",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

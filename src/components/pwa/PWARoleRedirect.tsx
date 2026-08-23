@@ -9,17 +9,33 @@ export const PWARoleRedirect = () => {
 
   useEffect(() => {
     const checkPWAAndRedirect = () => {
-      const isStandalone =
+      // 1. Comprehensive PWA Display Mode Detection
+      const isMatchMediaPWA =
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true ||
-        document.referrer.includes('android-app://');
+        window.matchMedia('(display-mode: minimal-ui)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        window.matchMedia('(display-mode: window-controls-overlay)').matches;
 
-      if (isStandalone) {
-        // List of public marketing routes that should NOT be shown inside standalone PWA app
-        const publicMarketingRoutes = ['/', '/about', '/how-it-works', '/impact', '/faq'];
+      const isNavPWA = (window.navigator as any).standalone === true || document.referrer.includes('android-app://');
 
-        if (publicMarketingRoutes.includes(pathname)) {
-          // Direct PWA user straight into the Core Business Process Dashboard
+      const isSessionPWA = sessionStorage.getItem('replate_is_pwa_standalone') === 'true';
+
+      const isPWA = isMatchMediaPWA || isNavPWA || isSessionPWA;
+
+      if (isPWA) {
+        // Persist PWA mode in session storage
+        sessionStorage.setItem('replate_is_pwa_standalone', 'true');
+
+        // Check if current path is a public marketing page that MUST be blocked in PWA app mode
+        const isPublicMarketingRoute =
+          pathname === '/' ||
+          pathname.startsWith('/about') ||
+          pathname.startsWith('/how-it-works') ||
+          pathname.startsWith('/impact') ||
+          pathname.startsWith('/faq');
+
+        if (isPublicMarketingRoute) {
+          // Strictly lock PWA app mode to Core Business Process Dashboard
           router.replace('/dashboard');
         }
       }

@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description: 'Platform redistribusi makanan berlebih yang menghubungkan Food Provider dengan penerima manfaat secara efisien, aman, dan transparan. Bersama kurangi food waste untuk masa depan berkelanjutan.',
   keywords: ['food waste', 'food rescue', 'redistribusi makanan', 'SDG', 'sustainability', 'Replate', 'Surabaya'],
   authors: [{ name: 'Replate Team' }],
+  manifest: '/manifest.json',
   openGraph: {
     title: 'Replate — Selamatkan Makanan, Bantu Sesama',
     description: 'Platform redistribusi makanan berlebih untuk masa depan berkelanjutan.',
