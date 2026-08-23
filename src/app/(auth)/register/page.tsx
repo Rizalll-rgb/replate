@@ -287,6 +287,20 @@ export default function RegisterPage() {
                         />
                     </div>
 
+                    <div className="py-2">
+                        <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-300 font-medium leading-relaxed">
+                            <input
+                                type="checkbox"
+                                required
+                                defaultChecked
+                                className="mt-0.5 w-4 h-4 text-[#D4A843] rounded border-slate-600 focus:ring-0 shrink-0"
+                            />
+                            <span>
+                                Saya menyetujui <strong className="text-[#D4A843]">Digital Terms of Service (TOS)</strong>, Lisensi Agregator Universal, & Pakta Integritas Keamanan Pangan BPOM Replate.
+                            </span>
+                        </label>
+                    </div>
+
                     <button type="submit" className={styles.btnSubmit} disabled={loading}>
                         {loading ? 'Mendaftar...' : 'Daftar Sekarang ➔'}
                     </button>
