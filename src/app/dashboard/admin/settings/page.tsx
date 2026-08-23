@@ -214,6 +214,30 @@ export default function AdminSettingsPage() {
                   <span className="font-bold text-slate-600">Skor Minimal (Dari Skala 10)</span>
                 </div>
               </div>
+
+              <div className="p-4 bg-[#1B3A5C]/5 rounded-xl border border-[#1B3A5C]/20 space-y-2">
+                <label className="font-extrabold text-[#1B3A5C] block">7. Grace Period Pickup Default Platform (SuperAdmin Base):</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    defaultValue={30}
+                    className="w-24 font-bold text-[#1B3A5C]"
+                  />
+                  <span className="font-bold text-slate-600">Menit (Default Kebijakan Platform)</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#1B3A5C]/5 rounded-xl border border-[#1B3A5C]/20 space-y-2">
+                <label className="font-extrabold text-[#1B3A5C] block">8. Batas Maksimal Grace Period Diizinkan Toko (Max Cap):</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    defaultValue={60}
+                    className="w-24 font-bold text-[#1B3A5C]"
+                  />
+                  <span className="font-bold text-slate-600">Menit (Batas Keamanan BPOM Puncak)</span>
+                </div>
+              </div>
             </div>
           </CardBody>
         </Card>
