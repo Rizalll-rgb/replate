@@ -17,12 +17,25 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
   onSuccess,
   onClose,
 }) => {
-  const [otp, setOtp] = useState(['9', '9', '3', '8']);
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState<string>('4829');
+  const [otp, setOtp] = useState<string[]>(['', '', '', '']);
+  const [isVerifying, setIsVerifying] = useState<false | boolean>(false);
   const [error, setError] = useState('');
   const [resendMessage, setResendMessage] = useState('');
   const [countdown, setCountdown] = useState<number>(60);
 
+  // Generate unique random 4-digit OTP whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const newRandomOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedOtp(newRandomOtp);
+      setOtp(['', '', '', '']);
+      setError('');
+      setCountdown(60);
+    }
+  }, [isOpen]);
+
+  // Anti-spam 60s countdown timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isOpen && countdown > 0) {
@@ -41,7 +54,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Auto-focus next input
+    // Auto-focus next input field
     if (value && index < 3) {
       const nextInput = document.getElementById(`otp-input-${index + 1}`);
       nextInput?.focus();
@@ -51,9 +64,15 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
   const handleVerify = () => {
     const entered = otp.join('');
     if (entered.length < 4) {
-      setError('Masukkan 4 digit kode OTP lengkap!');
+      setError('⚠️ Mohon isi 4-digit kode OTP secara lengkap!');
       return;
     }
+
+    if (entered !== generatedOtp) {
+      setError(`❌ Kode OTP (${entered}) tidak cocok! Kode OTP WhatsApp Anda adalah [${generatedOtp}].`);
+      return;
+    }
+
     setError('');
     setIsVerifying(true);
 
@@ -65,9 +84,11 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
 
   const handleResend = () => {
     if (countdown > 0) return;
+    const newRandomOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    setGeneratedOtp(newRandomOtp);
+    setOtp(['', '', '', '']);
     setCountdown(60);
-    setResendMessage('✓ Kode OTP baru berhasil dikirim ulang ke nomor WhatsApp Anda!');
-    setOtp(['9', '9', '3', '8']);
+    setResendMessage(`✓ Kode OTP baru [${newRandomOtp}] telah dikirimkan via WhatsApp!`);
     setTimeout(() => setResendMessage(''), 4000);
   };
 
@@ -78,30 +99,30 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="📱 Verifikasi 2-Langkah (WhatsApp / Email OTP)"
+      title="📱 Verifikasi 2-Langkah (WhatsApp OTP Unique)"
       size="sm"
     >
       <div className="space-y-4 text-center text-xs text-slate-700">
         {/* Header Banner */}
         <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1 shadow-md">
-          <span className="font-extrabold text-amber-400 text-xs block uppercase tracking-wider">
+          <span className="font-black text-amber-400 text-xs block uppercase tracking-wider">
             Sistem Autentikasi Ganda Anti-Spam Replate
           </span>
           <p className="text-xs text-slate-200 leading-relaxed font-medium">
             Kode OTP 4-digit telah dikirimkan via WhatsApp ke nomor{' '}
-            <strong className="text-amber-300 font-mono">{phoneOrEmail || '0812-3456-7890'}</strong>.
+            <strong className="text-amber-300 font-mono font-black">{phoneOrEmail || '0812-3456-7890'}</strong>.
           </p>
         </div>
 
-        {/* Real-time WA Integration Action Card */}
+        {/* Real-time WA Integration Action Card with Dynamic Generated OTP */}
         <a
-          href={`https://wa.me/${cleanWaNumber}?text=Kode%20OTP%20Replate%20Anda:%209938`}
+          href={`https://wa.me/${cleanWaNumber}?text=Kode%20OTP%20Replate%20Anda:%20${generatedOtp}`}
           target="_blank"
           rel="noopener noreferrer"
           className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-950 font-extrabold text-xs transition-all text-left shadow-xs"
         >
           <div className="space-y-0.5">
-            <span className="block text-[11px] font-extrabold">💬 Buka WhatsApp Untuk Terima Kode OTP (9938):</span>
+            <span className="block text-[11px] font-black">💬 Buka WhatsApp Untuk Terima Kode OTP ({generatedOtp}):</span>
             <span className="text-[10px] text-emerald-700 font-mono font-medium block">wa.me/{cleanWaNumber}</span>
           </div>
           <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-black shrink-0 shadow-xs">
@@ -110,17 +131,18 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
         </a>
 
         {error && (
-          <div className="p-2.5 bg-red-100 border border-red-300 text-red-900 font-extrabold text-xs rounded-xl">
+          <div className="p-2.5 bg-red-100 border border-red-300 text-red-900 font-extrabold text-xs rounded-xl shadow-xs">
             {error}
           </div>
         )}
 
         {resendMessage && (
-          <div className="p-2.5 bg-emerald-100 border border-emerald-300 text-emerald-950 font-extrabold text-xs rounded-xl">
+          <div className="p-2.5 bg-emerald-100 border border-emerald-300 text-emerald-950 font-extrabold text-xs rounded-xl shadow-xs">
             {resendMessage}
           </div>
         )}
 
+        {/* Empty 4-Digit Input Fields */}
         <div className="space-y-2">
           <label className="text-xs font-black text-[#1B3A5C] block uppercase tracking-wider">
             Masukkan 4-Digit Kode OTP:
@@ -134,12 +156,13 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleOtpChange(idx, e.target.value)}
-                className="w-12 h-14 bg-slate-100 text-slate-900 font-black text-xl text-center rounded-xl border-2 border-amber-400 focus:outline-none focus:border-[#1B3A5C] focus:bg-white shadow-sm"
+                placeholder="•"
+                className="w-12 h-14 bg-slate-50 text-slate-900 font-black text-xl text-center rounded-xl border-2 border-amber-400 focus:outline-none focus:border-[#1B3A5C] focus:bg-white shadow-sm"
               />
             ))}
           </div>
-          <p className="text-[11px] text-slate-500 italic">
-            💡 Kode OTP Demo Instan: <strong className="text-emerald-700 font-mono font-bold">9938</strong>
+          <p className="text-[11px] text-slate-500 font-medium">
+            💡 Masukkan kode OTP unik WhatsApp di atas (<button type="button" onClick={() => setOtp(generatedOtp.split(''))} className="text-emerald-700 font-mono font-black underline cursor-pointer">Klik disini untuk isi otomatis ({generatedOtp})</button>)
           </p>
         </div>
 
