@@ -255,7 +255,7 @@ export default function AdminApprovalsPage() {
         </button>
       </div>
 
-      {activeTab === 'MITRA' ? (
+      {activeTab === 'MITRA' && (
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
             <div className="text-lg">ℹ️</div>
@@ -357,8 +357,9 @@ export default function AdminApprovalsPage() {
             </div>
           )}
         </div>
-      ) : (
-        /* Tab Consumer Beneficiary SKTM Approvals */
+      )}
+
+      {activeTab === 'CONSUMER_BENEFICIARY' && (
         <div className="space-y-4">
           <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-emerald-900">
             <div className="text-lg">🤝</div>
@@ -438,7 +439,9 @@ export default function AdminApprovalsPage() {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'PROVIDER_FLEET' && (
         /* Tab Provider Fleet Verification (No. Polisi, KTP, SIM & STNK) */
         <div className="space-y-4">
           <div className="bg-[#1B3A5C] text-white p-4 rounded-2xl flex items-start gap-3 text-xs border border-slate-700 shadow-md">

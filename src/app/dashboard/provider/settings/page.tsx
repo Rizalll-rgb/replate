@@ -1230,18 +1230,11 @@ export default function ProviderSettingsPage() {
                           });
                         }}
                       >
-                        🚀 Ajukan Berkas Verifikasi Armada ({currentFleet.plateNumber}) ke Admin ➔
                       </Button>
                     </div>
                   </div>
                 );
               })()}
-            </div>   >
-                      🚀 Ajukan Berkas Verifikasi Armada Toko ke Admin ➔
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
