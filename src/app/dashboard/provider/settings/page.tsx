@@ -564,7 +564,7 @@ export default function ProviderSettingsPage() {
                         placeholder="Contoh: L 1234 ABC"
                         value={fleetPlateNumberInput}
                         onChange={(e) => setFleetPlateNumberInput(e.target.value)}
-                        className="bg-slate-800 text-white border-slate-700 text-xs font-mono font-black text-amber-400"
+                        className="bg-slate-800 border-slate-700 text-xs font-mono font-black text-amber-400"
                         required
                       />
                     </div>
