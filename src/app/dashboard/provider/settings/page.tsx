@@ -177,22 +177,25 @@ export default function ProviderSettingsPage() {
   const [globalRescueCourier, setGlobalRescueCourier] = useState<boolean>(true);
   const [globalDirectFleet, setGlobalDirectFleet] = useState<boolean>(true);
 
-  // Preferred Rescue Partner Drop State (Poin 5: CRUD Langganan Panti)
+  // Preferred Rescue Partner Drop State (Poin 5: CRUD & Two-Way Confirmation)
   const [preferredPartnerEnabled, setPreferredPartnerEnabled] = useState(true);
+  const [uploadedHalalDoc, setUploadedHalalDoc] = useState<string | null>('Surat_Pernyataan_Self_Declare_Halal_BPOM.pdf');
   const [preferredPartnersList, setPreferredPartnersList] = useState<
-    { id: string; pantiName: string; frequency: string; location: string }[]
+    { id: string; pantiName: string; frequency: string; location: string; status: 'CONFIRMED_BY_PANTI' | 'PENDING_PANTI_ACCEPTANCE' }[]
   >([
     {
       id: 'pr-1',
       pantiName: 'Panti Asuhan Kasih Ibu (Yayasan)',
       frequency: 'Jumat Barokah & Setiap Malam',
       location: 'Surabaya Timur',
+      status: 'CONFIRMED_BY_PANTI',
     },
     {
       id: 'pr-2',
       pantiName: 'Panti Werdha Lansia Sejahtera',
       frequency: 'Setiap Hari Jumat Saja',
       location: 'Surabaya Selatan',
+      status: 'CONFIRMED_BY_PANTI',
     },
   ]);
 
@@ -208,12 +211,13 @@ export default function ProviderSettingsPage() {
       pantiName: addPartnerModal.pantiName,
       frequency: addPartnerModal.frequency,
       location: 'Kota Surabaya',
+      status: 'PENDING_PANTI_ACCEPTANCE' as const,
     };
     setPreferredPartnersList((prev) => [...prev, newItem]);
     setAddPartnerModal({ ...addPartnerModal, isOpen: false });
     setToastState({
       isOpen: true,
-      message: `🤝 Panti Asuhan "${newItem.pantiName}" Berhasil Ditambahkan ke Daftar Langganan Rutin!`,
+      message: `🔔 Permintaan Kemitraan Langganan telah Dikirimkan ke Notifikasi Panti Asuhan "${newItem.pantiName}"! Status: MENUNGGU PERSETUJUAN PANTI.`,
       type: 'success',
     });
   };
@@ -1678,15 +1682,26 @@ export default function ProviderSettingsPage() {
                 </label>
               </div>
 
-              {/* List of Active Subscriptions */}
+              {/* List of Active Subscriptions with 2-Way Confirmation Status (Poin 5) */}
               <div className="space-y-2 pt-1 text-xs">
                 {preferredPartnersList.map((partner) => (
                   <div
                     key={partner.id}
-                    className="p-3 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs"
+                    className="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
                   >
-                    <div className="space-y-0.5">
-                      <span className="font-extrabold text-[#1B3A5C] block text-xs">{partner.pantiName}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-extrabold text-[#1B3A5C] text-xs">{partner.pantiName}</span>
+                        {partner.status === 'CONFIRMED_BY_PANTI' ? (
+                          <span className="text-[9px] bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold px-2 py-0.5 rounded-md">
+                            ✓ KONFIRMASI DUA ARAH SETUJU
+                          </span>
+                        ) : (
+                          <span className="text-[9px] bg-amber-100 text-amber-900 border border-amber-300 font-extrabold px-2 py-0.5 rounded-md animate-pulse">
+                            ⏳ MENUNGGU PERSETUJUAN PANTI
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-slate-500 font-medium">
                         Jadwal Alokasi: <strong className="text-slate-800">{partner.frequency}</strong> • Wilayah: {partner.location}
                       </p>
@@ -1772,6 +1787,51 @@ export default function ProviderSettingsPage() {
                 value={defaultPackaging}
                 onChange={(e) => setDefaultPackaging(e.target.value)}
               />
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <span className="font-extrabold text-[#1B3A5C] block">Dokumen Surat Pernyataan Self-Declare / Sertifikat Halal:</span>
+                <span className="text-slate-500 font-medium">{uploadedHalalDoc || 'Belum diunggah'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDocPreviewModal({
+                      isOpen: true,
+                      title: 'Preview Dokumen Surat Pernyataan Self-Declare / Halal Toko',
+                      docType: 'Surat Pernyataan Self-Declare Halal & Higienitas BPOM',
+                      sampleImage: 'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=600&auto=format&fit=crop&q=80',
+                      currentImage: 'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=600&auto=format&fit=crop&q=80',
+                      hintText: 'Periksa kejelasan berkas Surat Pernyataan Self-Declare Kebersihan & Halal.',
+                      checklist: ['Pernyataan Mandiri Kualitas Pangan', 'Nama Outlet & Tanda Tangan Pemilik'],
+                      mode: 'USER_PREVIEW',
+                    })
+                  }
+                  className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center gap-1 shrink-0"
+                >
+                  <span>🔍 Preview Dokumen Self-Declare</span>
+                </button>
+                <label className="px-3.5 py-2 bg-[#1B3A5C] text-white font-bold text-xs rounded-xl cursor-pointer hover:bg-[#2C5A8F] transition-colors shrink-0 text-center">
+                  Upload Berkas (PDF/JPG)
+                  <input
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setUploadedHalalDoc(e.target.files[0].name);
+                        setToastState({
+                          isOpen: true,
+                          message: `File ${e.target.files[0].name} berhasil diunggah!`,
+                          type: 'success',
+                        });
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-xs space-y-1">

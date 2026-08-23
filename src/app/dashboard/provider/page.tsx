@@ -12,15 +12,15 @@ export default function ProviderOverviewPage() {
   const [totalRescuedKg, setTotalRescuedKg] = useState<number>(42.5);
 
   useEffect(() => {
-    // Dynamic real-time calculation from local cache & database APIs (Poin 1, 2, 3)
+    // Dynamic real-time calculation from local cache & database APIs (Poin 1: Realtime claim sync)
     let localItems: any[] = [];
     try {
       localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
     } catch (_) {}
 
-    let localCompleted: any[] = [];
+    let localClaims: any[] = [];
     try {
-      localCompleted = JSON.parse(localStorage.getItem('replate_completed_claims') || '[]');
+      localClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
     } catch (_) {}
 
     fetch('/api/surplus?status=')
@@ -56,9 +56,11 @@ export default function ProviderOverviewPage() {
         }
       });
 
-    // Sync Completed Claims count with Tab Selesai di Klaim & Penyelamatan (Poin 1 & 2)
-    const baseCompleted = 1;
-    setCompletedClaimsCount(baseCompleted + localCompleted.length);
+    // Sync Completed Claims count with Tab Selesai di Modul Klaim & Penyelamatan
+    const completedFromClaims = localClaims.filter(
+      (c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED'
+    ).length;
+    setCompletedClaimsCount(2 + completedFromClaims);
   }, [session]);
 
   return (
