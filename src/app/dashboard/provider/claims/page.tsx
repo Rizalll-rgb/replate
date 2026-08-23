@@ -146,7 +146,7 @@ export default function ProviderClaimsPage() {
           const pending = savedClaims
             .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP')
             .map((c: any) => ({
-              code: c.claimCode || c.id,
+              code: c.claimCode || c.code || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               recipientType: c.shelterType || 'Penerima Manfaat',
@@ -163,7 +163,7 @@ export default function ProviderClaimsPage() {
           const inTransit = savedClaims
             .filter((c: any) => c.status === 'IN_TRANSIT' || c.status === 'PROVIDER_DELIVERING')
             .map((c: any) => ({
-              code: c.claimCode || c.id,
+              code: c.claimCode || c.code || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               recipientType: c.shelterType || 'Penerima Manfaat',
@@ -180,7 +180,7 @@ export default function ProviderClaimsPage() {
           const completed = savedClaims
             .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
             .map((c: any) => ({
-              code: c.claimCode || c.id,
+              code: c.claimCode || c.code || c.id,
               foodName: c.foodName,
               userName: c.shelterName || c.userName || 'Penerima Bantuan',
               recipientType: c.shelterType || 'Penerima Manfaat',
