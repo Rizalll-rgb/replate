@@ -266,17 +266,6 @@ export default function DriverManifestNoLoginPage() {
             </div>
           )}
         </div>
-
-        {/* Footer Link */}
-        <div className="text-center pt-2 pb-6">
-          <button
-            type="button"
-            onClick={() => router.push(`/track/${claimData.code}`)}
-            className="text-xs text-slate-600 hover:text-[#1B3A5C] font-extrabold transition-all underline"
-          >
-            Lihat Halaman Transparansi Resi Public (/track/{claimData.code})
-          </button>
-        </div>
       </div>
 
       <Toast

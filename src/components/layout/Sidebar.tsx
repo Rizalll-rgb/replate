@@ -355,20 +355,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
             })}
           </nav>
         </div>
-
-        {/* Public Track Quick Link */}
-        <div className="p-3.5 bg-[#142C47] rounded-xl border border-[#2C5A8F]/50 text-xs mt-4 shrink-0">
-          <p className="font-extrabold text-[#D4A843]">Lacak Food Rescue ID</p>
-          <p className="text-slate-300 text-[11px] mt-0.5">Cek status transparansi publik</p>
-          <Link
-            href="/track/FB-SBY-DEMO"
-            onClick={() => setIsOpenMobile(false)}
-            className="inline-flex items-center gap-1 mt-2 font-bold text-white hover:underline text-[11px]"
-          >
-            <span>Pelacak Status</span>
-            <span>➔</span>
-          </Link>
-        </div>
       </aside>
     </>
   );

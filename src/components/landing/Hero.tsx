@@ -38,9 +38,9 @@ export const Hero: React.FC = () => {
                   Mulai Selamatkan Makanan ➔
                 </Button>
               </Link>
-              <Link href="/track/FB-SBY-DEMO">
+              <Link href="/register">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-base text-white border-2 border-white/40 hover:bg-white/10 font-bold">
-                  Lacak Food Rescue ID
+                  Daftar Kemitraan Toko ➔
                 </Button>
               </Link>
             </div>

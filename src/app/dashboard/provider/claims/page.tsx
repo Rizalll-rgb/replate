@@ -741,7 +741,7 @@ export default function ProviderClaimsPage() {
                   }}
                   className="px-4 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
                 >
-                  <span>🌐 Transparansi Publik (/track) ➔</span>
+                  <span>📋 Audit Log Resi Transaksi ➔</span>
                 </button>
 
                 <Button variant="outline" size="sm" onClick={() => setDetailModal({ isOpen: false, claim: null })}>
