@@ -172,10 +172,60 @@ export default function ProviderSettingsPage() {
     } catch (_) {}
   }, []);
 
-  // Preferred Rescue Partner Drop State (Kemitraan Langganan Rutin Panti)
+  // Global Outlet Delivery Methods State (Poin 2)
+  const [globalSelfPickup, setGlobalSelfPickup] = useState<boolean>(true);
+  const [globalRescueCourier, setGlobalRescueCourier] = useState<boolean>(true);
+  const [globalDirectFleet, setGlobalDirectFleet] = useState<boolean>(true);
+
+  // Preferred Rescue Partner Drop State (Poin 5: CRUD Langganan Panti)
   const [preferredPartnerEnabled, setPreferredPartnerEnabled] = useState(true);
-  const [preferredPartnerName, setPreferredPartnerName] = useState('Panti Asuhan Kasih Ibu (Yayasan)');
-  const [preferredPartnerFrequency, setPreferredPartnerFrequency] = useState('Jumat Barokah & Setiap Hari');
+  const [preferredPartnersList, setPreferredPartnersList] = useState<
+    { id: string; pantiName: string; frequency: string; location: string }[]
+  >([
+    {
+      id: 'pr-1',
+      pantiName: 'Panti Asuhan Kasih Ibu (Yayasan)',
+      frequency: 'Jumat Barokah & Setiap Malam',
+      location: 'Surabaya Timur',
+    },
+    {
+      id: 'pr-2',
+      pantiName: 'Panti Werdha Lansia Sejahtera',
+      frequency: 'Setiap Hari Jumat Saja',
+      location: 'Surabaya Selatan',
+    },
+  ]);
+
+  const [addPartnerModal, setAddPartnerModal] = useState({
+    isOpen: false,
+    pantiName: 'Rumah Singgah Anak Jalanan (Shelter)',
+    frequency: 'Jumat Barokah & Setiap Malam',
+  });
+
+  const handleAddPreferredPartner = () => {
+    const newItem = {
+      id: `pr-${Date.now()}`,
+      pantiName: addPartnerModal.pantiName,
+      frequency: addPartnerModal.frequency,
+      location: 'Kota Surabaya',
+    };
+    setPreferredPartnersList((prev) => [...prev, newItem]);
+    setAddPartnerModal({ ...addPartnerModal, isOpen: false });
+    setToastState({
+      isOpen: true,
+      message: `🤝 Panti Asuhan "${newItem.pantiName}" Berhasil Ditambahkan ke Daftar Langganan Rutin!`,
+      type: 'success',
+    });
+  };
+
+  const handleDeletePreferredPartner = (id: string, name: string) => {
+    setPreferredPartnersList((prev) => prev.filter((item) => item.id !== id));
+    setToastState({
+      isOpen: true,
+      message: `🗑️ Langganan Rutin "${name}" Berhasil Dihapus dari Daftar Prioritas!`,
+      type: 'success',
+    });
+  };
 
   // Food Waste Disposal & Policy State (Poin 2)
   const [gracePeriodMins, setGracePeriodMins] = useState('30 Menit');
@@ -462,24 +512,127 @@ export default function ProviderSettingsPage() {
                 <span className="font-extrabold text-[#1B3A5C] block">Dokumen Legalitas NIB / Izin Usaha:</span>
                 <span className="text-slate-500 font-medium">{uploadedNibDoc || 'Belum diunggah'}</span>
               </div>
-              <label className="px-3.5 py-2 bg-[#1B3A5C] text-white font-bold text-xs rounded-xl cursor-pointer hover:bg-[#2C5A8F] transition-colors shrink-0 text-center">
-                Upload Berkas NIB (PDF/JPG)
-                <input
-                  type="file"
-                  accept="application/pdf,image/jpeg,image/png"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      setUploadedNibDoc(e.target.files[0].name);
-                      setToastState({
-                        isOpen: true,
-                        message: `File ${e.target.files[0].name} berhasil diunggah untuk verifikasi Admin!`,
-                        type: 'success',
-                      });
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDocPreviewModal({
+                      isOpen: true,
+                      title: 'Preview Dokumen Legalitas NIB / Izin Usaha Toko',
+                      docType: 'NIB / Izin Usaha Perdagangan',
+                      sampleImage: 'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=600&auto=format&fit=crop&q=80',
+                      currentImage: 'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=600&auto=format&fit=crop&q=80',
+                      hintText: 'Periksa kejelasan dokumen NIB toko terverifikasi.',
+                      checklist: ['Nomor Induk Berusaha (NIB) terdaftar', 'Nama Usaha Sesuai Outlet'],
+                      mode: 'USER_PREVIEW',
+                    })
+                  }
+                  className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center gap-1 shrink-0"
+                >
+                  <span>🔍 Preview Dokumen NIB</span>
+                </button>
+                <label className="px-3.5 py-2 bg-[#1B3A5C] text-white font-bold text-xs rounded-xl cursor-pointer hover:bg-[#2C5A8F] transition-colors shrink-0 text-center">
+                  Upload Berkas NIB
+                  <input
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setUploadedNibDoc(e.target.files[0].name);
+                        setToastState({
+                          isOpen: true,
+                          message: `File ${e.target.files[0].name} berhasil diunggah untuk verifikasi Admin!`,
+                          type: 'success',
+                        });
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Section: Pengaturan Metode Pengiriman Global Outlet Toko (Poin 2: Global Setup) */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
+                <span>🚚 Pengaturan Metode Pengiriman Global Outlet Toko</span>
+              </h3>
+              <Badge variant="gold">GLOBAL SETUP (TANPA BOLAK-BALIK)</Badge>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs">
+              <p className="text-slate-600 font-medium leading-relaxed">
+                Tentukan metode pengiriman yang diizinkan oleh outlet Anda secara terpusat. Pengaturan ini berlaku otomatis untuk <strong>semua produk makanan surplus</strong> yang Anda upload tanpa perlu mencentang ulang tiap produk.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-all ${
+                  globalSelfPickup ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-100 border-slate-200 opacity-70'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={globalSelfPickup}
+                    onChange={(e) => {
+                      setGlobalSelfPickup(e.target.checked);
+                      try {
+                        localStorage.setItem('replate_provider_global_self_pickup', String(e.target.checked));
+                      } catch (_) {}
+                    }}
+                    className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
+                  />
+                  <div>
+                    <span className="font-extrabold text-slate-800 block">🏬 Ambil Mandiri (Self Pickup)</span>
+                    <span className="text-[10px] text-slate-500 font-medium block">Penerima mengambil di outlet toko.</span>
+                  </div>
+                </label>
+
+                <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-all ${
+                  globalRescueCourier ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-100 border-slate-200 opacity-70'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={globalRescueCourier}
+                    onChange={(e) => {
+                      setGlobalRescueCourier(e.target.checked);
+                      try {
+                        localStorage.setItem('replate_provider_global_rescue_courier', String(e.target.checked));
+                      } catch (_) {}
+                    }}
+                    className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
+                  />
+                  <div>
+                    <span className="font-extrabold text-slate-800 block">🛵 Kurir Relawan Replate</span>
+                    <span className="text-[10px] text-slate-500 font-medium block">Diantar Kurir Komunitas.</span>
+                  </div>
+                </label>
+
+                <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-all ${
+                  globalDirectFleet ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-100 border-slate-200 opacity-70'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={globalDirectFleet}
+                    onChange={(e) => {
+                      setGlobalDirectFleet(e.target.checked);
+                      try {
+                        localStorage.setItem('replate_provider_global_direct_fleet', String(e.target.checked));
+                      } catch (_) {}
+                    }}
+                    className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
+                  />
+                  <div>
+                    <span className="font-extrabold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                      <span>🚚 Armada Toko Direct</span>
+                      <span className="text-[9px] bg-emerald-500 text-slate-950 px-1 py-0.5 rounded font-black">✓ TERVERIFIKASI</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-medium block">Diantar driver armada toko.</span>
+                  </div>
+                </label>
+              </div>
             </div>
           </CardBody>
         </Card>
@@ -1484,24 +1637,31 @@ export default function ProviderSettingsPage() {
           </CardBody>
         </Card>
 
-        {/* Section Preferred Rescue Partner Drop (Kemitraan Langganan Rutin Panti) */}
+        {/* Section Preferred Rescue Partner Drop (Poin 5: Full CRUD Langganan Panti) */}
         <Card className="border-slate-200 shadow-xs">
           <CardBody className="p-6 space-y-4">
             <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
               <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
                 <span>🤝 Kemitraan Langganan Rutin Prioritas Panti Asuhan (Preferred Partner Drop)</span>
               </h3>
-              <Badge variant="gold">PREFERRED BENEFICIARY</Badge>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-extrabold text-xs shadow-xs"
+                onClick={() => setAddPartnerModal({ ...addPartnerModal, isOpen: true })}
+              >
+                + Tambah Mitra Panti Langganan Baru ➔
+              </Button>
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
                 <div className="space-y-0.5">
                   <span className="font-extrabold text-xs text-[#1B3A5C] block">
                     Alokasikan Otomatis Makanan Surplus Ke Panti Asuhan Langganan Utama:
                   </span>
                   <p className="text-[11px] text-slate-500 font-medium">
-                    Makanan donasi dari toko Anda akan diprioritaskan terlebih dahulu ke panti pilihan sebelum dilempar ke pool umum.
+                    Makanan donasi dari toko Anda akan diprioritaskan secara khusus ke daftar panti di bawah sebelum dilempar ke pool umum.
                   </p>
                 </div>
 
@@ -1518,42 +1678,35 @@ export default function ProviderSettingsPage() {
                 </label>
               </div>
 
-              {preferredPartnerEnabled && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-semibold text-slate-800">Pilih Lembaga Panti Asuhan / Shelter Tujuan Utama:</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-                      value={preferredPartnerName}
-                      onChange={(e) => setPreferredPartnerName(e.target.value)}
-                    >
-                      <option value="Panti Asuhan Kasih Ibu (Yayasan)">Panti Asuhan Kasih Ibu (Yayasan) - Surabaya Timur</option>
-                      <option value="Panti Werdha Lansia Sejahtera">Panti Werdha Lansia Sejahtera - Surabaya Selatan</option>
-                      <option value="Rumah Singgah Anak Jalanan">Rumah Singgah Anak Jalanan - Surabaya Pusat</option>
-                      <option value="Komunitas Dapur Umum Sosmas Ketintang">Komunitas Dapur Umum Sosmas Ketintang - Surabaya Selatan</option>
-                    </select>
-                  </div>
+              {/* List of Active Subscriptions */}
+              <div className="space-y-2 pt-1 text-xs">
+                {preferredPartnersList.map((partner) => (
+                  <div
+                    key={partner.id}
+                    className="p-3 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="font-extrabold text-[#1B3A5C] block text-xs">{partner.pantiName}</span>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Jadwal Alokasi: <strong className="text-slate-800">{partner.frequency}</strong> • Wilayah: {partner.location}
+                      </p>
+                    </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-semibold text-slate-800">Frekuensi Penyaluran Rutin:</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-                      value={preferredPartnerFrequency}
-                      onChange={(e) => setPreferredPartnerFrequency(e.target.value)}
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePreferredPartner(partner.id, partner.pantiName)}
+                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs rounded-lg transition-all shrink-0 border border-red-200 flex items-center gap-1"
                     >
-                      <option value="Jumat Barokah & Setiap Hari">Jumat Barokah & Setiap Hari (Setiap Malam)</option>
-                      <option value="Setiap Hari Jumat Saja">Setiap Hari Jumat Saja</option>
-                      <option value="Senin - Jumat (Weekday Only)">Senin - Jumat (Weekday Only)</option>
-                      <option value="Sabtu & Minggu (Weekend Special)">Sabtu & Minggu (Weekend Special)</option>
-                    </select>
+                      <span>🗑️ Hapus Langganan</span>
+                    </button>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </CardBody>
         </Card>
 
-        {/* Section 5: Kebijakan Retur & Pengolahan Limbah Organik (Poin 2 - New Enterprise Section) */}
+        {/* Section 5: Kebijakan Toleransi Grace Period & Penanganan Limbah Organik (Poin 6: MVP Alignment) */}
         <Card className="border-slate-200 shadow-xs">
           <CardBody className="p-6 space-y-4">
             <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
@@ -1561,9 +1714,9 @@ export default function ProviderSettingsPage() {
                 <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span>5. Toleransi Grace Period & Pengolahan Kompos Organik Zero-Waste</span>
+                <span>5. Toleransi Grace Period & Penanganan Makanan Kadaluwarsa [FASE 1 MVP]</span>
               </h3>
-              <Badge variant="success">ZERO WASTE POLICY</Badge>
+              <Badge variant="warning">PENANGANAN MANDIRI MVP</Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -1582,40 +1735,36 @@ export default function ProviderSettingsPage() {
               </div>
 
               <div className="flex flex-col justify-center">
-                <label className="flex items-center justify-between p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 cursor-pointer">
-                  <div>
-                    <span className="font-extrabold text-emerald-900 block">Otomatiskan Penyaluran Komposter Organik</span>
-                    <span className="text-emerald-700 block text-[11px]">Jika tidak diambil, alihkan makanan surplus ke mitra pengolah pakan ternak / komposter TPA Benowo.</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={autoCompostRedirect}
-                    onChange={(e) => setAutoCompostRedirect(e.target.checked)}
-                    className="w-5 h-5 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer"
-                  />
-                </label>
+                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs space-y-1">
+                  <span className="font-extrabold block">ℹ️ Catatan Pengolahan Organik Fase MVP:</span>
+                  <p className="text-amber-800 leading-snug font-medium text-[11px]">
+                    Pada Fase 1 MVP, makanan berlebih yang melewati batas *Grace Period* dikelola secara mandiri oleh toko (penanganan limbah internal). Kerjasama resmi dengan mitra pengolah sampah/pakan ternak TPA Benowo akan diaktifkan pada Fase 2.
+                  </p>
+                </div>
               </div>
             </div>
           </CardBody>
         </Card>
 
-        {/* Section 6: Standar Kredensial Keamanan Pangan & BPOM */}
+        {/* Section 6: Standar Kredensial Higienitas & Halal BPOM (Poin 7: Self-Declare UMKM & BPJPH Opsional) */}
         <Card className="border-slate-200 shadow-xs">
           <CardBody className="p-6 space-y-4">
-            <div className="border-b border-slate-200 pb-3">
+            <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
               <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
                 <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>6. Standar Kredensial Higienitas & Halal BPOM</span>
+                <span>6. Standar Kredensial Higienitas & Halal BPOM (Self-Declare UMKM & BPJPH Opsional)</span>
               </h3>
+              <Badge variant="success">STANDAR HYGIENE BPOM</Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <Input
-                label="Nomor Sertifikasi Halal (BPJPH / MUI)"
+                label="Nomor Sertifikasi Halal BPJPH / MUI (Opsional / Self-Declare UMKM)"
                 value={halalCertNo}
                 onChange={(e) => setHalalCertNo(e.target.value)}
+                placeholder="Contoh: ID35110001293021023 (kosongkan jika belum)"
               />
 
               <Input
@@ -1626,9 +1775,9 @@ export default function ProviderSettingsPage() {
             </div>
 
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-xs space-y-1">
-              <span className="font-extrabold block">Status Audit SOP BPOM RI:</span>
+              <span className="font-extrabold block">✓ Status Verifikasi Higienitas Mandiri (Self-Verified BPOM):</span>
               <p className="text-emerald-800 leading-relaxed font-medium">
-                Outlet Anda telah lulus verifikasi audit 8-Checklist Higienitas Replate & berhak menerbitkan Sertifikat Penyelamat Pangan resmi untuk laporan CSR perusahaan.
+                Sesuai kesepakatan MVP, outlet Anda menyetujui 8-Checklist Kebersihan Mandiri (wadah bersih, kemasan rapat, bebas kontaminasi) untuk memastikan kelayakan konsumsi makanan surplus.
               </p>
             </div>
           </CardBody>
@@ -1958,6 +2107,71 @@ export default function ProviderSettingsPage() {
                 }}
               >
                 Verifikasi OTP Kontak Driver ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Tambah Mitra Panti Langganan Baru (Poin 5) */}
+      {addPartnerModal.isOpen && (
+        <Modal
+          isOpen={addPartnerModal.isOpen}
+          onClose={() => setAddPartnerModal({ ...addPartnerModal, isOpen: false })}
+          title="Tambah Mitra Panti Asuhan / Shelter Langganan Baru"
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 space-y-1">
+              <span className="font-extrabold block text-xs">🤝 Kemitraan Langganan Rutin Prioritas:</span>
+              <p className="text-[11px] text-amber-800 font-medium">
+                Pilih panti asuhan terdaftar yang ingin Anda prioritaskan alokasi makanan surplusnya secara otomatis.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-800 block">Pilih Nama Lembaga Panti Asuhan / Shelter:</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                value={addPartnerModal.pantiName}
+                onChange={(e) => setAddPartnerModal({ ...addPartnerModal, pantiName: e.target.value })}
+              >
+                <option value="Rumah Singgah Anak Jalanan (Shelter)">Rumah Singgah Anak Jalanan (Shelter) - Surabaya Pusat</option>
+                <option value="Komunitas Dapur Umum Sosmas Ketintang">Komunitas Dapur Umum Sosmas Ketintang - Surabaya Selatan</option>
+                <option value="Yayasan Yatim Mandiri Wonokromo">Yayasan Yatim Mandiri Wonokromo - Surabaya Selatan</option>
+                <option value="Panti Asuhan Anak Yatim Wiyung">Panti Asuhan Anak Yatim Wiyung - Surabaya Barat</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-800 block">Pilih Frekuensi Penyaluran Rutin:</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                value={addPartnerModal.frequency}
+                onChange={(e) => setAddPartnerModal({ ...addPartnerModal, frequency: e.target.value })}
+              >
+                <option value="Jumat Barokah & Setiap Malam">Jumat Barokah & Setiap Malam (Setiap Hari)</option>
+                <option value="Setiap Hari Jumat Saja">Setiap Hari Jumat Saja</option>
+                <option value="Senin - Jumat (Weekday Only)">Senin - Jumat (Weekday Only)</option>
+                <option value="Sabtu & Minggu (Weekend Special)">Sabtu & Minggu (Weekend Special)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddPartnerModal({ ...addPartnerModal, isOpen: false })}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-extrabold text-slate-950 shadow-md"
+                onClick={handleAddPreferredPartner}
+              >
+                + Simpan Langganan Panti ➔
               </Button>
             </div>
           </div>

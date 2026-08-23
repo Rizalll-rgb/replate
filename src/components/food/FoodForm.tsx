@@ -363,69 +363,36 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         )}
       </div>
 
-      {/* Logistik & Pilihan Opsi Pengiriman Disediakan Outlet (Sesuai Brainstorming Poin 3) */}
-      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-        <div className="space-y-1">
-          <label className="text-xs font-extrabold text-[#1B3A5C]">
-            Opsi Metode Pengiriman yang Didukung Outlet Makanan Ini:
-          </label>
-          <p className="text-[11px] text-slate-500 font-medium">
-            Pilih metode pengiriman yang diizinkan untuk item ini. Konsumen/Panti akan memilih salah satu opsi ini saat checkout.
-          </p>
+      {/* Logistik & Pilihan Opsi Pengiriman Outlet (Poin 2: Global Outlet Setup - Tanpa Bolak-Balik) */}
+      <div className="p-4 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2 text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200 pb-2">
+          <div>
+            <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
+              <span>🚚 Opsi Pengiriman Didukung Outlet Ini (Pengaturan Global Toko)</span>
+              <span className="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded-md font-bold">AUTOMATIC GLOBAL</span>
+            </label>
+            <p className="text-[11px] text-slate-600 font-medium">
+              Metode pengiriman mengikuti konfigurasi terpusat toko Anda di Modul Pengaturan.
+            </p>
+          </div>
+          <a
+            href="/dashboard/provider/settings"
+            className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-xl transition-all shrink-0 shadow-xs flex items-center gap-1"
+          >
+            <span>Ubah di Pengaturan Toko ⚙️</span>
+          </a>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
-            allowSelfPickup ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-50 border-slate-200 opacity-70'
-          }`}>
-            <input
-              type="checkbox"
-              checked={allowSelfPickup}
-              onChange={(e) => setAllowSelfPickup(e.target.checked)}
-              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
-            />
-            <div>
-              <span className="font-extrabold text-slate-800 block">🏬 Ambil Mandiri (Self Pickup)</span>
-              <span className="text-[10px] text-slate-500 font-medium">Penerima mengambil langsung di lokasi toko.</span>
-            </div>
-          </label>
-
-          <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
-            allowRescueCourier ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-50 border-slate-200 opacity-70'
-          }`}>
-            <input
-              type="checkbox"
-              checked={allowRescueCourier}
-              onChange={(e) => setAllowRescueCourier(e.target.checked)}
-              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
-            />
-            <div>
-              <span className="font-extrabold text-slate-800 block">🛵 Kurir Relawan Replate</span>
-              <span className="text-[10px] text-slate-500 font-medium">Diantar oleh Armada Kurir Komunitas.</span>
-            </div>
-          </label>
-
-          <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
-            allowDirectFleet ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-50 border-slate-200 opacity-70'
-          }`}>
-            <input
-              type="checkbox"
-              checked={allowDirectFleet}
-              onChange={(e) => setAllowDirectFleet(e.target.checked)}
-              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
-            />
-            <div>
-              <span className="font-extrabold text-slate-800 flex items-center gap-1.5 flex-wrap">
-                <span>🚚 Armada Toko Direct</span>
-                <span className="text-[9px] bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded font-black">
-                  ✓ TERVERIFIKASI
-                </span>
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium block">
-                Diantar oleh armada driver toko Anda (Mas Doni - Plat L 4582 ABC).
-              </span>
-            </div>
-          </label>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <span className="px-3 py-1 bg-white border border-slate-300 font-extrabold text-slate-800 rounded-lg shadow-2xs">
+            🏬 Ambil Mandiri (Self Pickup)
+          </span>
+          <span className="px-3 py-1 bg-white border border-slate-300 font-extrabold text-slate-800 rounded-lg shadow-2xs">
+            🛵 Kurir Relawan Replate
+          </span>
+          <span className="px-3 py-1 bg-emerald-100 border border-emerald-300 font-extrabold text-emerald-900 rounded-lg shadow-2xs">
+            🚚 Armada Toko Direct (Mas Doni - L 4582 ABC) ✓ TERVERIFIKASI
+          </span>
         </div>
       </div>
 
