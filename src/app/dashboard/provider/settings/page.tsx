@@ -408,21 +408,21 @@ export default function ProviderSettingsPage() {
               </div>
             </div>
 
-            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card */}
-            <div className="p-5 bg-gradient-to-r from-[#1B3A5C] to-slate-900 text-white rounded-2xl space-y-4 border border-slate-700 shadow-md">
+            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card (Comprehensive Verification & Credential Submission) */}
+            <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-slate-900 to-[#142C47] text-white rounded-2xl space-y-4 border border-slate-700 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-wider block">
-                      KAPABILITAS LOGISTIK TOKO
+                      VERIFIKASI ENTERPRISE LOGISTIK TOKO
                     </span>
-                    <Badge variant="gold">DIRECT FLEET FEATURE</Badge>
+                    <Badge variant="gold">DIRECT FLEET VERIFICATION</Badge>
                   </div>
                   <h4 className="text-sm font-extrabold text-white">
-                    Aktivasi Armada Pengiriman Toko Mandiri (Diantar Oleh Restoran)
+                    Registrasi Armada Toko Mandiri (No. Polisi, Driver, KTP, SIM & STNK)
                   </h4>
                   <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                    Aktifkan opsi ini jika toko Anda memiliki kurir/driver mandiri untuk mengantarkan makanan surplus secara langsung ke lokasi penerima bantuan/shelter.
+                    Daftarkan armada kendaraan toko (No. Plat), identitas driver (KTP & SIM A/C), serta STNK resmi agar outlet Anda memiliki lisensi pengantaran langsung ke panti/shelter.
                   </p>
                 </div>
 
@@ -454,32 +454,115 @@ export default function ProviderSettingsPage() {
                 </div>
               </div>
 
-              {/* Form Rincian Armada Toko Jika Diaktifkan */}
+              {/* Comprehensive Fleet Registration Form */}
               {providerCanDeliverDirect && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
-                  <div>
-                    <label className="text-slate-300 font-semibold block mb-1">Jumlah Armada Kendaraan:</label>
-                    <Input
-                      placeholder="Contoh: 2 Sepeda Motor / 1 Pick Up"
-                      defaultValue="2 Motor Armada Outlet"
-                      className="bg-slate-800 text-white border-slate-700 text-xs"
-                    />
+                <div className="space-y-4 pt-1 text-xs">
+                  <div className="p-3 bg-emerald-950/80 border border-emerald-500/40 rounded-xl flex items-center justify-between text-emerald-300 font-bold">
+                    <span className="flex items-center gap-2">
+                      <span>✓ LISENSI ARMADA TOKO TERVERIFIKASI AKTIF (VERIFIED BY ADMIN REPLATE)</span>
+                    </span>
+                    <span className="text-[10px] font-mono bg-emerald-900 text-white px-2 py-0.5 rounded-md">
+                      FLEET-ID #SBY-FLT-881
+                    </span>
                   </div>
-                  <div>
-                    <label className="text-slate-300 font-semibold block mb-1">Nama & HP Driver Toko:</label>
-                    <Input
-                      placeholder="Contoh: Mas Doni (0812-3456-7891)"
-                      defaultValue="Mas Doni (0812-3456-7891)"
-                      className="bg-slate-800 text-white border-slate-700 text-xs"
-                    />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-slate-300 font-bold block mb-1">1. Nama Driver Toko:</label>
+                      <Input
+                        placeholder="Contoh: Mas Doni"
+                        defaultValue="Mas Doni (Driver Toko Pak Kumis)"
+                        className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-300 font-bold block mb-1">2. No. WhatsApp Driver:</label>
+                      <Input
+                        placeholder="Contoh: 0812-3456-7891"
+                        defaultValue="0812-3456-7891"
+                        className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-300 font-bold block mb-1">3. Jenis Kendaraan:</label>
+                      <Input
+                        placeholder="Contoh: Honda Vario Box Steril / Pick Up"
+                        defaultValue="Sepeda Motor Box Cooler (Steril)"
+                        className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-300 font-bold block mb-1">4. Nomor Polisi (No. Plat):</label>
+                      <Input
+                        placeholder="Contoh: L 1234 ABC"
+                        defaultValue="L 4582 ABC"
+                        className="bg-slate-800 text-white border-slate-700 text-xs font-mono font-black text-amber-400"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-slate-300 font-semibold block mb-1">Radius Jangkauan Antar:</label>
-                    <Input
-                      placeholder="Contoh: Maksimal 10 Km"
-                      defaultValue="Maksimal 10 Km Surabaya"
-                      className="bg-slate-800 text-white border-slate-700 text-xs"
-                    />
+
+                  {/* KTP, SIM, & STNK Document Upload Cards */}
+                  <div className="space-y-2 pt-2">
+                    <span className="font-extrabold text-[#D4A843] block">5. Unggah Berkas Kredensial Legalitas Armada (KTP, SIM & STNK):</span>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Upload KTP */}
+                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
+                        <span className="font-extrabold text-white block text-[11px]">🪪 Foto KTP Driver Toko</span>
+                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                          <img
+                            src="https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
+                            alt="KTP Driver"
+                            className="w-full h-full object-cover opacity-90"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            ✓ KTP VERIFIED
+                          </span>
+                        </div>
+                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
+                          Ganti KTP
+                          <input type="file" accept="image/*" className="hidden" />
+                        </label>
+                      </div>
+
+                      {/* Upload SIM */}
+                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
+                        <span className="font-extrabold text-white block text-[11px]">💳 Foto SIM C / SIM A Driver</span>
+                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                          <img
+                            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60"
+                            alt="SIM Driver"
+                            className="w-full h-full object-cover opacity-90"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            ✓ SIM VERIFIED
+                          </span>
+                        </div>
+                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
+                          Ganti SIM
+                          <input type="file" accept="image/*" className="hidden" />
+                        </label>
+                      </div>
+
+                      {/* Upload STNK */}
+                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
+                        <span className="font-extrabold text-white block text-[11px]">📄 Foto STNK Kendaraan (No. Pol: L 4582 ABC)</span>
+                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                          <img
+                            src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60"
+                            alt="STNK Kendaraan"
+                            className="w-full h-full object-cover opacity-90"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            ✓ STNK VERIFIED
+                          </span>
+                        </div>
+                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
+                          Ganti STNK
+                          <input type="file" accept="image/*" className="hidden" />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

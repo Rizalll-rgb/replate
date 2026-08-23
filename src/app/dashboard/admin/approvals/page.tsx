@@ -9,7 +9,29 @@ import { Toast } from '@/components/ui/Toast';
 import { Input } from '@/components/ui/Input';
 
 export default function AdminApprovalsPage() {
-  const [activeTab, setActiveTab] = useState<'MITRA' | 'CONSUMER_BENEFICIARY'>('MITRA');
+  const [activeTab, setActiveTab] = useState<'MITRA' | 'CONSUMER_BENEFICIARY' | 'PROVIDER_FLEET'>('MITRA');
+
+  const defaultFleetQueue = [
+    {
+      id: 'flt-1',
+      providerName: 'Warung Bakso Pak Kumis',
+      driverName: 'Mas Doni (Driver Toko Pak Kumis)',
+      driverPhone: '0812-3456-7891',
+      vehicleType: 'Sepeda Motor Box Cooler (Steril)',
+      plateNumber: 'L 4582 ABC',
+      ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+      simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+      stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      status: 'PENDING_VERIFICATION',
+      submittedAt: 'Hari ini 13:00 WIB',
+    },
+  ];
+
+  const [fleetQueue, setFleetQueue] = useState<any[]>(defaultFleetQueue);
+  const [inspectFleetModal, setInspectFleetModal] = useState<{ isOpen: boolean; fleet: any | null }>({
+    isOpen: false,
+    fleet: null,
+  });
 
   const [pendingUsers, setPendingUsers] = useState([
     {
@@ -200,7 +222,7 @@ export default function AdminApprovalsPage() {
       </div>
 
       {/* Tabs Filter */}
-      <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold">
+      <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold flex-wrap">
         <button
           onClick={() => setActiveTab('MITRA')}
           className={`px-4 py-2.5 rounded-t-xl transition-all ${
@@ -219,7 +241,17 @@ export default function AdminApprovalsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          🤝 Verifikasi Konsumen Rentan SKTM / Donasi Rp 0 ({consumerQueue.length})
+          🤝 Verifikasi Konsumen Rentan SKTM ({consumerQueue.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('PROVIDER_FLEET')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            activeTab === 'PROVIDER_FLEET'
+              ? 'bg-[#1B3A5C] text-white font-black'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          🚚 Verifikasi Armada Toko (No. Pol, KTP, SIM & STNK) ({fleetQueue.length})
         </button>
       </div>
 
@@ -406,6 +438,164 @@ export default function AdminApprovalsPage() {
             </div>
           )}
         </div>
+      ) : (
+        /* Tab Provider Fleet Verification (No. Polisi, KTP, SIM & STNK) */
+        <div className="space-y-4">
+          <div className="bg-[#1B3A5C] text-white p-4 rounded-2xl flex items-start gap-3 text-xs border border-slate-700 shadow-md">
+            <div className="text-lg">🚚</div>
+            <div className="space-y-1">
+              <span className="font-extrabold text-[#D4A843] block">Aturan Verifikasi Armada Toko Mandiri (Direct Fleet):</span>
+              <p className="text-slate-200 leading-relaxed font-medium">
+                Inspeksi kesesuaian <strong>Nomor Polisi (No. Plat) Kendaraan</strong>, <strong>Foto KTP Driver</strong>, <strong>Foto SIM Driver (SIM A/C)</strong>, dan <strong>Foto STNK Resm</strong>i. Setelah disetujui, outlet berhak mengantarkan surplus secara mandiri ke panti/shelter.
+              </p>
+            </div>
+          </div>
+
+          {fleetQueue.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-2">
+              <h3 className="text-base font-extrabold text-[#1B3A5C]">Semua Permohonan Armada Toko Telah Diproses</h3>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <Table className="min-w-[850px]">
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Outlet Toko & Driver</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Jenis Kendaraan & No. Polisi (Plat)</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Status Kredensial</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C] text-right">Verifikasi & Inspeksi Berkas</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fleetQueue.map((flt) => (
+                    <TableRow key={flt.id} className="hover:bg-slate-50/80 transition-colors">
+                      <TableCell className="font-bold text-slate-800">
+                        <div className="space-y-0.5">
+                          <span className="font-extrabold text-[#1B3A5C] block">{flt.providerName}</span>
+                          <span className="text-[11px] text-slate-600 block font-semibold">{flt.driverName}</span>
+                          <span className="text-[10px] text-slate-400 block font-mono">{flt.driverPhone}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-700 font-medium">
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-slate-800 block">{flt.vehicleType}</span>
+                          <span className="font-mono font-black text-[#1B3A5C] text-xs bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md inline-block">
+                            🚘 {flt.plateNumber}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="warning" size="sm">
+                          KTP, SIM & STNK READY
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs font-bold border-slate-300"
+                            onClick={() => setInspectFleetModal({ isOpen: true, fleet: flt })}
+                          >
+                            👁️ Inspeksi KTP, SIM & STNK
+                          </Button>
+                          <Button
+                            variant="gold"
+                            size="sm"
+                            className="text-xs font-black text-slate-950 shadow-xs"
+                            onClick={() => {
+                              setFleetQueue(fleetQueue.filter((item) => item.id !== flt.id));
+                              setToastState({
+                                isOpen: true,
+                                message: `✅ Armada Toko (${flt.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
+                                type: 'success',
+                              });
+                            }}
+                          >
+                            Setujui Armada Toko ✔️
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal Inspect Provider Fleet Credentials (KTP, SIM, STNK & No. Pol) */}
+      {inspectFleetModal.isOpen && inspectFleetModal.fleet && (
+        <Modal
+          isOpen={inspectFleetModal.isOpen}
+          onClose={() => setInspectFleetModal({ isOpen: false, fleet: null })}
+          title={`Inspeksi Berkas Armada Toko: ${inspectFleetModal.fleet.providerName}`}
+          size="lg"
+        >
+          <div className="space-y-5 text-xs text-slate-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div>
+                <span className="text-slate-500 font-semibold block">Outlet Provider:</span>
+                <span className="font-extrabold text-[#1B3A5C] text-sm">{inspectFleetModal.fleet.providerName}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Nama & Kontak Driver:</span>
+                <span className="font-bold text-slate-900">{inspectFleetModal.fleet.driverName} ({inspectFleetModal.fleet.driverPhone})</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Jenis Armada Kendaraan:</span>
+                <span className="font-bold text-slate-800">{inspectFleetModal.fleet.vehicleType}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Nomor Polisi (No. Plat STNK):</span>
+                <span className="font-mono font-black text-amber-900 text-sm bg-amber-100 px-2 py-0.5 rounded-md inline-block">
+                  {inspectFleetModal.fleet.plateNumber}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="font-extrabold text-[#1B3A5C] block">Dokumentasi 3 Berkas Legalitas Driver & Kendaraan:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                  <span className="font-extrabold text-slate-800 block text-[11px]">🪪 Foto KTP Driver</span>
+                  <img src={inspectFleetModal.fleet.ktpPhoto} alt="KTP" className="w-full h-32 object-cover rounded-lg border" />
+                </div>
+                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                  <span className="font-extrabold text-slate-800 block text-[11px]">💳 Foto SIM C/A Driver</span>
+                  <img src={inspectFleetModal.fleet.simPhoto} alt="SIM" className="w-full h-32 object-cover rounded-lg border" />
+                </div>
+                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                  <span className="font-extrabold text-slate-800 block text-[11px]">📄 Foto STNK (No. Pol: {inspectFleetModal.fleet.plateNumber})</span>
+                  <img src={inspectFleetModal.fleet.stnkPhoto} alt="STNK" className="w-full h-32 object-cover rounded-lg border" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button variant="outline" size="sm" onClick={() => setInspectFleetModal({ isOpen: false, fleet: null })}>
+                Tutup Inspeksi
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-black text-slate-950"
+                onClick={() => {
+                  setFleetQueue(fleetQueue.filter((item) => item.id !== inspectFleetModal.fleet.id));
+                  setInspectFleetModal({ isOpen: false, fleet: null });
+                  setToastState({
+                    isOpen: true,
+                    message: `✅ Armada Toko (${inspectFleetModal.fleet.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
+                    type: 'success',
+                  });
+                }}
+              >
+                Setujui Armada Toko & Terbitkan Lisensi ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {/* Modal Inspect Consumer Proof Document */}
