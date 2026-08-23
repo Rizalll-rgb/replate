@@ -75,6 +75,22 @@ export default function ProviderClaimsPage() {
       address: 'Outlet Pak Kumis (Ambil Mandiri)',
       time: 'Hari ini 19:30 WIB',
     },
+    {
+      code: 'FB-DIR-88291',
+      foodName: 'Paket Rice Bowl Ayam Geprek (Diantar Toko)',
+      userName: 'Panti Asuhan Wonokromo (Panti A)',
+      recipientPerson: 'Pak Mahmud (Pengurus Panti A)',
+      recipientPhone: '0812-4455-6677',
+      recipientType: 'Panti Asuhan Anak',
+      quantity: '40 Porsi',
+      status: 'READY_FOR_PICKUP',
+      deliveryMethod: 'PROVIDER_DIRECT',
+      courierName: 'Driver B: Mas Agus (Plat L 1234 XYZ)',
+      courierOrg: 'Armada Driver Toko Pak Kumis',
+      courierPhone: '0813-9876-5432',
+      address: 'Jl. Wonokromo No. 45, Wonokromo, Surabaya',
+      time: 'Hari ini 19:30 WIB',
+    },
   ];
 
   const defaultInTransit = [
@@ -93,6 +109,22 @@ export default function ProviderClaimsPage() {
       courierPhone: '0815-6789-0123',
       address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
       time: 'Hari ini 21:00 WIB',
+    },
+    {
+      code: 'FB-DIR-99382',
+      foodName: 'Menu Surplus Bakso Urat & Soto Sapi',
+      userName: 'Siti Aminah (Konsumen B)',
+      recipientPerson: 'Siti Aminah (Pembeli Rescue Sale)',
+      recipientPhone: '0813-8877-6655',
+      recipientType: 'Konsumen / Rescue Sale',
+      quantity: '5 Porsi',
+      status: 'IN_TRANSIT',
+      deliveryMethod: 'PROVIDER_DIRECT',
+      courierName: 'Driver A: Mas Doni (Plat L 4582 ABC)',
+      courierOrg: 'Armada Driver Toko Pak Kumis',
+      courierPhone: '0812-3456-7890',
+      address: 'Jl. Rungkut Asri No. 12, Rungkut, Surabaya',
+      time: 'Dalam Pengiriman Armada Toko (OTW)',
     },
   ];
 
