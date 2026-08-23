@@ -41,25 +41,22 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
 
   if (isInstalled) {
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold text-xs rounded-xl ${className}`}>
-        <span>✓ PWA App Terinstall</span>
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-950 border border-emerald-300 font-extrabold text-xs rounded-xl ${className}`}>
+        <span>✓ PWA Terinstall</span>
       </span>
     );
   }
 
   return (
     <>
-      <Button
-        variant="gold"
-        size="sm"
+      <button
+        type="button"
         onClick={handleInstallClick}
-        className={`font-black text-xs shadow-md flex items-center gap-1.5 ${className}`}
+        className={`px-3.5 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap border border-amber-400/40 ${className}`}
       >
-        <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-4H8l4-4 4 4h-3v4z" />
-        </svg>
-        <span>📱 Install App PWA</span>
-      </Button>
+        <span className="text-sm leading-none">📱</span>
+        <span>Install App (PWA)</span>
+      </button>
 
       {showModal && (
         <Modal
@@ -69,8 +66,8 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
           size="md"
         >
           <div className="space-y-4 text-xs text-slate-700">
-            <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1">
-              <span className="font-extrabold text-amber-400 text-xs block">
+            <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1 shadow-md">
+              <span className="font-black text-amber-400 text-xs block">
                 Progressive Web App (PWA) Replate
               </span>
               <p className="text-xs text-slate-200 leading-relaxed font-medium">
@@ -79,22 +76,22 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
             </div>
 
             <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-              <h4 className="font-extrabold text-[#1B3A5C] text-sm">Petunjuk Pemasangan Cepat:</h4>
+              <h4 className="font-black text-[#1B3A5C] text-sm">Petunjuk Pemasangan Cepat:</h4>
 
-              <div className="space-y-2 text-xs">
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#D4A843] text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#D4A843] text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px]">1</span>
                   <div>
-                    <strong className="text-slate-900 font-bold block">Android / Chrome Desktop:</strong>
-                    <p className="text-slate-600">Klik ikon 3 titik di kanan atas browser, lalu pilih <strong>"Install Replate App"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</p>
+                    <strong className="text-slate-900 font-extrabold block">Android / Chrome Desktop:</strong>
+                    <p className="text-slate-600 font-medium">Klik ikon 3 titik di kanan atas browser, lalu pilih <strong>"Install Replate App"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#1B3A5C] text-white font-black flex items-center justify-center shrink-0">2</span>
+                <div className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1B3A5C] text-white font-black flex items-center justify-center shrink-0 text-[11px]">2</span>
                   <div>
-                    <strong className="text-slate-900 font-bold block">iPhone / iOS (Safari):</strong>
-                    <p className="text-slate-600">Klik tombol <strong>Share (Bagikan)</strong> di bagian bawah Safari, lalu gulir ke bawah dan pilih <strong>"Add to Home Screen (Tambahkan ke Layar Utama)"</strong>.</p>
+                    <strong className="text-slate-900 font-extrabold block">iPhone / iOS (Safari):</strong>
+                    <p className="text-slate-600 font-medium">Klik tombol <strong>Share (Bagikan)</strong> di bagian bawah Safari, lalu gulir ke bawah dan pilih <strong>"Add to Home Screen (Tambahkan ke Layar Utama)"</strong>.</p>
                   </div>
                 </div>
               </div>
