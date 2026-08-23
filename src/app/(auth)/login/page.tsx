@@ -123,18 +123,18 @@ export default function LoginPage() {
 
         {error && <div className={`${styles.formAlert} ${styles.alertError}`}>{error}</div>}
 
-        {/* 1-Click Quick Demo Login Presets for Competition Judges */}
-        <div className="mb-5 bg-[#0F1923] p-3.5 rounded-2xl border border-[#2C5A8F] space-y-2 text-left">
+        {/* Unified 1-Click Quick Demo Login Presets & Role Selector */}
+        <div className="mb-5 bg-[#0F1923] p-4 rounded-2xl border border-[#2C5A8F] space-y-3 text-left shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
-              ⚡ 1-Click Quick Demo Login (Juri Penilai)
+            <span className="text-xs font-black text-[#D4A843] uppercase tracking-wider block">
+              ⚡ Pilih Peran & Demo Login 1-Klik (Juri Penilai)
             </span>
-            <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-500/30">
-              READY
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+              5 ROLES READY
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
             {(Object.keys(roleConfigs) as RoleType[]).map((rKey) => {
               const cfg = roleConfigs[rKey];
               const isSelected = activeRoleTab === rKey;
@@ -143,43 +143,20 @@ export default function LoginPage() {
                   key={rKey}
                   type="button"
                   onClick={() => handleQuickDemoClick(rKey)}
-                  className={`p-2 rounded-xl text-left transition-all border font-bold text-[11px] flex items-center gap-1.5 ${
+                  className={`p-2.5 rounded-xl text-left transition-all border font-bold text-xs flex items-center gap-2 cursor-pointer ${
                     isSelected
-                      ? 'bg-[#1B3A5C] text-white border-[#D4A843] shadow-md ring-2 ring-[#D4A843]/30'
+                      ? 'bg-[#1B3A5C] text-white border-[#D4A843] shadow-md ring-2 ring-[#D4A843]/40'
                       : 'bg-[#142C47]/60 hover:bg-[#1B3A5C] text-slate-300 border-slate-700'
                   }`}
                 >
-                  <span className="text-base">{cfg.icon}</span>
+                  <span className="text-base shrink-0">{cfg.icon}</span>
                   <span className="truncate">{cfg.label}</span>
                 </button>
               );
             })}
           </div>
-        </div>
 
-        {/* Role Tab Selector Header */}
-        <div className="mb-4 space-y-1">
-          <div className="flex items-center justify-between text-xs text-slate-300 font-semibold px-1">
-            <span>Pilih Peran Akun Anda:</span>
-            <span className="font-bold text-[#D4A843]">{roleConfigs[activeRoleTab].label}</span>
-          </div>
-          <div className="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 gap-1">
-            {(Object.keys(roleConfigs) as RoleType[]).map((rKey) => (
-              <button
-                key={rKey}
-                type="button"
-                onClick={() => handleRoleTabChange(rKey)}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition-all text-center ${
-                  activeRoleTab === rKey
-                    ? 'bg-[#D4A843] text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                {roleConfigs[rKey].icon}
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-slate-400 italic text-left pt-0.5">
+          <p className="text-[11px] text-amber-300/90 font-medium italic pt-1 border-t border-slate-800">
             💡 {roleConfigs[activeRoleTab].hint}
           </p>
         </div>
