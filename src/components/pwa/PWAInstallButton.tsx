@@ -39,6 +39,20 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
     }
   };
 
+  const handleDirectInstallTrigger = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+        setShowModal(false);
+      }
+      setDeferredPrompt(null);
+    } else {
+      alert('📱 PWA Replate Siap Dipasang! Jika dialog tidak muncul otomatis, ikuti 2 langkah mudah di bawah ini.');
+    }
+  };
+
   if (isInstalled) {
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-950 border border-emerald-300 font-extrabold text-xs rounded-xl ${className}`}>
@@ -62,10 +76,11 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
         <Modal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          title="📱 Panduan Install Aplikasi Replate (PWA)"
+          title="📱 Pemasangan Aplikasi Replate (PWA)"
           size="md"
         >
           <div className="space-y-4 text-xs text-slate-700">
+            {/* Header Banner */}
             <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1 shadow-md">
               <span className="font-black text-amber-400 text-xs block">
                 Progressive Web App (PWA) Replate
@@ -75,8 +90,29 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
               </p>
             </div>
 
+            {/* Direct Action Download Button Box */}
+            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-300 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-xs">
+              <div className="space-y-0.5">
+                <strong className="font-extrabold text-emerald-950 text-xs block">
+                  ⚡ Tombol Instan Pasang Aplikasi:
+                </strong>
+                <p className="text-[11px] text-emerald-800 font-medium">
+                  Klik untuk langsung memasang aplikasi Replate ke layar HP/Desktop Anda.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleDirectInstallTrigger}
+                className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+              >
+                <span>📲 Download & Install Sekarang ➔</span>
+              </button>
+            </div>
+
+            {/* Installation Steps */}
             <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-              <h4 className="font-black text-[#1B3A5C] text-sm">Petunjuk Pemasangan Cepat:</h4>
+              <h4 className="font-black text-[#1B3A5C] text-sm">Petunjuk Manual Alternatif:</h4>
 
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-start gap-2.5">
@@ -99,7 +135,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
 
             <div className="flex justify-end pt-2 border-t border-slate-200">
               <Button variant="gold" size="sm" className="font-extrabold" onClick={() => setShowModal(false)}>
-                Saya Mengerti ➔
+                Tutup Modal ➔
               </Button>
             </div>
           </div>
