@@ -9,22 +9,22 @@ import { Avatar } from '@/components/ui/Avatar';
 export default function AboutPage() {
   const teamMembers = [
     {
-      name: 'Ketua Tim / Full-Stack Engineer',
-      role: 'Lead Developer & Architect',
-      bio: 'Mengembangkan arsitektur Next.js 14, integrasi Prisma ORM, dan pengoptimalan algoritma Smart Matching.',
-      image: null,
+      name: 'Rizal Akbar Kurniawan',
+      nim: 'NIM: 23081494188 (UNESA)',
+      role: 'Lead Full Stack Developer & Proposal Admin',
+      bio: 'Mengembangkan arsitektur Next.js 14 App Router, integrasi database, algoritma Smart Matching 2.0, serta pengerjaan proposal teknis.',
     },
     {
-      name: 'UI/UX & Product Designer',
-      role: 'Design System & Frontend Lead',
-      bio: 'Merancang sistem antarmuka berbasis Plus Jakarta Sans, aksesibilitas kontras tinggi, dan alur transaksi intuitif.',
-      image: null,
+      name: 'Fabio Daffa Airlangga',
+      nim: 'NIM Menyusul (PENS)',
+      role: 'UI/UX Designer & Full Stack Developer',
+      bio: 'Merancang sistem antarmuka kontras tinggi, alur transaksi intuitif, serta mendukung pengerjaan pengembangan frontend & backend.',
     },
     {
-      name: 'Backend & Data Analyst',
-      role: 'Impact Analytics & Security',
-      bio: 'Mengelola kalkulasi emisi CO2e, verifikasi SOP keamanan pangan BPOM, serta keamanan NextAuth & RBAC.',
-      image: null,
+      name: 'Tina Nur Fadillah',
+      nim: 'NIM Menyusul (UNESA)',
+      role: 'Penulis Proposal & Konseptor Platform',
+      bio: 'Merumuskan konsep kebaruan inovasi SDGs, riset urgensi dampak emisi food waste, serta penyusunan dokumen proposal kompetisi.',
     },
   ];
 
@@ -67,27 +67,30 @@ export default function AboutPage() {
         <section className="bg-white py-16 border-t border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 space-y-12">
             <div className="text-center space-y-2">
-              <span className="text-xs font-extrabold text-[#D4A843] uppercase tracking-widest">
-                Infinitera 2.0 Team
+              <span className="text-xs font-black text-[#D4A843] bg-amber-50 border border-amber-200 px-3 py-1 rounded-md uppercase tracking-widest">
+                TIM THREEPLATE — INFINITERA 2.0
               </span>
               <h2 className="text-3xl font-extrabold text-[#1B3A5C]">Tim Dibalik Replate</h2>
-              <p className="text-xs text-slate-500 max-w-xl mx-auto">
-                Para talenta muda di balik pengembangan arsitektur, desain UI/UX, dan algoritma platform Replate.
+              <p className="text-xs text-slate-500 max-w-xl mx-auto font-medium">
+                Kolaborasi talenta muda UNESA & PENS dalam pengembangan arsitektur web, UI/UX kontras tinggi, serta konseptor dampak lingkungan platform Replate.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {teamMembers.map((member, idx) => (
-                <Card key={idx} className="border-slate-200 p-6 text-center space-y-4 hover:shadow-md transition-all">
+                <Card key={idx} className="border-slate-200 p-6 text-center space-y-4 hover:shadow-md transition-all bg-white">
                   <CardBody className="space-y-3">
                     <Avatar name={member.name} size="xl" className="mx-auto border-2 border-[#1B3A5C]" />
                     <div>
-                      <h4 className="text-sm font-extrabold text-[#1B3A5C]">{member.name}</h4>
+                      <h4 className="text-base font-extrabold text-[#1B3A5C]">{member.name}</h4>
                       <p className="text-[11px] font-bold text-[#D4A843] uppercase tracking-wider mt-0.5">
                         {member.role}
                       </p>
+                      <span className="inline-block text-[10px] bg-slate-100 text-slate-700 font-mono font-bold px-2 py-0.5 rounded mt-1.5 border border-slate-200">
+                        {member.nim}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">{member.bio}</p>
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium">{member.bio}</p>
                   </CardBody>
                 </Card>
               ))}
