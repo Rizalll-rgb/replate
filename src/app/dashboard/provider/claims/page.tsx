@@ -27,6 +27,8 @@ export default function ProviderClaimsPage() {
       code: 'FB-DON-88192',
       foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
       userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
+      recipientPerson: 'Ibu Ratna (Ketua Pengurus Panti)',
+      recipientPhone: '0812-3344-5566',
       recipientType: 'Panti Asuhan Anak',
       quantity: '45 Porsi',
       status: 'AWAITING_RESCUE_PICKUP',
@@ -41,6 +43,8 @@ export default function ProviderClaimsPage() {
       code: 'FB-CLAIM-101',
       foodName: 'Bakso Sapi Urat Super',
       userName: 'Budi Santoso (Konsumen Individu)',
+      recipientPerson: 'Pak Budi Santoso (Penerima Mandiri)',
+      recipientPhone: '0813-4567-8901',
       recipientType: 'Konsumen / Individu',
       quantity: '2 Porsi',
       status: 'READY_FOR_PICKUP',
@@ -57,6 +61,8 @@ export default function ProviderClaimsPage() {
       code: 'FB-CLAIM-103',
       foodName: 'Nasi Goreng Buffet + Ayam Bakar',
       userName: 'Rumah Singgah Anak Jalanan (Shelter)',
+      recipientPerson: 'Pak Heru (Koordinator Dapur Rumah Singgah)',
+      recipientPhone: '0815-9988-7766',
       recipientType: 'Shelter & Rumah Singgah',
       quantity: '25 Porsi',
       status: 'IN_TRANSIT',
@@ -74,6 +80,8 @@ export default function ProviderClaimsPage() {
       code: 'FB-DON-77182',
       foodName: 'Paket Roti Bakery Steril & Susu UHT',
       userName: 'Panti Werdha Lansia Sejahtera',
+      recipientPerson: 'Suster Maria (PJ Konsumsi Panti Werdha)',
+      recipientPhone: '0811-2233-4455',
       recipientType: 'Panti Werdha (Lansia)',
       quantity: '30 Paket',
       status: 'COMPLETED',
@@ -89,6 +97,8 @@ export default function ProviderClaimsPage() {
       code: 'FB-DON-66102',
       foodName: 'Nasi Paket Ayam Goreng Buffet',
       userName: 'Keluarga Ibu Ratna (Masyarakat Rentan)',
+      recipientPerson: 'Ibu Ratna (Kepala Keluarga Rentan)',
+      recipientPhone: '0812-7788-9900',
       recipientType: 'Individu / Warga Rentan',
       quantity: '10 Porsi',
       status: 'COMPLETED',
@@ -510,27 +520,31 @@ export default function ProviderClaimsPage() {
                         <span className="font-bold text-amber-400 block">{detailModal.claim.courierOrg || 'Food Bank Surabaya Logistik'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">No. Kontak WhatsApp Kurir:</span>
+                        <span className="text-slate-400 text-[10px] block">No. Kontak WA Kurir:</span>
                         <span className="font-mono font-bold text-white block">{detailModal.claim.courierPhone || '0812-9876-5432'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">Tujuan Alokasi Penerima:</span>
-                        <span className="font-bold text-white block">{detailModal.claim.userName} ({detailModal.claim.address})</span>
+                        <span className="text-slate-400 text-[10px] block">Nama Penerima Manfaat / Pengurus:</span>
+                        <span className="font-extrabold text-emerald-400 block">{detailModal.claim.recipientPerson || 'Ibu Ratna (Pengurus)'} ({detailModal.claim.recipientPhone || '0812-3344-5566'})</span>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-slate-400 text-[10px] block">Tujuan Alokasi & Alamat Penerima:</span>
+                        <span className="font-bold text-white block">{detailModal.claim.userName} • {detailModal.claim.address}</span>
                       </div>
                     </>
                   ) : detailModal.claim.deliveryMethod === 'SHELTER_PICKUP' ? (
                     <>
                       <div>
                         <span className="text-slate-400 text-[10px] block">Nama Pengambil / Perwakilan:</span>
-                        <span className="font-extrabold text-white text-sm block">{detailModal.claim.pickerName || detailModal.claim.userName}</span>
+                        <span className="font-extrabold text-white text-sm block">{detailModal.claim.recipientPerson || detailModal.claim.pickerName || detailModal.claim.userName}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 text-[10px] block">Tipe Penerima Manfaat:</span>
                         <span className="font-bold text-amber-400 block">{detailModal.claim.recipientType || 'Konsumen Mandiri / Pengurus'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">No. Kontak WA Pengambil:</span>
-                        <span className="font-mono font-bold text-white block">{detailModal.claim.pickerPhone || '0813-4567-8901'}</span>
+                        <span className="text-slate-400 text-[10px] block">No. Kontak WA Penerima:</span>
+                        <span className="font-mono font-bold text-white block">{detailModal.claim.recipientPhone || detailModal.claim.pickerPhone || '0813-4567-8901'}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 text-[10px] block">Lokasi Verifikasi Handover:</span>
@@ -548,8 +562,8 @@ export default function ProviderClaimsPage() {
                         <span className="font-mono font-bold text-amber-400 block">{detailModal.claim.driverPhone || '0812-3456-7891'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">Target Penerima Bantuan:</span>
-                        <span className="font-bold text-white block">{detailModal.claim.userName}</span>
+                        <span className="text-slate-400 text-[10px] block">Target Nama Penerima:</span>
+                        <span className="font-extrabold text-emerald-400 block">{detailModal.claim.recipientPerson || detailModal.claim.userName} ({detailModal.claim.recipientPhone || '0812-7788-9900'})</span>
                       </div>
                       <div>
                         <span className="text-slate-400 text-[10px] block">Alamat Tujuan:</span>

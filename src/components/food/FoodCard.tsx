@@ -41,15 +41,33 @@ export const FoodCard: React.FC<FoodCardProps> = ({
 }) => {
   const isFree = !price || price === 0;
 
-  const categoryBadgeVariants: Record<string, 'primary' | 'secondary' | 'gold' | 'success' | 'warning' | 'info'> = {
-    MEALS: 'primary',
-    BAKERY: 'gold',
-    PRODUCE: 'success',
-    DAIRY: 'info',
-    BEVERAGES: 'secondary',
-    SNACKS: 'warning',
-    OTHER: 'secondary',
+  const getCategoryDetails = (rawCat?: string) => {
+    const cat = (rawCat || 'MEALS').toUpperCase();
+    if (cat.includes('MEAL') || cat.includes('OLAHAN') || cat.includes('MAKANAN')) {
+      return { label: '🍛 Makanan Olahan (Meals)', badgeBg: 'bg-[#1B3A5C] text-white border-blue-400/50 shadow-md' };
+    }
+    if (cat.includes('BAKERY') || cat.includes('ROTI') || cat.includes('KUE')) {
+      return { label: '🥐 Roti & Kue (Bakery)', badgeBg: 'bg-amber-600 text-white border-amber-300/50 shadow-md' };
+    }
+    if (cat.includes('PRODUCE') || cat.includes('BUAH') || cat.includes('SAYUR') || cat.includes('FRUIT')) {
+      return { label: '🍎 Buah & Sayur (Produce)', badgeBg: 'bg-emerald-600 text-white border-emerald-300/50 shadow-md' };
+    }
+    if (cat.includes('DAIRY') || cat.includes('SUSU') || cat.includes('KEJU')) {
+      return { label: '🥛 Olahan Susu (Dairy)', badgeBg: 'bg-cyan-600 text-white border-cyan-300/50 shadow-md' };
+    }
+    if (cat.includes('BEVERAGE') || cat.includes('MINUMAN') || cat.includes('DRINK')) {
+      return { label: '🧃 Minuman Segar (Beverages)', badgeBg: 'bg-indigo-600 text-white border-indigo-300/50 shadow-md' };
+    }
+    if (cat.includes('SNACK') || cat.includes('CAMILAN') || cat.includes('SNACKS')) {
+      return { label: '🍿 Camilan & Snack', badgeBg: 'bg-orange-600 text-white border-orange-300/50 shadow-md' };
+    }
+    if (cat.includes('PACKAGED') || cat.includes('KEMASAN') || cat.includes('KALENG') || cat.includes('GROCERY')) {
+      return { label: '📦 Makanan Kemasan (Packaged)', badgeBg: 'bg-purple-600 text-white border-purple-300/50 shadow-md' };
+    }
+    return { label: `🍲 ${category || 'Lainnya'}`, badgeBg: 'bg-slate-800 text-white border-slate-500/50 shadow-md' };
   };
+
+  const catDetails = getCategoryDetails(category);
 
   // Fallback high-quality food photography illustrations if no custom photo uploaded
   const defaultPhotos: Record<string, string> = {
@@ -61,7 +79,8 @@ export const FoodCard: React.FC<FoodCardProps> = ({
     SNACKS: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=500&auto=format&fit=crop&q=60',
   };
 
-  const imageSrc = photoUrl || defaultPhotos[category] || defaultPhotos.MEALS;
+  const catKey = (category || 'MEALS').toUpperCase();
+  const imageSrc = photoUrl || defaultPhotos[catKey] || defaultPhotos.MEALS;
 
   const deadlineDate = new Date(pickupDeadline);
   const formattedTime = deadlineDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -76,18 +95,18 @@ export const FoodCard: React.FC<FoodCardProps> = ({
             alt={foodName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-3 left-3">
-            <Badge variant={categoryBadgeVariants[category] || 'primary'} size="sm">
-              {category}
-            </Badge>
+          <div className="absolute top-3 left-3 z-10">
+            <span className={`px-3 py-1 rounded-xl font-black text-[10px] tracking-wide border shadow-lg uppercase backdrop-blur-md ${catDetails.badgeBg}`}>
+              {catDetails.label}
+            </span>
           </div>
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 z-10">
             {isFree ? (
-              <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-extrabold text-xs shadow-md">
-                GRATIS
+              <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-black text-xs shadow-md">
+                GRATIS (DONASI)
               </span>
             ) : (
-              <span className="px-2.5 py-1 rounded-full bg-[#1B3A5C] text-[#D4A843] font-extrabold text-xs shadow-md">
+              <span className="px-2.5 py-1 rounded-full bg-[#1B3A5C] text-[#D4A843] font-black text-xs shadow-md border border-amber-400/30">
                 Rp {price?.toLocaleString('id-ID')}
               </span>
             )}

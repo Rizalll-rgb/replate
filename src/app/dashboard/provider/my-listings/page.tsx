@@ -78,11 +78,18 @@ export default function MyListingsPage() {
           },
         ];
 
-        const combined = [...localItems, ...itemsList];
-        setFoods(combined.length > 0 ? combined : fallback);
+        const normalizedCombined = [...localItems, ...itemsList].map((item) => ({
+          ...item,
+          category: item.category || item.foodCategory || 'MEALS',
+        }));
+        setFoods(normalizedCombined.length > 0 ? normalizedCombined : fallback);
       })
       .catch(() => {
-        setFoods(localItems.length > 0 ? localItems : []);
+        const normalizedLocal = localItems.map((item) => ({
+          ...item,
+          category: item.category || item.foodCategory || 'MEALS',
+        }));
+        setFoods(normalizedLocal.length > 0 ? normalizedLocal : []);
       });
   };
 
