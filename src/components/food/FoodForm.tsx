@@ -39,6 +39,33 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
 
   const [pricingScheme, setPricingScheme] = useState<'RESCUE_SALE' | 'DONATION_YAYASAN' | 'DONATION_INDIVIDUAL'>('RESCUE_SALE');
   const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'RESCUE_PARTNER'>('SELF_PICKUP');
+  const [isDirectFleetEnabled, setIsDirectFleetEnabled] = useState<boolean>(true);
+
+  React.useEffect(() => {
+    try {
+      const savedCanDeliver = localStorage.getItem('replate_provider_can_deliver_direct');
+      const savedFleetStatus = localStorage.getItem('replate_provider_fleet_status');
+      const savedFleetList = localStorage.getItem('replate_provider_fleet_list');
+      let hasApprovedVehicle = false;
+      if (savedFleetList) {
+        const parsed = JSON.parse(savedFleetList);
+        if (Array.isArray(parsed)) {
+          hasApprovedVehicle = parsed.some((flt: any) => flt.status === 'APPROVED');
+        }
+      }
+
+      // Default true for demo provider Pak Kumis (Driver Mas Doni L 4582 ABC), or check saved keys
+      const isEnabled =
+        savedCanDeliver === 'true' ||
+        savedFleetStatus === 'APPROVED' ||
+        hasApprovedVehicle ||
+        savedCanDeliver === null;
+
+      setIsDirectFleetEnabled(isEnabled);
+    } catch (_) {
+      setIsDirectFleetEnabled(true);
+    }
+  }, []);
 
   // Helper to format local Date into YYYY-MM-DDTHH:mm input string
   const formatLocalDateTime = (d: Date) => {
@@ -358,23 +385,32 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
           </label>
 
           <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
-            typeof window !== 'undefined' && localStorage.getItem('replate_provider_can_deliver_direct') === 'true'
+            isDirectFleetEnabled
               ? 'bg-white border-amber-300 hover:border-[#1B3A5C]'
               : 'bg-slate-100 border-slate-200 opacity-75'
           }`}>
             <input
               type="checkbox"
-              defaultChecked={typeof window !== 'undefined' && localStorage.getItem('replate_provider_can_deliver_direct') === 'true'}
-              disabled={typeof window === 'undefined' || localStorage.getItem('replate_provider_can_deliver_direct') !== 'true'}
+              defaultChecked={isDirectFleetEnabled}
+              disabled={!isDirectFleetEnabled}
               className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded"
             />
             <div>
-              <span className="font-extrabold text-slate-800 flex items-center gap-1">
-                🚚 Armada Toko Direct
+              <span className="font-extrabold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                <span>🚚 Armada Toko Direct</span>
+                {isDirectFleetEnabled ? (
+                  <span className="text-[9px] bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded font-black">
+                    ✓ TERVERIFIKASI
+                  </span>
+                ) : (
+                  <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-bold">
+                    PERLU VERIFIKASI
+                  </span>
+                )}
               </span>
               <span className="text-[10px] text-slate-500 font-medium block">
-                {typeof window !== 'undefined' && localStorage.getItem('replate_provider_can_deliver_direct') === 'true'
-                  ? 'Diantar oleh armada driver toko Anda.'
+                {isDirectFleetEnabled
+                  ? 'Diantar oleh armada driver toko Anda (Mas Doni - Plat L 4582 ABC).'
                   : 'Daftarkan & verifikasi armada toko di Pengaturan untuk mengaktifkan.'}
               </span>
             </div>
