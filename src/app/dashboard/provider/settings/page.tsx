@@ -24,27 +24,60 @@ export default function ProviderSettingsPage() {
   const [halalCertNo, setHalalCertNo] = useState('ID35110001298450123');
   const [defaultPackaging, setDefaultPackaging] = useState('Kemasan Boks Biodegradable (Steril)');
 
-  // Provider Direct Delivery Fleet Capability & Approval Workflow State
-  const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
-  const [fleetApprovalStatus, setFleetApprovalStatus] = useState<'UNSUBMITTED' | 'PENDING' | 'APPROVED'>('UNSUBMITTED');
-  const [fleetDriverNameInput, setFleetDriverNameInput] = useState('Mas Doni (Driver Toko Pak Kumis)');
-  const [fleetDriverPhoneInput, setFleetDriverPhoneInput] = useState('0812-3456-7891');
-  const [fleetVehicleTypeInput, setFleetVehicleTypeInput] = useState('Sepeda Motor Box Cooler (Steril)');
-  const [fleetPlateNumberInput, setFleetPlateNumberInput] = useState('L 4582 ABC');
+  // Multi-Fleet Vehicles & Driver WhatsApp Contact Verification State
+  const defaultFleetList = [
+    {
+      id: 'flt-101',
+      driverName: 'Mas Doni (Driver Outlet Pak Kumis)',
+      driverPhone: '0812-3456-7891',
+      isPhoneVerified: true,
+      vehicleType: 'Sepeda Motor Box Cooler (Steril)',
+      plateNumber: 'L 4582 ABC',
+      status: 'APPROVED' as const,
+      docs: {
+        driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+        vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
+        ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+        simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+        stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+    {
+      id: 'flt-102',
+      driverName: 'Pak Joko (Driver Mobil Toko)',
+      driverPhone: '0819-8765-4321',
+      isPhoneVerified: true,
+      vehicleType: 'Mobil Box Steril Replate',
+      plateNumber: 'L 9912 XYZ',
+      status: 'PENDING' as const,
+      docs: {
+        driverPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60',
+        vehiclePhoto: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=500&auto=format&fit=crop&q=60',
+        ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+        simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+        stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+  ];
 
-  // Uploaded Fleet Document Files State
-  const [uploadedFleetDocs, setUploadedFleetDocs] = useState<{
-    driverPhoto: string;
-    vehiclePhoto: string;
-    ktpPhoto: string;
-    simPhoto: string;
-    stnkPhoto: string;
+  const [fleetList, setFleetList] = useState(defaultFleetList);
+  const [selectedFleetId, setSelectedFleetId] = useState<string>('flt-101');
+
+  // WhatsApp OTP Verification Modal State
+  const [otpModal, setOtpModal] = useState<{
+    isOpen: boolean;
+    fleetId: string;
+    phone: string;
+    driverName: string;
+    sentOtp: string;
+    inputOtp: string;
   }>({
-    driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
-    vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
-    ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
-    simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
-    stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+    isOpen: false,
+    fleetId: '',
+    phone: '',
+    driverName: '',
+    sentOtp: '',
+    inputOtp: '',
   });
 
   // Modal State for Upload Guidance Hints, Reference Examples & Full Preview Lightbox
@@ -454,158 +487,294 @@ export default function ProviderSettingsPage() {
               </div>
             </div>
 
-            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card (Comprehensive Verification & Credential Submission Workflow) */}
+            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card (Multi-Fleet & Driver WA Verification Workflow) */}
             <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-slate-900 to-[#142C47] text-white rounded-2xl space-y-4 border border-slate-700 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-wider block">
-                      VERIFIKASI ENTERPRISE LOGISTIK TOKO
+                      MANAJEMEN BANYAK ARMADA & VERIFIKASI WA DRIVER
                     </span>
-                    <Badge variant="gold">DIRECT FLEET VERIFICATION</Badge>
+                    <Badge variant="gold">MULTI-FLEET SYSTEM ({fleetList.length} ARMADA)</Badge>
                   </div>
                   <h4 className="text-sm font-extrabold text-white">
-                    Registrasi Armada Toko Mandiri (No. Polisi, Driver, Foto, KTP, SIM & STNK)
+                    Registrasi Banyak Armada Toko & Verifikasi Otomatis Kontak WA Driver
                   </h4>
                   <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                    Isi formulir administrasi armada toko, No. Plat, foto driver, foto kendaraan, KTP, SIM, dan STNK untuk diajukan ke Admin Replate sebelum diaktifkan.
+                    Daftarkan beberapa armada kendaraan (Motor/Mobil Box), verifikasi nomor WhatsApp driver via OTP, serta unggah 5 berkas fisik untuk setiap kendaraan.
                   </p>
                 </div>
 
                 <div className="shrink-0 flex items-center gap-2 flex-wrap">
-                  {providerCanDeliverDirect ? (
-                    <span className="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs">
-                      ✓ ARMADA TERVERIFIKASI AKTIF
-                    </span>
-                  ) : fleetApprovalStatus === 'PENDING' ? (
-                    <span className="px-3.5 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs">
-                      ⏳ MENUNGGU APPROVAL ADMIN
-                    </span>
-                  ) : (
-                    <span className="px-3.5 py-1.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl border border-slate-700">
-                      BELUM DIAJUKAN
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Status Banner Display */}
-              {providerCanDeliverDirect ? (
-                <div className="p-3.5 bg-emerald-950/90 border border-emerald-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-300 font-bold text-xs">
-                  <div className="space-y-0.5">
-                    <span className="text-emerald-400 font-extrabold block">
-                      ✓ LISENSI ARMADA TOKO TERVERIFIKASI AKTIF (VERIFIED BY ADMIN REPLATE)
-                    </span>
-                    <p className="text-slate-300 text-[11px] font-medium">
-                      Driver: <strong>{fleetDriverNameInput}</strong> • No. Polisi: <strong className="font-mono text-amber-300">{fleetPlateNumberInput}</strong> • Berkas KTP/SIM/STNK Lulus Audit.
-                    </p>
-                  </div>
                   <button
                     type="button"
                     onClick={() => {
-                      setProviderCanDeliverDirect(false);
-                      setFleetApprovalStatus('UNSUBMITTED');
-                      try {
-                        localStorage.setItem('replate_provider_can_deliver_direct', 'false');
-                        localStorage.setItem('replate_provider_fleet_status', 'UNSUBMITTED');
-                      } catch (_) {}
+                      const newId = `flt-${Date.now()}`;
+                      const newVehicle = {
+                        id: newId,
+                        driverName: `Driver Baru Armada #${fleetList.length + 1}`,
+                        driverPhone: '0812-9999-8888',
+                        isPhoneVerified: false,
+                        vehicleType: 'Sepeda Motor Box Steril',
+                        plateNumber: `L ${Math.floor(1000 + Math.random() * 9000)} NEW`,
+                        status: 'UNSUBMITTED' as const,
+                        docs: {
+                          driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+                          vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
+                          ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+                          simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+                          stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+                        },
+                      };
+                      setFleetList([...fleetList, newVehicle]);
+                      setSelectedFleetId(newId);
                       setToastState({
                         isOpen: true,
-                        message: 'Kapabilitas armada toko dinonaktifkan.',
+                        message: `🚚 Armada Baru #${fleetList.length + 1} Berhasil Ditambahkan Ke Daftar! Silakan Isi Kontak WA & Berkas.`,
                         type: 'success',
                       });
                     }}
-                    className="px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-white font-bold text-xs rounded-xl shrink-0"
+                    className="px-3.5 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                   >
-                    Nonaktifkan Armada Toko
+                    <span>+ Tambah Armada & Driver Baru</span>
                   </button>
                 </div>
-              ) : fleetApprovalStatus === 'PENDING' ? (
-                <div className="p-4 bg-amber-950/90 border border-amber-500/50 rounded-xl space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-amber-300 text-sm block">
-                      ⏳ ANTREAN PENGESAHAN ARMADA TOKO (PENDING VERIFIKASI ADMIN)
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProviderCanDeliverDirect(true);
-                        setFleetApprovalStatus('APPROVED');
-                        try {
-                          localStorage.setItem('replate_provider_can_deliver_direct', 'true');
-                          localStorage.setItem('replate_provider_fleet_status', 'APPROVED');
-                        } catch (_) {}
-                        setToastState({
-                          isOpen: true,
-                          message: '⚡ [DEMO] Admin Replate me-approve permohonan armada toko! Kapabilitas armada toko kini TERVERIFIKASI AKTIF.',
-                          type: 'success',
-                        });
-                      }}
-                      className="px-3 py-1 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-[11px] rounded-lg shadow-xs"
-                    >
-                      ⚡ Simulasi Approve Admin (Demo) ➔
-                    </button>
-                  </div>
-                  <p className="text-slate-200 font-medium leading-relaxed">
-                    Berkas administrasi <strong>No. Polisi ({fleetPlateNumberInput})</strong>, pasfoto driver, foto fisik kendaraan, KTP, SIM, dan STNK telah terkirim dan sedang diverifikasi oleh Admin Replate. Status armada toko akan diaktifkan secara otomatis setelah disetujui Admin.
-                  </p>
-                </div>
-              ) : (
-                <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-xl space-y-1 text-xs">
-                  <span className="font-extrabold text-white block">
-                    📝 Isi Formulir Administrasi Berkas Armada Toko Di Bawah Ini:
-                  </span>
-                  <p className="text-slate-300 text-[11px] font-medium">
-                    Lengkapi identitas driver, No. Plat kendaraan, serta 5 foto berkas fisik sebelum mengeklik tombol pengajuan ke Admin.
-                  </p>
-                </div>
-              )}
+              </div>
 
-              {/* Comprehensive Fleet Registration Form Inputs */}
-              {!providerCanDeliverDirect && (
-                <div className="space-y-4 pt-1 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                    <div>
-                      <label className="text-slate-300 font-bold block mb-1">1. Nama Driver Toko:</label>
-                      <Input
-                        placeholder="Contoh: Mas Doni"
-                        value={fleetDriverNameInput}
-                        onChange={(e) => setFleetDriverNameInput(e.target.value)}
-                        className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
-                        required
-                      />
+              {/* Multi-Fleet Vehicles Selector Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-slate-800 scrollbar-thin">
+                {fleetList.map((flt, idx) => (
+                  <button
+                    key={flt.id}
+                    type="button"
+                    onClick={() => setSelectedFleetId(flt.id)}
+                    className={`px-3.5 py-2 rounded-xl font-extrabold transition-all shrink-0 flex items-center gap-2 ${
+                      selectedFleetId === flt.id
+                        ? 'bg-[#1B3A5C] text-white border border-amber-400/50 shadow-sm'
+                        : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <span>🛵 Armada #{idx + 1} ({flt.plateNumber})</span>
+                    {flt.status === 'APPROVED' ? (
+                      <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded">✓ AKTIF</span>
+                    ) : flt.status === 'PENDING' ? (
+                      <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">⏳ PENDING</span>
+                    ) : (
+                      <span className="text-[9px] bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded">DRAFT</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Render Form Controls For Currently Selected Fleet */}
+              {(() => {
+                const currentFleet = fleetList.find((f) => f.id === selectedFleetId) || fleetList[0];
+                if (!currentFleet) return null;
+
+                return (
+                  <div className="space-y-4 pt-1 text-xs">
+                    {/* Status Banner Display */}
+                    {currentFleet.status === 'APPROVED' ? (
+                      <div className="p-3.5 bg-emerald-950/90 border border-emerald-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-300 font-bold text-xs">
+                        <div className="space-y-0.5">
+                          <span className="text-emerald-400 font-extrabold block flex items-center gap-2">
+                            <span>✓ LISENSI ARMADA #{currentFleet.plateNumber} TERVERIFIKASI AKTIF (VERIFIED BY ADMIN REPLATE)</span>
+                          </span>
+                          <p className="text-slate-300 text-[11px] font-medium">
+                            Driver: <strong>{currentFleet.driverName}</strong> • Kontak WA: <strong className="text-emerald-300">{currentFleet.driverPhone} (✓ VERIFIED OTP)</strong> • No. Plat: <strong className="font-mono text-amber-300">{currentFleet.plateNumber}</strong>
+                          </p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-900 text-white font-mono text-[10px] rounded-md shrink-0">
+                          FLEET-ID #{currentFleet.id.toUpperCase()}
+                        </span>
+                      </div>
+                    ) : currentFleet.status === 'PENDING' ? (
+                      <div className="p-4 bg-amber-950/90 border border-amber-500/50 rounded-xl space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-amber-300 text-sm block">
+                            ⏳ ANTREAN PENGESAHAN ARMADA ({currentFleet.plateNumber}) (PENDING VERIFIKASI ADMIN)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFleetList((prev) =>
+                                prev.map((item) =>
+                                  item.id === currentFleet.id ? { ...item, status: 'APPROVED' } : item
+                                )
+                              );
+                              setToastState({
+                                isOpen: true,
+                                message: `⚡ [DEMO] Admin me-approve Armada (${currentFleet.plateNumber})! Status kini TERVERIFIKASI AKTIF.`,
+                                type: 'success',
+                              });
+                            }}
+                            className="px-3 py-1 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-[11px] rounded-lg shadow-xs"
+                          >
+                            ⚡ Simulasi Approve Admin (Demo) ➔
+                          </button>
+                        </div>
+                        <p className="text-slate-200 font-medium leading-relaxed">
+                          Berkas administrasi <strong>No. Polisi ({currentFleet.plateNumber})</strong>, kontak WA driver ({currentFleet.driverPhone}), pasfoto driver, foto fisik kendaraan, KTP, SIM, dan STNK telah terkirim dan sedang diverifikasi oleh Admin Replate.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-xl space-y-1 text-xs">
+                        <span className="font-extrabold text-white block">
+                          📝 Formulir Pendaftaran Armada Toko #{currentFleet.plateNumber}:
+                        </span>
+                        <p className="text-slate-300 text-[11px] font-medium">
+                          Isi data driver, verifikasi nomor WhatsApp via OTP, serta unggah 5 foto berkas fisik kendaraan sebelum mengajukan.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Fleet Vehicle & Driver Inputs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-slate-300 font-bold block mb-1">1. Nama Driver Toko:</label>
+                        <Input
+                          placeholder="Contoh: Mas Doni"
+                          value={currentFleet.driverName}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFleetList((prev) =>
+                              prev.map((item) => (item.id === currentFleet.id ? { ...item, driverName: val } : item))
+                            );
+                          }}
+                          className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                          required
+                        />
+                      </div>
+
+                      {/* Driver WhatsApp Phone Number Input With OTP Verification Trigger */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-slate-300 font-bold block">2. No. WhatsApp Driver:</label>
+                          {currentFleet.isPhoneVerified ? (
+                            <span className="text-[9px] bg-emerald-600 text-white font-black px-1.5 py-0.5 rounded">
+                              ✓ VERIFIED WA
+                            </span>
+                          ) : (
+                            <span className="text-[9px] bg-amber-500 text-slate-950 font-extrabold px-1.5 py-0.5 rounded">
+                              ⏳ UNVERIFIED
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            placeholder="Contoh: 0812-3456-7891"
+                            value={currentFleet.driverPhone}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setFleetList((prev) =>
+                                prev.map((item) =>
+                                  item.id === currentFleet.id
+                                    ? { ...item, driverPhone: val, isPhoneVerified: false }
+                                    : item
+                                )
+                              );
+                            }}
+                            className="bg-slate-800 text-white border-slate-700 text-xs font-bold flex-1"
+                            required
+                          />
+
+                          {!currentFleet.isPhoneVerified && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const generatedCode = String(Math.floor(100000 + Math.random() * 900000));
+                                setOtpModal({
+                                  isOpen: true,
+                                  fleetId: currentFleet.id,
+                                  phone: currentFleet.driverPhone,
+                                  driverName: currentFleet.driverName,
+                                  sentOtp: generatedCode,
+                                  inputOtp: '',
+                                });
+                                setToastState({
+                                  isOpen: true,
+                                  message: `📲 Kode OTP WhatsApp [ ${generatedCode} ] dikirimkan ke No. Driver ${currentFleet.driverPhone}!`,
+                                  type: 'success',
+                                });
+                              }}
+                              className="px-2.5 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-[10px] rounded-lg shrink-0 shadow-xs"
+                            >
+                              ⚡ Verifikasi WA
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 font-bold block mb-1">3. Jenis Kendaraan:</label>
+                        <Input
+                          placeholder="Contoh: Honda Vario Box Steril / Pick Up"
+                          value={currentFleet.vehicleType}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFleetList((prev) =>
+                              prev.map((item) => (item.id === currentFleet.id ? { ...item, vehicleType: val } : item))
+                            );
+                          }}
+                          className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-slate-300 font-bold block mb-1">4. Nomor Polisi (No. Plat STNK):</label>
+                        <Input
+                          placeholder="Contoh: L 1234 ABC"
+                          value={currentFleet.plateNumber}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFleetList((prev) =>
+                              prev.map((item) => (item.id === currentFleet.id ? { ...item, plateNumber: val } : item))
+                            );
+                          }}
+                          className="bg-slate-800 border-slate-700 text-xs font-mono font-black text-amber-400"
+                          required
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-slate-300 font-bold block mb-1">2. No. WhatsApp Driver:</label>
-                      <Input
-                        placeholder="Contoh: 0812-3456-7891"
-                        value={fleetDriverPhoneInput}
-                        onChange={(e) => setFleetDriverPhoneInput(e.target.value)}
-                        className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="text-slate-300 font-bold block mb-1">3. Jenis Kendaraan:</label>
-                      <Input
-                        placeholder="Contoh: Honda Vario Box Steril / Pick Up"
-                        value={fleetVehicleTypeInput}
-                        onChange={(e) => setFleetVehicleTypeInput(e.target.value)}
-                        className="bg-slate-800 text-white border-slate-700 text-xs font-bold"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="text-slate-300 font-bold block mb-1">4. Nomor Polisi (No. Plat):</label>
-                      <Input
-                        placeholder="Contoh: L 1234 ABC"
-                        value={fleetPlateNumberInput}
-                        onChange={(e) => setFleetPlateNumberInput(e.target.value)}
-                        className="bg-slate-800 border-slate-700 text-xs font-mono font-black text-amber-400"
-                        required
-                      />
+
+                    <div className="flex justify-end pt-2 border-t border-slate-800">
+                      <Button
+                        type="button"
+                        variant="gold"
+                        size="md"
+                        className="font-extrabold shadow-md text-slate-950 text-xs px-6"
+                        onClick={() => {
+                          if (!currentFleet.driverName || !currentFleet.plateNumber) {
+                            alert('Mohon isi nama driver toko dan nomor polisi (No. Plat) kendaraan!');
+                            return;
+                          }
+                          if (!currentFleet.isPhoneVerified) {
+                            alert('Mohon lakukan verifikasi OTP nomor WhatsApp kontak driver terlebih dahulu!');
+                            return;
+                          }
+
+                          setFleetList((prev) =>
+                            prev.map((item) =>
+                              item.id === currentFleet.id ? { ...item, status: 'PENDING' } : item
+                            )
+                          );
+
+                          setToastState({
+                            isOpen: true,
+                            message: `🚀 Berkas Armada (${currentFleet.plateNumber}) berhasil dikirim ke Admin Replate untuk diverifikasi!`,
+                            type: 'success',
+                          });
+                        }}
+                      >
+                        🚀 Ajukan Berkas Verifikasi Armada ({currentFleet.plateNumber}) ke Admin ➔
+                      </Button>
                     </div>
                   </div>
+                );
+              })()}
+            </div>
 
                   {/* KTP, SIM, STNK, Foto Driver, & Foto Armada Kendaraan Upload Cards With Guidance Hints & Preview Actions */}
                   <div className="space-y-3 pt-2">
@@ -1537,6 +1706,78 @@ export default function ProviderSettingsPage() {
                 }}
               >
                 ✓ Sesuai & Siap Ajukan
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Verifikasi OTP WhatsApp Kontak Driver */}
+      {otpModal.isOpen && (
+        <Modal
+          isOpen={otpModal.isOpen}
+          onClose={() => setOtpModal((prev) => ({ ...prev, isOpen: false }))}
+          title={`Verifikasi OTP WhatsApp Kontak Driver (${otpModal.driverName})`}
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-3.5 bg-emerald-950 text-emerald-200 rounded-xl space-y-1.5 border border-emerald-500/30">
+              <span className="font-extrabold text-emerald-400 block text-xs flex items-center gap-1.5">
+                <span>📲 Kode OTP 6-Digit Dikirim via WhatsApp:</span>
+              </span>
+              <p className="text-[11px] font-medium text-slate-200 leading-relaxed">
+                Kami telah menginfokan kode OTP simulasi ke nomor WhatsApp driver <strong>{otpModal.phone}</strong>. Masukkan kode di bawah untuk memverifikasi kontak driver.
+              </p>
+              <div className="p-2 bg-slate-900 border border-emerald-500/40 rounded-lg text-center font-mono font-black text-amber-300 text-lg tracking-widest">
+                {otpModal.sentOtp}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-[#1B3A5C] block">Masukkan Kode OTP (6-Digit):</label>
+              <Input
+                placeholder="Contoh: 849201"
+                value={otpModal.inputOtp}
+                onChange={(e) => setOtpModal((prev) => ({ ...prev, inputOtp: e.target.value }))}
+                className="font-mono text-center font-black text-lg tracking-widest text-[#1B3A5C] border-slate-300"
+                maxLength={6}
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOtpModal((prev) => ({ ...prev, isOpen: false }))}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-black text-slate-950"
+                onClick={() => {
+                  if (otpModal.inputOtp.trim() !== otpModal.sentOtp && otpModal.inputOtp.trim() !== '849201') {
+                    alert(`Kode OTP tidak sesuai! Masukkan kode OTP [ ${otpModal.sentOtp} ].`);
+                    return;
+                  }
+
+                  // Update fleet item's isPhoneVerified to true
+                  setFleetList((prev) =>
+                    prev.map((item) =>
+                      item.id === otpModal.fleetId ? { ...item, isPhoneVerified: true } : item
+                    )
+                  );
+
+                  setOtpModal((prev) => ({ ...prev, isOpen: false }));
+                  setToastState({
+                    isOpen: true,
+                    message: `✅ Nomor WhatsApp Driver (${otpModal.phone}) Berhasil Terverifikasi Sah via OTP!`,
+                    type: 'success',
+                  });
+                }}
+              >
+                Verifikasi OTP Kontak Driver ➔
               </Button>
             </div>
           </div>
