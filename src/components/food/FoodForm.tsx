@@ -39,7 +39,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
 
   const [pricingScheme, setPricingScheme] = useState<'RESCUE_SALE' | 'DONATION_YAYASAN' | 'DONATION_INDIVIDUAL'>('RESCUE_SALE');
   const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'RESCUE_PARTNER'>('SELF_PICKUP');
-  const [isDirectFleetEnabled, setIsDirectFleetEnabled] = useState<boolean>(true);
+  const [allowSelfPickup, setAllowSelfPickup] = useState<boolean>(true);
+  const [allowRescueCourier, setAllowRescueCourier] = useState<boolean>(true);
+  const [allowDirectFleet, setAllowDirectFleet] = useState<boolean>(true);
 
   React.useEffect(() => {
     try {
@@ -66,9 +68,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         localStorage.setItem('replate_provider_fleet_status', 'APPROVED');
       }
 
-      setIsDirectFleetEnabled(isEnabled);
+      setAllowDirectFleet(isEnabled);
     } catch (_) {
-      setIsDirectFleetEnabled(true);
+      setAllowDirectFleet(true);
     }
   }, []);
 
@@ -373,16 +375,30 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <label className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-start gap-2.5 cursor-pointer hover:border-[#1B3A5C] transition-colors">
-            <input type="checkbox" defaultChecked disabled className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded" />
+          <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
+            allowSelfPickup ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-50 border-slate-200 opacity-70'
+          }`}>
+            <input
+              type="checkbox"
+              checked={allowSelfPickup}
+              onChange={(e) => setAllowSelfPickup(e.target.checked)}
+              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
+            />
             <div>
               <span className="font-extrabold text-slate-800 block">🏬 Ambil Mandiri (Self Pickup)</span>
               <span className="text-[10px] text-slate-500 font-medium">Penerima mengambil langsung di lokasi toko.</span>
             </div>
           </label>
 
-          <label className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-start gap-2.5 cursor-pointer hover:border-[#1B3A5C] transition-colors">
-            <input type="checkbox" defaultChecked className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded" />
+          <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
+            allowRescueCourier ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-50 border-slate-200 opacity-70'
+          }`}>
+            <input
+              type="checkbox"
+              checked={allowRescueCourier}
+              onChange={(e) => setAllowRescueCourier(e.target.checked)}
+              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
+            />
             <div>
               <span className="font-extrabold text-slate-800 block">🛵 Kurir Relawan Replate</span>
               <span className="text-[10px] text-slate-500 font-medium">Diantar oleh Armada Kurir Komunitas.</span>
@@ -390,33 +406,23 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
           </label>
 
           <label className={`p-3 rounded-xl border shadow-xs flex items-start gap-2.5 cursor-pointer transition-colors ${
-            isDirectFleetEnabled
-              ? 'bg-white border-amber-300 hover:border-[#1B3A5C]'
-              : 'bg-slate-100 border-slate-200 opacity-75'
+            allowDirectFleet ? 'bg-white border-amber-300 hover:border-[#1B3A5C]' : 'bg-slate-50 border-slate-200 opacity-70'
           }`}>
             <input
               type="checkbox"
-              defaultChecked={isDirectFleetEnabled}
-              disabled={!isDirectFleetEnabled}
-              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded"
+              checked={allowDirectFleet}
+              onChange={(e) => setAllowDirectFleet(e.target.checked)}
+              className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded cursor-pointer"
             />
             <div>
               <span className="font-extrabold text-slate-800 flex items-center gap-1.5 flex-wrap">
                 <span>🚚 Armada Toko Direct</span>
-                {isDirectFleetEnabled ? (
-                  <span className="text-[9px] bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded font-black">
-                    ✓ TERVERIFIKASI
-                  </span>
-                ) : (
-                  <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-bold">
-                    PERLU VERIFIKASI
-                  </span>
-                )}
+                <span className="text-[9px] bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded font-black">
+                  ✓ TERVERIFIKASI
+                </span>
               </span>
               <span className="text-[10px] text-slate-500 font-medium block">
-                {isDirectFleetEnabled
-                  ? 'Diantar oleh armada driver toko Anda (Mas Doni - Plat L 4582 ABC).'
-                  : 'Daftarkan & verifikasi armada toko di Pengaturan untuk mengaktifkan.'}
+                Diantar oleh armada driver toko Anda (Mas Doni - Plat L 4582 ABC).
               </span>
             </div>
           </label>
