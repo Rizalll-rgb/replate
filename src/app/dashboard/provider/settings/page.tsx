@@ -31,6 +31,42 @@ export default function ProviderSettingsPage() {
   const [fleetVehicleTypeInput, setFleetVehicleTypeInput] = useState('Sepeda Motor Box Cooler (Steril)');
   const [fleetPlateNumberInput, setFleetPlateNumberInput] = useState('L 4582 ABC');
 
+  // Uploaded Fleet Document Files State
+  const [uploadedFleetDocs, setUploadedFleetDocs] = useState<{
+    driverPhoto: string;
+    vehiclePhoto: string;
+    ktpPhoto: string;
+    simPhoto: string;
+    stnkPhoto: string;
+  }>({
+    driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+    vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
+    ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+    simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+    stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+  });
+
+  // Modal State for Upload Guidance Hints, Reference Examples & Full Preview Lightbox
+  const [docPreviewModal, setDocPreviewModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    docType: string;
+    sampleImage: string;
+    currentImage: string;
+    hintText: string;
+    checklist: string[];
+    mode: 'HINT' | 'USER_PREVIEW';
+  }>({
+    isOpen: false,
+    title: '',
+    docType: '',
+    sampleImage: '',
+    currentImage: '',
+    hintText: '',
+    checklist: [],
+    mode: 'HINT',
+  });
+
   React.useEffect(() => {
     try {
       const saved = localStorage.getItem('replate_provider_can_deliver_direct');
@@ -570,106 +606,417 @@ export default function ProviderSettingsPage() {
                     </div>
                   </div>
 
-                  {/* KTP, SIM, STNK, Foto Driver, & Foto Armada Kendaraan Upload Cards */}
-                  <div className="space-y-2 pt-2">
-                    <span className="font-extrabold text-[#D4A843] block">
-                      5. Unggah 5 Berkas Legalitas & Foto Fisik Armada (Driver, Kendaraan, KTP, SIM & STNK):
-                    </span>
-                    
+                  {/* KTP, SIM, STNK, Foto Driver, & Foto Armada Kendaraan Upload Cards With Guidance Hints & Preview Actions */}
+                  <div className="space-y-3 pt-2">
+                    <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl space-y-1">
+                      <span className="font-extrabold text-[#D4A843] text-xs block flex items-center gap-1.5">
+                        <span>💡 Ketentuan & Panduan Unggah Berkas Legalitas Armada:</span>
+                      </span>
+                      <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                        Pastikan pencahayaan terang, teks NIK/No. SIM/STNK terlihat jelas tanpa bayangan/silau. Gunakan tombol <strong>💡 Contoh Yang Benar</strong> untuk melihat standar resmi Replate dan tombol <strong>🔍 Preview Hasil Upload</strong> untuk memeriksa ulang berkas Anda.
+                      </p>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                      {/* 1. Foto Driver Toko */}
-                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">👤 Pasfoto Driver Toko</span>
-                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
-                          <img
-                            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60"
-                            alt="Foto Driver Toko"
-                            className="w-full h-full object-cover opacity-90"
-                          />
-                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ DRIVER PHOTO
+                      {/* 1. Pasfoto Driver Toko */}
+                      <div className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 text-center flex flex-col justify-between shadow-xs">
+                        <div>
+                          <span className="font-extrabold text-white block text-[11px] mb-1">1. 👤 Pasfoto Driver Toko</span>
+                          <span className="text-[10px] text-amber-300 font-medium block mb-2 leading-tight">
+                            Wajah lurus, pencahayaan terang, berseragam/rapi.
                           </span>
+                          <div className="h-28 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                            <img
+                              src={uploadedFleetDocs.driverPhoto}
+                              alt="Pasfoto Driver"
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              ✓ READY
+                            </span>
+                          </div>
                         </div>
-                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Upload Pasfoto
-                          <input type="file" accept="image/*" className="hidden" />
-                        </label>
+
+                        <div className="space-y-1.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Panduan & Contoh Pasfoto Driver Toko Yang Benar',
+                                docType: 'Pasfoto Driver Toko',
+                                sampleImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.driverPhoto,
+                                hintText: 'Pasfoto driver digunakan untuk verifikasi identitas fisik penanggung jawab pengantaran makanan surplus.',
+                                checklist: [
+                                  'Wajah menghadap lurus ke depan dengan jelas',
+                                  'Tidak menggunakan kacamata hitam atau topi yang menutupi wajah',
+                                  'Pencahayaan terang dan foto tidak buram',
+                                  'Mengenai pakaian berseragam outlet / rapi',
+                                ],
+                                mode: 'HINT',
+                              })
+                            }
+                            className="w-full py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            💡 Contoh Yang Benar 👁️
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Preview Hasil Upload: Pasfoto Driver Toko',
+                                docType: 'Pasfoto Driver Toko',
+                                sampleImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.driverPhoto,
+                                hintText: 'Periksa kejelasan foto driver yang baru saja Anda unggah.',
+                                checklist: ['Wajah terlihat jelas & tajam', 'Identitas siap diajukan'],
+                                mode: 'USER_PREVIEW',
+                              })
+                            }
+                            className="w-full py-1 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            🔍 Preview Hasil Upload 👁️
+                          </button>
+
+                          <label className="w-full py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white text-[10px] font-extrabold rounded-lg cursor-pointer block text-center shadow-xs">
+                            📤 Upload / Ganti
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = URL.createObjectURL(file);
+                                  setUploadedFleetDocs((prev) => ({ ...prev, driverPhoto: url }));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
 
-                      {/* 2. Foto Armada Kendaraan Toko */}
-                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">🚚 Foto Fisik Armada (Plat No)</span>
-                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
-                          <img
-                            src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60"
-                            alt="Foto Armada Kendaraan Toko"
-                            className="w-full h-full object-cover opacity-90"
-                          />
-                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ VEHICLE PHOTO
+                      {/* 2. Foto Fisik Armada Kendaraan Toko */}
+                      <div className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 text-center flex flex-col justify-between shadow-xs">
+                        <div>
+                          <span className="font-extrabold text-white block text-[11px] mb-1">2. 🚚 Foto Fisik Armada Toko</span>
+                          <span className="text-[10px] text-amber-300 font-medium block mb-2 leading-tight">
+                            Tampak kendaraan + Plat nomor terlihat tajam.
                           </span>
+                          <div className="h-28 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                            <img
+                              src={uploadedFleetDocs.vehiclePhoto}
+                              alt="Foto Armada"
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              ✓ READY
+                            </span>
+                          </div>
                         </div>
-                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Upload Foto Armada
-                          <input type="file" accept="image/*" className="hidden" />
-                        </label>
+
+                        <div className="space-y-1.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Panduan & Contoh Foto Fisik Armada Yang Benar',
+                                docType: 'Foto Fisik Armada Kendaraan',
+                                sampleImage: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.vehiclePhoto,
+                                hintText: 'Foto fisik armada kendaraan memperlihatkan kelaikan kendaraan operasional toko serta nomor polisinya.',
+                                checklist: [
+                                  'Nomor Polisi (No. Plat) kendaraan terlihat utuh & terbaca',
+                                  'Boks tempat makanan/cooler box tampak steril jika ada',
+                                  'Kondisi fisik kendaraan bersih & layak jalan',
+                                ],
+                                mode: 'HINT',
+                              })
+                            }
+                            className="w-full py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            💡 Contoh Yang Benar 👁️
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Preview Hasil Upload: Foto Fisik Armada Toko',
+                                docType: 'Foto Fisik Armada Kendaraan',
+                                sampleImage: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.vehiclePhoto,
+                                hintText: 'Periksa kejelasan foto kendaraan & plat nomor yang diunggah.',
+                                checklist: ['Nomor Plat terbaca tajam', 'Kendaraan siap diajukan'],
+                                mode: 'USER_PREVIEW',
+                              })
+                            }
+                            className="w-full py-1 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            🔍 Preview Hasil Upload 👁️
+                          </button>
+
+                          <label className="w-full py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white text-[10px] font-extrabold rounded-lg cursor-pointer block text-center shadow-xs">
+                            📤 Upload / Ganti
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = URL.createObjectURL(file);
+                                  setUploadedFleetDocs((prev) => ({ ...prev, vehiclePhoto: url }));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
 
-                      {/* 3. Upload KTP */}
-                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">🪪 Foto KTP Driver Toko</span>
-                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
-                          <img
-                            src="https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
-                            alt="KTP Driver"
-                            className="w-full h-full object-cover opacity-90"
-                          />
-                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ KTP ATTACHED
+                      {/* 3. Foto KTP Driver Toko */}
+                      <div className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 text-center flex flex-col justify-between shadow-xs">
+                        <div>
+                          <span className="font-extrabold text-white block text-[11px] mb-1">3. 🪪 Foto KTP Driver Toko</span>
+                          <span className="text-[10px] text-amber-300 font-medium block mb-2 leading-tight">
+                            NIK 16 digit & Nama lurus tanpa silau.
                           </span>
+                          <div className="h-28 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                            <img
+                              src={uploadedFleetDocs.ktpPhoto}
+                              alt="Foto KTP"
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              ✓ READY
+                            </span>
+                          </div>
                         </div>
-                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Upload KTP
-                          <input type="file" accept="image/*" className="hidden" />
-                        </label>
+
+                        <div className="space-y-1.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Panduan & Contoh Foto KTP Yang Benar',
+                                docType: 'Foto KTP Driver Toko',
+                                sampleImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.ktpPhoto,
+                                hintText: 'Foto KTP digunakan untuk validasi legalitas kewarganegaraan driver pengantar.',
+                                checklist: [
+                                  'Seluruh 4 sudut KTP berada di dalam bingkai foto',
+                                  'NIK 16 digit & Nama Lengkap dapat dibaca dengan mudah',
+                                  'Bukan fotokopi buram atau hasil rekayasa digital',
+                                ],
+                                mode: 'HINT',
+                              })
+                            }
+                            className="w-full py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            💡 Contoh Yang Benar 👁️
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Preview Hasil Upload: Foto KTP Driver Toko',
+                                docType: 'Foto KTP Driver Toko',
+                                sampleImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.ktpPhoto,
+                                hintText: 'Pastikan NIK & Nama pada KTP terbaca tajam sebelum dikirim.',
+                                checklist: ['NIK 16 digit terbaca tajam', 'Format KTP valid'],
+                                mode: 'USER_PREVIEW',
+                              })
+                            }
+                            className="w-full py-1 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            🔍 Preview Hasil Upload 👁️
+                          </button>
+
+                          <label className="w-full py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white text-[10px] font-extrabold rounded-lg cursor-pointer block text-center shadow-xs">
+                            📤 Upload / Ganti
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = URL.createObjectURL(file);
+                                  setUploadedFleetDocs((prev) => ({ ...prev, ktpPhoto: url }));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
 
-                      {/* 4. Upload SIM */}
-                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">💳 Foto SIM C / SIM A Driver</span>
-                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
-                          <img
-                            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60"
-                            alt="SIM Driver"
-                            className="w-full h-full object-cover opacity-90"
-                          />
-                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ SIM ATTACHED
+                      {/* 4. Foto SIM Driver Toko */}
+                      <div className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 text-center flex flex-col justify-between shadow-xs">
+                        <div>
+                          <span className="font-extrabold text-white block text-[11px] mb-1">4. 💳 Foto SIM Driver Toko</span>
+                          <span className="text-[10px] text-amber-300 font-medium block mb-2 leading-tight">
+                            SIM C/A aktif & tidak kadaluarsa.
                           </span>
+                          <div className="h-28 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                            <img
+                              src={uploadedFleetDocs.simPhoto}
+                              alt="Foto SIM"
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              ✓ READY
+                            </span>
+                          </div>
                         </div>
-                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Upload SIM
-                          <input type="file" accept="image/*" className="hidden" />
-                        </label>
+
+                        <div className="space-y-1.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Panduan & Contoh Foto SIM C/A Yang Benar',
+                                docType: 'Foto SIM Driver Toko',
+                                sampleImage: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.simPhoto,
+                                hintText: 'Lisensi mengemudi sah (SIM C untuk motor / SIM A untuk mobil box).',
+                                checklist: [
+                                  'Masa berlaku SIM masih aktif & belum expired',
+                                  'Golongan SIM sesuai jenis armada kendaraan',
+                                  'Nomor SIM & Pasfoto di SIM terlihat tajam',
+                                ],
+                                mode: 'HINT',
+                              })
+                            }
+                            className="w-full py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            💡 Contoh Yang Benar 👁️
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Preview Hasil Upload: Foto SIM Driver Toko',
+                                docType: 'Foto SIM Driver Toko',
+                                sampleImage: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.simPhoto,
+                                hintText: 'Periksa kejelasan nomor SIM & tanggal berlaku.',
+                                checklist: ['Masa berlaku SIM aktif', 'Foto SIM jelas'],
+                                mode: 'USER_PREVIEW',
+                              })
+                            }
+                            className="w-full py-1 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            🔍 Preview Hasil Upload 👁️
+                          </button>
+
+                          <label className="w-full py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white text-[10px] font-extrabold rounded-lg cursor-pointer block text-center shadow-xs">
+                            📤 Upload / Ganti
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = URL.createObjectURL(file);
+                                  setUploadedFleetDocs((prev) => ({ ...prev, simPhoto: url }));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
 
-                      {/* 5. Upload STNK */}
-                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">📄 Foto STNK (No. Pol: {fleetPlateNumberInput})</span>
-                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
-                          <img
-                            src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60"
-                            alt="STNK Kendaraan"
-                            className="w-full h-full object-cover opacity-90"
-                          />
-                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                            ✓ STNK ATTACHED
+                      {/* 5. Foto STNK Kendaraan Toko */}
+                      <div className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 text-center flex flex-col justify-between shadow-xs">
+                        <div>
+                          <span className="font-extrabold text-white block text-[11px] mb-1">5. 📄 Foto STNK Kendaraan</span>
+                          <span className="text-[10px] text-amber-300 font-medium block mb-2 leading-tight">
+                            Cocok No. Polisi ({fleetPlateNumberInput})
                           </span>
+                          <div className="h-28 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                            <img
+                              src={uploadedFleetDocs.stnkPhoto}
+                              alt="Foto STNK"
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              ✓ READY
+                            </span>
+                          </div>
                         </div>
-                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
-                          Upload STNK
-                          <input type="file" accept="image/*" className="hidden" />
-                        </label>
+
+                        <div className="space-y-1.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Panduan & Contoh Foto STNK Yang Benar',
+                                docType: 'Foto STNK Kendaraan Operasional',
+                                sampleImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.stnkPhoto,
+                                hintText: 'STNK resmi membuktikan legalitas kepemilikan/pengoperasian armada toko.',
+                                checklist: [
+                                  `Nomor Polisi STNK harus persis cocok dengan input form (${fleetPlateNumberInput})`,
+                                  'Pajak STNK aktif & pengesahan tahunan terbaca',
+                                  'Nomor Rangka & Merk kendaraan cocok',
+                                ],
+                                mode: 'HINT',
+                              })
+                            }
+                            className="w-full py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            💡 Contoh Yang Benar 👁️
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocPreviewModal({
+                                isOpen: true,
+                                title: 'Preview Hasil Upload: Foto STNK Kendaraan',
+                                docType: 'Foto STNK Kendaraan Operasional',
+                                sampleImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&auto=format&fit=crop&q=80',
+                                currentImage: uploadedFleetDocs.stnkPhoto,
+                                hintText: 'Periksa kesesuaian Nomor Polisi pada lembar STNK yang Anda unggah.',
+                                checklist: ['No. Polisi STNK cocok dengan form', 'STNK pajak aktif'],
+                                mode: 'USER_PREVIEW',
+                              })
+                            }
+                            className="w-full py-1 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            🔍 Preview Hasil Upload 👁️
+                          </button>
+
+                          <label className="w-full py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white text-[10px] font-extrabold rounded-lg cursor-pointer block text-center shadow-xs">
+                            📤 Upload / Ganti
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = URL.createObjectURL(file);
+                                  setUploadedFleetDocs((prev) => ({ ...prev, stnkPhoto: url }));
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1086,6 +1433,114 @@ export default function ProviderSettingsPage() {
           </form>
         </CardBody>
       </Card>
+
+      {/* Modal Lightbox for Document Guidance Hints, Sample Reference Photos & User Upload Inspection */}
+      {docPreviewModal.isOpen && (
+        <Modal
+          isOpen={docPreviewModal.isOpen}
+          onClose={() => setDocPreviewModal((prev) => ({ ...prev, isOpen: false }))}
+          title={docPreviewModal.title}
+          size="lg"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-3.5 bg-[#1B3A5C] text-white rounded-xl space-y-1 shadow-sm">
+              <span className="font-extrabold text-[#D4A843] block text-xs">
+                {docPreviewModal.mode === 'HINT' ? '💡 Ketentuan & SOP Resmi Upload Replate:' : '🔍 Mode Inspeksi Hasil Unggah Anda:'}
+              </span>
+              <p className="text-slate-200 text-[11px] font-medium leading-relaxed">
+                {docPreviewModal.hintText}
+              </p>
+            </div>
+
+            {/* Checklist items */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+              <span className="font-extrabold text-slate-800 text-[11px] block">Checklist Persyaratan Berkas:</span>
+              <ul className="space-y-1">
+                {docPreviewModal.checklist.map((item, idx) => (
+                  <li key={idx} className="flex items-center gap-2 text-[11px] font-medium text-slate-700">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Image Comparison / Single Display */}
+            {docPreviewModal.mode === 'HINT' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 bg-emerald-950/20 border border-emerald-500/40 rounded-xl space-y-2 text-center">
+                  <span className="font-extrabold text-emerald-800 text-[11px] block">
+                    ✓ CONTOH STANDAR RESMI YANG BENAR
+                  </span>
+                  <img
+                    src={docPreviewModal.sampleImage}
+                    alt="Contoh Benar"
+                    className="w-full h-52 object-cover rounded-lg border border-emerald-500/40 shadow-xs"
+                  />
+                  <span className="text-[10px] text-emerald-700 font-semibold block">
+                    Pencahayaan tajam, sudut utuh, teks terbaca tanpa silau.
+                  </span>
+                </div>
+
+                <div className="p-3 bg-slate-100 border border-slate-300 rounded-xl space-y-2 text-center">
+                  <span className="font-extrabold text-slate-800 text-[11px] block">
+                    📷 BERKAS YANG ANDA UNGGAH SAAT INI
+                  </span>
+                  <img
+                    src={docPreviewModal.currentImage}
+                    alt="Berkas Anda"
+                    className="w-full h-52 object-cover rounded-lg border border-slate-300 shadow-xs"
+                  />
+                  <span className="text-[10px] text-slate-600 font-semibold block">
+                    Pastikan berkas Anda sudah mirip dengan contoh di sebelah kiri.
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-slate-900 text-white rounded-xl space-y-2 text-center">
+                <span className="font-extrabold text-amber-300 text-xs block">
+                  🔍 INSPEKSI LENGKAP HASIL UPLOAD BERKAS ANDA
+                </span>
+                <div className="max-h-[380px] overflow-auto rounded-lg border border-slate-700 bg-black flex items-center justify-center p-2">
+                  <img
+                    src={docPreviewModal.currentImage}
+                    alt="Inspection Full"
+                    className="max-w-full max-h-[350px] object-contain rounded-md"
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Jika file sudah jelas, tajam, dan tidak buram, klik "Sesuai & Siap Ajukan".
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDocPreviewModal((prev) => ({ ...prev, isOpen: false }))}
+              >
+                Tutup Preview
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-black text-slate-950"
+                onClick={() => {
+                  setDocPreviewModal((prev) => ({ ...prev, isOpen: false }));
+                  setToastState({
+                    isOpen: true,
+                    message: '✓ Berkas terkonfirmasi sesuai! Silakan lanjutkan ke pengajuan armada toko.',
+                    type: 'success',
+                  });
+                }}
+              >
+                ✓ Sesuai & Siap Ajukan
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Toast Alert */}
       <Toast
