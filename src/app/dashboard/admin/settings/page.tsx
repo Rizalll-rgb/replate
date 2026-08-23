@@ -33,7 +33,7 @@ export default function AdminSettingsPage() {
     route: 5,
   });
 
-  // 8 Parametrisasi SOP BPOM & Permenkes No. 1096/2011
+  // 8 Parametrisasi SOP BPOM & Permenkes No. 1096/2011 + Grace Period Platform
   const [bpomRules, setBpomRules] = useState({
     cookedMealMaxHours: 6,
     bakeryMaxHours: 24,
@@ -43,6 +43,8 @@ export default function AdminSettingsPage() {
     sealedPackagingRequired: true,
     minOrganolepticScore: 8,
     slhsCertificateValidityMonths: 12,
+    defaultGracePeriodMins: 30,
+    maxGracePeriodCapMins: 60,
   });
 
   const [pricingRules, setPricingRules] = useState({
@@ -56,9 +58,14 @@ export default function AdminSettingsPage() {
   });
 
   const handleSave = () => {
+    try {
+      localStorage.setItem('replate_admin_grace_period_default', String(bpomRules.defaultGracePeriodMins));
+      localStorage.setItem('replate_admin_grace_period_max', String(bpomRules.maxGracePeriodCapMins));
+    } catch (_) {}
+
     setToastState({
       isOpen: true,
-      message: 'Seluruh Parameter SOP BPOM, Bisnis & Dana Kemanusiaan Infaq Berhasil Disimpan!',
+      message: 'Seluruh Parameter SOP BPOM, Grace Period Platform & Kebijakan Bisnis Berhasil Disimpan!',
       type: 'success',
     });
   };
@@ -220,7 +227,8 @@ export default function AdminSettingsPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
-                    defaultValue={30}
+                    value={bpomRules.defaultGracePeriodMins}
+                    onChange={(e) => setBpomRules({ ...bpomRules, defaultGracePeriodMins: parseInt(e.target.value) || 0 })}
                     className="w-24 font-bold text-[#1B3A5C]"
                   />
                   <span className="font-bold text-slate-600">Menit (Default Kebijakan Platform)</span>
@@ -232,7 +240,8 @@ export default function AdminSettingsPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
-                    defaultValue={60}
+                    value={bpomRules.maxGracePeriodCapMins}
+                    onChange={(e) => setBpomRules({ ...bpomRules, maxGracePeriodCapMins: parseInt(e.target.value) || 0 })}
                     className="w-24 font-bold text-[#1B3A5C]"
                   />
                   <span className="font-bold text-slate-600">Menit (Batas Keamanan BPOM Puncak)</span>

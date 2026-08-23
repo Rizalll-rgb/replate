@@ -1743,10 +1743,13 @@ export default function ProviderSettingsPage() {
                   onChange={(e) => setGracePeriodMins(e.target.value)}
                 >
                   <option value="15 Menit">15 Menit</option>
-                  <option value="30 Menit">30 Menit (Standar Recommendation)</option>
+                  <option value="30 Menit">30 Menit (Standar Recommendation SuperAdmin)</option>
                   <option value="45 Menit">45 Menit</option>
-                  <option value="60 Menit">60 Menit</option>
+                  <option value="60 Menit">60 Menit (Batas Maksimal Cap BPOM)</option>
                 </select>
+                <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                  🛡️ Kebijakan Platform Hybrid: Diizinkan hingga maks 60 menit sesuai standar SuperAdmin BPOM.
+                </span>
               </div>
 
               <div className="flex flex-col justify-center">
