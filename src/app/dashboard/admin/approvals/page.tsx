@@ -556,19 +556,41 @@ export default function AdminApprovalsPage() {
             </div>
 
             <div className="space-y-2">
-              <span className="font-extrabold text-[#1B3A5C] block">Dokumentasi 3 Berkas Legalitas Driver & Kendaraan:</span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <span className="font-extrabold text-[#1B3A5C] block">
+                Dokumentasi 5 Berkas Legalitas & Foto Fisik Armada Toko:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[11px]">🪪 Foto KTP Driver</span>
-                  <img src={inspectFleetModal.fleet.ktpPhoto} alt="KTP" className="w-full h-32 object-cover rounded-lg border" />
+                  <span className="font-extrabold text-slate-800 block text-[10px]">👤 Pasfoto Driver</span>
+                  <img
+                    src={inspectFleetModal.fleet.driverPhoto || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
+                    alt="Driver"
+                    className="w-full h-28 object-cover rounded-lg border"
+                  />
                 </div>
+
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[11px]">💳 Foto SIM C/A Driver</span>
-                  <img src={inspectFleetModal.fleet.simPhoto} alt="SIM" className="w-full h-32 object-cover rounded-lg border" />
+                  <span className="font-extrabold text-slate-800 block text-[10px]">🚚 Foto Fisik Armada</span>
+                  <img
+                    src={inspectFleetModal.fleet.vehiclePhoto || 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60'}
+                    alt="Armada Kendaraan"
+                    className="w-full h-28 object-cover rounded-lg border"
+                  />
                 </div>
+
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[11px]">📄 Foto STNK (No. Pol: {inspectFleetModal.fleet.plateNumber})</span>
-                  <img src={inspectFleetModal.fleet.stnkPhoto} alt="STNK" className="w-full h-32 object-cover rounded-lg border" />
+                  <span className="font-extrabold text-slate-800 block text-[10px]">🪪 Foto KTP Driver</span>
+                  <img src={inspectFleetModal.fleet.ktpPhoto} alt="KTP" className="w-full h-28 object-cover rounded-lg border" />
+                </div>
+
+                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                  <span className="font-extrabold text-slate-800 block text-[10px]">💳 Foto SIM C/A Driver</span>
+                  <img src={inspectFleetModal.fleet.simPhoto} alt="SIM" className="w-full h-28 object-cover rounded-lg border" />
+                </div>
+
+                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                  <span className="font-extrabold text-slate-800 block text-[10px]">📄 STNK ({inspectFleetModal.fleet.plateNumber})</span>
+                  <img src={inspectFleetModal.fleet.stnkPhoto} alt="STNK" className="w-full h-28 object-cover rounded-lg border" />
                 </div>
               </div>
             </div>

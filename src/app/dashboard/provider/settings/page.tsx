@@ -501,12 +501,52 @@ export default function ProviderSettingsPage() {
                     </div>
                   </div>
 
-                  {/* KTP, SIM, & STNK Document Upload Cards */}
+                  {/* KTP, SIM, STNK, Foto Driver, & Foto Armada Kendaraan Upload Cards */}
                   <div className="space-y-2 pt-2">
-                    <span className="font-extrabold text-[#D4A843] block">5. Unggah Berkas Kredensial Legalitas Armada (KTP, SIM & STNK):</span>
+                    <span className="font-extrabold text-[#D4A843] block">
+                      5. Unggah 5 Berkas Legalitas & Foto Fisik Armada (Driver, Kendaraan, KTP, SIM & STNK):
+                    </span>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* Upload KTP */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                      {/* 1. Foto Driver Toko */}
+                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
+                        <span className="font-extrabold text-white block text-[11px]">👤 Foto Driver / Kurir Toko</span>
+                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                          <img
+                            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60"
+                            alt="Foto Driver Toko"
+                            className="w-full h-full object-cover opacity-90"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            ✓ DRIVER VERIFIED
+                          </span>
+                        </div>
+                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
+                          Ganti Foto Driver
+                          <input type="file" accept="image/*" className="hidden" />
+                        </label>
+                      </div>
+
+                      {/* 2. Foto Armada Kendaraan Toko */}
+                      <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
+                        <span className="font-extrabold text-white block text-[11px]">🚚 Foto Fisik Armada (Plat No)</span>
+                        <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                          <img
+                            src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60"
+                            alt="Foto Armada Kendaraan Toko"
+                            className="w-full h-full object-cover opacity-90"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            ✓ ARMADA VERIFIED
+                          </span>
+                        </div>
+                        <label className="px-2.5 py-1 bg-[#1B3A5C] text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-[#2C5A8F] block">
+                          Ganti Foto Armada
+                          <input type="file" accept="image/*" className="hidden" />
+                        </label>
+                      </div>
+
+                      {/* 3. Upload KTP */}
                       <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
                         <span className="font-extrabold text-white block text-[11px]">🪪 Foto KTP Driver Toko</span>
                         <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
@@ -525,7 +565,7 @@ export default function ProviderSettingsPage() {
                         </label>
                       </div>
 
-                      {/* Upload SIM */}
+                      {/* 4. Upload SIM */}
                       <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
                         <span className="font-extrabold text-white block text-[11px]">💳 Foto SIM C / SIM A Driver</span>
                         <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
@@ -544,9 +584,9 @@ export default function ProviderSettingsPage() {
                         </label>
                       </div>
 
-                      {/* Upload STNK */}
+                      {/* 5. Upload STNK */}
                       <div className="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-2 text-center">
-                        <span className="font-extrabold text-white block text-[11px]">📄 Foto STNK Kendaraan (No. Pol: L 4582 ABC)</span>
+                        <span className="font-extrabold text-white block text-[11px]">📄 Foto STNK (Plat: L 4582 ABC)</span>
                         <div className="h-24 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
                           <img
                             src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60"
