@@ -19,14 +19,84 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/api/surplus')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.data)) {
-          setFoods(data.data);
-        }
-      })
-      .catch(() => {});
+    const defaultMockFoods = [
+      {
+        id: 'food-demo-1',
+        title: 'Nasi Paket Ayam Bakar Specialty Pak Kumis',
+        providerName: 'Warung Bakso Pak Kumis Surabaya',
+        originalPrice: 25000,
+        discountPrice: 10000,
+        quantity: '45 Porsi',
+        pickupTime: 'Hari ini 21:00 WIB',
+        distance: '1.2 km',
+        category: 'MAKANAN_BERAT',
+        isFree: false,
+        matchScore: 98,
+        imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+      },
+      {
+        id: 'food-demo-2',
+        title: 'Paket Rice Bowl Ayam Geprek Steril',
+        providerName: 'Warung Bakso Pak Kumis Surabaya',
+        originalPrice: 20000,
+        discountPrice: 0,
+        quantity: '40 Porsi',
+        pickupTime: 'Hari ini 20:30 WIB',
+        distance: '2.5 km',
+        category: 'MAKANAN_BERAT',
+        isFree: true,
+        matchScore: 96,
+        imageUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60',
+      },
+      {
+        id: 'food-demo-3',
+        title: 'Bakso Sapi Urat Super & Kuah Steril',
+        providerName: 'Warung Bakso Pak Kumis Surabaya',
+        originalPrice: 18000,
+        discountPrice: 5000,
+        quantity: '15 Porsi',
+        pickupTime: 'Hari ini 21:30 WIB',
+        distance: '0.8 km',
+        category: 'MAKANAN_BERAT',
+        isFree: false,
+        matchScore: 94,
+        imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500&auto=format&fit=crop&q=60',
+      },
+    ];
+
+    try {
+      const localStr = localStorage.getItem('replate_local_surplus');
+      const localItems = localStr ? JSON.parse(localStr) : [];
+      const mappedLocal = localItems.map((item: any, idx: number) => ({
+        id: item.id || `local-surplus-${idx}`,
+        title: item.name || item.title || 'Surplus Makanan Steril',
+        providerName: item.providerName || item.storeName || 'Warung Bakso Pak Kumis',
+        originalPrice: item.originalPrice ? Number(item.originalPrice) : 25000,
+        discountPrice: item.discountPrice !== undefined ? Number(item.discountPrice) : (item.type === 'DONATION' ? 0 : 8000),
+        quantity: item.quantity ? `${item.quantity} Porsi` : '10 Porsi',
+        pickupTime: item.pickupTime || 'Hari ini 21:00 WIB',
+        distance: item.distance || '1.0 km',
+        category: item.category || 'MAKANAN_BERAT',
+        isFree: item.discountPrice === 0 || item.type === 'DONATION' || item.isFree,
+        matchScore: item.matchScore || 96,
+        imageUrl: item.photo || item.imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60',
+      }));
+
+      fetch('/api/surplus')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            setFoods([...mappedLocal, ...data.data]);
+          } else {
+            setFoods([...mappedLocal, ...defaultMockFoods]);
+          }
+        })
+        .catch(() => {
+          setFoods([...mappedLocal, ...defaultMockFoods]);
+        });
+    } catch (_) {
+      setFoods(defaultMockFoods);
+    }
   }, []);
 
   const handleClaim = (id: string) => {

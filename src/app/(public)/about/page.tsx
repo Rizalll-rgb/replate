@@ -52,11 +52,13 @@ export default function AboutPage() {
           </Card>
 
           <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-sm">
-            <h3 className="text-xl font-extrabold text-[#1B3A5C]">Inovasi Unggulan</h3>
-            <ul className="list-disc list-inside text-xs text-slate-600 space-y-2">
-              <li><strong>Smart Matching Engine:</strong> Penentuan kecocokan multi-kriteria berbasis lokasi, urgensi, dan reputasi.</li>
-              <li><strong>Food Rescue ID:</strong> Transparansi rantai pasok distribusi dari penyerahan hingga penyerahan akhir.</li>
-              <li><strong>Standard Keamanan Pangan BPOM:</strong> SOP checklist 8 poin untuk memastikan makanan aman dikonsumsi.</li>
+            <h3 className="text-xl font-extrabold text-[#1B3A5C]">Inovasi Unggulan Platform</h3>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-2.5 font-medium leading-relaxed">
+              <li><strong>Smart Matching Engine 2.0:</strong> Kecocokan multi-kriteria berbasis jarak GPS, kategori gizi, urgensi kadaluarsa, & kapasitas panti.</li>
+              <li><strong>SOP Kelayakan Pangan BPOM RI:</strong> Checklist kelayakan 8-poin suhu simpan, integritas kemasan, & Self-Declare BPOM/Halal.</li>
+              <li><strong>Surat Jalan Digital No-Login WA:</strong> Rute pengantaran armada toko via WhatsApp tanpa perlu buat akun (`/driver-manifest/[id]`).</li>
+              <li><strong>Verifikasi QR Code & OTP Anti-Fraud:</strong> Sistem pindaian payload terenkripsi & konfirmasi serah terima dua arah.</li>
+              <li><strong>Kalkulator Dampak Emisi CO2e & CH4:</strong> Perhitungan otomatis pencegahan emisi metana TPA sesuai metodologi IPCC.</li>
             </ul>
           </Card>
         </div>

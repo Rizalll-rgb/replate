@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
+import { PWAInstallButton } from '../pwa/PWAInstallButton';
 
 export interface NavbarProps {
   user?: {
@@ -53,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
+          <PWAInstallButton />
           {user ? (
             <Link href="/dashboard">
               <Button variant="primary" size="sm" className="font-semibold">
