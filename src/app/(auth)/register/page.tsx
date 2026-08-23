@@ -51,8 +51,12 @@ export default function RegisterPage() {
             if (!res.ok) {
                 setError(data.error || 'Pendaftaran gagal');
             } else {
-                setSuccess(data.message);
-                setTimeout(() => router.push('/login'), 2000);
+                setSuccess('Akun berhasil dibuat! Mengalihkan ke langkah pengisian profil & berkas...');
+                if (formData.role === 'PROVIDER' || formData.role === 'RESCUE_PARTNER') {
+                    setTimeout(() => router.push('/onboarding/profile'), 1200);
+                } else {
+                    setTimeout(() => router.push('/login'), 1500);
+                }
             }
         } catch {
             setError('Terjadi kesalahan, coba lagi.');
