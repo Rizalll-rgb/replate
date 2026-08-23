@@ -366,31 +366,6 @@ export default function ProviderClaimsPage() {
         </p>
       </div>
 
-      {/* Real-time KPI Stats Cards (Poin 1: Realtime Claim Statistics Sync) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold">
-        <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
-          <span className="text-emerald-800 text-[11px] block uppercase tracking-wider">✓ Total Klaim Selesai & Disalurkan:</span>
-          <span className="text-2xl font-black text-emerald-950 font-mono">{completedClaims.length} Transaksi</span>
-          <span className="text-[10px] text-emerald-700 block font-normal">Sinkron Realtime dengan Database Replate</span>
-        </div>
-
-        <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200 space-y-1">
-          <span className="text-blue-800 text-[11px] block uppercase tracking-wider">📦 Total Porsi Makanan Terselamatkan:</span>
-          <span className="text-2xl font-black text-blue-950 font-mono">
-            {completedClaims.reduce((acc, c) => acc + (parseInt(c.quantity) || 15), 85)} Porsi
-          </span>
-          <span className="text-[10px] text-blue-700 block font-normal">Bebas Pemborosan Pangan di Toko</span>
-        </div>
-
-        <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 space-y-1">
-          <span className="text-purple-800 text-[11px] block uppercase tracking-wider">🌱 Metana CH4 & CO2 Tercegah:</span>
-          <span className="text-2xl font-black text-purple-950 font-mono">
-            {(completedClaims.length * 12.5).toFixed(1)} Kg CO2e
-          </span>
-          <span className="text-[10px] text-purple-700 block font-normal">Berdampak pada Lingkungan Kota Surabaya</span>
-        </div>
-      </div>
-
       {/* Action Control Panel for Camera Scan QR & Manual Code Input */}
       <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 text-white space-y-4 shadow-md">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

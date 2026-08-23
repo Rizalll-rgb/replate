@@ -41,10 +41,16 @@ export function DonationsHubComponent() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('replate_provider_can_deliver_direct');
-      if (saved !== null) {
-        setProviderCanDeliverDirect(saved === 'true');
+      const fleetStatus = localStorage.getItem('replate_provider_fleet_status');
+      // Default to true for verified provider account unless explicitly REJECTED/DISABLED
+      if (saved === 'false' && fleetStatus === 'REJECTED') {
+        setProviderCanDeliverDirect(false);
+      } else {
+        setProviderCanDeliverDirect(true);
       }
-    } catch (_) {}
+    } catch (_) {
+      setProviderCanDeliverDirect(true);
+    }
   }, []);
 
   // Search & Multi-Filter Control Bar State
