@@ -583,9 +583,9 @@ export default function ProviderClaimsPage() {
                         href={`/driver-manifest/${tx.code}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0"
+                        className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white hover:!text-white focus:!text-white active:!text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0 cursor-pointer"
                       >
-                        <span>📲 Web Surat Jalan Driver (No-Login) ➔</span>
+                        <span className="!text-white font-extrabold">📲 Web Surat Jalan Driver (No-Login) ➔</span>
                       </a>
                       <Button
                         variant="gold"
