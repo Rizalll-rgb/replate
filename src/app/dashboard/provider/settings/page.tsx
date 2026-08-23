@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
+import { Modal } from '@/components/ui/Modal';
 import { useSession } from 'next-auth/react';
 
 export default function ProviderSettingsPage() {
@@ -609,7 +610,7 @@ export default function ProviderSettingsPage() {
                   {/* KTP, SIM, STNK, Foto Driver, & Foto Armada Kendaraan Upload Cards With Guidance Hints & Preview Actions */}
                   <div className="space-y-3 pt-2">
                     <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl space-y-1">
-                      <span className="font-extrabold text-[#D4A843] text-xs block flex items-center gap-1.5">
+                      <span className="font-extrabold text-[#D4A843] text-xs flex items-center gap-1.5">
                         <span>💡 Ketentuan & Panduan Unggah Berkas Legalitas Armada:</span>
                       </span>
                       <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
