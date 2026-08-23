@@ -733,9 +733,10 @@ export default function ProviderSettingsPage() {
                               prev.map((item) => (item.id === currentFleet.id ? { ...item, plateNumber: val } : item))
                             );
                           }}
-                          className="bg-slate-800 border-slate-700 text-xs font-mono font-black text-amber-400"
                           required
-                          {/* KTP, SIM, STNK, Foto Driver, & Foto Armada Kendaraan Upload Cards With Guidance Hints & Preview Actions */}
+                        />
+                      </div>
+                    </div>
                     <div className="space-y-3 pt-2 border-t border-slate-800">
                       <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl space-y-1">
                         <span className="font-extrabold text-[#D4A843] text-xs flex items-center gap-1.5">
