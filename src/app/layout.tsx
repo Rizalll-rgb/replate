@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { PWARoleRedirect } from '@/components/pwa/PWARoleRedirect';
 
 export const metadata: Metadata = {
   title: 'Replate — Selamatkan Makanan, Bantu Sesama',
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body className="font-sans antialiased bg-[#F8F9FA] text-slate-900">
         <AuthProvider>
+          <PWARoleRedirect />
           <PageTransition>{children}</PageTransition>
         </AuthProvider>
       </body>
