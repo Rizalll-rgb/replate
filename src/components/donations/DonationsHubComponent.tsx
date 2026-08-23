@@ -35,8 +35,17 @@ export function DonationsHubComponent() {
   const { data: session } = useSession();
   const userRole = session?.user?.role || 'PROVIDER';
 
-  // Provider Direct Delivery Fleet Capability
+  // Provider Direct Delivery Fleet Capability Sync
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('replate_provider_can_deliver_direct');
+      if (saved !== null) {
+        setProviderCanDeliverDirect(saved === 'true');
+      }
+    } catch (_) {}
+  }, []);
 
   // Search & Multi-Filter Control Bar State
   const [searchQuery, setSearchQuery] = useState('');

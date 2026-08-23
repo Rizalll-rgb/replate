@@ -23,6 +23,18 @@ export default function ProviderSettingsPage() {
   const [halalCertNo, setHalalCertNo] = useState('ID35110001298450123');
   const [defaultPackaging, setDefaultPackaging] = useState('Kemasan Boks Biodegradable (Steril)');
 
+  // Provider Direct Delivery Fleet Capability State
+  const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('replate_provider_can_deliver_direct');
+      if (saved !== null) {
+        setProviderCanDeliverDirect(saved === 'true');
+      }
+    } catch (_) {}
+  }, []);
+
   // Preferences State
   const [autoMatchPanti, setAutoMatchPanti] = useState(true);
   const [waAlerts, setWaAlerts] = useState(true);
@@ -394,6 +406,83 @@ export default function ProviderSettingsPage() {
                   required
                 />
               </div>
+            </div>
+
+            {/* Provider Direct Delivery Fleet Capability Activation Sub-Card */}
+            <div className="p-5 bg-gradient-to-r from-[#1B3A5C] to-slate-900 text-white rounded-2xl space-y-4 border border-slate-700 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-wider block">
+                      KAPABILITAS LOGISTIK TOKO
+                    </span>
+                    <Badge variant="gold">DIRECT FLEET FEATURE</Badge>
+                  </div>
+                  <h4 className="text-sm font-extrabold text-white">
+                    Aktivasi Armada Pengiriman Toko Mandiri (Diantar Oleh Restoran)
+                  </h4>
+                  <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                    Aktifkan opsi ini jika toko Anda memiliki kurir/driver mandiri untuk mengantarkan makanan surplus secara langsung ke lokasi penerima bantuan/shelter.
+                  </p>
+                </div>
+
+                <div className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newStatus = !providerCanDeliverDirect;
+                      setProviderCanDeliverDirect(newStatus);
+                      try {
+                        localStorage.setItem('replate_provider_can_deliver_direct', String(newStatus));
+                      } catch (_) {}
+                      setToastState({
+                        isOpen: true,
+                        message: newStatus
+                          ? '🚚 Kapabilitas Armada Toko Mandiri Berhasil Diaktifkan! Opsi pengantaran langsung toko kini terbuka pada modul Donasi & Surplus.'
+                          : '🛵 Kapabilitas Armada Toko Dinonaktifkan. Pengiriman makanan dialihkan kembali ke Kurir Relawan Replate.',
+                        type: 'success',
+                      });
+                    }}
+                    className={`px-4 py-2.5 rounded-xl font-extrabold text-xs shadow-md transition-all ${
+                      providerCanDeliverDirect
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-slate-950'
+                        : 'bg-[#D4A843] hover:bg-[#b88f32] text-slate-950'
+                    }`}
+                  >
+                    {providerCanDeliverDirect ? '✓ ARMADA TOKO AKTIF (Klik Nonaktifkan)' : '⚡ Aktifkan Armada Toko Mandiri Sekarang'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Rincian Armada Toko Jika Diaktifkan */}
+              {providerCanDeliverDirect && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                  <div>
+                    <label className="text-slate-300 font-semibold block mb-1">Jumlah Armada Kendaraan:</label>
+                    <Input
+                      placeholder="Contoh: 2 Sepeda Motor / 1 Pick Up"
+                      defaultValue="2 Motor Armada Outlet"
+                      className="bg-slate-800 text-white border-slate-700 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 font-semibold block mb-1">Nama & HP Driver Toko:</label>
+                    <Input
+                      placeholder="Contoh: Mas Doni (0812-3456-7891)"
+                      defaultValue="Mas Doni (0812-3456-7891)"
+                      className="bg-slate-800 text-white border-slate-700 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 font-semibold block mb-1">Radius Jangkauan Antar:</label>
+                    <Input
+                      placeholder="Contoh: Maksimal 10 Km"
+                      defaultValue="Maksimal 10 Km Surabaya"
+                      className="bg-slate-800 text-white border-slate-700 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
