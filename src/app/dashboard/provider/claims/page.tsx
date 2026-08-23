@@ -22,7 +22,28 @@ export default function ProviderClaimsPage() {
     type: 'success',
   });
 
+  const [paymentInspectModal, setPaymentInspectModal] = useState<{ isOpen: boolean; claim: any | null }>({
+    isOpen: false,
+    claim: null,
+  });
+
   const defaultPending = [
+    {
+      code: 'FB-SALE-99102',
+      foodName: 'Nasi Goreng Buffet Specialty',
+      userName: 'Ahmad Fauzi (Konsumen Umum)',
+      recipientPerson: 'Ahmad Fauzi',
+      recipientPhone: '0812-7766-5544',
+      recipientType: 'Konsumen Umum (Rescue Sale)',
+      quantity: '3 Porsi',
+      amountPaid: 15000,
+      paymentMethod: 'MANUAL_TRANSFER_QRIS',
+      status: 'PAYMENT_PROOF_UPLOADED',
+      deliveryMethod: 'SHELTER_PICKUP',
+      paymentProofUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60',
+      address: 'Outlet Pak Kumis (Ambil Mandiri)',
+      time: 'Hari ini 20:00 WIB',
+    },
     {
       code: 'FB-DON-88192',
       foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
@@ -297,6 +318,21 @@ export default function ProviderClaimsPage() {
     });
   };
 
+  // Manual Transfer / QRIS Payment Proof Approval Handler
+  const handleApprovePaymentProof = (cleanCode: string) => {
+    setPendingClaims((prev) =>
+      prev.map((c) =>
+        c.code === cleanCode ? { ...c, status: 'READY_FOR_PICKUP' } : c
+      )
+    );
+    setPaymentInspectModal({ isOpen: false, claim: null });
+    setToastState({
+      isOpen: true,
+      message: `✅ Bukti Bayar Transfer/QRIS Resi "${cleanCode}" Berhasil Diverifikasi Lunas! Tiket QR Klaim Aktif.`,
+      type: 'success',
+    });
+  };
+
   const openConfirmModal = (tx: (typeof pendingClaims)[0]) => {
     setConfirmModal({
       isOpen: true,
@@ -436,9 +472,20 @@ export default function ProviderClaimsPage() {
                 </div>
 
                 {activeTab === 'PENDING' ? (
-                  <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
-                    Konfirmasi Handover ➔
-                  </Button>
+                  tx.status === 'PAYMENT_PROOF_UPLOADED' ? (
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      className="font-extrabold text-xs shadow-xs flex items-center gap-1.5"
+                      onClick={() => setPaymentInspectModal({ isOpen: true, claim: tx })}
+                    >
+                      <span>💳 Inspect Struk Bayar & Verifikasi Lunas ➔</span>
+                    </Button>
+                  ) : (
+                    <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
+                      Konfirmasi Handover ➔
+                    </Button>
+                  )
                 ) : activeTab === 'IN_TRANSIT' ? (
                   tx.deliveryMethod === 'SHELTER_PICKUP' ? (
                     <Button
@@ -666,6 +713,55 @@ export default function ProviderClaimsPage() {
               </Button>
               <Button variant="gold" size="sm" className="font-extrabold" onClick={() => handleVerifyCodeAtStore(confirmModal.code)}>
                 Konfirmasi Handover ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Inspect Payment Proof (Transfer Manual / QRIS Toko) */}
+      {paymentInspectModal.isOpen && paymentInspectModal.claim && (
+        <Modal
+          isOpen={paymentInspectModal.isOpen}
+          onClose={() => setPaymentInspectModal({ isOpen: false, claim: null })}
+          title={`Verifikasi Pembayaran Rescue Sale: ${paymentInspectModal.claim.code}`}
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
+              <span className="font-extrabold text-amber-900 block">
+                💳 Bukti Transfer / Scan QRIS Toko Diunggah Konsumen:
+              </span>
+              <p className="text-[11px] text-amber-800 font-medium">
+                Pembeli: <strong>{paymentInspectModal.claim.userName}</strong> • Tagihan: <strong className="font-mono text-slate-900">Rp {(paymentInspectModal.claim.amountPaid || 15000).toLocaleString('id-ID')}</strong> ({paymentInspectModal.claim.quantity})
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="font-bold text-slate-800 block">Foto Struk / Screenshot Bukti Transfer:</span>
+              <div className="h-56 bg-slate-900 rounded-xl overflow-hidden border border-slate-300 relative">
+                <img
+                  src={paymentInspectModal.claim.paymentProofUrl || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60'}
+                  alt="Bukti Transfer"
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute bottom-2 left-2 bg-slate-900/90 text-white text-[10px] px-2 py-0.5 rounded font-mono">
+                  STRUK TRANSFER QRIS TOKO
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+              <Button variant="outline" size="sm" onClick={() => setPaymentInspectModal({ isOpen: false, claim: null })}>
+                Tutup
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-extrabold text-slate-950 shadow-md"
+                onClick={() => handleApprovePaymentProof(paymentInspectModal.claim.code)}
+              >
+                ✓ Verifikasi Lunas & Aktifkan Tiket QR ➔
               </Button>
             </div>
           </div>
