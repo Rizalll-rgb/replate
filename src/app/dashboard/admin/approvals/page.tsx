@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +9,8 @@ import { Toast } from '@/components/ui/Toast';
 import { Input } from '@/components/ui/Input';
 
 export default function AdminApprovalsPage() {
+  const [activeTab, setActiveTab] = useState<'MITRA' | 'CONSUMER_BENEFICIARY'>('MITRA');
+
   const [pendingUsers, setPendingUsers] = useState([
     {
       id: 'p1',
@@ -51,9 +53,56 @@ export default function AdminApprovalsPage() {
     },
   ]);
 
+  const defaultConsumerQueue = [
+    {
+      id: 'c1',
+      name: 'Budi Santoso (Konsumen)',
+      email: 'budi.santoso@gmail.com',
+      phone: '0813-4567-8901',
+      proofType: 'SKTM (Kelurahan Gubeng)',
+      proofNumber: 'SKTM/SBY-GBG/2024/8812',
+      proofPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+      submittedAt: 'Hari ini 11:20 WIB',
+      status: 'PENDING',
+    },
+    {
+      id: 'c2',
+      name: 'Ibu Ratna (Warga Rentan)',
+      email: 'ratna.krembangan@gmail.com',
+      phone: '0819-0123-4567',
+      proofType: 'Kartu Indonesia Sehat (KIS PBI)',
+      proofNumber: 'KIS-3578019920192',
+      proofPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+      submittedAt: 'Kemarin 16:45 WIB',
+      status: 'PENDING',
+    },
+  ];
+
+  const [consumerQueue, setConsumerQueue] = useState<any[]>(defaultConsumerQueue);
+
+  // Sync consumer verification queue from localStorage
+  useEffect(() => {
+    try {
+      const savedQueueStr = localStorage.getItem('replate_admin_consumer_queue');
+      if (savedQueueStr) {
+        const savedQueue = JSON.parse(savedQueueStr);
+        if (Array.isArray(savedQueue) && savedQueue.length > 0) {
+          const map = new Map();
+          [...savedQueue, ...defaultConsumerQueue].forEach((item) => map.set(item.id, item));
+          setConsumerQueue(Array.from(map.values()));
+        }
+      }
+    } catch (_) {}
+  }, []);
+
   const [inspectModal, setInspectModal] = useState<{ isOpen: boolean; user: (typeof pendingUsers)[0] | null }>({
     isOpen: false,
     user: null,
+  });
+
+  const [inspectConsumerModal, setInspectConsumerModal] = useState<{ isOpen: boolean; consumer: any | null }>({
+    isOpen: false,
+    consumer: null,
   });
 
   const [rejectModal, setRejectModal] = useState<{ isOpen: boolean; userId: string; reason: string }>({
@@ -114,128 +163,309 @@ export default function AdminApprovalsPage() {
     }
   };
 
+  const handleConsumerApprove = (id: string) => {
+    setConsumerQueue((prev) => prev.filter((c) => c.id !== id));
+    try {
+      localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+    } catch (_) {}
+    setInspectConsumerModal({ isOpen: false, consumer: null });
+    setToastState({
+      isOpen: true,
+      message: '✅ Berhasil! Akun Konsumen disetujui sebagai Penerima Bantuan Terverifikasi Dinsos (Donasi Rp 0 Aktif).',
+      type: 'success',
+    });
+  };
+
+  const handleConsumerReject = (id: string) => {
+    setConsumerQueue((prev) => prev.filter((c) => c.id !== id));
+    try {
+      localStorage.setItem('replate_consumer_verification_status', 'REGULAR_SAVER');
+    } catch (_) {}
+    setInspectConsumerModal({ isOpen: false, consumer: null });
+    setToastState({
+      isOpen: true,
+      message: '❌ Permohonan verifikasi rentan ditolak. Akun dikembalikan ke Konsumen Biasa (Rescue Sale).',
+      type: 'error',
+    });
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Header Banner */}
       <div className="border-b border-slate-200 pb-4">
-        <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Antrean Persetujuan Akun Mitra (Approvals Queue)</h2>
+        <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Persetujuan Verifikasi & Kredensial (Approvals Hub)</h2>
         <p className="text-xs text-slate-500 font-medium">
-          Verifikasi administrasi khusus untuk mitra <strong>Food Provider</strong> & <strong>Rescue Partner</strong>. (Akun Konsumen di-approve otomatis).
+          Kelola persetujuan legalitas mitra <strong>Food Provider</strong>, <strong>Rescue Partner</strong>, serta verifikasi <strong>Konsumen Rentan (Donasi Rp 0)</strong>.
         </p>
       </div>
 
-      {/* Info Banner Khusus Kebijakan Approvals */}
-      <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
-        <div className="text-lg">ℹ️</div>
-        <div className="space-y-1">
-          <span className="font-extrabold block">Aturan Verifikasi Administrasi Mitra Replate:</span>
-          <p className="text-blue-800 leading-relaxed font-medium">
-            Hanya pendaftar bertipe <strong>Food Provider</strong> (Restoran/Hotel/Toko) dan <strong>Rescue Partner</strong> (Panti Asuhan/Food Bank) yang memerlukan verifikasi NIB & SOP BPOM. Jika dokumen masih diragukan, klik <strong>"Hold & Jadwalkan Survei"</strong> untuk mengirim tim inspeksi ke lokasi.
-          </p>
-        </div>
+      {/* Tabs Filter */}
+      <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold">
+        <button
+          onClick={() => setActiveTab('MITRA')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            activeTab === 'MITRA'
+              ? 'bg-[#1B3A5C] text-white font-black'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          🏢 Persetujuan Akun Mitra Provider & Rescue ({pendingUsers.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('CONSUMER_BENEFICIARY')}
+          className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            activeTab === 'CONSUMER_BENEFICIARY'
+              ? 'bg-[#1B3A5C] text-white font-black'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          🤝 Verifikasi Konsumen Rentan SKTM / Donasi Rp 0 ({consumerQueue.length})
+        </button>
       </div>
 
-      {pendingUsers.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-2">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+      {activeTab === 'MITRA' ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
+            <div className="text-lg">ℹ️</div>
+            <div className="space-y-1">
+              <span className="font-extrabold block">Aturan Verifikasi Administrasi Mitra Replate:</span>
+              <p className="text-blue-800 leading-relaxed font-medium">
+                Mitra bertipe <strong>Food Provider</strong> (Restoran/Hotel) dan <strong>Rescue Partner</strong> (Panti Asuhan/Food Bank) memerlukan verifikasi NIB & SOP BPOM.
+              </p>
+            </div>
           </div>
-          <h3 className="text-base font-extrabold text-[#1B3A5C]">Semua Permohonan Telah Diproses</h3>
-          <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
-            Tidak ada permohonan pendaftaran akun mitra yang pending saat ini.
-          </p>
+
+          {pendingUsers.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-2">
+              <h3 className="text-base font-extrabold text-[#1B3A5C]">Semua Permohonan Mitra Telah Diproses</h3>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <Table className="min-w-[850px]">
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Pendaftar & Organisasi</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Kontak Email & HP</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Peran (Role)</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Status Verifikasi</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C] text-right">Inspeksi & Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingUsers.map((u) => (
+                    <TableRow key={u.id} className="hover:bg-slate-50/80 transition-colors">
+                      <TableCell className="font-bold text-slate-800">
+                        <div className="space-y-0.5">
+                          <span className="font-extrabold text-[#1B3A5C] block">{u.name}</span>
+                          <span className="text-[11px] text-slate-500 font-normal">{u.org}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600 font-medium">
+                        <div>
+                          <span>{u.email}</span>
+                          <span className="text-[11px] text-slate-400 block">{u.phone}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={u.role === 'PROVIDER' ? 'gold' : 'primary'} size="sm">
+                          {u.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {u.status === 'HOLD_SURVEY' ? (
+                          <Badge variant="warning" size="sm">
+                            ⏳ HOLD (SURVEI LAPANGAN)
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" size="sm">
+                            MENUNGGU INSPEKSI
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs font-bold border-slate-300"
+                            onClick={() => setInspectModal({ isOpen: true, user: u })}
+                          >
+                            👁️ Inspeksi
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200"
+                            onClick={() => handleAction(u.id, 'HOLD_SURVEY')}
+                          >
+                            🔍 Hold & Survei
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            className="text-xs font-bold"
+                            onClick={() => setRejectModal({ isOpen: true, userId: u.id, reason: '' })}
+                          >
+                            Tolak
+                          </Button>
+                          <Button
+                            variant="gold"
+                            size="sm"
+                            className="text-xs font-extrabold"
+                            onClick={() => handleAction(u.id, 'APPROVE')}
+                          >
+                            Setujui ✔️
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table className="min-w-[850px]">
-              <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead className="font-extrabold text-[#1B3A5C]">Pendaftar & Organisasi</TableHead>
-                  <TableHead className="font-extrabold text-[#1B3A5C]">Kontak Email & HP</TableHead>
-                  <TableHead className="font-extrabold text-[#1B3A5C]">Peran (Role)</TableHead>
-                  <TableHead className="font-extrabold text-[#1B3A5C]">Status Verifikasi</TableHead>
-                  <TableHead className="font-extrabold text-[#1B3A5C] text-right">Inspeksi & Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingUsers.map((u) => (
-                  <TableRow key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                    <TableCell className="font-bold text-slate-800">
-                      <div className="space-y-0.5">
-                        <span className="font-extrabold text-[#1B3A5C] block">{u.name}</span>
-                        <span className="text-[11px] text-slate-500 font-normal">{u.org}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-600 font-medium">
-                      <div>
-                        <span>{u.email}</span>
-                        <span className="text-[11px] text-slate-400 block">{u.phone}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={u.role === 'PROVIDER' ? 'gold' : 'primary'} size="sm">
-                        {u.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {u.status === 'HOLD_SURVEY' ? (
-                        <Badge variant="warning" size="sm">
-                          ⏳ HOLD (SURVEI LAPANGAN)
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" size="sm">
-                          MENUNGGU INSPEKSI
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs font-bold border-slate-300"
-                          onClick={() => setInspectModal({ isOpen: true, user: u })}
-                        >
-                          👁️ Inspeksi
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200"
-                          onClick={() => handleAction(u.id, 'HOLD_SURVEY')}
-                        >
-                          🔍 Hold & Survei
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          className="text-xs font-bold"
-                          onClick={() => setRejectModal({ isOpen: true, userId: u.id, reason: '' })}
-                        >
-                          Tolak
-                        </Button>
-                        <Button
-                          variant="gold"
-                          size="sm"
-                          className="text-xs font-extrabold"
-                          onClick={() => handleAction(u.id, 'APPROVE')}
-                        >
-                          Setujui ✔️
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        /* Tab Consumer Beneficiary SKTM Approvals */
+        <div className="space-y-4">
+          <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-emerald-900">
+            <div className="text-lg">🤝</div>
+            <div className="space-y-1">
+              <span className="font-extrabold block">Aturan Verifikasi Konsumen Rentan (Bantuan Donasi Rp 0):</span>
+              <p className="text-emerald-800 leading-relaxed font-medium">
+                Tinjau kelayakan berkas SKTM Kelurahan / Kartu KIS PBI / KKS Bansos pemohon. Setelah disetujui, akun konsumen mendapatkan hak akses klaim makanan donasi <strong>GRATIS 100% (Rp 0)</strong> dengan batasan kuota harian NIK.
+              </p>
+            </div>
           </div>
+
+          {consumerQueue.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-2">
+              <h3 className="text-base font-extrabold text-[#1B3A5C]">Semua Permohonan Verifikasi Rentan Telah Diproses</h3>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <Table className="min-w-[850px]">
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Nama Konsumen Pemohon</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Jenis & Nomor Dokumen Proof</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C]">Waktu Pengajuan</TableHead>
+                    <TableHead className="font-extrabold text-[#1B3A5C] text-right">Verifikasi Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {consumerQueue.map((c) => (
+                    <TableRow key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                      <TableCell className="font-bold text-slate-800">
+                        <div className="space-y-0.5">
+                          <span className="font-extrabold text-[#1B3A5C] block">{c.name}</span>
+                          <span className="text-[11px] text-slate-500 font-medium">{c.phone} • {c.email}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-700">
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md inline-block">
+                            {c.proofType}
+                          </span>
+                          <span className="font-mono font-bold text-slate-900 block mt-1">{c.proofNumber}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500 font-medium">{c.submittedAt}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs font-bold border-slate-300"
+                            onClick={() => setInspectConsumerModal({ isOpen: true, consumer: c })}
+                          >
+                            👁️ Periksa Berkas
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            className="text-xs font-bold"
+                            onClick={() => handleConsumerReject(c.id)}
+                          >
+                            Tolak
+                          </Button>
+                          <Button
+                            variant="gold"
+                            size="sm"
+                            className="text-xs font-black text-slate-950"
+                            onClick={() => handleConsumerApprove(c.id)}
+                          >
+                            Setujui Rentan (Rp 0) ✔️
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Modal Inspeksi Berkas Administrasi Detail */}
+      {/* Modal Inspect Consumer Proof Document */}
+      {inspectConsumerModal.isOpen && inspectConsumerModal.consumer && (
+        <Modal
+          isOpen={inspectConsumerModal.isOpen}
+          onClose={() => setInspectConsumerModal({ isOpen: false, consumer: null })}
+          title={`Inspeksi Dokumen Verifikasi Rentan: ${inspectConsumerModal.consumer.name}`}
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-slate-500 font-semibold block">Pemohon:</span>
+                <span className="font-extrabold text-[#1B3A5C] text-sm">{inspectConsumerModal.consumer.name}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Jenis Dokumen:</span>
+                <span className="font-bold text-emerald-800">{inspectConsumerModal.consumer.proofType}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Nomor KIS / SKTM:</span>
+                <span className="font-mono font-bold text-slate-900">{inspectConsumerModal.consumer.proofNumber}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">No. HP / WA:</span>
+                <span className="font-bold text-slate-800">{inspectConsumerModal.consumer.phone}</span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <span className="font-extrabold text-[#1B3A5C] block">Lampiran Foto SKTM / Kartu Bansos Pemohon:</span>
+              <img
+                src={inspectConsumerModal.consumer.proofPhoto}
+                alt="Foto SKTM"
+                className="w-full h-48 object-cover rounded-xl border border-slate-300 shadow-sm"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button variant="outline" size="sm" onClick={() => setInspectConsumerModal({ isOpen: false, consumer: null })}>
+                Tutup Modal
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => handleConsumerReject(inspectConsumerModal.consumer.id)}>
+                Tolak Verifikasi
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-black text-slate-950"
+                onClick={() => handleConsumerApprove(inspectConsumerModal.consumer.id)}
+              >
+                Setujui & Aktifkan Donasi Rp 0 ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Inspeksi Berkas Mitra */}
       <Modal
         isOpen={inspectModal.isOpen}
         onClose={() => setInspectModal({ isOpen: false, user: null })}
@@ -275,7 +505,6 @@ export default function AdminApprovalsPage() {
             </div>
           </div>
 
-          {/* Foto Fasilitas Dapur / Bangunan */}
           <div className="space-y-2">
             <span className="font-extrabold text-[#1B3A5C] block">Dokumentasi Foto Dapur Produksi / Fasilitas Usaha:</span>
             <div className="relative h-44 w-full bg-slate-900 rounded-xl overflow-hidden border border-slate-300">
@@ -284,9 +513,6 @@ export default function AdminApprovalsPage() {
                 alt="Fasilitas Produksi"
                 className="w-full h-full object-cover"
               />
-              <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2.5 py-1 rounded-md font-mono">
-                LAMPIRAN DOKUMEN FISIK SANITASI
-              </span>
             </div>
           </div>
 
@@ -335,10 +561,6 @@ export default function AdminApprovalsPage() {
         size="md"
       >
         <div className="space-y-4 text-xs">
-          <p className="text-slate-600 leading-relaxed font-medium">
-            Masukkan alasan penolakan administrasi yang akan dikirimkan secara otomatis via email kepada pendaftar:
-          </p>
-
           <Input
             value={rejectModal.reason}
             onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
