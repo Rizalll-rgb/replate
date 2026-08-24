@@ -22,24 +22,24 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
   const presetAccounts = [
     {
       name: 'Rizal Akbar Kurniawan',
-      email: 'rizal.akbar.kurniawan@gmail.com',
+      email: 'rizal.23188@mhs.unesa.ac.id',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      tag: 'UNESA - Lead Full Stack',
+      tag: 'Akun Mahasiswa UNESA',
     },
     {
-      name: 'Fabio Daffa Airlangga',
-      email: 'fabio.daffa.airlangga@gmail.com',
+      name: 'Rizal Akbar Kurniawan',
+      email: 'rizalakbarkurniawannn@gmail.com',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-      tag: 'PENS - UI/UX & Full Stack',
+      tag: 'Akun Utama Google',
     },
     {
-      name: 'Tina Nur Fadillah',
-      email: 'tina.nur.fadillah@gmail.com',
+      name: 'Rizal Akbar Kurniawan',
+      email: 'narutohinata746@gmail.com',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80',
-      tag: 'UNESA - Penulis Proposal',
+      tag: 'Akun Sekunder Google',
     },
     {
-      name: 'Juri Penilai Competition',
+      name: 'Juri Penilai Infinitera 2.0',
       email: 'juri.infinitera.2026@gmail.com',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80',
       tag: 'HM TIF UNISSULA Judge',
@@ -51,7 +51,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
     setTimeout(() => {
       setSelectingEmail(null);
       onSelectAccount(account);
-    }, 600);
+    }, 500);
   };
 
   const handleAddCustomSubmit = (e: React.FormEvent) => {
@@ -65,8 +65,8 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
     <Modal isOpen={isOpen} onClose={onClose} title="" size="sm">
       <div className="p-2 space-y-4 font-sans text-slate-800">
         {/* Google Branding Header */}
-        <div className="text-center space-y-2 pb-3 border-b border-slate-200">
-          <div className="flex justify-center">
+        <div className="text-center space-y-1.5 pb-3 border-b border-slate-200">
+          <div className="flex justify-center mb-1">
             <svg className="w-8 h-8" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -76,7 +76,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
           </div>
           <h2 className="text-base font-bold text-slate-900">Pilih Akun Google</h2>
           <p className="text-xs text-slate-500 font-medium">
-            untuk melanjutkan ke <span className="font-extrabold text-[#1B3A5C]">Replate Surabaya</span>
+            Lanjutkan ke <span className="font-extrabold text-[#1B3A5C]">Replate Surabaya</span>
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                 className="w-full p-3 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 flex items-center justify-between text-left transition-all group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center text-sm shrink-0 border border-slate-300">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-sm shrink-0 shadow-xs">
                     {acc.name.charAt(0)}
                   </div>
                   <div>
@@ -134,12 +134,12 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
           <form onSubmit={handleAddCustomSubmit} className="space-y-3 p-1">
             <div className="space-y-1">
               <label className="text-xs font-extrabold text-slate-700 block">
-                Email Google Anda:
+                Alamat Email Google:
               </label>
               <input
                 type="email"
                 required
-                placeholder="contoh@gmail.com"
+                placeholder="nama@gmail.com"
                 value={customEmail}
                 onChange={(e) => setCustomEmail(e.target.value)}
                 className="w-full p-2.5 bg-slate-50 text-slate-900 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-blue-500 focus:bg-white"
@@ -148,7 +148,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
 
             <div className="space-y-1">
               <label className="text-xs font-extrabold text-slate-700 block">
-                Nama Pengguna (Opsional):
+                Nama Lengkap:
               </label>
               <input
                 type="text"
