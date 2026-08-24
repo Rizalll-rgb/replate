@@ -69,7 +69,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     }
 
     if (entered !== generatedOtp) {
-      setError(`❌ Kode OTP (${entered}) tidak cocok! Kode OTP WhatsApp Anda adalah [${generatedOtp}].`);
+      setError('❌ Kode OTP yang Anda masukkan salah! Silakan periksa pesan pada obrolan WhatsApp Anda.');
       return;
     }
 
@@ -88,7 +88,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     setGeneratedOtp(newRandomOtp);
     setOtp(['', '', '', '']);
     setCountdown(60);
-    setResendMessage(`✓ Kode OTP baru [${newRandomOtp}] telah dikirimkan via WhatsApp!`);
+    setResendMessage('✓ Kode OTP baru telah dikirimkan via WhatsApp! Silakan periksa obrolan WA Anda.');
     setTimeout(() => setResendMessage(''), 4000);
   };
 
@@ -99,7 +99,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="📱 Verifikasi 2-Langkah (WhatsApp OTP Unique)"
+      title="📱 Verifikasi 2-Langkah (WhatsApp OTP)"
       size="sm"
     >
       <div className="space-y-4 text-center text-xs text-slate-700">
@@ -114,7 +114,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
           </p>
         </div>
 
-        {/* Real-time WA Integration Action Card with Dynamic Generated OTP */}
+        {/* Real-time WA Integration Action Card - Code is sent to WA Chat only */}
         <a
           href={`https://wa.me/${cleanWaNumber}?text=Kode%20OTP%20Replate%20Anda:%20${generatedOtp}`}
           target="_blank"
@@ -122,7 +122,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
           className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-950 font-extrabold text-xs transition-all text-left shadow-xs"
         >
           <div className="space-y-0.5">
-            <span className="block text-[11px] font-black">💬 Buka WhatsApp Untuk Terima Kode OTP ({generatedOtp}):</span>
+            <span className="block text-[11px] font-black">💬 Buka WhatsApp Untuk Menerima Kode OTP:</span>
             <span className="text-[10px] text-emerald-700 font-mono font-medium block">wa.me/{cleanWaNumber}</span>
           </div>
           <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-black shrink-0 shadow-xs">
@@ -162,7 +162,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
             ))}
           </div>
           <p className="text-[11px] text-slate-500 font-medium">
-            💡 Masukkan kode OTP unik WhatsApp di atas (<button type="button" onClick={() => setOtp(generatedOtp.split(''))} className="text-emerald-700 font-mono font-black underline cursor-pointer">Klik disini untuk isi otomatis ({generatedOtp})</button>)
+            💡 Masukkan 4-digit kode OTP unik yang Anda terima pada obrolan WhatsApp.
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
             size="md"
             onClick={handleVerify}
             isLoading={isVerifying}
-            className="w-full font-black text-slate-950 py-3 shadow-md"
+            className="w-full font-black text-slate-950 py-3 shadow-md cursor-pointer"
           >
             <span>Verifikasi Kode OTP WA ➔</span>
           </Button>

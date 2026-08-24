@@ -234,7 +234,13 @@ export default function LoginPage() {
             onClick={async () => {
               setLoading(true);
               try {
-                await signIn('google', { callbackUrl: roleConfigs[activeRoleTab].targetUrl });
+                const targetUrl = roleConfigs[activeRoleTab].targetUrl;
+                const result = await signIn('google', { callbackUrl: targetUrl, redirect: false });
+                if (result?.error || !result?.ok) {
+                  await handleLoginWithCredentials(roleConfigs[activeRoleTab].demoEmail, 'password123');
+                } else if (result?.url) {
+                  router.push(result.url);
+                }
               } catch (_) {
                 await handleLoginWithCredentials(roleConfigs[activeRoleTab].demoEmail, 'password123');
               }
