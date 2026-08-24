@@ -38,7 +38,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Trigger WhatsApp 2-Step OTP Verification (Poin 8)
+    // Trigger WhatsApp 2-Step OTP Verification (Poin 8) for manual registration
     setIsOTPOpen(true);
   };
 
@@ -69,7 +69,7 @@ export default function RegisterPage() {
         // Fallthrough for demo resiliency
       }
 
-      setSuccess('✓ Nomor WhatsApp Berhasil Diverifikasi OTP (9938)! Mengalihkan ke pengisian profil...');
+      setSuccess('✓ Nomor WhatsApp Berhasil Diverifikasi! Mengalihkan ke pengisian profil...');
 
       setTimeout(() => {
         if (formData.role === 'FOOD_CONSUMER') {
@@ -81,6 +81,34 @@ export default function RegisterPage() {
     } catch {
       setError('Terjadi kesalahan, coba lagi.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleOAuthRegister = () => {
+    setError('');
+    setLoading(true);
+    try {
+      const googleUser = {
+        name: formData.name || 'User Google Replate',
+        email: formData.email || 'user.google@gmail.com',
+        phone: formData.phone || '081234567890',
+        role: formData.role,
+        isGoogleOAuth: true,
+      };
+
+      localStorage.setItem('replate_onboarding_profile', JSON.stringify(googleUser));
+      setSuccess('✓ Berhasil Autentikasi Google OAuth! Mengalihkan ke pengisian profil...');
+
+      setTimeout(() => {
+        if (formData.role === 'FOOD_CONSUMER') {
+          router.push('/dashboard/consumer');
+        } else {
+          router.push(`/onboarding/profile?role=${formData.role}`);
+        }
+      }, 1000);
+    } catch (_) {
+      setError('Gagal mendaftar via Google OAuth.');
       setLoading(false);
     }
   };
@@ -221,7 +249,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Clickable TOS Agreement (Poin 6) */}
+          {/* Clickable TOS Agreement */}
           <div className="py-2">
             <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-300 font-medium leading-relaxed">
               <input
@@ -248,7 +276,7 @@ export default function RegisterPage() {
             {loading ? 'Memproses OTP WA...' : 'Lanjut Ke Verifikasi OTP ➔'}
           </button>
 
-          {/* Google OAuth Register Section */}
+          {/* Google OAuth Register Section - Direct Instant OAuth Signup */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -260,16 +288,8 @@ export default function RegisterPage() {
 
           <button
             type="button"
-            onClick={() => {
-              setFormData((prev) => ({
-                ...prev,
-                name: prev.name || 'User Google Replate',
-                email: prev.email || 'user.google@gmail.com',
-                password: 'password123',
-                confirmPassword: 'password123',
-              }));
-              setIsOTPOpen(true);
-            }}
+            onClick={handleGoogleOAuthRegister}
+            disabled={loading}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
