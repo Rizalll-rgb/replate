@@ -119,7 +119,7 @@ export default function OnboardingDocumentsPage() {
             <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-amber-300 text-xs">
-                  1. {isBeneficiary ? 'Akta Pendirian Yayasan / Surat Keterangan Panti:' : isVolunteer ? 'Foto KTP Driver Relawan:' : 'NIB / Surat Izin Usaha Resmi OSS (BPOM Verified):'}
+                  1. {isBeneficiary ? 'Akta Pendirian Yayasan / Surat Keterangan Panti:' : isVolunteer ? 'Akta Pendirian Komunitas / SK Pengesahan / Surat Keterangan Komunitas:' : 'NIB / Surat Izin Usaha Resmi OSS (BPOM Verified):'}
                 </span>
                 <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${nibDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
                   {nibDoc ? '✓ TERUNGGAH' : 'WAJIB'}
@@ -127,7 +127,7 @@ export default function OnboardingDocumentsPage() {
               </div>
 
               <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                💡 <strong>Ketentuan:</strong> Pastikan nomor NIB 13-digit dan QR Code sertifikat OSS terlihat utuh tanpa terpotong.
+                💡 <strong>Ketentuan:</strong> {isVolunteer ? 'Surat Keterangan Komunitas / SK Pengesahan Organisasi dari Kemenkumham / Camat setempat.' : 'Pastikan nomor NIB 13-digit dan QR Code sertifikat OSS terlihat utuh tanpa terpotong.'}
               </p>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -175,10 +175,10 @@ export default function OnboardingDocumentsPage() {
                     onClick={() =>
                       setModalState({
                         isOpen: true,
-                        title: 'Contoh Berkas Valid (Standard NIB OSS)',
+                        title: isVolunteer ? 'Contoh SK Pengesahan Komunitas' : 'Contoh Berkas Valid (Standard NIB OSS)',
                         imageSrc: sampleNibImage,
                         isSample: true,
-                        hintText: 'Contoh NIB OSS resmi dengan QR Code dan stempel digital BPOM yang jelas.',
+                        hintText: isVolunteer ? 'Contoh Surat Keterangan Komunitas / Organisasi Relawan.' : 'Contoh NIB OSS resmi dengan QR Code dan stempel digital BPOM yang jelas.',
                       })
                     }
                     className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
@@ -193,7 +193,7 @@ export default function OnboardingDocumentsPage() {
             <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-amber-300 text-xs">
-                  2. {isVolunteer ? 'Foto SIM C/A Aktif Relawan:' : 'Foto KTP Penanggung Jawab (PJ) Operasional:'}
+                  2. {isVolunteer ? 'Foto KTP Ketua / Koordinator Komunitas Relawan:' : 'Foto KTP Penanggung Jawab (PJ) Operasional:'}
                 </span>
                 <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${ktpDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
                   {ktpDoc ? '✓ TERUNGGAH' : 'WAJIB'}
@@ -201,7 +201,7 @@ export default function OnboardingDocumentsPage() {
               </div>
 
               <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                💡 <strong>Ketentuan:</strong> Foto KTP Penanggung Jawab asli (Bukan fotokopi). NIK 16-digit dan foto wajib terbaca tajam.
+                💡 <strong>Ketentuan:</strong> Foto KTP Ketua / Koordinator asli (Bukan fotokopi). NIK 16-digit dan foto wajib terbaca tajam.
               </p>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -236,7 +236,7 @@ export default function OnboardingDocumentsPage() {
                           title: 'Preview KTP Yang Anda Unggah',
                           imageSrc: ktpDoc,
                           isSample: false,
-                          hintText: 'KTP Penanggung Jawab operasional telah diunggah.',
+                          hintText: 'KTP Ketua / Koordinator komunitas telah diunggah.',
                         })
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
@@ -267,7 +267,7 @@ export default function OnboardingDocumentsPage() {
             <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-amber-300 text-xs">
-                  3. {isBeneficiary ? 'Foto Plang Bangunan Panti Asuhan & Anak Asuh:' : isVolunteer ? 'Foto Fisik Kendaraan & Plat Nomor (STNK):' : 'Foto Etalase / Plang Bangunan Outlet Fisik:'}
+                  3. {isBeneficiary ? 'Foto Plang Bangunan Panti Asuhan & Anak Asuh:' : isVolunteer ? 'Foto Posko Utama / Basecamp Logistik Komunitas Surabaya:' : 'Foto Etalase / Plang Bangunan Outlet Fisik:'}
                 </span>
                 <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${storePhoto ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
                   {storePhoto ? '✓ TERUNGGAH' : 'WAJIB'}
@@ -275,7 +275,7 @@ export default function OnboardingDocumentsPage() {
               </div>
 
               <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                💡 <strong>Ketentuan:</strong> Foto tampak depan bangunan fisik / etalase toko yang menampilkan nama usaha secara jelas.
+                💡 <strong>Ketentuan:</strong> {isVolunteer ? 'Foto tampak depan posko utama / sekretariat komunitas relawan yang menampilkan spanduk/logo komunitas.' : 'Foto tampak depan bangunan fisik / etalase toko yang menampilkan nama usaha secara jelas.'}
               </p>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">

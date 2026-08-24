@@ -10,13 +10,13 @@ export default function OnboardingProfilePage() {
 
   const [role, setRole] = useState<'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'RESCUE_VOLUNTEER' | 'FOOD_CONSUMER'>('FOOD_PROVIDER');
   const [formData, setFormData] = useState({
-    entityName: 'Warung Bakso Pak Kumis Surabaya',
-    category: 'RESTAURANT',
-    address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
-    contactPerson: 'Mas Doni (Penanggung Jawab Outlet)',
+    entityName: 'Komunitas Foodbank Surabaya Center',
+    category: 'COMMUNITY_ORGANIZATION',
+    address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat (Posko Utama)',
+    contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
     phone: '0812-3456-7890',
-    capacity: '50 Porsi / Hari',
-    vehiclePlate: 'L 4582 ABC',
+    capacity: '35 Kurir Relawan Aktif',
+    vehiclePlate: '',
   });
 
   useEffect(() => {
@@ -50,13 +50,13 @@ export default function OnboardingProfilePage() {
         });
       } else if (detectedRole === 'RESCUE_VOLUNTEER') {
         setFormData({
-          entityName: 'Mas Rizky Multazam (Kurir Relawan)',
-          category: 'MOTOR_BOX',
-          address: 'Rute Surabaya Pusat & Surabaya Timur',
-          contactPerson: 'Mas Rizky Multazam',
+          entityName: 'Komunitas Foodbank Surabaya Center',
+          category: 'COMMUNITY_ORGANIZATION',
+          address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat (Posko Utama Logistik)',
+          contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
           phone: '0812-3456-7890',
-          capacity: 'NIK: 3578012984120003',
-          vehiclePlate: 'L 4582 ABC',
+          capacity: '35 Kurir Relawan Aktif',
+          vehiclePlate: '',
         });
       } else if (detectedRole === 'FOOD_CONSUMER') {
         setFormData({
@@ -109,13 +109,15 @@ export default function OnboardingProfilePage() {
             {isBeneficiary
               ? 'Food Beneficiary (Panti / Yayasan)'
               : isVolunteer
-              ? 'Food Rescue Volunteer (Kurir Relawan)'
+              ? 'Food Rescue Volunteer (Organisasi / Komunitas)'
               : isConsumer
               ? 'Food Consumer (Pembeli Rescue Sale)'
               : 'Food Provider (Restoran / Outlet)'}
           </h1>
           <p className="text-xs text-slate-300 font-medium max-w-md mx-auto leading-relaxed">
-            Informasi ini digunakan oleh Smart Matching Engine 2.0 untuk mencocokkan rute distribusi pangan Surabaya.
+            {isVolunteer
+              ? 'Daftarkan organisasi/komunitas relawan penyelamat pangan Anda. Manajemen driver armada akan diatur terpusat di dashboard.'
+              : 'Informasi ini digunakan oleh Smart Matching Engine 2.0 untuk mencocokkan rute distribusi pangan Surabaya.'}
           </p>
         </div>
 
@@ -137,7 +139,7 @@ export default function OnboardingProfilePage() {
                 {isBeneficiary
                   ? 'Panti Asuhan / Yayasan:'
                   : isVolunteer
-                  ? 'Driver Relawan Logistik:'
+                  ? 'Organisasi / Komunitas Food Rescue:'
                   : isConsumer
                   ? 'Pengguna Pembeli:'
                   : 'Restoran / Toko / Outlet:'}
@@ -147,7 +149,7 @@ export default function OnboardingProfilePage() {
                 value={formData.entityName}
                 onChange={(e) => setFormData({ ...formData, entityName: e.target.value })}
                 className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                placeholder="Nama lengkap entitas"
+                placeholder={isVolunteer ? 'Contoh: Komunitas Garda Pangan Surabaya' : 'Nama lengkap entitas'}
                 required
               />
             </div>
@@ -155,7 +157,7 @@ export default function OnboardingProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  2. {isVolunteer ? 'Kategori Armada Kendaraan:' : 'Kategori Entitas:'}
+                  2. {isVolunteer ? 'Jenis Organisasi Komunitas:' : 'Kategori Entitas:'}
                 </label>
                 <select
                   value={formData.category}
@@ -170,9 +172,9 @@ export default function OnboardingProfilePage() {
                     </>
                   ) : isVolunteer ? (
                     <>
-                      <option value="MOTOR_BOX">Sepeda Motor Box Steril (Cooler)</option>
-                      <option value="MOBIL_BOX">Mobil Box / Pickup Steril</option>
-                      <option value="MOTOR_BIASA">Sepeda Motor Komunitas</option>
+                      <option value="COMMUNITY_ORGANIZATION">Komunitas Rescue Pangan Non-Profit</option>
+                      <option value="FOODBANK_FOUNDATION">Organisasi Bank Pangan (Foodbank)</option>
+                      <option value="LOGISTICS_FOUNDATION">Yayasan Logistik Sosial & Kemanusiaan</option>
                     </>
                   ) : isConsumer ? (
                     <>
@@ -197,25 +199,21 @@ export default function OnboardingProfilePage() {
                   {isBeneficiary
                     ? 'Jumlah Anak Asuh / Lansia:'
                     : isVolunteer
-                    ? 'Nomor Plat Kendaraan (STNK):'
+                    ? 'Jumlah Anggota Kurir Relawan Aktif:'
                     : isConsumer
                     ? 'Pekerjaan / Status:'
                     : 'Kapasitas Porsi / Hari:'}
                 </label>
                 <input
                   type="text"
-                  value={isVolunteer ? formData.vehiclePlate : formData.capacity}
-                  onChange={(e) =>
-                    isVolunteer
-                      ? setFormData({ ...formData, vehiclePlate: e.target.value })
-                      : setFormData({ ...formData, capacity: e.target.value })
-                  }
+                  value={formData.capacity}
+                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                   className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
                   placeholder={
                     isBeneficiary
                       ? '80 Anak Asuh'
                       : isVolunteer
-                      ? 'L 4582 ABC'
+                      ? '35 Kurir Relawan'
                       : '50 Porsi / Hari'
                   }
                   required
@@ -227,7 +225,7 @@ export default function OnboardingProfilePage() {
               <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
                 4.{' '}
                 {isVolunteer
-                  ? 'Wilayah Rute Operasional Penjemputan Surabaya:'
+                  ? 'Alamat Posko Utama / Basecamp Logistik Komunitas Surabaya:'
                   : 'Alamat Lengkap Bangunan Operasional Surabaya:'}
               </label>
               <textarea
@@ -235,7 +233,7 @@ export default function OnboardingProfilePage() {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                placeholder="Jl. Raya Gubeng No. 88, Surabaya..."
+                placeholder="Jl. Pemuda No. 45, Genteng, Surabaya Pusat..."
                 required
               />
             </div>
@@ -243,21 +241,21 @@ export default function OnboardingProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'NIK KTP Driver Relawan:' : 'Nama Penanggung Jawab (PJ):'}
+                  5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Ketua / Koordinator Komunitas (PJ):' : 'Nama Penanggung Jawab (PJ):'}
                 </label>
                 <input
                   type="text"
                   value={formData.contactPerson}
                   onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                   className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder="Nama lengkap PJ"
+                  placeholder="Nama lengkap Ketua / PJ Komunitas"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  6. No. WhatsApp Aktif (OTP Verified):
+                  6. No. WhatsApp Resmi Komunitas (OTP Verified):
                 </label>
                 <input
                   type="text"
