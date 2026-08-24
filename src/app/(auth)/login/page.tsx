@@ -257,11 +257,19 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className={`${styles.authFooter} space-y-1 pt-4`}>
+        <div className={`${styles.authFooter} space-y-2 pt-4 border-t border-slate-800`}>
           <div>
             Belum mendaftarkan usaha / instansi?{' '}
             <Link href={`/register?role=${activeRoleTab}`} className="font-extrabold text-[#D4A843] hover:underline">
               Daftar Akun Baru ➔
+            </Link>
+          </div>
+          <div className="pt-1">
+            <Link
+              href="/track-status"
+              className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#142C47] px-3.5 py-1.5 rounded-xl border border-amber-400/40 shadow-xs transition-all"
+            >
+              <span>🔍 Pernah Mendaftar? Cek Live Status Audit ➔</span>
             </Link>
           </div>
         </div>

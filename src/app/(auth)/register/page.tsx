@@ -289,11 +289,21 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <div className={styles.authFooter}>
-          Sudah mendaftarkan akun?{' '}
-          <Link href="/login" className="font-extrabold text-[#D4A843] hover:underline">
-            Masuk Sekarang ➔
-          </Link>
+        <div className={`${styles.authFooter} space-y-2 pt-4 border-t border-slate-800`}>
+          <div>
+            Sudah mendaftarkan akun?{' '}
+            <Link href="/login" className="font-extrabold text-[#D4A843] hover:underline">
+              Masuk Sekarang ➔
+            </Link>
+          </div>
+          <div className="pt-1">
+            <Link
+              href="/track-status"
+              className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#142C47] px-3.5 py-1.5 rounded-xl border border-amber-400/40 shadow-xs transition-all"
+            >
+              <span>🔍 Pernah Mendaftar? Cek Live Status Audit ➔</span>
+            </Link>
+          </div>
         </div>
       </div>
 

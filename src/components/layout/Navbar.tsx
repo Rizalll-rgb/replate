@@ -23,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
     { href: '/about', label: 'Tentang Kami' },
     { href: '/how-it-works', label: 'Cara Kerja' },
     { href: '/impact', label: 'Dampak' },
+    { href: '/track-status', label: '🔍 Cek Status Audit' },
     { href: '/faq', label: 'FAQ' },
   ];
 
