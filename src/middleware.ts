@@ -8,15 +8,28 @@ export default auth((req) => {
     const userStatus = req.auth?.user?.status;
 
     // Public routes - always accessible
-    const publicRoutes = ['/', '/login', '/register', '/about', '/how-it-works', '/impact', '/faq', '/logout'];
+    const publicRoutes = [
+        '/',
+        '/login',
+        '/register',
+        '/about',
+        '/how-it-works',
+        '/impact',
+        '/faq',
+        '/logout',
+        '/pending-approval',
+        '/account-rejected',
+        '/account-suspended',
+    ];
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+    const isOnboardingRoute = nextUrl.pathname.startsWith('/onboarding');
     const isTrackingRoute = nextUrl.pathname.startsWith('/track/');
     const isApiAuth = nextUrl.pathname.startsWith('/api/auth');
     const isApi = nextUrl.pathname.startsWith('/api/');
     const isStatic = nextUrl.pathname.startsWith('/_next/') || nextUrl.pathname.startsWith('/images/');
 
-    // Always allow static, tracking, and auth API routes
-    if (isStatic || isTrackingRoute || isApiAuth) {
+    // Always allow static, tracking, onboarding, and auth API routes
+    if (isStatic || isTrackingRoute || isApiAuth || isOnboardingRoute || isPublicRoute) {
         return NextResponse.next();
     }
 
