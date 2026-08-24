@@ -28,9 +28,15 @@ declare module '@auth/core/jwt' {
     }
 }
 
+import Google from 'next-auth/providers/google';
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
     secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || 'replate-secret-key-change-in-production-2026',
     providers: [
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID || '113117485718-a98pjp7osn3uek2h1c0fad9d948nl427.apps.googleusercontent.com',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'mock-google-client-secret',
+        }),
         Credentials({
             name: 'credentials',
             credentials: {

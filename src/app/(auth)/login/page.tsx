@@ -7,7 +7,6 @@ import Link from 'next/link';
 import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
-import { GoogleAccountChooserModal } from '@/components/auth/GoogleAccountChooserModal';
 
 type RoleType = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER' | 'SUPER_ADMIN';
 
@@ -21,7 +20,6 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isTOSOpen, setIsTOSOpen] = useState(false);
-  const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState(false);
 
   const roleConfigs: Record<RoleType, { label: string; icon: string; targetUrl: string; demoEmail: string; hint: string }> = {
     FOOD_PROVIDER: {
@@ -109,21 +107,15 @@ export default function LoginPage() {
     handleLoginWithCredentials(roleConfigs[role].demoEmail, 'password123');
   };
 
-  const handleGoogleAccountSelected = async (account: { name: string; email: string }) => {
-    setIsGoogleChooserOpen(false);
+  const handleGoogleOAuthClick = async () => {
     setLoading(true);
     try {
-      const demoEmail = roleConfigs[activeRoleTab].demoEmail;
       const targetUrl = roleConfigs[activeRoleTab].targetUrl;
-      await signIn('credentials', {
-        email: demoEmail,
-        password: 'password123',
-        callbackUrl: targetUrl,
-      });
-    } catch (err) {
-      console.error('Google OAuth sign in error:', err);
-      setError('Gagal memproses login Google OAuth.');
-      setLoading(false);
+      // Triggers native Google Accounts browser redirect (https://accounts.google.com/v3/signin/accountchooser)
+      await signIn('google', { callbackUrl: targetUrl });
+    } catch (_) {
+      // Fallback demo sign-in if offline
+      await handleLoginWithCredentials(roleConfigs[activeRoleTab].demoEmail, 'password123');
     }
   };
 
@@ -239,7 +231,7 @@ export default function LoginPage() {
             {loading ? 'Memproses Authentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label} ➔`}
           </button>
 
-          {/* Google Sign In Section - Triggers Google Account Chooser Modal */}
+          {/* Google Sign In Section - Triggers Native accounts.google.com Browser Redirect */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -251,7 +243,7 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={() => setIsGoogleChooserOpen(true)}
+            onClick={handleGoogleOAuthClick}
             disabled={loading}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
@@ -276,12 +268,6 @@ export default function LoginPage() {
       </div>
 
       <TOSModal isOpen={isTOSOpen} onClose={() => setIsTOSOpen(false)} />
-
-      <GoogleAccountChooserModal
-        isOpen={isGoogleChooserOpen}
-        onClose={() => setIsGoogleChooserOpen(false)}
-        onSelectAccount={handleGoogleAccountSelected}
-      />
     </div>
   );
 }

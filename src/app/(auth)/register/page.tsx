@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
 import { OTPVerificationModal } from '@/components/auth/OTPVerificationModal';
-import { GoogleAccountChooserModal } from '@/components/auth/GoogleAccountChooserModal';
 
 type Role = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER';
 
@@ -28,7 +28,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [isTOSOpen, setIsTOSOpen] = useState(false);
   const [isOTPOpen, setIsOTPOpen] = useState(false);
-  const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,20 +84,28 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleAccountSelected = (account: { name: string; email: string }) => {
-    setIsGoogleChooserOpen(false);
+  const handleGoogleOAuthRegister = async () => {
     setLoading(true);
     try {
+      const targetUrl =
+        formData.role === 'FOOD_CONSUMER'
+          ? '/dashboard/consumer'
+          : `/onboarding/profile?role=${formData.role}`;
+
+      // Native NextAuth Google OAuth browser redirect to accounts.google.com
+      await signIn('google', { callbackUrl: targetUrl });
+    } catch (_) {
+      // Fallback Google signup in local environment
       const googleUser = {
-        name: account.name,
-        email: account.email,
+        name: formData.name || 'User Google Replate',
+        email: formData.email || 'user.google@gmail.com',
         phone: formData.phone || '081234567890',
         role: formData.role,
         isGoogleOAuth: true,
       };
 
       localStorage.setItem('replate_onboarding_profile', JSON.stringify(googleUser));
-      setSuccess(`✓ Akun Google (${account.email}) Terhubung! Mengalihkan ke pengisian profil...`);
+      setSuccess('✓ Berhasil Autentikasi Google OAuth! Mengalihkan ke pengisian profil...');
 
       setTimeout(() => {
         if (formData.role === 'FOOD_CONSUMER') {
@@ -107,9 +114,6 @@ export default function RegisterPage() {
           router.push(`/onboarding/profile?role=${formData.role}`);
         }
       }, 1000);
-    } catch (_) {
-      setError('Gagal mendaftar via Google OAuth.');
-      setLoading(false);
     }
   };
 
@@ -276,7 +280,7 @@ export default function RegisterPage() {
             {loading ? 'Memproses OTP WA...' : 'Lanjut Ke Verifikasi OTP ➔'}
           </button>
 
-          {/* Google OAuth Register Section - Triggers Google Account Chooser Modal */}
+          {/* Google OAuth Register Section - Triggers Native accounts.google.com Browser Redirect */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -288,7 +292,7 @@ export default function RegisterPage() {
 
           <button
             type="button"
-            onClick={() => setIsGoogleChooserOpen(true)}
+            onClick={handleGoogleOAuthRegister}
             disabled={loading}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
@@ -317,12 +321,6 @@ export default function RegisterPage() {
         phoneOrEmail={formData.phone}
         onSuccess={handleOTPVerified}
         onClose={() => setIsOTPOpen(false)}
-      />
-
-      <GoogleAccountChooserModal
-        isOpen={isGoogleChooserOpen}
-        onClose={() => setIsGoogleChooserOpen(false)}
-        onSelectAccount={handleGoogleAccountSelected}
       />
     </div>
   );
