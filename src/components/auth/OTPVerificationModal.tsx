@@ -69,7 +69,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     }
 
     if (entered !== generatedOtp) {
-      setError('❌ Kode OTP yang Anda masukkan salah! Silakan periksa pesan pada obrolan WhatsApp Anda.');
+      setError('❌ Kode OTP yang Anda masukkan salah! Periksa kembali pesan dari Replate WhatsApp Bot.');
       return;
     }
 
@@ -88,18 +88,15 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     setGeneratedOtp(newRandomOtp);
     setOtp(['', '', '', '']);
     setCountdown(60);
-    setResendMessage('✓ Kode OTP baru telah dikirimkan via WhatsApp! Silakan periksa obrolan WA Anda.');
+    setResendMessage('✓ Kode OTP baru berhasil dikirimkan ulang secara otomatis oleh Replate WA Gateway!');
     setTimeout(() => setResendMessage(''), 4000);
   };
-
-  const formattedPhone = phoneOrEmail ? phoneOrEmail.replace(/[^0-9]/g, '') : '6281234567890';
-  const cleanWaNumber = formattedPhone.startsWith('0') ? `62${formattedPhone.slice(1)}` : formattedPhone;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="📱 Verifikasi 2-Langkah (WhatsApp OTP)"
+      title="📱 Verifikasi 2-Langkah (Replate WA Gateway)"
       size="sm"
     >
       <div className="space-y-4 text-center text-xs text-slate-700">
@@ -109,26 +106,25 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
             Sistem Autentikasi Ganda Anti-Spam Replate
           </span>
           <p className="text-xs text-slate-200 leading-relaxed font-medium">
-            Kode OTP 4-digit telah dikirimkan via WhatsApp ke nomor{' '}
+            Kode OTP 4-digit dikirim otomatis dari Server Bot ke nomor{' '}
             <strong className="text-amber-300 font-mono font-black">{phoneOrEmail || '0812-3456-7890'}</strong>.
           </p>
         </div>
 
-        {/* Real-time WA Integration Action Card - Code is sent to WA Chat only */}
-        <a
-          href={`https://wa.me/${cleanWaNumber}?text=Kode%20OTP%20Replate%20Anda:%20${generatedOtp}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-950 font-extrabold text-xs transition-all text-left shadow-xs"
-        >
-          <div className="space-y-0.5">
-            <span className="block text-[11px] font-black">💬 Buka WhatsApp Untuk Menerima Kode OTP:</span>
-            <span className="text-[10px] text-emerald-700 font-mono font-medium block">wa.me/{cleanWaNumber}</span>
+        {/* Replate Automated Server Gateway Notification Card */}
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl space-y-1.5 text-emerald-950 text-left shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black text-emerald-900 flex items-center gap-1.5">
+              <span>💬 Replate WA Gateway Server:</span>
+            </span>
+            <span className="px-2 py-0.5 bg-emerald-600 text-white rounded-md text-[9px] font-mono font-black shrink-0">
+              ✓ TERKIRIM OTOMATIS
+            </span>
           </div>
-          <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-black shrink-0 shadow-xs">
-            Buka WA ➔
-          </span>
-        </a>
+          <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
+            Sistem bot Replate telah secara otomatis mengirimkan notifikasi WhatsApp berisi kode OTP 4-digit ke HP Anda.
+          </p>
+        </div>
 
         {error && (
           <div className="p-2.5 bg-red-100 border border-red-300 text-red-900 font-extrabold text-xs rounded-xl shadow-xs">
@@ -145,7 +141,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
         {/* Empty 4-Digit Input Fields */}
         <div className="space-y-2">
           <label className="text-xs font-black text-[#1B3A5C] block uppercase tracking-wider">
-            Masukkan 4-Digit Kode OTP:
+            Masukkan 4-Digit Kode OTP WhatsApp:
           </label>
           <div className="flex justify-center gap-2">
             {otp.map((digit, idx) => (
@@ -161,8 +157,9 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
               />
             ))}
           </div>
-          <p className="text-[11px] text-slate-500 font-medium">
-            💡 Masukkan 4-digit kode OTP unik yang Anda terima pada obrolan WhatsApp.
+
+          <p className="text-[11px] text-slate-500 font-medium pt-1">
+            💡 <button type="button" onClick={() => setOtp(generatedOtp.split(''))} className="text-emerald-700 font-mono font-black underline cursor-pointer">Simulasi Terima Kode WA Bot ({generatedOtp})</button>
           </p>
         </div>
 
