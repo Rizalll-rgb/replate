@@ -71,11 +71,8 @@ export default function RegisterPage() {
       setSuccess('✓ Nomor WhatsApp Berhasil Diverifikasi! Mengalihkan ke pengisian profil...');
 
       setTimeout(() => {
-        if (formData.role === 'FOOD_CONSUMER') {
-          router.push('/login');
-        } else {
-          router.push(`/onboarding/profile?role=${formData.role}`);
-        }
+        // All 4 roles go through onboarding profile setup!
+        router.push(`/onboarding/profile?role=${formData.role}`);
       }, 1200);
     } catch {
       setError('Terjadi kesalahan, coba lagi.');
@@ -87,10 +84,7 @@ export default function RegisterPage() {
   const handleGoogleOAuthRegister = async () => {
     setLoading(true);
     try {
-      const targetUrl =
-        formData.role === 'FOOD_CONSUMER'
-          ? '/dashboard/consumer'
-          : `/onboarding/profile?role=${formData.role}`;
+      const targetUrl = `/onboarding/profile?role=${formData.role}`;
 
       // Native NextAuth Google OAuth browser redirect to accounts.google.com
       await signIn('google', { callbackUrl: targetUrl });
@@ -123,7 +117,7 @@ export default function RegisterPage() {
       value: 'RESCUE_VOLUNTEER',
       label: 'Food Rescue Volunteer',
       icon: '🛵',
-      desc: 'Armada Kurir Relawan Komunitas pengantar bantuan makanan.',
+      desc: 'Organisasi / Komunitas Relawan Logistik Penyelamat Pangan.',
     },
   ];
 
@@ -263,7 +257,7 @@ export default function RegisterPage() {
             {loading ? 'Memproses OTP WA...' : 'Lanjut Ke Verifikasi OTP ➔'}
           </button>
 
-          {/* Google OAuth Register Section - Triggers Native accounts.google.com Browser Redirect */}
+          {/* Google OAuth Register Section */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>

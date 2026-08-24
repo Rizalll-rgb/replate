@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 
@@ -9,6 +10,8 @@ export default function OnboardingProfilePage() {
   const router = useRouter();
 
   const [role, setRole] = useState<'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'RESCUE_VOLUNTEER' | 'FOOD_CONSUMER'>('FOOD_PROVIDER');
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [formData, setFormData] = useState({
     entityName: 'Komunitas Foodbank Surabaya Center',
     category: 'COMMUNITY_ORGANIZATION',
@@ -62,7 +65,7 @@ export default function OnboardingProfilePage() {
         setFormData({
           entityName: 'Budi Santoso',
           category: 'STUDENT',
-          address: 'Jl. Ketintang No. 12, Gayungan, Surabaya',
+          address: 'Jl. Ketintang No. 12, Gayungan, Surabaya Pusat',
           contactPerson: 'Budi Santoso',
           phone: '0812-3456-7890',
           capacity: 'Mahasiswa / Anak Kos',
@@ -82,12 +85,39 @@ export default function OnboardingProfilePage() {
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       localStorage.setItem('replate_onboarding_profile', JSON.stringify({ ...formData, role }));
     } catch (_) {}
-    router.push(`/onboarding/documents?role=${role}`);
+
+    if (role === 'FOOD_CONSUMER') {
+      setLoading(true);
+      setSuccessMessage('🎉 Akun Food Consumer Anda Resmi Aktif! Mengalihkan ke Dashboard...');
+
+      try {
+        localStorage.setItem(
+          'replate_onboarding_docs',
+          JSON.stringify({
+            status: 'APPROVED_ACTIVE',
+            submittedAt: new Date().toISOString(),
+            role: 'FOOD_CONSUMER',
+          })
+        );
+
+        setTimeout(async () => {
+          await signIn('credentials', {
+            email: 'budi.santoso@gmail.com',
+            password: 'password123',
+            callbackUrl: '/dashboard/consumer',
+          });
+        }, 1000);
+      } catch (_) {
+        router.push('/dashboard/consumer');
+      }
+    } else {
+      router.push(`/onboarding/documents?role=${role}`);
+    }
   };
 
   const isBeneficiary = role === 'FOOD_BENEFICIARY';
@@ -115,7 +145,9 @@ export default function OnboardingProfilePage() {
               : 'Food Provider (Restoran / Outlet)'}
           </h1>
           <p className="text-xs text-slate-300 font-medium max-w-md mx-auto leading-relaxed">
-            {isVolunteer
+            {isConsumer
+              ? 'Lengkapi profil akun konsumen Anda untuk menikmati makanan diskon murah Rescue Sale Surabaya.'
+              : isVolunteer
               ? 'Daftarkan organisasi/komunitas relawan penyelamat pangan Anda. Manajemen driver armada akan diatur terpusat di dashboard.'
               : 'Informasi ini digunakan oleh Smart Matching Engine 2.0 untuk mencocokkan rute distribusi pangan Surabaya.'}
           </p>
@@ -131,6 +163,12 @@ export default function OnboardingProfilePage() {
               ROLE: {role}
             </span>
           </div>
+
+          {successMessage && (
+            <div className="p-4 bg-emerald-600 text-white font-black text-xs rounded-xl shadow-lg animate-bounce text-center">
+              {successMessage}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
             <div className="space-y-1.5">
@@ -226,6 +264,8 @@ export default function OnboardingProfilePage() {
                 4.{' '}
                 {isVolunteer
                   ? 'Alamat Posko Utama / Basecamp Logistik Komunitas Surabaya:'
+                  : isConsumer
+                  ? 'Alamat Domisili Pengiriman / Penjemputan Makanan Surabaya:'
                   : 'Alamat Lengkap Bangunan Operasional Surabaya:'}
               </label>
               <textarea
@@ -233,7 +273,7 @@ export default function OnboardingProfilePage() {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                placeholder="Jl. Pemuda No. 45, Genteng, Surabaya Pusat..."
+                placeholder="Jl. Ketintang No. 12, Gayungan, Surabaya..."
                 required
               />
             </div>
@@ -241,21 +281,21 @@ export default function OnboardingProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Ketua / Koordinator Komunitas (PJ):' : 'Nama Penanggung Jawab (PJ):'}
+                  5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Ketua / Koordinator Komunitas (PJ):' : 'Nama Lengkap Pengguna (PJ):'}
                 </label>
                 <input
                   type="text"
                   value={formData.contactPerson}
                   onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                   className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder="Nama lengkap Ketua / PJ Komunitas"
+                  placeholder="Nama lengkap kamu"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  6. No. WhatsApp Resmi Komunitas (OTP Verified):
+                  6. No. WhatsApp Aktif (OTP Verified):
                 </label>
                 <input
                   type="text"
@@ -269,8 +309,12 @@ export default function OnboardingProfilePage() {
             </div>
 
             <div className="pt-4 border-t border-[#2C5A8F] flex justify-end">
-              <Button variant="gold" size="md" type="submit" className="font-black text-xs py-3 px-6 shadow-md">
-                <span>Lanjut Ke Upload Dokumen Legalitas ➔</span>
+              <Button variant="gold" size="md" type="submit" isLoading={loading} className="font-black text-xs py-3 px-6 shadow-md cursor-pointer">
+                <span>
+                  {isConsumer
+                    ? 'Selesaikan Registrasi & Masuk Dashboard Consumer ➔'
+                    : 'Lanjut Ke Upload Dokumen Legalitas ➔'}
+                </span>
               </Button>
             </div>
           </form>
