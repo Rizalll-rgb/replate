@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { Navbar } from '@/components/layout/Navbar';
@@ -8,6 +9,13 @@ import { useSession } from 'next-auth/react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  let inferredRole = 'PROVIDER';
+  if (pathname.includes('/dashboard/yayasan')) inferredRole = 'YAYASAN';
+  else if (pathname.includes('/dashboard/consumer')) inferredRole = 'CONSUMER';
+  else if (pathname.includes('/dashboard/rescue-partner')) inferredRole = 'RESCUE_PARTNER';
+  else if (pathname.includes('/dashboard/admin')) inferredRole = 'ADMIN';
 
   // Dynamic user session from NextAuth
   const currentUser = session?.user
@@ -25,7 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     : {
         name: 'Pak Kumis',
         email: 'bakso.pak.kumis@replate.id',
-        role: 'PROVIDER',
+        role: inferredRole,
         status: 'APPROVED',
         phone: '081234567891',
         address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
@@ -34,10 +42,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
-      <div className="flex flex-1 min-h-screen">
+      {currentUser.role !== 'ADMIN' && <Navbar user={currentUser} />}
+      <div className="flex flex-1">
         <Sidebar role={currentUser.role} />
         <div className="flex-1 flex flex-col min-w-0">
-          <DashboardHeader user={currentUser} title={`Dashboard (${currentUser.role.replace('_', ' ')})`} />
+          {currentUser.role === 'ADMIN' && (
+            <DashboardHeader user={currentUser} title={`Dashboard (${currentUser.role.replace('_', ' ')})`} />
+          )}
           <main className="p-6 flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>

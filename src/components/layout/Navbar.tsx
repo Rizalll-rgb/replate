@@ -28,8 +28,8 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
 
   const loggedInNavLinks = [
     { href: '/', label: 'Beranda' },
-    { href: '/explore', label: 'Explore' },
-    { href: '/donation', label: 'Donation' },
+    { href: '/explore', label: 'Jelajahi' },
+    { href: '/donation', label: 'Donasi' },
     { href: '/notifications', label: 'Notifikasi' },
   ];
 
@@ -79,14 +79,14 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
               </div>
 
               {/* Chat Icon */}
-              <button className="text-gray-500 hover:text-[#1B3A5C] transition-colors">
+              <Link href="/chat" className="text-gray-500 hover:text-[#1B3A5C] transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              </button>
+              </Link>
 
               {/* Cart Icon */}
-              <button className="text-gray-500 hover:text-[#1B3A5C] transition-colors relative">
+              <Link href="/cart" className="text-gray-500 hover:text-[#1B3A5C] transition-colors relative">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-              </button>
+              </Link>
 
               {/* User Avatar */}
               <Link href="/dashboard" className="ml-2">

@@ -12,9 +12,12 @@ import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { LoggedInHome } from '@/components/landing/LoggedInHome';
 
 export default function HomePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [foods, setFoods] = useState<any[]>([]);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,14 +123,18 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA] font-sans">
-      <Navbar />
+      <Navbar user={session?.user} />
 
       <main className="flex-1">
-        <Hero />
-        <HowItWorks />
+        {session?.user ? (
+          <LoggedInHome />
+        ) : (
+          <>
+            <Hero />
+            <HowItWorks />
 
-        {/* Live Available Surplus Section with 3-Card Pagination Limit */}
-        <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {/* Live Available Surplus Section with 3-Card Pagination Limit */}
+            <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
@@ -195,6 +202,8 @@ export default function HomePage() {
         <ImpactCounter />
         <SDGSection />
         <Testimonials />
+          </>
+        )}
       </main>
 
       <Footer />
