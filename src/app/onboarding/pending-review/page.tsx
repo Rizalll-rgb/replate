@@ -16,6 +16,8 @@ export default function OnboardingPendingReviewPage() {
   });
 
   const [isApproved, setIsApproved] = useState<boolean>(false);
+  const [targetDashboard, setTargetDashboard] = useState<string>('/dashboard/provider');
+  const [roleName, setRoleName] = useState<string>('Food Provider');
 
   useEffect(() => {
     try {
@@ -29,6 +31,27 @@ export default function OnboardingPendingReviewPage() {
           setIsApproved(true);
         }
       }
+
+      const docs = d ? JSON.parse(d) : {};
+      const parsedProfile = p ? JSON.parse(p) : {};
+      const role = docs.role || parsedProfile.role;
+
+      if (role === 'FOOD_BENEFICIARY' || role === 'YAYASAN') {
+        setTargetDashboard('/dashboard/yayasan');
+        setRoleName('Food Beneficiary (Panti/Yayasan)');
+      } else if (role === 'RESCUE_VOLUNTEER' || role === 'VOLUNTEER' || role === 'RESCUE_PARTNER') {
+        setTargetDashboard('/dashboard/rescue-partner');
+        setRoleName('Rescue Volunteer (Kurir Relawan)');
+      } else if (role === 'FOOD_CONSUMER' || role === 'CONSUMER') {
+        setTargetDashboard('/dashboard/consumer');
+        setRoleName('Food Consumer (Rescue Sale)');
+      } else if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+        setTargetDashboard('/dashboard/admin');
+        setRoleName('SuperAdmin Governance');
+      } else {
+        setTargetDashboard('/dashboard/provider');
+        setRoleName('Food Provider (Merchant)');
+      }
     } catch (_) {}
   }, []);
 
@@ -39,6 +62,10 @@ export default function OnboardingPendingReviewPage() {
       localStorage.setItem('replate_onboarding_docs', JSON.stringify({ ...parsed, status: 'APPROVED_ACTIVE' }));
     } catch (_) {}
     setIsApproved(true);
+  };
+
+  const handleGoToDashboard = () => {
+    router.push(targetDashboard);
   };
 
   return (
@@ -120,17 +147,17 @@ export default function OnboardingPendingReviewPage() {
                 </span>
                 <h3 className="text-xl font-black text-white">{profile.entityName}</h3>
                 <p className="text-xs text-emerald-200 font-bold max-w-md mx-auto leading-relaxed">
-                  Dokumen legalitas Anda telah diverifikasi valid oleh SuperAdmin Replate. Anda sekarang dapat mengakses seluruh fitur operasional platform.
+                  Dokumen legalitas Anda telah diverifikasi valid oleh SuperAdmin Replate. Klik tombol di bawah untuk masuk langsung ke <strong>Dashboard {roleName}</strong>.
                 </p>
               </div>
 
               <Button
                 variant="gold"
                 size="lg"
-                onClick={() => router.push('/dashboard/provider')}
+                onClick={handleGoToDashboard}
                 className="w-full font-black text-slate-950 shadow-lg py-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>🚀 Masuk Ke Dashboard Operasional ➔</span>
+                <span>🚀 Masuk Ke Dashboard {roleName} ➔</span>
               </Button>
             </div>
           )}

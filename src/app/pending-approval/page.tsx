@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -8,6 +8,41 @@ import { Logo } from '@/components/ui/Logo';
 export default function PendingApprovalPage() {
   const router = useRouter();
   const [isApproved, setIsApproved] = useState(false);
+  const [targetDashboard, setTargetDashboard] = useState<string>('/dashboard/provider');
+  const [roleName, setRoleName] = useState<string>('Food Provider');
+
+  useEffect(() => {
+    try {
+      const docs = localStorage.getItem('replate_onboarding_docs');
+      const profile = localStorage.getItem('replate_onboarding_profile');
+
+      const parsedDocs = docs ? JSON.parse(docs) : {};
+      const parsedProfile = profile ? JSON.parse(profile) : {};
+
+      if (parsedDocs.status === 'APPROVED_ACTIVE') {
+        setIsApproved(true);
+      }
+
+      const role = parsedDocs.role || parsedProfile.role;
+
+      if (role === 'FOOD_BENEFICIARY' || role === 'YAYASAN') {
+        setTargetDashboard('/dashboard/yayasan');
+        setRoleName('Food Beneficiary (Panti/Yayasan)');
+      } else if (role === 'RESCUE_VOLUNTEER' || role === 'VOLUNTEER' || role === 'RESCUE_PARTNER') {
+        setTargetDashboard('/dashboard/rescue-partner');
+        setRoleName('Rescue Volunteer (Kurir Relawan)');
+      } else if (role === 'FOOD_CONSUMER' || role === 'CONSUMER') {
+        setTargetDashboard('/dashboard/consumer');
+        setRoleName('Food Consumer (Rescue Sale)');
+      } else if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+        setTargetDashboard('/dashboard/admin');
+        setRoleName('SuperAdmin Governance');
+      } else {
+        setTargetDashboard('/dashboard/provider');
+        setRoleName('Food Provider (Merchant)');
+      }
+    } catch (_) {}
+  }, []);
 
   const handleSimulateApprove = () => {
     try {
@@ -16,6 +51,10 @@ export default function PendingApprovalPage() {
       localStorage.setItem('replate_onboarding_docs', JSON.stringify({ ...parsed, status: 'APPROVED_ACTIVE' }));
     } catch (_) {}
     setIsApproved(true);
+  };
+
+  const handleGoToDashboard = () => {
+    router.push(targetDashboard);
   };
 
   return (
@@ -47,7 +86,7 @@ export default function PendingApprovalPage() {
                 <span className="text-xs font-black text-amber-300 uppercase tracking-widest block">
                   ⏳ SEDANG DITINJAU TIM ADMIN REPLATE SURABAYA
                 </span>
-                <h3 className="text-xl font-black text-white">Akun Anda Dalam Proses Audit Dokumen</h3>
+                <h3 className="text-xl font-black text-white">Akun {roleName} Dalam Proses Audit</h3>
                 <p className="text-xs text-slate-200 font-bold max-w-md mx-auto leading-relaxed">
                   Berkas NIB / Izin Usaha, KTP Penanggung Jawab, dan Foto Lokasi Fisik sedang diperiksa keabsahannya oleh Tim Governance Admin.
                 </p>
@@ -59,8 +98,8 @@ export default function PendingApprovalPage() {
                   <span className="font-mono text-emerald-300 font-black">Maks. 1x24 Jam Kerja</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-2">
-                  <span className="text-amber-300 font-extrabold">Wilayah Operasional:</span>
-                  <span className="font-bold text-white">Kota Surabaya</span>
+                  <span className="text-amber-300 font-extrabold">Peran Terdaftar:</span>
+                  <span className="font-bold text-white">{roleName}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-amber-300 font-extrabold">Notifikasi Persetujuan:</span>
@@ -96,17 +135,17 @@ export default function PendingApprovalPage() {
                 </span>
                 <h3 className="text-xl font-black text-white">Verifikasi Dokumen Berhasil</h3>
                 <p className="text-xs text-emerald-200 font-bold max-w-md mx-auto leading-relaxed">
-                  Dokumen legalitas Anda telah diverifikasi valid oleh SuperAdmin Replate. Anda sekarang dapat mengakses seluruh fitur operasional platform.
+                  Dokumen legalitas Anda telah diverifikasi valid oleh SuperAdmin Replate. Klik tombol di bawah untuk masuk langsung ke <strong>Dashboard {roleName}</strong>.
                 </p>
               </div>
 
               <Button
                 variant="gold"
                 size="lg"
-                onClick={() => router.push('/dashboard/provider')}
+                onClick={handleGoToDashboard}
                 className="w-full font-black text-slate-950 shadow-lg py-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>🚀 Masuk Ke Dashboard Operasional ➔</span>
+                <span>🚀 Masuk Ke Dashboard {roleName} ➔</span>
               </Button>
             </div>
           )}
