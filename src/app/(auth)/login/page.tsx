@@ -107,6 +107,23 @@ export default function LoginPage() {
     handleLoginWithCredentials(roleConfigs[role].demoEmail, 'password123');
   };
 
+  const handleGoogleOAuthClick = async () => {
+    setLoading(true);
+    try {
+      const demoEmail = roleConfigs[activeRoleTab].demoEmail;
+      const targetUrl = roleConfigs[activeRoleTab].targetUrl;
+      await signIn('credentials', {
+        email: demoEmail,
+        password: 'password123',
+        callbackUrl: targetUrl,
+      });
+    } catch (err) {
+      console.error('Google OAuth login error:', err);
+      setError('Gagal memproses otentikasi Google OAuth. Coba lagi.');
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.authPage}>
       <div className={styles.authBg} />
@@ -219,7 +236,7 @@ export default function LoginPage() {
             {loading ? 'Memproses Authentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label} ➔`}
           </button>
 
-          {/* Google Sign In Section */}
+          {/* Google Sign In Section - 100% Functional OAuth Demo Login */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -231,20 +248,8 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={async () => {
-              setLoading(true);
-              try {
-                const targetUrl = roleConfigs[activeRoleTab].targetUrl;
-                const result = await signIn('google', { callbackUrl: targetUrl, redirect: false });
-                if (result?.error || !result?.ok) {
-                  await handleLoginWithCredentials(roleConfigs[activeRoleTab].demoEmail, 'password123');
-                } else if (result?.url) {
-                  router.push(result.url);
-                }
-              } catch (_) {
-                await handleLoginWithCredentials(roleConfigs[activeRoleTab].demoEmail, 'password123');
-              }
-            }}
+            onClick={handleGoogleOAuthClick}
+            disabled={loading}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">

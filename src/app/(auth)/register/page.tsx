@@ -260,7 +260,16 @@ export default function RegisterPage() {
 
           <button
             type="button"
-            onClick={() => setIsOTPOpen(true)}
+            onClick={() => {
+              setFormData((prev) => ({
+                ...prev,
+                name: prev.name || 'User Google Replate',
+                email: prev.email || 'user.google@gmail.com',
+                password: 'password123',
+                confirmPassword: 'password123',
+              }));
+              setIsOTPOpen(true);
+            }}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
