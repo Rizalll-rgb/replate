@@ -28,20 +28,27 @@ export default function TrackRegistrationStatusPage() {
 
   useEffect(() => {
     try {
-      const p = localStorage.getItem('replate_onboarding_profile');
-      if (p) {
-        const parsed = JSON.parse(p);
-        setProfile(parsed);
-        if (parsed.email) setSearchQuery(parsed.email);
-      }
+      if (typeof window !== 'undefined') {
+        const queryId = new URLSearchParams(window.location.search).get('id');
+        let activeRegId = queryId || localStorage.getItem('replate_registration_id') || 'REPLATE-REG-2026-9812';
 
-      const d = localStorage.getItem('replate_onboarding_docs');
-      if (d) {
-        const parsed = JSON.parse(d);
-        if (parsed.status) setDocsStatus(parsed.status);
-        if (parsed.submittedAt) {
-          const dateObj = new Date(parsed.submittedAt);
-          setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
+        setRegId(activeRegId);
+        setSearchQuery(activeRegId);
+
+        const p = localStorage.getItem('replate_onboarding_profile');
+        if (p) {
+          const parsed = JSON.parse(p);
+          setProfile(parsed);
+        }
+
+        const d = localStorage.getItem('replate_onboarding_docs');
+        if (d) {
+          const parsed = JSON.parse(d);
+          if (parsed.status) setDocsStatus(parsed.status);
+          if (parsed.submittedAt) {
+            const dateObj = new Date(parsed.submittedAt);
+            setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
+          }
         }
       }
     } catch (_) {}
@@ -58,7 +65,10 @@ export default function TrackRegistrationStatusPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSearched(true);
+    if (searchQuery.trim()) {
+      setRegId(searchQuery.trim().toUpperCase());
+      setIsSearched(true);
+    }
   };
 
   const isApproved = docsStatus === 'APPROVED_ACTIVE';
@@ -87,10 +97,10 @@ export default function TrackRegistrationStatusPage() {
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Masukkan Email, No. WA, atau Reg ID (contoh: REPLATE-REG-2026-9812)"
+                placeholder="Masukkan Kode Tracking (contoh: REPLATE-REG-2026-9812), Email, atau No. WA"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] focus:bg-white"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] focus:bg-white font-mono"
               />
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
             </div>
@@ -105,8 +115,8 @@ export default function TrackRegistrationStatusPage() {
               {/* Header Info */}
               <div className="border-b border-[#2C5A8F] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-400 block uppercase tracking-wider">
-                    ID REGISTRASI: {regId}
+                  <span className="text-xs font-mono font-black text-amber-300 block uppercase tracking-wider bg-slate-900/70 px-3 py-1 rounded-lg border border-amber-400/30 w-fit mb-1">
+                    📌 KODE REPL-TRACK: {regId}
                   </span>
                   <h3 className="text-xl font-black text-white">{profile.entityName || 'Warung Bakso Pak Kumis'}</h3>
                   <span className="text-xs text-slate-300 font-medium block">
