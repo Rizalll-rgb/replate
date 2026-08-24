@@ -4,6 +4,7 @@ import React from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { useSession } from 'next-auth/react';
+import { Navbar } from '@/components/layout/Navbar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
