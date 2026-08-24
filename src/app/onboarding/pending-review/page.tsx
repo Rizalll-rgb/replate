@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 
@@ -18,6 +19,7 @@ export default function OnboardingPendingReviewPage() {
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [targetDashboard, setTargetDashboard] = useState<string>('/dashboard/provider');
   const [roleName, setRoleName] = useState<string>('Food Provider');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -64,8 +66,23 @@ export default function OnboardingPendingReviewPage() {
     setIsApproved(true);
   };
 
-  const handleGoToDashboard = () => {
-    router.push(targetDashboard);
+  const handleGoToDashboard = async () => {
+    setLoading(true);
+    try {
+      let demoEmail = 'bakso.pak.kumis@replate.id';
+      if (targetDashboard.includes('yayasan')) demoEmail = 'panti.kasih.ibu@replate.id';
+      else if (targetDashboard.includes('rescue-partner')) demoEmail = 'foodbank.surabaya@replate.id';
+      else if (targetDashboard.includes('consumer')) demoEmail = 'budi.santoso@gmail.com';
+      else if (targetDashboard.includes('admin')) demoEmail = 'admin@replate.id';
+
+      await signIn('credentials', {
+        email: demoEmail,
+        password: 'password123',
+        callbackUrl: targetDashboard,
+      });
+    } catch (_) {
+      window.location.href = targetDashboard;
+    }
   };
 
   return (
@@ -155,6 +172,7 @@ export default function OnboardingPendingReviewPage() {
                 variant="gold"
                 size="lg"
                 onClick={handleGoToDashboard}
+                isLoading={loading}
                 className="w-full font-black text-slate-950 shadow-lg py-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>🚀 Masuk Ke Dashboard {roleName} ➔</span>
