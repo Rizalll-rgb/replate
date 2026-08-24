@@ -20,6 +20,7 @@ export default auth((req) => {
         '/pending-approval',
         '/account-rejected',
         '/account-suspended',
+        '/track-status',
     ];
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
     const isOnboardingRoute = nextUrl.pathname.startsWith('/onboarding');

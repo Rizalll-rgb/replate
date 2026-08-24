@@ -123,6 +123,16 @@ export default function ProviderSettingsPage() {
 
   React.useEffect(() => {
     try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName) setOrgName(parsed.entityName);
+        if (parsed.phone) setPhone(parsed.phone);
+        if (parsed.address) setAddress(parsed.address);
+        if (parsed.contactPerson) setAccountHolder(parsed.contactPerson);
+        if (parsed.category) setBusinessCategory(parsed.category);
+      }
+
       const saved = localStorage.getItem('replate_provider_can_deliver_direct');
       if (saved !== null) {
         setProviderCanDeliverDirect(saved === 'true');

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 
@@ -123,6 +124,16 @@ export default function PendingApprovalPage() {
                   <span className="font-bold text-emerald-300">WhatsApp & Email</span>
                 </div>
               </div>
+
+              {/* Link to Live Application Status Tracker (Poin 3) */}
+              <Link href="/track-status" className="block">
+                <button
+                  type="button"
+                  className="w-full py-2.5 bg-blue-900/80 hover:bg-blue-800 text-blue-200 font-extrabold text-xs rounded-xl border border-blue-400/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>🔍 Pantau Status Pendaftaran 24/7 (Live Tracker) ➔</span>
+                </button>
+              </Link>
 
               {/* Demo Action Button for Judges */}
               <div className="p-4 bg-[#0F1923] border border-[#2C5A8F] rounded-2xl space-y-2.5 text-center shadow-lg">

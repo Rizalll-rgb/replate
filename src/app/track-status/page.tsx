@@ -1,0 +1,241 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { Button } from '@/components/ui/Button';
+
+export default function TrackRegistrationStatusPage() {
+  const router = useRouter();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [profile, setProfile] = useState<any>({
+    entityName: 'Warung Bakso Pak Kumis Surabaya',
+    email: 'bakso.pak.kumis@replate.id',
+    phone: '081234567890',
+    contactPerson: 'Mas Doni',
+    address: 'Jl. Raya Gubeng No. 88, Surabaya',
+    category: 'RESTAURANT',
+    role: 'FOOD_PROVIDER',
+  });
+
+  const [docsStatus, setDocsStatus] = useState<string>('DOCS_SUBMITTED_PENDING_REVIEW');
+  const [regId, setRegId] = useState('REPLATE-REG-2026-9812');
+  const [submittedTime, setSubmittedTime] = useState('24 Agustus 2026, 09:00 WIB');
+  const [isSearched, setIsSearched] = useState(true);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        setProfile(parsed);
+        if (parsed.email) setSearchQuery(parsed.email);
+      }
+
+      const d = localStorage.getItem('replate_onboarding_docs');
+      if (d) {
+        const parsed = JSON.parse(d);
+        if (parsed.status) setDocsStatus(parsed.status);
+        if (parsed.submittedAt) {
+          const dateObj = new Date(parsed.submittedAt);
+          setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
+        }
+      }
+    } catch (_) {}
+  }, []);
+
+  const handleSimulateApprove = () => {
+    try {
+      const d = localStorage.getItem('replate_onboarding_docs') || '{}';
+      const parsed = JSON.parse(d);
+      localStorage.setItem('replate_onboarding_docs', JSON.stringify({ ...parsed, status: 'APPROVED_ACTIVE' }));
+    } catch (_) {}
+    setDocsStatus('APPROVED_ACTIVE');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearched(true);
+  };
+
+  const isApproved = docsStatus === 'APPROVED_ACTIVE';
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] font-sans">
+      <Navbar />
+
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 py-12">
+        <div className="max-w-2xl w-full space-y-6">
+          {/* Header Card */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-xs">
+              <span>🔍 REPLATE GOVERNANCE TRACKER 24/7</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#1B3A5C] tracking-tight">
+              Pengecekan Status Pendaftaran Akun
+            </h1>
+            <p className="text-xs text-slate-600 font-medium max-w-md mx-auto">
+              Pantau status peninjauan berkas legalitas dan lisensi platform Anda secara real-time kapan saja.
+            </p>
+          </div>
+
+          {/* Search Bar Input */}
+          <form onSubmit={handleSearch} className="bg-white p-4 rounded-2xl border border-slate-300 shadow-md flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Masukkan Email, No. WA, atau Reg ID (contoh: REPLATE-REG-2026-9812)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] focus:bg-white"
+              />
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            </div>
+            <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 py-3 px-6 shadow-xs shrink-0 cursor-pointer">
+              <span>Cari Status ➔</span>
+            </Button>
+          </form>
+
+          {/* Real-time Timeline Status Card */}
+          {isSearched && (
+            <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+              {/* Header Info */}
+              <div className="border-b border-[#2C5A8F] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-amber-400 block uppercase tracking-wider">
+                    ID REGISTRASI: {regId}
+                  </span>
+                  <h3 className="text-xl font-black text-white">{profile.entityName || 'Warung Bakso Pak Kumis'}</h3>
+                  <span className="text-xs text-slate-300 font-medium block">
+                    Penanggung Jawab: {profile.contactPerson || 'Mas Doni'} ({profile.phone || '0812-3456-7890'})
+                  </span>
+                </div>
+
+                <div className="shrink-0">
+                  {isApproved ? (
+                    <span className="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
+                      🎉 AKUN RESMI AKTIF
+                    </span>
+                  ) : (
+                    <span className="px-3.5 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
+                      ⏳ AUDIT SEDANG BERLANGSUNG
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 5-Step Timeline Graphic */}
+              <div className="space-y-4 text-xs">
+                <span className="font-black text-amber-300 uppercase tracking-wider block">
+                  📍 Timeline Proses Verifikasi Governance:
+                </span>
+
+                <div className="relative pl-6 space-y-5 border-l-2 border-[#2C5A8F]">
+                  {/* Step 1 */}
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
+                      ✓
+                    </span>
+                    <div className="font-bold">
+                      <span className="text-emerald-300 font-extrabold">1. Registrasi Akun & Verifikasi OTP WA</span>
+                      <span className="text-[10px] text-slate-400 font-mono block font-normal">Tercatat pada {submittedTime}</span>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
+                      ✓
+                    </span>
+                    <div className="font-bold">
+                      <span className="text-emerald-300 font-extrabold">2. Pengisian Profil Usaha & Alamat GPS</span>
+                      <span className="text-[10px] text-slate-300 font-mono block font-normal">Lokasi: {profile.address || 'Surabaya'}</span>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
+                      ✓
+                    </span>
+                    <div className="font-bold">
+                      <span className="text-emerald-300 font-extrabold">3. Unggah Berkas Legalitas (NIB, KTP, Foto)</span>
+                      <span className="text-[10px] text-slate-300 font-mono block font-normal">3 Berkas Fisik Wajib Terunggah Lengkap</span>
+                    </div>
+                  </div>
+
+                  {/* Step 4 */}
+                  <div className="relative">
+                    <span className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 font-black text-[11px] flex items-center justify-center ${
+                      isApproved
+                        ? 'bg-emerald-500 border-emerald-400 text-slate-950'
+                        : 'bg-amber-400 border-amber-300 text-slate-950 animate-pulse'
+                    }`}>
+                      {isApproved ? '✓' : '4'}
+                    </span>
+                    <div className="font-bold">
+                      <span className={isApproved ? 'text-emerald-300 font-extrabold' : 'text-amber-300 font-extrabold'}>
+                        4. Audit Keabsahan Oleh Tim Governance Admin
+                      </span>
+                      <span className="text-[10px] text-slate-300 font-medium block">
+                        {isApproved ? 'Audit Selesai & Valid' : 'Estimasi Waktu Audit: Maksimal 1x24 Jam Kerja'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Step 5 */}
+                  <div className="relative">
+                    <span className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 font-black text-[11px] flex items-center justify-center ${
+                      isApproved
+                        ? 'bg-emerald-500 border-emerald-400 text-slate-950'
+                        : 'bg-slate-800 border-slate-600 text-slate-400'
+                    }`}>
+                      {isApproved ? '✓' : '5'}
+                    </span>
+                    <div className="font-bold">
+                      <span className={isApproved ? 'text-emerald-300 font-extrabold' : 'text-slate-400 font-medium'}>
+                        5. Aktivasi Akun & Penerbitan Sertifikat BPOM Replate
+                      </span>
+                      <span className="text-[10px] text-slate-300 font-medium block">
+                        {isApproved ? 'Akun telah dapat digunakan penuh' : 'Menunggu Penyelesaian Audit Step 4'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Box */}
+              {!isApproved ? (
+                <div className="p-4 bg-[#0F1923] border border-[#2C5A8F] rounded-2xl space-y-2.5 text-center shadow-lg pt-3">
+                  <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block">
+                    ⚡ SIMULASI TESTING ACC SUPERADMIN
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSimulateApprove}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>👑 Simulasi SuperAdmin ACC & Aktifkan Akun ➔</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="pt-2">
+                  <Link href="/login">
+                    <Button variant="gold" size="lg" className="w-full font-black text-slate-950 py-3 text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+                      <span>🚀 Masuk Ke Halaman Login ➔</span>
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
