@@ -33,7 +33,7 @@ export default function PendingApprovalPage() {
         setRoleName('Food Beneficiary (Panti/Yayasan)');
       } else if (role === 'RESCUE_VOLUNTEER' || role === 'VOLUNTEER' || role === 'RESCUE_PARTNER') {
         setTargetDashboard('/dashboard/rescue-partner');
-        setRoleName('Rescue Volunteer (Kurir Relawan)');
+        setRoleName('Food Rescue Volunteer (Kurir Relawan)');
       } else if (role === 'FOOD_CONSUMER' || role === 'CONSUMER') {
         setTargetDashboard('/dashboard/consumer');
         setRoleName('Food Consumer (Rescue Sale)');

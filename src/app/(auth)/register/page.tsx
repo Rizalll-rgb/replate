@@ -121,7 +121,7 @@ export default function RegisterPage() {
     },
     {
       value: 'RESCUE_VOLUNTEER',
-      label: 'Rescue Volunteer',
+      label: 'Food Rescue Volunteer',
       icon: '🛵',
       desc: 'Armada Kurir Relawan Komunitas pengantar bantuan makanan.',
     },

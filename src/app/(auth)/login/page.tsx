@@ -44,7 +44,7 @@ export default function LoginPage() {
       hint: 'Untuk Konsumen Umum / Anak Kos pembeli makanan diskon murah Rescue Sale.',
     },
     RESCUE_VOLUNTEER: {
-      label: 'Rescue Volunteer',
+      label: 'Food Rescue Volunteer',
       icon: '🛵',
       targetUrl: '/dashboard/rescue-partner',
       demoEmail: 'foodbank.surabaya@replate.id',
