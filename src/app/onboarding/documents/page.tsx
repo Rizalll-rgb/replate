@@ -90,7 +90,7 @@ export default function OnboardingDocumentsPage() {
             <span>LANGKAH 3 DARI 4 — UPLOAD DOKUMEN LEGALITAS REPLATE</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Unggah Berkas Legalitas {isBeneficiary ? 'Yayasan Panti' : isVolunteer ? 'Kurir Relawan' : 'Outlet Provider'}
+            Unggah Berkas Legalitas {isBeneficiary ? 'Yayasan / Panti' : isVolunteer ? 'Komunitas / Organisasi Food Rescue' : 'Outlet Provider'}
           </h1>
           <p className="text-xs text-slate-300 font-medium max-w-md mx-auto">
             Tim Admin Replate Surabaya akan memverifikasi keabsahan dokumen untuk menjamin integritas mitra.
