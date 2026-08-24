@@ -7,6 +7,7 @@ import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
 import { OTPVerificationModal } from '@/components/auth/OTPVerificationModal';
+import { GoogleAccountChooserModal } from '@/components/auth/GoogleAccountChooserModal';
 
 type Role = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER';
 
@@ -27,6 +28,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [isTOSOpen, setIsTOSOpen] = useState(false);
   const [isOTPOpen, setIsOTPOpen] = useState(false);
+  const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Trigger WhatsApp 2-Step OTP Verification (Poin 8) for manual registration
+    // Trigger WhatsApp 2-Step OTP Verification for manual registration
     setIsOTPOpen(true);
   };
 
@@ -63,8 +65,6 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok && res.status !== 400) {
         // Fallthrough for demo resiliency
       }
@@ -85,20 +85,20 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleOAuthRegister = () => {
-    setError('');
+  const handleGoogleAccountSelected = (account: { name: string; email: string }) => {
+    setIsGoogleChooserOpen(false);
     setLoading(true);
     try {
       const googleUser = {
-        name: formData.name || 'User Google Replate',
-        email: formData.email || 'user.google@gmail.com',
+        name: account.name,
+        email: account.email,
         phone: formData.phone || '081234567890',
         role: formData.role,
         isGoogleOAuth: true,
       };
 
       localStorage.setItem('replate_onboarding_profile', JSON.stringify(googleUser));
-      setSuccess('✓ Berhasil Autentikasi Google OAuth! Mengalihkan ke pengisian profil...');
+      setSuccess(`✓ Akun Google (${account.email}) Terhubung! Mengalihkan ke pengisian profil...`);
 
       setTimeout(() => {
         if (formData.role === 'FOOD_CONSUMER') {
@@ -276,7 +276,7 @@ export default function RegisterPage() {
             {loading ? 'Memproses OTP WA...' : 'Lanjut Ke Verifikasi OTP ➔'}
           </button>
 
-          {/* Google OAuth Register Section - Direct Instant OAuth Signup */}
+          {/* Google OAuth Register Section - Triggers Google Account Chooser Modal */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -288,7 +288,7 @@ export default function RegisterPage() {
 
           <button
             type="button"
-            onClick={handleGoogleOAuthRegister}
+            onClick={() => setIsGoogleChooserOpen(true)}
             disabled={loading}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
@@ -317,6 +317,12 @@ export default function RegisterPage() {
         phoneOrEmail={formData.phone}
         onSuccess={handleOTPVerified}
         onClose={() => setIsOTPOpen(false)}
+      />
+
+      <GoogleAccountChooserModal
+        isOpen={isGoogleChooserOpen}
+        onClose={() => setIsGoogleChooserOpen(false)}
+        onSelectAccount={handleGoogleAccountSelected}
       />
     </div>
   );
