@@ -1,36 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Navbar } from '@/components/layout/Navbar';
 import { useSession } from 'next-auth/react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
+  const [profileData, setProfileData] = useState<any>(null);
 
-  // Dynamic user session from NextAuth
-  const currentUser = session?.user
-    ? {
-        id: session.user.id,
-        name: session.user.name || 'Pengguna',
-        email: session.user.email || 'user@replate.id',
-        role: session.user.role || 'PROVIDER',
-        status: session.user.status || 'APPROVED',
-        phone: '081234567890',
-        address: 'Surabaya, Jawa Timur',
-        city: 'Surabaya',
-        profileImage: session.user.image,
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        setProfileData(JSON.parse(p));
       }
-    : {
-        name: 'Pak Kumis',
-        email: 'bakso.pak.kumis@replate.id',
-        role: 'PROVIDER',
-        status: 'APPROVED',
-        phone: '081234567891',
-        address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
-        city: 'Surabaya',
-      };
+    } catch (_) {}
+  }, [session]);
+
+  // Dynamic user session synchronized with registered onboarding profile & NextAuth session
+  const currentUser = {
+    id: session?.user?.id || 'usr-registered',
+    name: profileData?.entityName || profileData?.contactPerson || session?.user?.name || 'Mitra Replate',
+    email: profileData?.email || session?.user?.email || 'mitra@replate.id',
+    role: profileData?.role || session?.user?.role || 'FOOD_PROVIDER',
+    status: 'APPROVED',
+    phone: profileData?.phone || '0812-3456-7890',
+    address: profileData?.address || 'Surabaya, Jawa Timur',
+    city: 'Surabaya',
+    profileImage: session?.user?.image || null,
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
