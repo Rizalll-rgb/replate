@@ -10,8 +10,17 @@ export default function ProviderOverviewPage() {
   const [activeSurplusCount, setActiveSurplusCount] = useState<number>(2);
   const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(1);
   const [totalRescuedKg, setTotalRescuedKg] = useState<number>(42.5);
+  const [providerName, setProviderName] = useState<string>('Mitra Restoran & Toko Pangan');
 
   useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName) setProviderName(parsed.entityName);
+      }
+    } catch (_) {}
+
     // Dynamic real-time calculation from local cache & database APIs (Poin 1: Realtime claim sync)
     let localItems: any[] = [];
     try {
@@ -70,7 +79,7 @@ export default function ProviderOverviewPage() {
         <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest block">
           Dashboard Food Provider
         </span>
-        <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Mitra Restoran & Toko Pangan</h2>
+        <h2 className="text-2xl font-extrabold text-[#1B3A5C]">{providerName}</h2>
       </div>
 
       {/* High-Contrast Hero Action Banner */}

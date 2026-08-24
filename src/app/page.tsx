@@ -21,6 +21,7 @@ export default function HomePage() {
   const [foods, setFoods] = useState<any[]>([]);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [landingSearchQuery, setLandingSearchQuery] = useState('');
 
   useEffect(() => {
     const defaultMockFoods = [
@@ -135,85 +136,137 @@ export default function HomePage() {
 
             {/* Live Available Surplus Section with 3-Card Pagination Limit */}
             <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
-                Surplus Makanan Aktif Surabaya
-              </span>
-              <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Jelajah Penyelamatan Makanan</h2>
-            </div>
-            <span className="text-xs text-[#6C757D] font-semibold">
-              ⚡ Terhubung langsung dengan Smart Matching System (Menampilkan 3 Item per Halaman)
-            </span>
-          </div>
 
-          {/* Paginated Food Grid */}
-          <FoodGrid foods={paginatedFoods} onClaim={handleClaim} onDetail={handleDetail} />
+              {/* Interactive Governance Audit Status Tracker Section (Landing Page Dedicated Widget) */}
+              <section className="py-12 bg-[#1B3A5C] border-y border-[#2C5A8F] text-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="bg-[#0F1923] rounded-3xl p-6 sm:p-10 border-2 border-[#D4A843]/40 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="space-y-2 max-w-xl text-center md:text-left">
+                      <span className="px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md inline-block">
+                        🔍 REPLATE GOVERNANCE TRACKER 24/7
+                      </span>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        Cek Status Pendaftaran & Audit Berkas Partner
+                      </h3>
+                      <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                        Pernah mendaftar sebagai Provider, Yayasan Panti, atau Food Rescue Volunteer? Masukkan Kode Tracking, Email, atau No. WA Anda untuk memantau status audit tim Governance secara real-time.
+                      </p>
+                    </div>
 
-          {/* Pagination Controls */}
-          {foods.length > itemsPerPage && (
-            <div className="flex items-center justify-between border-t border-b border-slate-200 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                className="font-extrabold text-xs"
-              >
-                ◀ Sebelumnya
-              </Button>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (landingSearchQuery.trim()) {
+                          router.push(`/track-status?id=${encodeURIComponent(landingSearchQuery.trim())}`);
+                        }
+                      }}
+                      className="w-full md:w-auto shrink-0 space-y-2"
+                    >
+                      <div className="flex flex-col sm:flex-row gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-700 shadow-lg">
+                        <input
+                          type="text"
+                          placeholder="Kode Tracking / Email / No. WA..."
+                          value={landingSearchQuery}
+                          onChange={(e) => setLandingSearchQuery(e.target.value)}
+                          className="px-4 py-3 bg-slate-800 text-white font-mono font-bold text-xs rounded-xl border border-slate-700 focus:outline-none focus:border-[#D4A843] min-w-[260px]"
+                        />
+                        <button
+                          type="submit"
+                          className="px-6 py-3 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
+                        >
+                          <span>Cari Status Audit ➔</span>
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-amber-300 font-medium text-center md:text-left">
+                        💡 Contoh ID: <strong className="font-mono">REPLATE-REG-2026-9812</strong> atau Email mitra.
+                      </p>
+                    </form>
+                  </div>
+                </div>
+              </section>
 
-              <span className="text-xs font-bold text-[#1B3A5C]">
-                Halaman {currentPage} dari {totalPages} (Total {foods.length} Surplus Makanan)
-              </span>
+              {/* Live Available Surplus Section with 3-Card Pagination Limit */}
+              <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+>>>>>>> a85b750e3359786a07e7b68111c033abf46f0dc0
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
+                      Surplus Makanan Aktif Surabaya
+                    </span>
+                    <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Jelajah Penyelamatan Makanan</h2>
+                  </div>
+                  <span className="text-xs text-[#6C757D] font-semibold">
+                    ⚡ Terhubung langsung dengan Smart Matching System (Menampilkan 3 Item per Halaman)
+                  </span>
+                </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                className="font-extrabold text-xs"
-              >
-                Selanjutnya ▶
-              </Button>
-            </div>
-          )}
+                {/* Paginated Food Grid */}
+                <FoodGrid foods={paginatedFoods} onClaim={handleClaim} onDetail={handleDetail} />
 
-          {/* Login Required CTA Banner */}
-          <div className="p-5 bg-[#1B3A5C] text-white rounded-2xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="space-y-1 text-center sm:text-left">
-              <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
-                🔒 INGIN MELIHAT SELURUH KATALOG SURPLUS SURABAYA?
-              </span>
-              <p className="text-xs text-slate-200 font-medium leading-relaxed">
-                Login ke Dashboard Konsumen atau Yayasan Panti untuk melakukan klaim langsung dan melihat rekomendasi gizi Smart Matching Engine.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push('/login')}
-              className="px-5 py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-md transition-all shrink-0 whitespace-nowrap"
-            >
-              <span>Login / Daftar Akun ➔</span>
-            </button>
-          </div>
-        </section>
+                {/* Pagination Controls */}
+                {foods.length > itemsPerPage && (
+                  <div className="flex items-center justify-between border-t border-b border-slate-200 py-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      className="font-extrabold text-xs"
+                    >
+                      ◀ Sebelumnya
+                    </Button>
 
-        <ImpactCounter />
-        <SDGSection />
-        <Testimonials />
-          </>
+                    <span className="text-xs font-bold text-[#1B3A5C]">
+                      Halaman {currentPage} dari {totalPages} (Total {foods.length} Surplus Makanan)
+                    </span>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      className="font-extrabold text-xs"
+                    >
+                      Selanjutnya ▶
+                    </Button>
+                  </div>
+                )}
+
+                {/* Login Required CTA Banner */}
+                <div className="p-5 bg-[#1B3A5C] text-white rounded-2xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="space-y-1 text-center sm:text-left">
+                    <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
+                      🔒 INGIN MELIHAT SELURUH KATALOG SURPLUS SURABAYA?
+                    </span>
+                    <p className="text-xs text-slate-200 font-medium leading-relaxed">
+                      Login ke Dashboard Konsumen atau Yayasan Panti untuk melakukan klaim langsung dan melihat rekomendasi gizi Smart Matching Engine.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/login')}
+                    className="px-5 py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-md transition-all shrink-0 whitespace-nowrap"
+                  >
+                    <span>Login / Daftar Akun ➔</span>
+                  </button>
+                </div>
+              </section>
+
+              <ImpactCounter />
+              <SDGSection />
+              <Testimonials />
+            </>
         )}
-      </main>
+          </main>
 
-      <Footer />
+        <Footer />
 
-      <FoodDetailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        food={selectedFood}
-        onClaim={handleClaim}
-      />
+        <FoodDetailModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          food={selectedFood}
+          onClaim={handleClaim}
+        />
     </div>
   );
 }

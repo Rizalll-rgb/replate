@@ -33,11 +33,31 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
 
   // Editable Account Form State (Poin 9)
   const [orgName, setOrgName] = useState(user?.name || 'Warung Bakso Pak Kumis');
-  const [phone, setPhone] = useState((user as any)?.phone || '081234567891');
+  const [phone, setPhone] = useState((user as any)?.phone || '0812-3456-7890');
   const [email, setEmail] = useState(user?.email || 'mitra@replate.id');
-  const [address, setAddress] = useState((user as any)?.address || 'Jl. Genteng Kali No. 45, Genteng, Surabaya');
+  const [address, setAddress] = useState((user as any)?.address || 'Jl. Raya Gubeng No. 88, Surabaya');
+  const [contactPerson, setContactPerson] = useState('Mas Doni');
   const [nib, setNib] = useState('NIB-9120481023912');
   const [district, setDistrict] = useState('Surabaya Pusat');
+
+  React.useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName) setOrgName(parsed.entityName);
+        if (parsed.phone) setPhone(parsed.phone);
+        if (parsed.email) setEmail(parsed.email);
+        if (parsed.address) setAddress(parsed.address);
+        if (parsed.contactPerson) setContactPerson(parsed.contactPerson);
+      } else if (user) {
+        if (user.name) setOrgName(user.name);
+        if (user.phone) setPhone(user.phone);
+        if (user.email) setEmail(user.email);
+        if (user.address) setAddress(user.address);
+      }
+    } catch (_) {}
+  }, [user]);
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -220,26 +240,26 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <div>
-                    <span className="text-slate-500 font-semibold block">Nama Organisasi / Toko</span>
+                    <span className="text-slate-500 font-semibold block">Nama Entitas / Toko</span>
                     <span className="font-extrabold text-[#1B3A5C] text-sm">{orgName}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold block">Wilayah Operasional</span>
-                    <span className="font-extrabold text-slate-800 text-sm">{district}</span>
+                    <span className="text-slate-500 font-semibold block">Penanggung Jawab (PJ)</span>
+                    <span className="font-extrabold text-slate-800 text-sm">{contactPerson}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold block">NIB / Izin Usaha</span>
+                    <span className="text-slate-500 font-semibold block">NIB / SK Legalitas</span>
                     <span className="font-mono font-bold text-slate-800 text-sm">{nib}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <div>
-                    <span className="text-slate-500 font-semibold block">No. Telepon PIC Penjemputan</span>
+                    <span className="text-slate-500 font-semibold block">No. Telepon / WA PIC</span>
                     <span className="font-bold text-slate-800">{phone}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold block">Alamat Utama Penjemputan</span>
+                    <span className="text-slate-500 font-semibold block">Alamat Lengkap Operasional</span>
                     <span className="font-bold text-slate-800">{address}</span>
                   </div>
                 </div>

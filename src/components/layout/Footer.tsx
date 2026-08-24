@@ -22,6 +22,7 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-xs">
               <li><Link href="/" className="hover:text-[#D4A843] transition-colors">Beranda</Link></li>
+              <li><Link href="/track-status" className="hover:text-[#D4A843] transition-colors font-extrabold text-[#D4A843]">🔍 Cek Status Audit Pendaftaran</Link></li>
               <li><Link href="/about" className="hover:text-[#D4A843] transition-colors">Tentang Kami</Link></li>
               <li><Link href="/how-it-works" className="hover:text-[#D4A843] transition-colors">Cara Kerja</Link></li>
               <li><Link href="/impact" className="hover:text-[#D4A843] transition-colors">Dampak Lingkungan</Link></li>

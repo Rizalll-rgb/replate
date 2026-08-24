@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
@@ -38,7 +39,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Trigger WhatsApp 2-Step OTP Verification (Poin 8)
+    // Trigger WhatsApp 2-Step OTP Verification for manual registration
     setIsOTPOpen(true);
   };
 
@@ -63,24 +64,32 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok && res.status !== 400) {
         // Fallthrough for demo resiliency
       }
 
-      setSuccess('✓ Nomor WhatsApp Berhasil Diverifikasi OTP (9938)! Mengalihkan ke pengisian profil...');
+      setSuccess('✓ Nomor WhatsApp Berhasil Diverifikasi! Mengalihkan ke pengisian profil...');
 
       setTimeout(() => {
-        if (formData.role === 'FOOD_CONSUMER') {
-          router.push('/login');
-        } else {
-          router.push(`/onboarding/profile?role=${formData.role}`);
-        }
+        // All 4 roles go through onboarding profile setup!
+        router.push(`/onboarding/profile?role=${formData.role}`);
       }, 1200);
     } catch {
       setError('Terjadi kesalahan, coba lagi.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleOAuthRegister = async () => {
+    setLoading(true);
+    try {
+      const targetUrl = `/onboarding/profile?role=${formData.role}`;
+
+      // Native NextAuth Google OAuth browser redirect to accounts.google.com
+      await signIn('google', { callbackUrl: targetUrl });
+    } catch (err) {
+      console.error('Google OAuth register error:', err);
       setLoading(false);
     }
   };
@@ -106,9 +115,9 @@ export default function RegisterPage() {
     },
     {
       value: 'RESCUE_VOLUNTEER',
-      label: 'Rescue Volunteer',
+      label: 'Food Rescue Volunteer',
       icon: '🛵',
-      desc: 'Armada Kurir Relawan Komunitas pengantar bantuan makanan.',
+      desc: 'Organisasi / Komunitas Relawan Logistik Penyelamat Pangan.',
     },
   ];
 
@@ -221,7 +230,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Clickable TOS Agreement (Poin 6) */}
+          {/* Clickable TOS Agreement */}
           <div className="py-2">
             <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-300 font-medium leading-relaxed">
               <input
@@ -253,23 +262,15 @@ export default function RegisterPage() {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
             </div>
-            <div className="relative inline-block px-3 bg-[#0F1923] text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
+            <div className="relative inline-block px-[#0F1923] text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
               Atau Daftar Cepat OAuth
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => {
-              setFormData((prev) => ({
-                ...prev,
-                name: prev.name || 'User Google Replate',
-                email: prev.email || 'user.google@gmail.com',
-                password: 'password123',
-                confirmPassword: 'password123',
-              }));
-              setIsOTPOpen(true);
-            }}
+            onClick={handleGoogleOAuthRegister}
+            disabled={loading}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -282,11 +283,21 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <div className={styles.authFooter}>
-          Sudah mendaftarkan akun?{' '}
-          <Link href="/login" className="font-extrabold text-[#D4A843] hover:underline">
-            Masuk Sekarang ➔
-          </Link>
+        <div className={`${styles.authFooter} space-y-2 pt-4 border-t border-slate-800`}>
+          <div>
+            Sudah mendaftarkan akun?{' '}
+            <Link href="/login" className="font-extrabold text-[#D4A843] hover:underline">
+              Masuk Sekarang ➔
+            </Link>
+          </div>
+          <div className="pt-1">
+            <Link
+              href="/track-status"
+              className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#142C47] px-3.5 py-1.5 rounded-xl border border-amber-400/40 shadow-xs transition-all"
+            >
+              <span>🔍 Pernah Mendaftar? Cek Live Status Audit ➔</span>
+            </Link>
+          </div>
         </div>
       </div>
 

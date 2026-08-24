@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 
@@ -16,6 +17,8 @@ export default function OnboardingPendingReviewPage() {
     contactPerson: 'Mas Doni',
   });
 
+  const [regId, setRegId] = useState<string>('REPLATE-REG-2026-9812');
+  const [copied, setCopied] = useState<boolean>(false);
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [targetDashboard, setTargetDashboard] = useState<string>('/dashboard/provider');
   const [roleName, setRoleName] = useState<string>('Food Provider');
@@ -34,6 +37,14 @@ export default function OnboardingPendingReviewPage() {
         }
       }
 
+      // Generate or load existing dynamic tracking registration ID
+      let storedRegId = localStorage.getItem('replate_registration_id');
+      if (!storedRegId) {
+        storedRegId = `REPLATE-REG-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+        localStorage.setItem('replate_registration_id', storedRegId);
+      }
+      setRegId(storedRegId);
+
       const docs = d ? JSON.parse(d) : {};
       const parsedProfile = p ? JSON.parse(p) : {};
       const role = docs.role || parsedProfile.role;
@@ -43,7 +54,7 @@ export default function OnboardingPendingReviewPage() {
         setRoleName('Food Beneficiary (Panti/Yayasan)');
       } else if (role === 'RESCUE_VOLUNTEER' || role === 'VOLUNTEER' || role === 'RESCUE_PARTNER') {
         setTargetDashboard('/dashboard/rescue-partner');
-        setRoleName('Rescue Volunteer (Kurir Relawan)');
+        setRoleName('Food Rescue Volunteer (Kurir Relawan)');
       } else if (role === 'FOOD_CONSUMER' || role === 'CONSUMER') {
         setTargetDashboard('/dashboard/consumer');
         setRoleName('Food Consumer (Rescue Sale)');
@@ -56,6 +67,12 @@ export default function OnboardingPendingReviewPage() {
       }
     } catch (_) {}
   }, []);
+
+  const handleCopyRegId = () => {
+    navigator.clipboard.writeText(regId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   const handleSimulateSuperAdminApprove = () => {
     try {
@@ -120,8 +137,32 @@ export default function OnboardingPendingReviewPage() {
                 </p>
               </div>
 
+              {/* Prominent Registration Tracking ID Box */}
+              <div className="p-3.5 bg-[#0F1923] border-2 border-[#D4A843] rounded-2xl flex items-center justify-between text-left shadow-lg">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">
+                    📌 Kode Registrasi Tracking Pendaftaran Anda:
+                  </span>
+                  <span className="font-mono text-[#D4A843] font-black text-base tracking-wider block">
+                    {regId}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyRegId}
+                  className="px-3.5 py-2 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <span>{copied ? '✓ Kode Tersalin!' : '📋 Salin Kode'}</span>
+                </button>
+              </div>
+
               {/* High Contrast Details Box */}
               <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-2.5 text-left font-bold">
+                <div className="flex justify-between items-center border-b border-slate-700 pb-2">
+                  <span className="text-amber-300 font-extrabold">Kode Tracking:</span>
+                  <span className="font-mono text-[#D4A843] font-black">{regId}</span>
+                </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-2">
                   <span className="text-amber-300 font-extrabold">Estimasi Waktu Audit:</span>
                   <span className="font-mono text-emerald-300 font-black">Maks. 1x24 Jam Kerja</span>
@@ -135,6 +176,16 @@ export default function OnboardingPendingReviewPage() {
                   <span className="font-bold text-emerald-300">WhatsApp & Email</span>
                 </div>
               </div>
+
+              {/* Link to Live Tracker with query param */}
+              <Link href={`/track-status?id=${regId}`} className="block">
+                <button
+                  type="button"
+                  className="w-full py-3 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-amber-300"
+                >
+                  <span>🔍 Pantau Status Pendaftaran 24/7 (Live Tracker: {regId}) ➔</span>
+                </button>
+              </Link>
 
               {/* Demo Action Button for Judges */}
               <div className="p-4 bg-[#0F1923] border border-[#2C5A8F] rounded-2xl space-y-2.5 text-center shadow-lg">

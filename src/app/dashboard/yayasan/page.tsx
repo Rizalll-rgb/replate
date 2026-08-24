@@ -1,12 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export default function YayasanDashboardPage() {
+  const [pantiName, setPantiName] = useState('Panti Asuhan Kasih Ibu');
+  const [contactPerson, setContactPerson] = useState('Ibu Hajjah Maryam');
+  const [address, setAddress] = useState('Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat');
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName) setPantiName(parsed.entityName);
+        if (parsed.contactPerson) setContactPerson(parsed.contactPerson);
+        if (parsed.address) setAddress(parsed.address);
+      }
+    } catch (_) {}
+  }, []);
+
   const stats = [
     { label: 'Total Bantuan Diterima', value: '185 Porsi', icon: '🍲', color: 'text-amber-600', bg: 'bg-amber-50' },
     { label: 'Anak Yatim/Penerima', value: '45 Jiwa', icon: '🏠', color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -41,11 +57,11 @@ export default function YayasanDashboardPage() {
       <div className="bg-gradient-to-r from-[#1B3A5C] via-[#2C5A8F] to-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10 max-w-2xl space-y-2">
           <span className="inline-block px-3 py-1 bg-[#D4A843] text-slate-900 text-xs font-black uppercase tracking-wider rounded-full shadow-xs">
-            Dashboard Yayasan & Panti Asuhan
+            Dashboard Food Beneficiary (Yayasan & Panti Asuhan)
           </span>
-          <h1 className="text-2xl font-black tracking-tight">Panti Asuhan Kasih Ibu</h1>
-          <p className="text-xs text-slate-200 leading-relaxed">
-            Selamat datang di pusat pengelolaan bantuan pangan Replate. Anda dapat mengajukan permintaan bantuan makanan surplus, memilih alur pengiriman (Ambil Sendiri / Diantar Komunitas), serta memantau dampak gizi penerima manfaat.
+          <h1 className="text-2xl font-black tracking-tight">{pantiName}</h1>
+          <p className="text-xs text-slate-200 leading-relaxed font-medium">
+            Ketua / Pengurus: <strong>{contactPerson}</strong> • Lokasi: <strong>{address}</strong>
           </p>
           <div className="pt-2 flex items-center gap-3">
             <Link href="/dashboard/yayasan/claims">
@@ -137,7 +153,7 @@ export default function YayasanDashboardPage() {
                   <span>🤝</span> Diantar Rescue Partner
                 </p>
                 <p className="text-[11px] text-slate-300">
-                  Kurir armada komunitat membantu menjemput dan menyalurkan makanan langsung ke panti.
+                  Kurir armada komunitas membantu menjemput dan menyalurkan makanan langsung ke panti.
                 </p>
               </div>
             </div>

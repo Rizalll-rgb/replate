@@ -16,6 +16,8 @@ export default function ConsumerBrowsePage() {
   const [foods, setFoods] = useState<any[]>([]);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [consumerName, setConsumerName] = useState('Budi Santoso');
+  const [consumerAddress, setConsumerAddress] = useState('Surabaya');
 
   // Consumer Verification Status ('REGULAR_SAVER' | 'PENDING_VERIFICATION' | 'BENEFICIARY_VERIFIED')
   const [consumerStatus, setConsumerStatus] = useState<'REGULAR_SAVER' | 'PENDING_VERIFICATION' | 'BENEFICIARY_VERIFIED'>('BENEFICIARY_VERIFIED');
@@ -41,6 +43,15 @@ export default function ConsumerBrowsePage() {
   });
 
   useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName || parsed.contactPerson) setConsumerName(parsed.entityName || parsed.contactPerson);
+        if (parsed.address) setConsumerAddress(parsed.address);
+      }
+    } catch (_) {}
+
     // Sync verification status from localStorage if present
     try {
       const savedStatus = localStorage.getItem('replate_consumer_verification_status');
@@ -178,7 +189,7 @@ export default function ConsumerBrowsePage() {
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-extrabold text-white">Jelajah Makanan Surplus & Donasi Surabaya</h1>
+            <h1 className="text-xl font-extrabold text-white">Selamat Datang, {consumerName}! Jelajah Makanan Surplus & Donasi Surabaya</h1>
           </div>
 
           {/* Quick Toggle Demo Button */}

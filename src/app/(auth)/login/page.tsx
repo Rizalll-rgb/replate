@@ -44,7 +44,7 @@ export default function LoginPage() {
       hint: 'Untuk Konsumen Umum / Anak Kos pembeli makanan diskon murah Rescue Sale.',
     },
     RESCUE_VOLUNTEER: {
-      label: 'Rescue Volunteer',
+      label: 'Food Rescue Volunteer',
       icon: '🛵',
       targetUrl: '/dashboard/rescue-partner',
       demoEmail: 'foodbank.surabaya@replate.id',
@@ -110,16 +110,11 @@ export default function LoginPage() {
   const handleGoogleOAuthClick = async () => {
     setLoading(true);
     try {
-      const demoEmail = roleConfigs[activeRoleTab].demoEmail;
       const targetUrl = roleConfigs[activeRoleTab].targetUrl;
-      await signIn('credentials', {
-        email: demoEmail,
-        password: 'password123',
-        callbackUrl: targetUrl,
-      });
+      // Native NextAuth Google OAuth Redirect to accounts.google.com
+      await signIn('google', { callbackUrl: targetUrl });
     } catch (err) {
-      console.error('Google OAuth login error:', err);
-      setError('Gagal memproses otentikasi Google OAuth. Coba lagi.');
+      console.error('Google OAuth sign in error:', err);
       setLoading(false);
     }
   };
@@ -236,7 +231,7 @@ export default function LoginPage() {
             {loading ? 'Memproses Authentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label} ➔`}
           </button>
 
-          {/* Google Sign In Section - 100% Functional OAuth Demo Login */}
+          {/* Google Sign In Section - Triggers Native accounts.google.com Browser Redirect */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -262,11 +257,19 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className={`${styles.authFooter} space-y-1 pt-4`}>
+        <div className={`${styles.authFooter} space-y-2 pt-4 border-t border-slate-800`}>
           <div>
             Belum mendaftarkan usaha / instansi?{' '}
             <Link href={`/register?role=${activeRoleTab}`} className="font-extrabold text-[#D4A843] hover:underline">
               Daftar Akun Baru ➔
+            </Link>
+          </div>
+          <div className="pt-1">
+            <Link
+              href="/track-status"
+              className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#142C47] px-3.5 py-1.5 rounded-xl border border-amber-400/40 shadow-xs transition-all"
+            >
+              <span>🔍 Pernah Mendaftar? Cek Live Status Audit ➔</span>
             </Link>
           </div>
         </div>
