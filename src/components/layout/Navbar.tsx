@@ -48,8 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
     { href: '/', label: 'Beranda' },
     { href: '/explore', label: 'Eksplor Pangan' },
     { href: '/about', label: 'Tentang Kami' },
-    { href: '/how-it-works', label: 'Cara Kerja' },
-    { href: '/faq', label: 'FAQ' },
+    { href: '/info', label: 'Pusat Informasi' },
   ];
 
   const loggedInNavLinks = [

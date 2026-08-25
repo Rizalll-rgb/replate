@@ -13,6 +13,8 @@ export default auth((req) => {
         '/login',
         '/register',
         '/about',
+        '/info',
+        '/explore',
         '/how-it-works',
         '/impact',
         '/faq',

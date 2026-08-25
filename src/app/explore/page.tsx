@@ -589,16 +589,26 @@ export default function ExplorePage() {
                       <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
                         <span className="font-black text-slate-800 block">Kebutuhan: {need.requestedItem}</span>
                         
-                        {/* Progress Bar */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[11px] font-bold text-slate-600">
-                            <span>Target: {need.targetQuantity}</span>
-                            <span className="text-emerald-700">Terpenuhi: {need.fulfilledQuantity}</span>
-                          </div>
-                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '60%' }}></div>
-                          </div>
-                        </div>
+                        {/* Progress Bar Calculation */}
+                        {(() => {
+                          const targetNum = parseInt(need.targetQuantity.replace(/\D/g, '')) || 1;
+                          const fulfilledNum = parseInt(need.fulfilledQuantity.replace(/\D/g, '')) || 0;
+                          const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
+                          return (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                                <span>Target: {need.targetQuantity}</span>
+                                <span className="text-emerald-700 font-black">{percent}% ({need.fulfilledQuantity})</span>
+                              </div>
+                              <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-300">
+                                <div
+                                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                                  style={{ width: `${percent}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-200">
                           👤 PJ: <strong className="text-slate-700">{need.contactPerson}</strong>
