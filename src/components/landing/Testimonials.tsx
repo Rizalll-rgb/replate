@@ -87,7 +87,7 @@ export const Testimonials: React.FC = () => {
 
                 {item.foodSaved && (
                   <span className="text-[11px] font-bold text-slate-600 block bg-slate-50 p-2 rounded-xl border border-slate-100">
-                    🍱 {item.foodSaved}
+                    Penyelamatan: {item.foodSaved}
                   </span>
                 )}
 

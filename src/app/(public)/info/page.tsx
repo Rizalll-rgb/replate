@@ -23,7 +23,7 @@ export default function PublicInfoHubPage() {
   const roleWorkflows = {
     PROVIDER: {
       roleTitle: 'Food Provider (Restoran, Bakery, Katering, Hotel)',
-      badge: '🏪 RESTORAN & PRODUSEN',
+      badge: 'RESTORAN & PRODUSEN',
       summary: 'Mengubah surplus makanan harian menjadi pendapatan tambahan atau aksi sosial CSR terukur.',
       steps: [
         {
@@ -50,7 +50,7 @@ export default function PublicInfoHubPage() {
     },
     BENEFICIARY: {
       roleTitle: 'Food Beneficiary (Panti Asuhan, Yayasan Sosial, Shelter)',
-      badge: '🏠 PANTI ASUHAN & YAYASAN',
+      badge: 'PANTI ASUHAN & YAYASAN',
       summary: 'Menerima pasokan makanan sehat dan steril secara gratis untuk memenuhi nutrisi anak asuh/lansia.',
       steps: [
         {
@@ -77,7 +77,7 @@ export default function PublicInfoHubPage() {
     },
     CONSUMER: {
       roleTitle: 'Food Consumer (Konsumen Umum, Mahasiswa, Warga)',
-      badge: '🛒 KONSUMEN & ANAK KOS',
+      badge: 'KONSUMEN & ANAK KOS',
       summary: 'Mendapatkan makanan berkualitas tinggi dari restoran favorit dengan harga sangat hemat.',
       steps: [
         {
@@ -104,7 +104,7 @@ export default function PublicInfoHubPage() {
     },
     VOLUNTEER: {
       roleTitle: 'Rescue Volunteer (Relawan Logistik & Armada Komunitas)',
-      badge: '🛵 KURIR RELAWAN LOGISTIK',
+      badge: 'KURIR RELAWAN LOGISTIK',
       summary: 'Menghubungkan restoran dan panti asuhan melalui pengantaran cepat, higienis, dan terenkripsi.',
       steps: [
         {
@@ -172,7 +172,7 @@ export default function PublicInfoHubPage() {
           </p>
         </div>
 
-        {/* 5 Core Information Tabs */}
+        {/* 5 Core Information Tabs (No Emojis) */}
         <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-4xl mx-auto">
           <button
             type="button"
@@ -183,7 +183,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            📖 Cara Kerja (4 Role)
+            Cara Kerja (4 Role)
           </button>
 
           <button
@@ -195,7 +195,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            🛡️ Regulasi BPOM
+            Regulasi BPOM
           </button>
 
           <button
@@ -207,7 +207,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            🌿 Dampak IPCC & Kalkulator
+            Dampak IPCC & Kalkulator
           </button>
 
           <button
@@ -219,7 +219,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            🏢 Ekosistem Mitra
+            Ekosistem Mitra
           </button>
 
           <button
@@ -231,7 +231,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            ❓ FAQ & Bantuan
+            FAQ & Bantuan
           </button>
         </div>
 
@@ -249,7 +249,7 @@ export default function PublicInfoHubPage() {
                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                🏪 Food Provider (Resto)
+                Food Provider (Resto)
               </button>
 
               <button
@@ -261,7 +261,7 @@ export default function PublicInfoHubPage() {
                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                🏠 Food Beneficiary (Panti)
+                Food Beneficiary (Panti)
               </button>
 
               <button
@@ -273,7 +273,7 @@ export default function PublicInfoHubPage() {
                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                🛒 Food Consumer (Konsumen)
+                Food Consumer (Konsumen)
               </button>
 
               <button
@@ -285,7 +285,7 @@ export default function PublicInfoHubPage() {
                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                🛵 Rescue Volunteer (Kurir)
+                Rescue Volunteer (Kurir)
               </button>
             </div>
 
@@ -327,7 +327,9 @@ export default function PublicInfoHubPage() {
           <div className="space-y-6">
             <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">🛡️</span>
+                <div className="w-10 h-10 rounded-xl bg-[#1B3A5C] text-[#D4A843] font-black flex items-center justify-center">
+                  SOP
+                </div>
                 <div>
                   <h3 className="text-xl font-black text-[#1B3A5C]">
                     Protokol 8-Poin Rescue Readiness BPOM RI & WHO
@@ -359,10 +361,9 @@ export default function PublicInfoHubPage() {
           </div>
         )}
 
-        {/* Tab 3: Formula IPCC & Live Interactive Carbon Calculator (AUDITED HIGH CONTRAST) */}
+        {/* Tab 3: Formula IPCC & Live Interactive Carbon Calculator */}
         {activeTab === 'IPCC' && (
           <div className="space-y-6">
-            {/* Direct High-Contrast Dark Blue Container */}
             <div className="p-6 sm:p-8 bg-[#1B3A5C] rounded-3xl border-2 border-[#2C5A8F] shadow-xl space-y-6 text-white">
               <div className="space-y-2">
                 <span className="px-3.5 py-1 bg-[#0F1923] text-[#D4A843] border border-amber-400/40 rounded-xl text-[11px] font-black uppercase tracking-wider inline-block">
@@ -401,8 +402,8 @@ export default function PublicInfoHubPage() {
               <div className="p-6 bg-[#0D1E32] rounded-2xl border-2 border-[#D4A843]/50 shadow-2xl space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
                   <div>
-                    <h4 className="text-base font-black text-[#D4A843] flex items-center gap-2">
-                      <span>🧮 Kalkulator Simulasi Dampak Lingkungan Riil</span>
+                    <h4 className="text-base font-black text-[#D4A843]">
+                      Kalkulator Simulasi Dampak Lingkungan Riil
                     </h4>
                     <p className="text-xs text-slate-300 font-medium">
                       Geser slider di bawah untuk melihat kalkulasi dampak pengurangan emisi secara instan:
@@ -471,29 +472,38 @@ export default function PublicInfoHubPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                 {[
-                  { name: 'Warung Bakso Pak Kumis', type: 'Mitra Restoran', area: 'Gubeng' },
-                  { name: 'Rotiboy Bakery Surabaya', type: 'Mitra Bakery', area: 'Tunjungan' },
-                  { name: 'Dapur Catering Bu Rudy', type: 'Mitra Katering', area: 'Dharmahusada' },
-                  { name: 'Hotel Majapahit Surabaya', type: 'Mitra Hotel', area: 'Embong Malang' },
-                  { name: 'Panti Asuhan Kasih Ibu', type: 'Yayasan Sosial', area: 'Wonokromo' },
-                  { name: 'Panti Werdha Lansia', type: 'Panti Lansia', area: 'Rungkut' },
-                  { name: 'Shelter Dhuafa Mandiri', type: 'Shelter Komunitas', area: 'Genteng' },
-                  { name: 'Garda Pangan Surabaya', type: 'Relawan Penyelamat', area: 'Surabaya Raya' },
-                  { name: 'Sinergi Food Rescue', type: 'Armada Komunitas', area: 'Jawa Timur' },
+                  { name: 'Warung Bakso Pak Kumis', type: 'Mitra Restoran', area: 'Gubeng', tag: 'PK', color: 'bg-amber-600' },
+                  { name: 'Rotiboy Bakery Surabaya', type: 'Mitra Bakery', area: 'Tunjungan', tag: 'RB', color: 'bg-orange-600' },
+                  { name: 'Dapur Catering Bu Rudy', type: 'Mitra Katering', area: 'Dharmahusada', tag: 'BR', color: 'bg-red-700' },
+                  { name: 'Hotel Majapahit Surabaya', type: 'Mitra Hotel', area: 'Embong Malang', tag: 'HM', color: 'bg-blue-900' },
+                  { name: 'Panti Asuhan Kasih Ibu', type: 'Yayasan Sosial', area: 'Wonokromo', tag: 'KI', color: 'bg-emerald-700' },
+                  { name: 'Panti Werdha Lansia', type: 'Panti Lansia', area: 'Rungkut', tag: 'WS', color: 'bg-teal-700' },
+                  { name: 'Shelter Dhuafa Mandiri', type: 'Shelter Komunitas', area: 'Genteng', tag: 'SD', color: 'bg-indigo-700' },
+                  { name: 'Garda Pangan Surabaya', type: 'Relawan Penyelamat', area: 'Surabaya Raya', tag: 'GP', color: 'bg-green-700' },
+                  { name: 'Sinergi Food Rescue', type: 'Armada Komunitas', area: 'Jawa Timur', tag: 'SF', color: 'bg-cyan-700' },
                 ].map((item, idx) => (
-                  <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                    <div>
-                      <h4 className="font-extrabold text-xs text-[#1B3A5C]">{item.name}</h4>
-                      <span className="text-[10px] text-amber-700 font-bold">{item.type}</span>
+                  <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-lg ${item.color} text-white font-black text-xs flex items-center justify-center shrink-0`}>
+                        {item.tag}
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-xs text-[#1B3A5C]">{item.name}</h4>
+                        <span className="text-[10px] text-amber-700 font-bold">{item.type}</span>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400">📍 {item.area}</span>
+                    <span className="text-[10px] font-mono text-slate-400 shrink-0">Area: {item.area}</span>
                   </div>
                 ))}
               </div>
 
               <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center font-bold text-xs text-amber-900">
-                ✨ Dan lebih dari 20+ mitra resto & lembaga panti lainnya di seluruh wilayah Surabaya.
+                Dan lebih dari 20+ mitra resto & lembaga panti lainnya di seluruh wilayah Surabaya.
               </div>
+
+              <p className="text-[11px] text-slate-400 text-center italic max-w-xl mx-auto">
+                *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
+              </p>
             </div>
           </div>
         )}
@@ -535,7 +545,7 @@ export default function PublicInfoHubPage() {
                 rel="noopener noreferrer"
               >
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md whitespace-nowrap">
-                  💬 Hubungi Helpdesk WhatsApp ➔
+                  Hubungi Helpdesk WhatsApp ➔
                 </Button>
               </a>
             </div>

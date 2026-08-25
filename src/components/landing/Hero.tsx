@@ -1,10 +1,49 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/Button';
 
 export const Hero: React.FC = () => {
+  const [liveItems, setLiveItems] = useState<any[]>([
+    {
+      title: 'Bakso Sapi Komplit',
+      quantity: '15 Porsi',
+      store: 'Warung Bakso Pak Kumis — Genteng',
+      price: 'Rp 5.000',
+      time: 'Hari ini 21:00',
+      isFree: false,
+    },
+    {
+      title: 'Roti Tawar & Pastry Steril',
+      quantity: '25 Porsi',
+      store: 'Rotiboy Bakery — Tunjungan Plaza',
+      price: 'GRATIS',
+      time: 'Hari ini 20:30',
+      isFree: true,
+    },
+  ]);
+
+  useEffect(() => {
+    try {
+      const localSurplus = localStorage.getItem('replate_local_surplus');
+      if (localSurplus) {
+        const parsed = JSON.parse(localSurplus);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const mapped = parsed.slice(0, 2).map((item: any) => ({
+            title: item.name || item.title || 'Surplus Makanan Steril',
+            quantity: item.quantity ? `${item.quantity} Porsi` : '10 Porsi',
+            store: item.providerName || item.storeName || 'Warung Bakso Pak Kumis',
+            price: item.discountPrice === 0 || item.type === 'DONATION' ? 'GRATIS' : `Rp ${Number(item.discountPrice || 8000).toLocaleString('id-ID')}`,
+            time: item.pickupTime || 'Hari ini 21:00',
+            isFree: item.discountPrice === 0 || item.type === 'DONATION',
+          }));
+          setLiveItems(mapped);
+        }
+      }
+    } catch (_) {}
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-[#0F1923] text-white py-20 lg:py-28 border-b border-slate-800">
       {/* Background Glow Overlay */}
@@ -90,56 +129,43 @@ export const Hero: React.FC = () => {
               </p>
 
               <div className="space-y-3 text-xs">
-                {/* Item Card 1 with CTA */}
-                <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 flex flex-col gap-2.5">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-bold text-white text-sm">Bakso Sapi Komplit (15 Porsi)</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Warung Bakso Pak Kumis — Genteng</p>
+                {liveItems.map((item, idx) => (
+                  <div key={idx} className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 flex flex-col gap-2.5">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-bold text-white text-sm">{item.title} ({item.quantity})</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{item.store}</p>
+                      </div>
+                      <span className={`font-extrabold px-2.5 py-1 rounded-md border ${
+                        item.isFree
+                          ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+                          : 'text-[#D4A843] bg-[#D4A843]/10 border-[#D4A843]/20'
+                      }`}>
+                        {item.price}
+                      </span>
                     </div>
-                    <span className="font-extrabold text-[#D4A843] bg-[#D4A843]/10 px-2.5 py-1 rounded-md border border-[#D4A843]/20">
-                      Rp 5.000
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-slate-700/60 pt-2 text-[11px]">
-                    <span className="text-slate-400 font-medium">Batas: Hari ini 21:00</span>
-                    <Link href="/dashboard/consumer">
-                      <Button variant="gold" size="sm" className="px-3 py-1 text-[11px] font-bold">
-                        Klaim Makanan Ini ➔
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Item Card 2 with CTA */}
-                <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 flex flex-col gap-2.5">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-bold text-white text-sm">Roti Tawar & Danish (25 Pcs)</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Roti Boy — Tunjungan Plaza</p>
+                    <div className="flex items-center justify-between border-t border-slate-700/60 pt-2 text-[11px]">
+                      <span className="text-slate-400 font-medium">Batas: {item.time}</span>
+                      <Link href="/explore">
+                        <Button variant="gold" size="sm" className="px-3 py-1 text-[11px] font-black text-slate-950">
+                          Klaim Makanan Ini ➔
+                        </Button>
+                      </Link>
                     </div>
-                    <span className="font-extrabold text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-md border border-emerald-400/20">
-                      GRATIS
-                    </span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-slate-700/60 pt-2 text-[11px]">
-                    <span className="text-slate-400 font-medium">Rescue Matching: 96%</span>
-                    <Link href="/dashboard/rescue-partner/requests">
-                      <Button variant="outline" size="sm" className="px-3 py-1 text-[11px] font-bold text-white border-slate-600 hover:bg-slate-700">
-                        Respon Rescue ➔
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="p-3 bg-[#1B3A5C]/50 rounded-xl border border-[#2C5A8F]/50 text-center">
+              <div className="p-3 bg-[#1B3A5C]/60 rounded-xl border border-[#2C5A8F]/70 text-center space-y-1">
                 <span className="text-[11px] font-bold text-slate-200 block">
-                  Smart Matching Algorithm Status:
+                  Status Algoritma Smart Matching 2.0:
                 </span>
-                <span className="text-xs font-black text-[#D4A843] mt-0.5 block">
-                  Match Score 96% ke Food Bank Surabaya
+                <span className="text-xs font-black text-[#D4A843] block">
+                  Skor Kecocokan 96% ke Panti Kasih Ibu Surabaya (Jarak 1.2 km)
                 </span>
+                <p className="text-[9px] text-slate-400">
+                  Perhitungan bobot multi-kriteria: Jarak GPS (40%) + Kapasitas Panti (30%) + Batas Simpan (30%)
+                </p>
               </div>
             </div>
           </div>

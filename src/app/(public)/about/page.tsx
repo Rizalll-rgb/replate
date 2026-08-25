@@ -62,63 +62,72 @@ export default function AboutPage() {
       name: 'Warung Bakso Pak Kumis',
       category: 'Food Provider',
       location: 'Gubeng, Surabaya',
-      icon: '🍲',
+      tag: 'PK',
+      badgeColor: 'bg-amber-600',
       type: 'Mitra Restoran',
     },
     {
       name: 'Rotiboy Bakery Surabaya',
       category: 'Food Provider',
       location: 'Tunjungan, Surabaya',
-      icon: '🥐',
+      tag: 'RB',
+      badgeColor: 'bg-orange-600',
       type: 'Mitra Bakery',
     },
     {
       name: 'Dapur Catering Bu Rudy',
       category: 'Food Provider',
       location: 'Dharmahusada, Surabaya',
-      icon: '🍱',
+      tag: 'BR',
+      badgeColor: 'bg-red-700',
       type: 'Mitra Katering',
     },
     {
       name: 'Hotel Majapahit Surabaya',
       category: 'Food Provider',
       location: 'Embong Malang, Surabaya',
-      icon: '🏨',
+      tag: 'HM',
+      badgeColor: 'bg-blue-900',
       type: 'Mitra Perhotelan',
     },
     {
       name: 'Panti Asuhan Kasih Ibu',
       category: 'Food Beneficiary',
       location: 'Wonokromo, Surabaya',
-      icon: '🏠',
+      tag: 'KI',
+      badgeColor: 'bg-emerald-700',
       type: 'Lembaga Sosial',
     },
     {
       name: 'Panti Werdha Lansia Sejahtera',
       category: 'Food Beneficiary',
       location: 'Rungkut, Surabaya',
-      icon: '👵',
+      tag: 'WS',
+      badgeColor: 'bg-teal-700',
       type: 'Panti Lansia',
     },
     {
       name: 'Shelter Dhuafa & Mandiri',
       category: 'Food Beneficiary',
       location: 'Genteng, Surabaya',
-      icon: '🛖',
+      tag: 'SD',
+      badgeColor: 'bg-indigo-700',
       type: 'Shelter Komunitas',
     },
     {
       name: 'Garda Pangan Surabaya',
       category: 'Rescue Partner',
       location: 'Jawa Timur',
-      icon: '🛵',
+      tag: 'GP',
+      badgeColor: 'bg-green-700',
       type: 'Relawan Penyelamat',
     },
     {
       name: 'Sinergi Food Rescue Jatim',
       category: 'Rescue Partner',
       location: 'Surabaya Raya',
-      icon: '🚚',
+      tag: 'SF',
+      badgeColor: 'bg-cyan-700',
       type: 'Armada Komunitas',
     },
   ];
@@ -143,23 +152,23 @@ export default function AboutPage() {
 
         {/* Visi & Inovasi */}
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
+          <div className="bg-white border border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
             <h3 className="text-xl font-black text-[#1B3A5C]">Visi Utama</h3>
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
               Membangun jembatan digital yang menghubungkan penyedia makanan berlebih (Food Provider) secara efisien, terukur, dan transparan dengan penerima manfaat yang membutuhkan, sehingga tidak ada makanan layak konsumsi yang terbuang ke TPA Benowo Surabaya.
             </p>
-          </Card>
+          </div>
 
-          <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
+          <div className="bg-white border border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
             <h3 className="text-xl font-black text-[#1B3A5C]">Inovasi Unggulan Platform</h3>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-2 font-medium leading-relaxed">
               <li><strong>Smart Matching Engine 2.0:</strong> Algoritma pencocokan multi-kriteria berbasis jarak GPS & kapasitas panti.</li>
               <li><strong>SOP 8-Poin Kelayakan BPOM:</strong> Protokol higienitas mutu pangan & suhu simpan standar BPOM RI.</li>
-              <li><strong>Surat Jalan Digital WA:</strong> Rute kurir armada tanpa login via WhatsApp (`/driver-manifest/[id]`).</li>
+              <li><strong>Surat Jalan Digital WA:</strong> Rute kurir armada tanpa login via WhatsApp.</li>
               <li><strong>Verifikasi QR Barcode Anti-Fraud:</strong> Sistem pindaian payload terenkripsi serah terima pangan.</li>
               <li><strong>Kalkulator Jejak Karbon IPCC:</strong> Perhitungan otomatis reduksi gas metana (CH4) & emisi CO2e.</li>
             </ul>
-          </Card>
+          </div>
         </div>
 
         {/* Section Dampak Lingkungan & Jejak Karbon (Dynamic IPCC Real Calculation) */}
@@ -206,14 +215,14 @@ export default function AboutPage() {
         </section>
 
         {/* Section 25+ Jaringan Ekosistem Mitra Surabaya (Infinite Auto-Scrolling Logo Slider Marquee) */}
-        <section className="space-y-8 overflow-hidden py-4">
+        <section className="space-y-6 overflow-hidden py-4">
           <div className="max-w-6xl mx-auto px-4 text-center space-y-2">
             <span className="text-xs font-black text-[#D4A843] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full uppercase tracking-widest inline-block">
               JARINGAN EKOSISTEM SURABAYA
             </span>
             <h2 className="text-3xl font-black text-[#1B3A5C]">25+ Mitra Provider, Yayasan & Relawan Aktif</h2>
             <p className="text-xs text-slate-500 max-w-xl mx-auto font-medium">
-              Didukung oleh jejaring restoran ternama, hotel berbintang, lembaga panti asuhan, dan armada komunitas peduli pangan Surabaya.
+              Didukung oleh jejaring restoran, hotel berbintang, lembaga panti asuhan, dan armada komunitas peduli pangan Surabaya.
             </p>
           </div>
 
@@ -225,8 +234,8 @@ export default function AboutPage() {
                   key={idx}
                   className="inline-flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 text-center shadow-xs min-w-[200px] shrink-0 space-y-2"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl mx-auto">
-                    {partner.icon}
+                  <div className={`w-12 h-12 rounded-xl ${partner.badgeColor} text-white font-black text-sm flex items-center justify-center mx-auto shadow-sm`}>
+                    {partner.tag}
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-black text-[#1B3A5C] truncate max-w-[170px]">{partner.name}</h4>
@@ -238,9 +247,9 @@ export default function AboutPage() {
 
               {/* And Many More Card */}
               <div className="inline-flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center shadow-md min-w-[200px] shrink-0 space-y-1">
-                <span className="text-2xl block">✨</span>
+                <span className="text-xs font-black px-2 py-1 bg-amber-400 text-slate-950 rounded-md">PLUS 20+</span>
                 <h4 className="text-xs font-black text-amber-300">
-                  +20 Mitra Lainnya
+                  Mitra Lainnya
                 </h4>
                 <p className="text-[10px] text-slate-200 font-medium leading-tight">
                   (and many more partners...)
@@ -248,6 +257,11 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
+
+          {/* Disclaimer Note */}
+          <p className="text-[11px] text-slate-400 text-center italic max-w-xl mx-auto">
+            *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
+          </p>
         </section>
 
         {/* Section Tim Dibalik Replate */}
@@ -265,21 +279,19 @@ export default function AboutPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {teamMembers.map((member, idx) => (
-                <Card key={idx} className="border-slate-200 p-6 text-center space-y-4 hover:shadow-md transition-all bg-white">
-                  <CardBody className="space-y-3">
-                    <Avatar name={member.name} size="xl" className="mx-auto border-2 border-[#1B3A5C]" />
-                    <div>
-                      <h4 className="text-base font-extrabold text-[#1B3A5C]">{member.name}</h4>
-                      <p className="text-[11px] font-bold text-[#D4A843] uppercase tracking-wider mt-0.5">
-                        {member.role}
-                      </p>
-                      <span className="inline-block text-[10px] bg-slate-100 text-slate-700 font-mono font-bold px-2 py-0.5 rounded mt-1.5 border border-slate-200">
-                        {member.nim}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">{member.bio}</p>
-                  </CardBody>
-                </Card>
+                <div key={idx} className="border border-slate-200 p-6 text-center space-y-4 hover:shadow-md transition-all bg-white rounded-3xl">
+                  <Avatar name={member.name} size="xl" className="mx-auto border-2 border-[#1B3A5C]" />
+                  <div>
+                    <h4 className="text-base font-extrabold text-[#1B3A5C]">{member.name}</h4>
+                    <p className="text-[11px] font-bold text-[#D4A843] uppercase tracking-wider mt-0.5">
+                      {member.role}
+                    </p>
+                    <span className="inline-block text-[10px] bg-slate-100 text-slate-700 font-mono font-bold px-2 py-0.5 rounded mt-1.5 border border-slate-200">
+                      {member.nim}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">{member.bio}</p>
+                </div>
               ))}
             </div>
           </div>

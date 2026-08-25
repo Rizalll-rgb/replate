@@ -233,18 +233,18 @@ export default function ExplorePage() {
     } catch (_) {}
   }, [session]);
 
-  // Quick Action Category Icons
+  // Clean Professional Category Filter (No Emojis)
   const categoryList = [
-    { key: 'ALL', name: 'Semua', icon: '🍲' },
-    { key: 'MAKANAN', name: 'Makanan Berat', icon: '🍱' },
-    { key: 'BAKERY', name: 'Roti & Bakery', icon: '🥐' },
-    { key: 'SAYUR', name: 'Sayur Segar', icon: '🥬' },
-    { key: 'BUAH', name: 'Buah Potong', icon: '🍎' },
-    { key: 'MINUMAN', name: 'Minuman', icon: '🥤' },
+    { key: 'ALL', name: 'Semua Menu' },
+    { key: 'MAKANAN', name: 'Makanan Berat' },
+    { key: 'BAKERY', name: 'Roti & Bakery' },
+    { key: 'SAYUR', name: 'Sayur Segar' },
+    { key: 'BUAH', name: 'Buah Potong' },
+    { key: 'MINUMAN', name: 'Minuman Segar' },
   ];
 
   const handleAddToCart = (food: FoodItem) => {
-    // 1. Strict Auth Check: Must be logged in via NextAuth session or authenticated token
+    // 1. Strict Auth Check
     const isAuthenticated = status === 'authenticated' && !!session?.user;
     if (!isAuthenticated) {
       setAuthModal({
@@ -255,7 +255,7 @@ export default function ExplorePage() {
       return;
     }
 
-    // 2. Role-based Access Guard: Regular consumer attempting to claim Free Donation
+    // 2. Role-based Access Guard
     if (food.type === 'DONATION' && userRole === 'FOOD_CONSUMER' && !isConsumerVerified) {
       setMismatchModal({
         isOpen: true,
@@ -305,7 +305,6 @@ export default function ExplorePage() {
   };
 
   const handleSanggupiPanti = (need: PantiNeed) => {
-    // Strict Auth Check for Sanggupi Panti
     const isAuthenticated = status === 'authenticated' && !!session?.user;
     if (!isAuthenticated) {
       setAuthModal({
@@ -328,7 +327,7 @@ export default function ExplorePage() {
 
     setToastState({
       isOpen: true,
-      message: `🎉 Berhasil! Anda telah menyanggupi donasi ${fulfillModal.portions} porsi untuk ${fulfillModal.need.pantiName}. Resi Alokasi telah diterbitkan di Dashboard.`,
+      message: `✓ Berhasil! Anda telah menyanggupi donasi ${fulfillModal.portions} porsi untuk ${fulfillModal.need.pantiName}. Resi Alokasi telah diterbitkan di Dashboard.`,
       type: 'success',
     });
     setFulfillModal({ isOpen: false, need: null, portions: '20' });
@@ -369,14 +368,14 @@ export default function ExplorePage() {
             <div className="flex items-center gap-3">
               <Link href="/cart">
                 <Button variant="gold" size="md" className="font-black text-xs text-slate-950 shadow-md flex items-center gap-2">
-                  <span>🛍️ Buka Tas Klaim ➔</span>
+                  <span>Buka Tas Klaim ➔</span>
                 </Button>
               </Link>
             </div>
           )}
         </div>
 
-        {/* 3 Core Tab Switcher */}
+        {/* 3 Core Tab Switcher (No Emojis) */}
         <div className="flex items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-2xl">
           <button
             type="button"
@@ -387,7 +386,7 @@ export default function ExplorePage() {
                 : 'text-slate-700 hover:text-slate-950 font-bold'
             }`}
           >
-            <span>🏷️ Rescue Sale (Diskon)</span>
+            <span>Rescue Sale (Diskon)</span>
           </button>
 
           <button
@@ -399,7 +398,7 @@ export default function ExplorePage() {
                 : 'text-slate-700 hover:text-slate-950 font-bold'
             }`}
           >
-            <span>🎁 Donasi Pangan (Rp 0)</span>
+            <span>Donasi Pangan (Rp 0)</span>
           </button>
 
           <button
@@ -411,40 +410,37 @@ export default function ExplorePage() {
                 : 'text-slate-700 hover:text-slate-950 font-bold'
             }`}
           >
-            <span>📥 Permintaan Panti ({pantiNeeds.length})</span>
+            <span>Permintaan Panti ({pantiNeeds.length})</span>
           </button>
         </div>
 
-        {/* Search & Category Quick Filter Section */}
+        {/* Search & Category Filter */}
         {activeTab !== 'PANTI_NEEDS' && (
           <div className="space-y-4">
-            {/* Search Bar Input */}
             <div className="relative max-w-xl">
               <input
                 type="text"
                 placeholder="Cari menu makanan, nama restoran / bakery Surabaya..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 text-slate-900 rounded-2xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] shadow-xs"
+                className="w-full pl-4 pr-4 py-3 bg-white border border-slate-300 text-slate-900 rounded-2xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] shadow-xs"
               />
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
             </div>
 
-            {/* Quick Action Category Grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+            {/* Clean Category Chips */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
               {categoryList.map((cat) => (
                 <button
                   key={cat.key}
                   type="button"
                   onClick={() => setSelectedCategory(cat.key)}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                  className={`py-2.5 px-3 rounded-xl border text-center transition-all text-xs font-bold cursor-pointer truncate ${
                     selectedCategory === cat.key
                       ? 'bg-[#1B3A5C] text-white border-[#1B3A5C] shadow-md'
                       : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <span className="text-xl">{cat.icon}</span>
-                  <span className="text-[11px] font-bold truncate max-w-full">{cat.name}</span>
+                  {cat.name}
                 </button>
               ))}
             </div>
@@ -458,12 +454,11 @@ export default function ExplorePage() {
               <h3 className="text-lg font-black text-[#1B3A5C]">
                 {activeTab === 'RESCUE_SALE' ? 'Katalog Surplus Rescue Sale' : 'Katalog Donasi Steril Rp 0'} ({filteredFoods.length} Item)
               </h3>
-              <span className="text-xs text-slate-500 font-medium">⚡ Terverifikasi Higienis SOP BPOM</span>
+              <span className="text-xs text-slate-500 font-medium">Terverifikasi Higienis SOP BPOM</span>
             </div>
 
             {filteredFoods.length === 0 ? (
               <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-2">
-                <span className="text-4xl block">🔍</span>
                 <h4 className="font-extrabold text-slate-800 text-base">Tidak ada makanan surplus ditemukan</h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
                   Coba ubah kata kunci pencarian atau pilih kategori makanan lainnya.
@@ -484,25 +479,25 @@ export default function ExplorePage() {
                             ? 'bg-emerald-500 text-slate-950'
                             : 'bg-[#D4A843] text-slate-950'
                         }`}>
-                          {item.isFree ? '🎁 DONASI Rp 0' : '🏷️ RESCUE SALE'}
+                          {item.isFree ? 'DONASI Rp 0' : 'RESCUE SALE'}
                         </span>
                         <span className="text-[10px] bg-slate-950/80 text-white font-bold px-2 py-1 rounded-lg backdrop-blur-xs">
                           {item.quantity}
                         </span>
                       </div>
                       <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-                        📍 {item.distance}
+                        Jarak: {item.distance}
                       </span>
                     </div>
 
                     <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
                       <div className="space-y-1">
                         <span className="text-[11px] font-bold text-slate-500 block truncate">
-                          🏪 {item.providerName}
+                          Toko: {item.providerName}
                         </span>
                         <h4 className="font-extrabold text-base text-[#1B3A5C] line-clamp-1">{item.title}</h4>
                         <p className="text-[11px] text-slate-600 font-medium">
-                          ⏰ Waktu Ambil: <strong>{item.pickupTime}</strong>
+                          Waktu Ambil: <strong>{item.pickupTime}</strong>
                         </p>
                       </div>
 
@@ -533,12 +528,12 @@ export default function ExplorePage() {
             )}
           </div>
         ) : (
-          /* Tab Permintaan Bantuan Panti Asuhan dengan Foto & Badge */
+          /* Tab Permintaan Bantuan Panti Asuhan */
           <div className="space-y-6">
             <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">
                 <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
-                  🤝 PROGRAM REDISTRIBUSI PANGAN YAYASAN & PANTI
+                  PROGRAM REDISTRIBUSI PANGAN YAYASAN & PANTI
                 </span>
                 <h3 className="text-xl font-black text-white">Daftar Kebutuhan Pangan Panti Asuhan Surabaya</h3>
                 <p className="text-xs text-slate-200 font-medium max-w-xl">
@@ -568,14 +563,14 @@ export default function ExplorePage() {
                       <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
                         need.urgency === 'HIGH' ? 'bg-red-500 text-white animate-pulse' : 'bg-amber-400 text-slate-950'
                       }`}>
-                        {need.urgency === 'HIGH' ? '🚨 URGENT HARI INI' : '⏳ BUTUH BESOK'}
+                        {need.urgency === 'HIGH' ? 'URGENT HARI INI' : 'BUTUH BESOK'}
                       </span>
                       <span className="text-[10px] bg-slate-950/80 text-emerald-300 font-black px-2.5 py-1 rounded-lg backdrop-blur-xs">
                         ✓ {need.legalStatus}
                       </span>
                     </div>
                     <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-                      📍 {need.location.split('(')[0]}
+                      Area: {need.location.split('(')[0]}
                     </span>
                   </div>
 
@@ -589,7 +584,7 @@ export default function ExplorePage() {
                       <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
                         <span className="font-black text-slate-800 block">Kebutuhan: {need.requestedItem}</span>
                         
-                        {/* Progress Bar Calculation */}
+                        {/* Dynamic Progress Bar Calculation */}
                         {(() => {
                           const targetNum = parseInt(need.targetQuantity.replace(/\D/g, '')) || 1;
                           const fulfilledNum = parseInt(need.fulfilledQuantity.replace(/\D/g, '')) || 0;
@@ -611,10 +606,10 @@ export default function ExplorePage() {
                         })()}
 
                         <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-200">
-                          👤 PJ: <strong className="text-slate-700">{need.contactPerson}</strong>
+                          PJ: <strong className="text-slate-700">{need.contactPerson}</strong>
                         </div>
                         <div className="text-[10px] text-amber-800 font-bold">
-                          ⏰ Batas Penjemputan: {need.deadline}
+                          Batas Penjemputan: {need.deadline}
                         </div>
                       </div>
                     </div>
@@ -625,7 +620,7 @@ export default function ExplorePage() {
                       onClick={() => handleSanggupiPanti(need)}
                       className="w-full font-black text-xs text-slate-950 py-3 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-2"
                     >
-                      <span>🤝 Sanggupi Bantuan Panti ➔</span>
+                      <span>Sanggupi Bantuan Panti ➔</span>
                     </Button>
                   </div>
                 </div>
@@ -638,11 +633,11 @@ export default function ExplorePage() {
       <Footer />
       <BottomNav user={session?.user} />
 
-      {/* Modal Wajib Masuk / Daftar Akun (Auth Required on Action Guard) */}
+      {/* Modal Wajib Masuk / Daftar Akun */}
       <Modal
         isOpen={authModal.isOpen}
         onClose={() => setAuthModal({ isOpen: false, actionTitle: 'Klaim Makanan', itemTitle: '' })}
-        title="🔒 Silakan Masuk atau Daftar Akun untuk Melanjutkan Klaim"
+        title="Silakan Masuk atau Daftar Akun untuk Melanjutkan Klaim"
         size="md"
       >
         <div className="space-y-5 text-xs text-slate-700">
@@ -662,7 +657,7 @@ export default function ExplorePage() {
                 size="md"
                 className="w-full font-black text-xs py-3 shadow-md"
               >
-                🚀 Masuk ke Akun Saya ➔
+                Masuk ke Akun Saya ➔
               </Button>
             </Link>
 
@@ -672,7 +667,7 @@ export default function ExplorePage() {
                 size="md"
                 className="w-full font-black text-xs text-slate-950 py-3 shadow-md"
               >
-                ✨ Daftar Akun Baru Gratis ➔
+                Daftar Akun Baru Gratis ➔
               </Button>
             </Link>
           </div>
@@ -699,7 +694,7 @@ export default function ExplorePage() {
         <div className="space-y-4 text-xs text-slate-700">
           <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
             <span className="font-extrabold text-amber-900 text-sm block">
-              ⚠️ Makanan Bebas Biaya Khusus Panti Asuhan & Warga Rentan SKTM
+              Makanan Bebas Biaya Khusus Panti Asuhan & Warga Rentan SKTM
             </span>
             <p className="text-amber-800 leading-relaxed font-medium">
               Makanan <strong>&quot;{mismatchModal.itemTitle}&quot;</strong> dialokasikan khusus untuk yayasan panti asuhan atau masyarakat kurang mampu terverifikasi SKTM.
