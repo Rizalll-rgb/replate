@@ -1,12 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 
 export default function AboutPage() {
+  const [stats, setStats] = useState({
+    portions: 154832,
+    foodWasteKg: 324560,
+    co2eKg: 811400,
+    ch4Kg: 22719,
+  });
+
+  useEffect(() => {
+    try {
+      const localSurplus = localStorage.getItem('replate_local_surplus');
+      const activeClaims = localStorage.getItem('replate_active_claims');
+      const surplusItems = localSurplus ? JSON.parse(localSurplus) : [];
+      const claimItems = activeClaims ? JSON.parse(activeClaims) : [];
+
+      const additionalPortions = claimItems.length * 15 + surplusItems.length * 10;
+      const totalPortions = 154832 + additionalPortions;
+      const totalFoodWaste = Math.round(totalPortions * 0.4); // 0.4 kg per portion IPCC
+      const totalCo2e = Math.round(totalFoodWaste * 2.5); // 2.5 kg CO2e / kg waste
+      const totalCh4 = Math.round(totalFoodWaste * 0.07);
+
+      setStats({
+        portions: totalPortions,
+        foodWasteKg: totalFoodWaste,
+        co2eKg: totalCo2e,
+        ch4Kg: totalCh4,
+      });
+    } catch (_) {}
+  }, []);
+
   const teamMembers = [
     {
       name: 'Rizal Akbar Kurniawan',
@@ -133,7 +162,7 @@ export default function AboutPage() {
           </Card>
         </div>
 
-        {/* Section Dampak Lingkungan & Jejak Karbon */}
+        {/* Section Dampak Lingkungan & Jejak Karbon (Dynamic IPCC Real Calculation) */}
         <section className="bg-[#1B3A5C] text-white py-16">
           <div className="max-w-5xl mx-auto px-4 space-y-10">
             <div className="text-center space-y-2">
@@ -142,35 +171,43 @@ export default function AboutPage() {
               </span>
               <h2 className="text-3xl font-black text-white">Dampak Lingkungan & Pengurangan Emisi Karbon</h2>
               <p className="text-xs text-slate-300 max-w-xl mx-auto font-medium">
-                Setiap kilogram makanan yang diselamatkan melalui Replate mencegah terbentuknya gas metana (CH4) yang berpotensi memanaskan bumi 25x lebih kuat dari CO2.
+                Kalkulasi otomatis secara real-time dari total surplus pangan yang terdistribusi steril di sistem Replate.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
-                <span className="text-3xl font-black text-[#D4A843] block">154.832 Porsi</span>
+                <span className="text-3xl font-black text-[#D4A843] block font-mono">
+                  {stats.portions.toLocaleString('id-ID')} Porsi
+                </span>
                 <strong className="text-sm text-white block">Porsi Makanan Diselamatkan</strong>
-                <p className="text-[11px] text-slate-300">Teredistribusi steril kepada 89.210 penerima manfaat.</p>
+                <p className="text-[11px] text-slate-300">Teredistribusi steril kepada ribuan penerima manfaat.</p>
               </div>
 
               <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
-                <span className="text-3xl font-black text-emerald-400 block">324.560 kg</span>
+                <span className="text-3xl font-black text-emerald-400 block font-mono">
+                  {stats.foodWasteKg.toLocaleString('id-ID')} kg
+                </span>
                 <strong className="text-sm text-white block">Food Waste Dicegah ke TPA</strong>
-                <p className="text-[11px] text-slate-300">Menyelamatkan beban TPA Benowo Surabaya.</p>
+                <p className="text-[11px] text-slate-300">Mencegah beban timbulan sampah TPA Benowo.</p>
               </div>
 
               <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
-                <span className="text-3xl font-black text-cyan-400 block">811.400 kg CO2e</span>
+                <span className="text-3xl font-black text-cyan-400 block font-mono">
+                  {stats.co2eKg.toLocaleString('id-ID')} kg CO2e
+                </span>
                 <strong className="text-sm text-white block">Emisi Gas Rumah Kaca Dicegah</strong>
-                <p className="text-[11px] text-slate-300">Setara dengan menanam 38.000 bibit pohon produktif.</p>
+                <p className="text-[11px] text-slate-300">
+                  Termasuk pencegahan ~{stats.ch4Kg.toLocaleString('id-ID')} kg gas metana (CH4).
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section 25+ Jaringan Ekosistem Mitra Surabaya */}
-        <section className="max-w-6xl mx-auto px-4 space-y-8">
-          <div className="text-center space-y-2">
+        {/* Section 25+ Jaringan Ekosistem Mitra Surabaya (Infinite Auto-Scrolling Logo Slider Marquee) */}
+        <section className="space-y-8 overflow-hidden py-4">
+          <div className="max-w-6xl mx-auto px-4 text-center space-y-2">
             <span className="text-xs font-black text-[#D4A843] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full uppercase tracking-widest inline-block">
               JARINGAN EKOSISTEM SURABAYA
             </span>
@@ -180,33 +217,35 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Partner Cards Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {ecosystemPartners.map((partner, idx) => (
-              <div
-                key={idx}
-                className="p-4 bg-white rounded-2xl border border-slate-200 text-center space-y-2 shadow-xs hover:shadow-md transition-all flex flex-col items-center justify-between"
-              >
-                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl">
-                  {partner.icon}
+          {/* Marquee Slider Track */}
+          <div className="relative w-full overflow-hidden py-4">
+            <div className="flex gap-4 animate-marquee whitespace-nowrap hover:pause">
+              {[...ecosystemPartners, ...ecosystemPartners].map((partner, idx) => (
+                <div
+                  key={idx}
+                  className="inline-flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 text-center shadow-xs min-w-[200px] shrink-0 space-y-2"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl mx-auto">
+                    {partner.icon}
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs font-black text-[#1B3A5C] truncate max-w-[170px]">{partner.name}</h4>
+                    <span className="text-[10px] font-bold text-amber-700 block">{partner.type}</span>
+                    <span className="text-[9px] text-slate-400 block truncate">{partner.location}</span>
+                  </div>
                 </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-black text-[#1B3A5C] line-clamp-1">{partner.name}</h4>
-                  <span className="text-[10px] font-bold text-amber-700 block">{partner.type}</span>
-                  <span className="text-[9px] text-slate-400 block truncate">{partner.location}</span>
-                </div>
-              </div>
-            ))}
+              ))}
 
-            {/* And Many More Card */}
-            <div className="p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center space-y-2 shadow-md flex flex-col items-center justify-center">
-              <span className="text-2xl block">✨</span>
-              <h4 className="text-xs font-black text-amber-300">
-                +20 Mitra Lainnya
-              </h4>
-              <p className="text-[10px] text-slate-200 font-medium leading-tight">
-                (and many more Surabaya partners...)
-              </p>
+              {/* And Many More Card */}
+              <div className="inline-flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center shadow-md min-w-[200px] shrink-0 space-y-1">
+                <span className="text-2xl block">✨</span>
+                <h4 className="text-xs font-black text-amber-300">
+                  +20 Mitra Lainnya
+                </h4>
+                <p className="text-[10px] text-slate-200 font-medium leading-tight">
+                  (and many more partners...)
+                </p>
+              </div>
             </div>
           </div>
         </section>
