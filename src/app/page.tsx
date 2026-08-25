@@ -33,6 +33,24 @@ export default function HomePage() {
     itemTitle: '',
   });
 
+  // Auto-Redirect to Role Dashboard if User is already Authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      const role = String(session.user.role);
+      const targetDashboard =
+        role === 'PROVIDER' || role === 'FOOD_PROVIDER'
+          ? '/dashboard/provider'
+          : role === 'YAYASAN' || role === 'FOOD_BENEFICIARY'
+          ? '/dashboard/yayasan'
+          : role === 'RESCUE_PARTNER' || role === 'RESCUE_VOLUNTEER'
+          ? '/dashboard/rescue-partner'
+          : role === 'ADMIN' || role === 'SUPER_ADMIN'
+          ? '/dashboard/admin'
+          : '/dashboard/consumer';
+      router.replace(targetDashboard);
+    }
+  }, [status, session, router]);
+
   useEffect(() => {
     const defaultMockFoods = [
       {
