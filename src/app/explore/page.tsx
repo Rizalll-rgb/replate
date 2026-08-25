@@ -51,6 +51,7 @@ export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('FOOD_CONSUMER');
   const [isConsumerVerified, setIsConsumerVerified] = useState<boolean>(true);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [pantiNeeds, setPantiNeeds] = useState<PantiNeed[]>([
@@ -101,6 +102,17 @@ export default function ExplorePage() {
     type: 'success',
   });
 
+  // Auth Required Guard Modal
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    actionTitle: string;
+    itemTitle?: string;
+  }>({
+    isOpen: false,
+    actionTitle: 'Klaim Makanan',
+    itemTitle: '',
+  });
+
   const [mismatchModal, setMismatchModal] = useState<{ isOpen: boolean; itemTitle: string }>({
     isOpen: false,
     itemTitle: '',
@@ -112,13 +124,18 @@ export default function ExplorePage() {
     portions: '20',
   });
 
-  // Load single source of truth surplus catalog
+  // Check login state and load surplus catalog
   useEffect(() => {
     try {
       const profile = localStorage.getItem('replate_onboarding_profile');
       if (profile) {
         const parsed = JSON.parse(profile);
         if (parsed.role) setUserRole(parsed.role);
+        setIsUserLoggedIn(true);
+      } else if (session?.user) {
+        setIsUserLoggedIn(true);
+      } else {
+        setIsUserLoggedIn(false);
       }
 
       const cStatus = localStorage.getItem('replate_consumer_verification_status');
@@ -222,7 +239,7 @@ export default function ExplorePage() {
 
       setFoods([...mappedLocal, ...defaultFoods]);
     } catch (_) {}
-  }, []);
+  }, [session]);
 
   // Quick Action Category Icons
   const categoryList = [
@@ -235,7 +252,18 @@ export default function ExplorePage() {
   ];
 
   const handleAddToCart = (food: FoodItem) => {
-    // Role-based Access Guard: Regular consumer attempting to claim Free Donation
+    // 1. Auth Required Guard (If not logged in, trigger Auth Modal)
+    const loggedIn = !!session?.user || !!localStorage.getItem('replate_onboarding_profile');
+    if (!loggedIn) {
+      setAuthModal({
+        isOpen: true,
+        actionTitle: 'Klaim Makanan Surplus',
+        itemTitle: food.title,
+      });
+      return;
+    }
+
+    // 2. Role-based Access Guard: Regular consumer attempting to claim Free Donation
     if (food.type === 'DONATION' && userRole === 'FOOD_CONSUMER' && !isConsumerVerified) {
       setMismatchModal({
         isOpen: true,
@@ -285,6 +313,17 @@ export default function ExplorePage() {
   };
 
   const handleSanggupiPanti = (need: PantiNeed) => {
+    // Auth Required Guard for Sanggupi Panti
+    const loggedIn = !!session?.user || !!localStorage.getItem('replate_onboarding_profile');
+    if (!loggedIn) {
+      setAuthModal({
+        isOpen: true,
+        actionTitle: 'Sanggupi Bantuan Panti',
+        itemTitle: need.pantiName,
+      });
+      return;
+    }
+
     setFulfillModal({
       isOpen: true,
       need,
@@ -594,6 +633,57 @@ export default function ExplorePage() {
 
       <Footer />
       <BottomNav user={session?.user} />
+
+      {/* Modal Wajib Masuk / Daftar Akun (Auth Required on Action Guard) */}
+      <Modal
+        isOpen={authModal.isOpen}
+        onClose={() => setAuthModal({ isOpen: false, actionTitle: 'Klaim Makanan', itemTitle: '' })}
+        title="🔒 Silakan Masuk atau Daftar Akun untuk Melanjutkan Klaim"
+        size="md"
+      >
+        <div className="space-y-5 text-xs text-slate-700">
+          <div className="p-4 bg-amber-50 rounded-2xl border-2 border-amber-300 space-y-2">
+            <span className="font-black text-amber-950 text-sm block">
+              Aksi Memerlukan Akun Terverifikasi Replate
+            </span>
+            <p className="text-amber-900 leading-relaxed font-medium">
+              Untuk melakukan <strong>{authModal.actionTitle}</strong> {authModal.itemTitle ? `pada "${authModal.itemTitle}"` : ''} serta menjamin keamanan dan higienitas pangan standar BPOM RI, silakan masuk ke akun Anda atau daftar sebagai Mitra/Konsumen.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 pt-1">
+            <Link href="/login?redirect=/explore" className="block w-full">
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full font-black text-xs py-3 shadow-md"
+              >
+                🚀 Masuk ke Akun Saya ➔
+              </Button>
+            </Link>
+
+            <Link href="/register?redirect=/explore" className="block w-full">
+              <Button
+                variant="gold"
+                size="md"
+                className="w-full font-black text-xs text-slate-950 py-3 shadow-md"
+              >
+                ✨ Daftar Akun Baru Gratis ➔
+              </Button>
+            </Link>
+          </div>
+
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => setAuthModal({ isOpen: false, actionTitle: 'Klaim Makanan', itemTitle: '' })}
+              className="text-slate-400 hover:text-slate-700 font-bold text-[11px] underline cursor-pointer"
+            >
+              Lihat Katalog Lainnya Dulu (Tutup)
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Modal Mismatch Alert */}
       <Modal

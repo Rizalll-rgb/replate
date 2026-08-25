@@ -11,6 +11,7 @@ import { SDGSection } from '@/components/landing/SDGSection';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
+import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -22,6 +23,15 @@ export default function HomePage() {
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [landingSearchQuery, setLandingSearchQuery] = useState('');
+
+  // Auth Required Guard Modal
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    itemTitle: string;
+  }>({
+    isOpen: false,
+    itemTitle: '',
+  });
 
   useEffect(() => {
     const defaultMockFoods = [
@@ -111,6 +121,15 @@ export default function HomePage() {
   const paginatedFoods = foods.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleClaim = (id: string) => {
+    const isLoggedIn = !!session?.user || !!localStorage.getItem('replate_onboarding_profile');
+    if (!isLoggedIn) {
+      const item = foods.find((f) => f.id === id);
+      setAuthModal({
+        isOpen: true,
+        itemTitle: item?.title || 'Makanan Surplus',
+      });
+      return;
+    }
     router.push(`/explore?claim=${id}`);
   };
 
@@ -256,6 +275,57 @@ export default function HomePage() {
       </main>
 
       <Footer />
+
+      {/* Modal Wajib Masuk / Daftar Akun (Auth Required Guard) */}
+      <Modal
+        isOpen={authModal.isOpen}
+        onClose={() => setAuthModal({ isOpen: false, itemTitle: '' })}
+        title="🔒 Silakan Masuk atau Daftar Akun untuk Melanjutkan Klaim"
+        size="md"
+      >
+        <div className="space-y-5 text-xs text-slate-700">
+          <div className="p-4 bg-amber-50 rounded-2xl border-2 border-amber-300 space-y-2">
+            <span className="font-black text-amber-950 text-sm block">
+              Aksi Memerlukan Akun Terverifikasi Replate
+            </span>
+            <p className="text-amber-900 leading-relaxed font-medium">
+              Untuk melakukan klaim penyelamatan pada <strong>&quot;{authModal.itemTitle}&quot;</strong> serta menjamin keamanan dan higienitas pangan standar BPOM RI, silakan masuk ke akun Anda atau daftar sebagai Mitra/Konsumen.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 pt-1">
+            <Link href="/login?redirect=/explore" className="block w-full">
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full font-black text-xs py-3 shadow-md"
+              >
+                🚀 Masuk ke Akun Saya ➔
+              </Button>
+            </Link>
+
+            <Link href="/register?redirect=/explore" className="block w-full">
+              <Button
+                variant="gold"
+                size="md"
+                className="w-full font-black text-xs text-slate-950 py-3 shadow-md"
+              >
+                ✨ Daftar Akun Baru Gratis ➔
+              </Button>
+            </Link>
+          </div>
+
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => setAuthModal({ isOpen: false, itemTitle: '' })}
+              className="text-slate-400 hover:text-slate-700 font-bold text-[11px] underline cursor-pointer"
+            >
+              Lihat Katalog Lainnya Dulu (Tutup)
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <FoodDetailModal
         isOpen={isModalOpen}
