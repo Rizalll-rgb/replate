@@ -22,26 +22,26 @@ export default function PartnerOverviewPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-6xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
         <div>
           <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest block">
             Dashboard Food Rescue Volunteer
           </span>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#1B3A5C]">{orgName}</h2>
+          <h2 className="text-xl sm:text-2xl font-black text-[#1B3A5C]">{orgName}</h2>
           <p className="text-xs text-[#6C757D] font-medium">
-            Koordinator: <strong>{leaderName}</strong> • Posko Utama Surabaya
+            Koordinator: <strong>{leaderName}</strong> • Posko Logistik Surabaya Raya
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/dashboard/rescue-partner/settings">
             <Button variant="outline" size="md" className="font-extrabold text-xs">
-              ⚙️ Kelola Driver Relawan
+              Kelola Driver Relawan
             </Button>
           </Link>
           <Link href="/dashboard/rescue-partner/requests">
             <Button variant="gold" size="md" className="font-black text-xs text-slate-950">
-              🔔 Permintaan Match Baru (2)
+              Permintaan Match Baru (2)
             </Button>
           </Link>
         </div>
@@ -49,27 +49,40 @@ export default function PartnerOverviewPage() {
 
       <ImpactDashboard foodWeightKg={103.3} co2SavedKg={258.25} peopleFed={205} />
 
-      <Card className="border-slate-200 shadow-xs">
-        <CardHeader className="border-b border-slate-100 pb-3">
-          <CardTitle className="text-sm font-extrabold text-[#1B3A5C] flex items-center justify-between">
-            <span>🚚 Tugas Penjemputan Logistik Aktif Hari Ini</span>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">
-              2 Kurir Relawan Bertugas
+      {/* SMART MATCHING 2.0: TUGAS PENJEMPUTAN RUTE LOGISTIK PALING EFISIEN */}
+      <Card className="border-slate-200 shadow-xs rounded-3xl overflow-hidden bg-white">
+        <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
+          <CardTitle className="text-sm font-black text-[#1B3A5C] flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
+                SMART MATCHING ENGINE 2.0 (LOGISTIK ARMADA)
+              </span>
+              <span>Tugas Penjemputan Logistik & Optimasi Rute Hari Ini</span>
+            </div>
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">
+              2 Kurir Relawan Siap Jalan
             </span>
           </CardTitle>
         </CardHeader>
-        <CardBody className="space-y-3 text-xs p-4">
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-            <div className="space-y-1">
-              <span className="text-[10px] bg-blue-100 text-blue-900 font-extrabold px-2 py-0.5 rounded uppercase">
-                HOTEL SURPLUS • RUTE TUNJUNGAN
-              </span>
-              <p className="font-extrabold text-[#1B3A5C] text-sm">Nasi Goreng Buffet + Ayam Bakar (30 Porsi)</p>
-              <p className="text-xs text-slate-500 font-medium">Hotel Majapahit Surabaya ➔ Panti Asuhan Kasih Ibu</p>
+        <CardBody className="space-y-4 p-5 text-xs">
+          <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] bg-[#1B3A5C] text-[#D4A843] font-black px-2.5 py-0.5 rounded font-mono">
+                  Skor Efisiensi Rute 96%
+                </span>
+                <span className="text-[10px] bg-blue-100 text-blue-900 font-extrabold px-2 py-0.5 rounded uppercase">
+                  HOTEL SURPLUS • RUTE TUNJUNGAN
+                </span>
+              </div>
+              <p className="font-black text-[#1B3A5C] text-sm">Nasi Goreng Buffet + Ayam Bakar (30 Porsi)</p>
+              <p className="text-xs text-slate-600 font-medium">
+                Hotel Majapahit Surabaya ➔ Panti Asuhan Kasih Ibu Wonokromo (Jarak Rute: 2.1 km • Estimasi: 12 Menit)
+              </p>
             </div>
             <Link href="/dashboard/rescue-partner/active" className="shrink-0">
-              <Button variant="primary" size="sm" className="font-bold text-xs py-2 px-4 shadow-xs">
-                Proses & Verifikasi SOP ➔
+              <Button variant="primary" size="sm" className="font-black text-xs py-2.5 px-4 shadow-xs">
+                Buka Surat Jalan Digital WA ➔
               </Button>
             </Link>
           </div>

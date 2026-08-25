@@ -3,13 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
-import { Card } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
 import { Toast } from '@/components/ui/Toast';
-import { Badge } from '@/components/ui/Badge';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ConsumerBrowsePage() {
   const router = useRouter();
@@ -19,7 +18,7 @@ export default function ConsumerBrowsePage() {
   const [consumerName, setConsumerName] = useState('Budi Santoso');
   const [consumerAddress, setConsumerAddress] = useState('Surabaya');
 
-  // Consumer Verification Status ('REGULAR_SAVER' | 'PENDING_VERIFICATION' | 'BENEFICIARY_VERIFIED')
+  // Consumer Verification Status
   const [consumerStatus, setConsumerStatus] = useState<'REGULAR_SAVER' | 'PENDING_VERIFICATION' | 'BENEFICIARY_VERIFIED'>('BENEFICIARY_VERIFIED');
   const [sktmNumber, setSktmNumber] = useState('KIS-357890123891');
   const [dailyQuotaLeft, setDailyQuotaLeft] = useState(2);
@@ -30,7 +29,7 @@ export default function ConsumerBrowsePage() {
   const [proofPhotoUrl, setProofPhotoUrl] = useState<string | null>(null);
   const [proofType, setProofType] = useState('SKTM');
 
-  // Mismatch Alert Modal (When Regular Consumer Tries to Claim Free Donasi)
+  // Mismatch Alert Modal
   const [mismatchModal, setMismatchModal] = useState<{ isOpen: boolean; foodName: string }>({
     isOpen: false,
     foodName: '',
@@ -42,6 +41,36 @@ export default function ConsumerBrowsePage() {
     type: 'success',
   });
 
+  // Top Smart Matching 2.0 recommendations for Food Consumer
+  const smartMatchedItems = [
+    {
+      id: 'smart-cns-1',
+      title: 'Nasi Paket Ayam Bakar Specialty',
+      provider: 'Warung Bakso Pak Kumis',
+      price: 10000,
+      originalPrice: 25000,
+      discount: '60%',
+      distance: '800 meter',
+      matchScore: 98,
+      reason: 'Jarak sangat dekat (<1km) • Diskon 60% • Makanan Siap Santap',
+      pickupTime: '19:00 - 21:30 WIB',
+      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+    },
+    {
+      id: 'smart-cns-2',
+      title: 'Roti Croissant & Pastry Steril',
+      provider: 'Rotiboy Bakery Surabaya',
+      price: 6000,
+      originalPrice: 18000,
+      discount: '67%',
+      distance: '1.2 km',
+      matchScore: 95,
+      reason: 'Rating Mitra 4.9 • Diskon 67% • Batas Waktu 2 Jam Lagi',
+      pickupTime: '20:00 - 22:00 WIB',
+      imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60',
+    },
+  ];
+
   useEffect(() => {
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
@@ -52,7 +81,6 @@ export default function ConsumerBrowsePage() {
       }
     } catch (_) {}
 
-    // Sync verification status from localStorage if present
     try {
       const savedStatus = localStorage.getItem('replate_consumer_verification_status');
       if (savedStatus) {
@@ -75,7 +103,6 @@ export default function ConsumerBrowsePage() {
   const handleClaim = async (id: string) => {
     const targetFood = foods.find((f) => f.id === id);
 
-    // Safeguard: Mismatch check if Free Donation is claimed by unverified regular consumer
     if (targetFood && (targetFood.price === 0 || targetFood.distributionType === 'FREE') && consumerStatus !== 'BENEFICIARY_VERIFIED') {
       setMismatchModal({
         isOpen: true,
@@ -87,7 +114,7 @@ export default function ConsumerBrowsePage() {
     if (consumerStatus === 'BENEFICIARY_VERIFIED' && dailyQuotaLeft <= 0 && (targetFood?.price === 0 || targetFood?.distributionType === 'FREE')) {
       setToastState({
         isOpen: true,
-        message: '⚠️ Kuota klaim gratis Anda hari ini telah habis (Maksimal 2 Porsi/Hari NIK). Kuota akan tereset besok pagi!',
+        message: 'Kuota klaim donasi gratis Anda hari ini telah habis (Maksimal 2 Porsi/Hari NIK). Kuota akan tereset besok pagi.',
         type: 'error',
       });
       return;
@@ -99,21 +126,41 @@ export default function ConsumerBrowsePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ foodId: id, quantity: 1 }),
       });
-      const result = await res.json();
-      if (result.success) {
+      const data = await res.json();
+
+      if (data.success) {
         if (targetFood?.price === 0 || targetFood?.distributionType === 'FREE') {
           setDailyQuotaLeft((prev) => Math.max(0, prev - 1));
         }
+
+        try {
+          const newClaim = {
+            id: data.data?.claimId || `claim-${Date.now()}`,
+            foodId: id,
+            foodName: targetFood?.foodName || targetFood?.title || 'Surplus Makanan',
+            providerName: targetFood?.providerName || 'Mitra Toko',
+            quantity: 1,
+            totalPrice: targetFood?.price || targetFood?.discountPrice || 0,
+            status: 'READY_FOR_PICKUP',
+            qrCode: data.data?.qrCodePayload || `REPLATE-CLAIM-${Date.now()}`,
+            pickupAddress: targetFood?.pickupAddress || 'Jl. Raya Darmo No. 45, Surabaya',
+            pickupDeadline: targetFood?.pickupTime || 'Hari ini 21:00 WIB',
+            claimedAt: new Date().toISOString(),
+          };
+          const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
+          localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
+        } catch (_) {}
+
         setToastState({
           isOpen: true,
-          message: '🎉 Berhasil mengklaim makanan! Kode Resi QR telah diterbitkan.',
+          message: `Berhasil mengklaim "${targetFood?.foodName || targetFood?.title}". QR Resi Penjemputan siap di menu Klaim Saya.`,
           type: 'success',
         });
-        setTimeout(() => router.push('/dashboard/consumer/my-claims'), 1500);
+        router.push('/dashboard/consumer/my-claims');
       } else {
         setToastState({
           isOpen: true,
-          message: result.error || 'Gagal mengklaim makanan.',
+          message: data.error || 'Gagal melakukan klaim makanan.',
           type: 'error',
         });
       }
@@ -129,7 +176,7 @@ export default function ConsumerBrowsePage() {
   const handleVerificationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!proofNumberInput.trim()) {
-      alert('Mohon masukkan nomor dokumen SKTM atau kartu bansos resmi!');
+      alert('Mohon masukkan nomor dokumen SKTM atau kartu bansos resmi.');
       return;
     }
 
@@ -140,40 +187,23 @@ export default function ConsumerBrowsePage() {
       localStorage.setItem('replate_consumer_verification_proof', proofNumberInput);
     } catch (_) {}
 
-    // Add to admin verification queue cache
-    try {
-      const existingQueue = JSON.parse(localStorage.getItem('replate_admin_consumer_queue') || '[]');
-      const newEntry = {
-        id: `CNS-VER-${Date.now()}`,
-        name: 'Budi Santoso (Konsumen)',
-        email: 'budi.santoso@gmail.com',
-        phone: '0813-4567-8901',
-        proofType,
-        proofNumber: proofNumberInput,
-        proofPhoto: proofPhotoUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
-        submittedAt: 'Baru Saja',
-        status: 'PENDING',
-      };
-      localStorage.setItem('replate_admin_consumer_queue', JSON.stringify([newEntry, ...existingQueue]));
-    } catch (_) {}
-
     setIsVerificationModalOpen(false);
     setToastState({
       isOpen: true,
-      message: '✅ Pengajuan verifikasi status rentan berhasil dikirim ke Admin Dinsos Replate! Status dalam antrean verifikasi.',
+      message: 'Pengajuan verifikasi status rentan berhasil dikirim ke Admin Dinsos Replate.',
       type: 'success',
     });
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12">
-      {/* Consumer Verification Banner (Beneficiary vs Regular Saver) */}
-      <div className="bg-[#1B3A5C] text-white p-6 rounded-2xl shadow-lg border border-[#2C5A8F] space-y-4">
+    <div className="space-y-8 max-w-6xl mx-auto pb-12">
+      {/* Consumer Verification Banner */}
+      <div className="bg-[#1B3A5C] text-white p-6 rounded-3xl shadow-lg border border-[#2C5A8F] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2C5A8F]/60 pb-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-widest block">
-                STATUS HAK AKSES PANGAN KONSUMEN REPLATE
+                STATUS HAK AKSES PANGAN KONSUMEN
               </span>
               {consumerStatus === 'BENEFICIARY_VERIFIED' ? (
                 <span className="px-3 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-md shadow-xs">
@@ -181,237 +211,167 @@ export default function ConsumerBrowsePage() {
                 </span>
               ) : consumerStatus === 'PENDING_VERIFICATION' ? (
                 <span className="px-3 py-0.5 bg-amber-400 text-slate-950 font-black text-[10px] rounded-md shadow-xs">
-                  ⏳ ANTREAN VERIFIKASI SKTM (PENDING ADMIN)
+                  MENUNGGU AUDIT DINSOS
                 </span>
               ) : (
                 <span className="px-3 py-0.5 bg-blue-400 text-slate-950 font-black text-[10px] rounded-md shadow-xs">
-                  🛒 KONSUMEN HEMAT (RESCUE SALE DISKON)
+                  KONSUMEN REGULER (RESCUE SALE DISKON)
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-extrabold text-white">Selamat Datang, {consumerName}! Jelajah Makanan Surplus & Donasi Surabaya</h1>
+            <h2 className="text-xl font-black text-white">Selamat Datang, {consumerName}</h2>
+            <p className="text-xs text-slate-200 font-medium">
+              Alamat: <strong>{consumerAddress}</strong> • ID Pengguna: <span className="font-mono text-[#D4A843]">CNS-SBY-2026</span>
+            </p>
           </div>
 
-          {/* Quick Toggle Demo Button */}
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <button
-              type="button"
-              onClick={() => {
-                const nextStatus =
-                  consumerStatus === 'BENEFICIARY_VERIFIED' ? 'REGULAR_SAVER' : 'BENEFICIARY_VERIFIED';
-                setConsumerStatus(nextStatus);
-                try {
-                  localStorage.setItem('replate_consumer_verification_status', nextStatus);
-                } catch (_) {}
-              }}
-              className="text-[11px] font-bold px-3 py-1.5 bg-[#142C47] hover:bg-[#2C5A8F] border border-[#2C5A8F] text-amber-300 rounded-xl transition-all"
-            >
-              🔄 Simulasi Role: {consumerStatus === 'BENEFICIARY_VERIFIED' ? 'Penerima Rentan (Rp 0)' : 'Konsumen Biasa'}
-            </button>
+          <div className="flex items-center gap-2">
+            <Link href="/cart">
+              <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md">
+                Buka Tas Klaim ➔
+              </Button>
+            </Link>
           </div>
         </div>
 
-        {/* Dynamic Status Guidance Card */}
-        {consumerStatus === 'BENEFICIARY_VERIFIED' ? (
-          <div className="p-4 bg-[#142C47] rounded-xl border border-emerald-500/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        {consumerStatus === 'BENEFICIARY_VERIFIED' && (
+          <div className="p-4 bg-[#142C47] rounded-2xl border border-[#2C5A8F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="space-y-1">
-              <span className="font-extrabold text-emerald-400 block">
-                ✓ Akun Anda Terdaftar Sebagai Penerima Bantuan Pangan Terverifikasi Dinsos / SKTM
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-[#D4A843]">Nomor Registrasi SKTM / KIS:</span>
+                <span className="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-600">
+                  {sktmNumber}
+                </span>
+              </div>
               <p className="text-slate-300 font-medium">
-                No. SKTM/KIS: <strong className="font-mono text-amber-300">{sktmNumber}</strong> • Bebas klaim donasi makanan <strong>GRATIS Rp 0</strong> & makanan Rescue Sale.
+                Hak Akses: Bebas klaim donasi makanan Rp 0 (Maks. 2 Porsi/Hari) dan Rescue Sale diskon murah.
               </p>
             </div>
-            <div className="px-4 py-2 bg-emerald-950 text-emerald-300 border border-emerald-600 rounded-xl font-extrabold text-center shrink-0">
-              Sisa Kuota Gratis Hari Ini: <br />
-              <span className="text-base text-white">{dailyQuotaLeft} / 2 Porsi</span>
+            <div className="text-right sm:text-right shrink-0">
+              <span className="text-[11px] text-slate-400 block">Sisa Kuota Gratis Hari Ini:</span>
+              <strong className="text-base font-black text-emerald-400">{dailyQuotaLeft} Porsi Tersisa</strong>
             </div>
-          </div>
-        ) : consumerStatus === 'PENDING_VERIFICATION' ? (
-          <div className="p-4 bg-[#142C47] rounded-xl border border-amber-500/50 space-y-1 text-xs">
-            <span className="font-extrabold text-amber-300 block">
-              ⏳ Berkas SKTM / Bansos Anda Sedang Ditinjau Tim Verifikasi Replate & Dinsos
-            </span>
-            <p className="text-slate-300 font-medium">
-              Sementara verifikasi diproses (1x24 jam), Anda tetap dapat menikmati makanan surplus diskon murah (Rescue Sale).
-            </p>
-          </div>
-        ) : (
-          <div className="p-4 bg-[#142C47] rounded-xl border border-[#2C5A8F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="space-y-1">
-              <span className="font-extrabold text-white block">
-                🛒 Anda Terdaftar Sebagai Konsumen Biasa / Pembeli Rescue Sale
-              </span>
-              <p className="text-slate-300 font-medium">
-                Nikmati hemat hingga 70% belanja makanan surplus. Jika Anda masyarakat kurang mampu/rentan, ajukan verifikasi SKTM untuk donasi gratis Rp 0.
-              </p>
-            </div>
-            <Button
-              variant="gold"
-              size="sm"
-              className="font-extrabold text-xs shrink-0 shadow-md text-slate-950"
-              onClick={() => setIsVerificationModalOpen(true)}
-            >
-              Ajukan Verifikasi SKTM / Donasi Rp 0 ➔
-            </Button>
           </div>
         )}
       </div>
 
-      {/* Main Food Explorer Grid */}
-      <FoodGrid
-        foods={foods}
-        onClaim={handleClaim}
-        onDetail={(id) => {
-          const item = foods.find((f) => f.id === id);
-          if (item) {
-            setSelectedFood(item);
-            setIsModalOpen(true);
-          }
-        }}
-      />
-
-      <FoodDetailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        food={selectedFood}
-        onClaim={handleClaim}
-      />
-
-      {/* Modal Form Ajukan Verifikasi Rentan (SKTM / KIS / KKS) */}
-      <Modal
-        isOpen={isVerificationModalOpen}
-        onClose={() => setIsVerificationModalOpen(false)}
-        title="Pengajuan Verifikasi Akun Penerima Bantuan Pangan Rp 0"
-        size="md"
-      >
-        <form onSubmit={handleVerificationSubmit} className="space-y-4 text-xs text-slate-700">
-          <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl space-y-1">
-            <span className="font-extrabold text-blue-900 block">ℹ️ Ketentuan Penerima Donasi Gratis 100%:</span>
-            <p className="text-blue-800 leading-relaxed font-medium">
-              Donasi Rp 0 dikhususkan untuk warga rentan, lansia, atau masyarakat kurang mampu. Verifikasi ini membutuhkan nomor dokumen resmi (SKTM Kelurahan / Kartu KIS / KKS / PKH).
-            </p>
+      {/* SMART MATCHING 2.0: REKOMENDASI HEMAT CERDAS UNTUK KONSUMEN */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
+              SMART MATCHING ENGINE 2.0 (UNTUK KONSUMEN)
+            </span>
+            <h3 className="text-lg font-black text-[#1B3A5C]">
+              Rekomendasi Paling Cocok Berdasarkan Lokasi & Preferensi Anda
+            </h3>
           </div>
+          <span className="text-xs font-bold text-slate-500">Radius &lt; 1.5 km</span>
+        </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-800 block">Pilih Jenis Dokumen Pendukung:</label>
-            <select
-              className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C]"
-              value={proofType}
-              onChange={(e) => setProofType(e.target.value)}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {smartMatchedItems.map((item) => (
+            <div
+              key={item.id}
+              className="p-5 bg-gradient-to-br from-white to-amber-50/40 rounded-3xl border-2 border-amber-300/80 shadow-xs flex flex-col sm:flex-row items-center gap-4 justify-between"
             >
-              <option value="SKTM">Surat Keterangan Tidak Mampu (SKTM Kelurahan)</option>
-              <option value="KIS">Kartu Indonesia Sehat (KIS / BPJS PBI)</option>
-              <option value="KKS">Kartu Keluarga Sejahtera (KKS Bansos)</option>
-              <option value="PKH">Program Keluarga Harapan (PKH)</option>
-            </select>
-          </div>
-
-          <Input
-            label="Nomor Dokumen / Nomor Kartu Resmi"
-            placeholder="Contoh: SKTM/2024/0912 atau No. KIS 000189281..."
-            value={proofNumberInput}
-            onChange={(e) => setProofNumberInput(e.target.value)}
-            required
-          />
-
-          <div className="space-y-1">
-            <label className="font-bold text-slate-800 block">Upload Foto Dokumen SKTM / Kartu Bansos (Opsional):</label>
-            <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center bg-slate-50 relative">
-              {proofPhotoUrl ? (
-                <div className="relative">
-                  <img src={proofPhotoUrl} alt="Bukti" className="h-32 mx-auto object-cover rounded-lg" />
-                  <span className="text-[10px] text-emerald-700 font-extrabold block mt-1">✓ Foto Berkas Terunggah</span>
+              <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shrink-0"
+                />
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono">
+                      Skor Kecocokan {item.matchScore}%
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500">📍 {item.distance}</span>
+                  </div>
+                  <h4 className="font-black text-xs text-[#1B3A5C]">{item.title}</h4>
+                  <p className="text-[10px] text-amber-900 font-bold">{item.reason}</p>
                 </div>
-              ) : (
-                <label className="cursor-pointer space-y-1 block">
-                  <p className="font-bold text-[#1B3A5C]">Klik untuk unggah foto SKTM / KIS</p>
-                  <p className="text-[10px] text-slate-400">Format JPG/PNG maks 5MB</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setProofPhotoUrl(URL.createObjectURL(e.target.files[0]));
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-              )}
+              </div>
+
+              <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto shrink-0 gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-amber-200">
+                <div className="text-left sm:text-right">
+                  <span className="text-xs font-black text-[#1B3A5C] block">Rp {item.price.toLocaleString('id-ID')}</span>
+                  <span className="text-[10px] text-slate-400 line-through">Rp {item.originalPrice.toLocaleString('id-ID')}</span>
+                </div>
+                <Link href="/explore">
+                  <Button variant="gold" size="sm" className="font-black text-[11px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap">
+                    Klaim Cepat ➔
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
-            <Button variant="outline" size="sm" onClick={() => setIsVerificationModalOpen(false)}>
-              Batal
-            </Button>
-            <Button type="submit" variant="gold" size="sm" className="font-extrabold text-slate-950">
-              Kirim Pengajuan Verifikasi ➔
-            </Button>
-          </div>
-        </form>
-      </Modal>
+      {/* Main Food Explorer Grid */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <h3 className="text-lg font-black text-[#1B3A5C]">Semua Katalog Makanan Surplus Aktif</h3>
+          <span className="text-xs text-slate-500 font-medium">{foods.length} Makanan Siap Selamatkan</span>
+        </div>
 
-      {/* Modal Mismatch Alert (Regular Consumer Trying Free Food) */}
+        <FoodGrid
+          foods={foods}
+          onClaim={handleClaim}
+          onDetail={(id) => {
+            const item = foods.find((f) => f.id === id);
+            if (item) {
+              setSelectedFood(item);
+              setIsModalOpen(true);
+            }
+          }}
+        />
+      </section>
+
+      {/* Food Detail Modal */}
+      {selectedFood && (
+        <FoodDetailModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          food={selectedFood}
+          onClaim={handleClaim}
+        />
+      )}
+
+      {/* Modal Mismatch Alert */}
       <Modal
         isOpen={mismatchModal.isOpen}
         onClose={() => setMismatchModal({ isOpen: false, foodName: '' })}
-        title="Verifikasi Penerima Donasi Makanan Gratis"
+        title="Verifikasi Hak Akses Donasi Makanan Rp 0"
         size="md"
       >
         <div className="space-y-4 text-xs text-slate-700">
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
-            <div className="flex items-center gap-2 text-amber-900 font-extrabold text-sm">
-              <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span>Item Khusus Penerima Bantuan Terverifikasi</span>
-            </div>
+          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+            <span className="font-extrabold text-amber-900 text-sm block">
+              Makanan Bebas Biaya Khusus Panti Asuhan & Warga Rentan SKTM
+            </span>
             <p className="text-amber-800 leading-relaxed font-medium">
-              Makanan <strong>&quot;{mismatchModal.foodName}&quot;</strong> dialokasikan khusus untuk masyarakat rentan terverifikasi (Donasi Rp 0). Akun Anda saat ini berstatus <strong>Konsumen Biasa (Rescue Sale)</strong>.
+              Makanan <strong>&quot;{mismatchModal.foodName}&quot;</strong> dialokasikan khusus untuk yayasan panti asuhan atau masyarakat kurang mampu terverifikasi SKTM.
             </p>
           </div>
-
-          <p className="text-slate-600 leading-relaxed font-medium">
-            Untuk menjaga transparansi dan memastikan makanan jatuh tepat sasaran, Anda dapat:
-          </p>
-
-          <div className="space-y-2">
-            <button
-              type="button"
+          <div className="space-y-2 pt-2">
+            <Button
+              variant="primary"
+              size="md"
+              className="w-full font-extrabold text-xs"
               onClick={() => {
                 setMismatchModal({ isOpen: false, foodName: '' });
-                setIsVerificationModalOpen(true);
+                router.push('/explore');
               }}
-              className="w-full p-3 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold rounded-xl text-left flex items-center justify-between shadow-xs transition-colors"
             >
-              <div>
-                <span className="block font-extrabold">1. Ajukan Verifikasi SKTM / Kartu Bansos ➔</span>
-                <span className="text-[10px] text-slate-300 font-normal">Aktifkan hak klaim makanan Donasi Gratis Rp 0</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMismatchModal({ isOpen: false, foodName: '' })}
-              className="w-full p-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold rounded-xl text-left flex items-center justify-between transition-colors"
-            >
-              <div>
-                <span className="block font-bold">2. Beli Makanan Surplus Rescue Sale (Diskon Murah)</span>
-                <span className="text-[10px] text-amber-800 font-normal">Belanja hemat Rp 5.000 – Rp 15.000 untuk masyarakat umum</span>
-              </div>
-            </button>
-          </div>
-
-          <div className="flex justify-end pt-2 border-t border-slate-200">
-            <Button variant="outline" size="sm" onClick={() => setMismatchModal({ isOpen: false, foodName: '' })}>
-              Tutup Modal
+              Pilih Makanan Rescue Sale (Diskon Murah) ➔
             </Button>
           </div>
         </div>
       </Modal>
 
+      {/* Toast Alert */}
       <Toast
         isOpen={toastState.isOpen}
         message={toastState.message}
