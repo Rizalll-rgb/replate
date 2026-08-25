@@ -45,16 +45,23 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
-        if (parsed.entityName) setOrgName(parsed.entityName);
-        if (parsed.phone) setPhone(parsed.phone);
-        if (parsed.email) setEmail(parsed.email);
-        if (parsed.address) setAddress(parsed.address);
-        if (parsed.contactPerson) setContactPerson(parsed.contactPerson);
-      } else if (user) {
+        // Only use parsed profile if role or email matches active session user
+        const isRoleMatch = !user?.role || !parsed.role || user.role.includes(parsed.role) || parsed.role.includes(user.role);
+        const isEmailMatch = !user?.email || !parsed.email || parsed.email.toLowerCase() === user.email.toLowerCase();
+        if (isRoleMatch || isEmailMatch) {
+          if (parsed.entityName) setOrgName(parsed.entityName);
+          if (parsed.phone) setPhone(parsed.phone);
+          if (parsed.email) setEmail(parsed.email);
+          if (parsed.address) setAddress(parsed.address);
+          if (parsed.contactPerson) setContactPerson(parsed.contactPerson);
+          return;
+        }
+      }
+      if (user) {
         if (user.name) setOrgName(user.name);
-        if (user.phone) setPhone(user.phone);
+        if ((user as any).phone) setPhone((user as any).phone);
         if (user.email) setEmail(user.email);
-        if (user.address) setAddress(user.address);
+        if ((user as any).address) setAddress((user as any).address);
       }
     } catch (_) {}
   }, [user]);

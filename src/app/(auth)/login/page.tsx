@@ -21,13 +21,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [isTOSOpen, setIsTOSOpen] = useState(false);
 
-  const roleConfigs: Record<RoleType, { label: string; icon: string; targetUrl: string; demoEmail: string; hint: string }> = {
+  const roleConfigs: Record<RoleType, { label: string; icon: string; targetUrl: string; demoEmail: string; hint: string; mockProfile: any }> = {
     FOOD_PROVIDER: {
       label: 'Food Provider',
       icon: '🏪',
       targetUrl: '/dashboard/provider',
       demoEmail: 'bakso.pak.kumis@replate.id',
       hint: 'Untuk Restoran, Bakery, Supermarket, & Hotel penyedia makanan surplus.',
+      mockProfile: {
+        entityName: 'Warung Bakso Pak Kumis',
+        contactPerson: 'Pak Kumis',
+        phone: '0812-3456-7891',
+        email: 'bakso.pak.kumis@replate.id',
+        address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+        role: 'FOOD_PROVIDER',
+        district: 'Surabaya Pusat',
+        nib: 'NIB-9120481023912',
+      },
     },
     FOOD_BENEFICIARY: {
       label: 'Food Beneficiary',
@@ -35,6 +45,16 @@ export default function LoginPage() {
       targetUrl: '/dashboard/yayasan',
       demoEmail: 'panti.kasih.ibu@replate.id',
       hint: 'Untuk Panti Asuhan, Yayasan Sosial, & Shelter penerima donasi makanan gratis.',
+      mockProfile: {
+        entityName: 'Panti Asuhan Kasih Ibu Surabaya',
+        contactPerson: 'Ibu Hajjah Maryam',
+        phone: '0812-3456-7890',
+        email: 'panti.kasih.ibu@replate.id',
+        address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+        role: 'FOOD_BENEFICIARY',
+        district: 'Surabaya Selatan',
+        nib: 'DINSOS-YYS-88219',
+      },
     },
     FOOD_CONSUMER: {
       label: 'Food Consumer',
@@ -42,6 +62,15 @@ export default function LoginPage() {
       targetUrl: '/dashboard/consumer',
       demoEmail: 'budi.santoso@gmail.com',
       hint: 'Untuk Konsumen Umum / Anak Kos pembeli makanan diskon murah Rescue Sale.',
+      mockProfile: {
+        entityName: 'Budi Santoso',
+        contactPerson: 'Budi Santoso',
+        phone: '0813-4567-8901',
+        email: 'budi.santoso@gmail.com',
+        address: 'Ketintang, Surabaya Selatan',
+        role: 'FOOD_CONSUMER',
+        district: 'Surabaya Selatan',
+      },
     },
     RESCUE_VOLUNTEER: {
       label: 'Food Rescue Volunteer',
@@ -49,6 +78,15 @@ export default function LoginPage() {
       targetUrl: '/dashboard/rescue-partner',
       demoEmail: 'foodbank.surabaya@replate.id',
       hint: 'Untuk Armada Kurir Relawan Komunitas pengantar bantuan makanan.',
+      mockProfile: {
+        entityName: 'Komunitas Foodbank Surabaya Center',
+        contactPerson: 'Mas Rizky Multazam',
+        phone: '0819-8765-4321',
+        email: 'foodbank.surabaya@replate.id',
+        address: 'Posko Logistik Surabaya Raya',
+        role: 'RESCUE_VOLUNTEER',
+        district: 'Surabaya Pusat',
+      },
     },
     SUPER_ADMIN: {
       label: 'SuperAdmin',
@@ -56,6 +94,15 @@ export default function LoginPage() {
       targetUrl: '/dashboard/admin',
       demoEmail: 'admin@replate.id',
       hint: 'Untuk Tim Pengawas Platform, Verifikasi Berkas, & Kebijakan BPOM.',
+      mockProfile: {
+        entityName: 'Admin Pengawas Replate',
+        contactPerson: 'Tim Pengawas Replate',
+        phone: '0812-3456-7890',
+        email: 'admin@replate.id',
+        address: 'Gedung Pemkot Surabaya',
+        role: 'SUPER_ADMIN',
+        district: 'Surabaya',
+      },
     },
   };
 
@@ -65,13 +112,17 @@ export default function LoginPage() {
       email: roleConfigs[role].demoEmail,
       password: 'password123',
     });
+    try {
+      localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[role].mockProfile));
+    } catch (_) {}
   };
 
-  const handleLoginWithCredentials = async (emailVal: string, passwordVal: string) => {
+  const handleLoginWithCredentials = async (emailVal: string, passwordVal: string, chosenRole?: RoleType) => {
     setError('');
     setLoading(true);
     try {
-      let targetUrl = roleConfigs[activeRoleTab].targetUrl;
+      const selectedRole = chosenRole || activeRoleTab;
+      let targetUrl = roleConfigs[selectedRole].targetUrl;
 
       if (emailVal.includes('panti')) {
         targetUrl = '/dashboard/yayasan';
@@ -81,9 +132,14 @@ export default function LoginPage() {
         targetUrl = '/dashboard/rescue-partner';
       } else if (emailVal.includes('budi') || emailVal.includes('gmail')) {
         targetUrl = '/dashboard/consumer';
-      } else if (emailVal.includes('pak.kumis') || emailVal.includes('provider')) {
+      } else if (emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
         targetUrl = '/dashboard/provider';
       }
+
+      // Sync active mock profile in localStorage
+      try {
+        localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
+      } catch (_) {}
 
       await signIn('credentials', {
         email: emailVal,
@@ -99,19 +155,18 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleLoginWithCredentials(formData.email, formData.password);
+    await handleLoginWithCredentials(formData.email, formData.password, activeRoleTab);
   };
 
   const handleQuickDemoClick = (role: RoleType) => {
     handleRoleTabChange(role);
-    handleLoginWithCredentials(roleConfigs[role].demoEmail, 'password123');
+    handleLoginWithCredentials(roleConfigs[role].demoEmail, 'password123', role);
   };
 
   const handleGoogleOAuthClick = async () => {
     setLoading(true);
     try {
       const targetUrl = roleConfigs[activeRoleTab].targetUrl;
-      // Native NextAuth Google OAuth Redirect to accounts.google.com
       await signIn('google', { callbackUrl: targetUrl });
     } catch (err) {
       console.error('Google OAuth sign in error:', err);
@@ -139,7 +194,7 @@ export default function LoginPage() {
         <div className="mb-5 bg-[#0F1923] p-4 rounded-2xl border border-[#2C5A8F] space-y-3 text-left shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-[#D4A843] uppercase tracking-wider block">
-              ⚡ Pilih Peran & Demo Login 1-Klik (Juri Penilai)
+              Pilih Peran & Demo Login 1-Klik (Juri Penilai)
             </span>
             <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
               5 ROLES READY
@@ -161,7 +216,6 @@ export default function LoginPage() {
                       : 'bg-[#142C47]/60 hover:bg-[#1B3A5C] text-slate-300 border-slate-700'
                   }`}
                 >
-                  <span className="text-base shrink-0">{cfg.icon}</span>
                   <span className="truncate">{cfg.label}</span>
                 </button>
               );
@@ -169,7 +223,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-[11px] text-amber-300/90 font-medium italic pt-1 border-t border-slate-800">
-            💡 {roleConfigs[activeRoleTab].hint}
+            {roleConfigs[activeRoleTab].hint}
           </p>
         </div>
 
@@ -203,7 +257,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold"
               >
-                {showPassword ? '🙈 Sembunyikan' : '👁️ Lihat'}
+                {showPassword ? 'Sembunyikan' : 'Lihat'}
               </button>
             </div>
           </div>
@@ -231,7 +285,7 @@ export default function LoginPage() {
             {loading ? 'Memproses Authentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label} ➔`}
           </button>
 
-          {/* Google Sign In Section - Triggers Native accounts.google.com Browser Redirect */}
+          {/* Google Sign In Section */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700"></div>
@@ -269,7 +323,7 @@ export default function LoginPage() {
               href="/track-status"
               className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#142C47] px-3.5 py-1.5 rounded-xl border border-amber-400/40 shadow-xs transition-all"
             >
-              <span>🔍 Pernah Mendaftar? Cek Live Status Audit ➔</span>
+              <span>Pernah Mendaftar? Cek Live Status Audit ➔</span>
             </Link>
           </div>
         </div>
