@@ -6,6 +6,7 @@ export interface LogoProps {
   variant?: 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
   showSubtitle?: boolean;
+  href?: string;
 }
 
 export const Logo: React.FC<LogoProps> = ({
@@ -13,6 +14,7 @@ export const Logo: React.FC<LogoProps> = ({
   variant = 'dark',
   size = 'md',
   showSubtitle = true,
+  href = '/',
 }) => {
   const isLight = variant === 'light';
 
@@ -28,8 +30,8 @@ export const Logo: React.FC<LogoProps> = ({
     lg: 'text-2xl',
   };
 
-  return (
-    <Link href="/" className="inline-flex items-center gap-2.5 group">
+  const content = (
+    <>
       {customImageSrc ? (
         <img
           src={customImageSrc}
@@ -76,6 +78,16 @@ export const Logo: React.FC<LogoProps> = ({
           </span>
         )}
       </div>
+    </>
+  );
+
+  if (!href) {
+    return <div className="inline-flex items-center gap-2.5 group">{content}</div>;
+  }
+
+  return (
+    <Link href={href} className="inline-flex items-center gap-2.5 group">
+      {content}
     </Link>
   );
 };

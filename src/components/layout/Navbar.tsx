@@ -67,9 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-8">
-          <Link href={user ? dashboardUrl : '/'}>
-            <Logo size="md" variant="dark" />
-          </Link>
+          <Logo size="md" variant="dark" href={user ? dashboardUrl : '/'} />
 
           <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => {
