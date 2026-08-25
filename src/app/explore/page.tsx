@@ -38,6 +38,8 @@ interface PantiNeed {
   location: string;
   contactPerson: string;
   deadline: string;
+  imageUrl: string;
+  legalStatus: string;
 }
 
 export default function ExplorePage() {
@@ -55,35 +57,41 @@ export default function ExplorePage() {
     {
       id: 'PNT-REQ-001',
       pantiName: 'Panti Asuhan Kasih Ibu Surabaya',
-      requestedItem: 'Nasi Kotak / Paket Lauk Siap Santap',
+      requestedItem: 'Nasi Kotak / Paket Lauk Pauk Siap Santap',
       targetQuantity: '50 Porsi',
       fulfilledQuantity: '30 Porsi',
       urgency: 'HIGH',
-      location: 'Gubeng, Surabaya Pusat (1.2 km)',
+      location: 'Wonokromo, Surabaya Selatan (1.2 km)',
       contactPerson: 'Ibu Hajjah Maryam (0812-3456-7890)',
       deadline: 'Hari ini sebelum 20:00 WIB',
+      imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60',
+      legalStatus: 'Terverifikasi Dinsos Jatim',
     },
     {
       id: 'PNT-REQ-002',
       pantiName: 'Panti Werdha Lansia Sejahtera',
-      requestedItem: 'Roti Gandum & Buah Potong Steril',
+      requestedItem: 'Roti Gandum, Susu Steril & Buah Potong',
       targetQuantity: '35 Porsi',
-      fulfilledQuantity: '10 Porsi',
+      fulfilledQuantity: '15 Porsi',
       urgency: 'MEDIUM',
-      location: 'Wonokromo, Surabaya Selatan (2.4 km)',
+      location: 'Rungkut, Surabaya Timur (2.4 km)',
       contactPerson: 'Bapak Hartono (0813-8899-7711)',
-      deadline: 'Besok pagi 08:00 WIB',
+      deadline: 'Besok pagi 08:30 WIB',
+      imageUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=600&auto=format&fit=crop&q=60',
+      legalStatus: 'Terverifikasi Kemenkumham',
     },
     {
       id: 'PNT-REQ-003',
       pantiName: 'Shelter Dhuafa & Anak Jalanan Mandiri',
       requestedItem: 'Surplus Makanan Catering / Prasmanan Bersih',
       targetQuantity: '60 Porsi',
-      fulfilledQuantity: '0 Porsi',
+      fulfilledQuantity: '10 Porsi',
       urgency: 'HIGH',
       location: 'Genteng, Surabaya Pusat (0.8 km)',
       contactPerson: 'Mas Dedi (0819-2233-4455)',
       deadline: 'Hari ini sebelum 21:30 WIB',
+      imageUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&auto=format&fit=crop&q=60',
+      legalStatus: 'Terverifikasi Pemkot Surabaya',
     },
   ]);
 
@@ -216,7 +224,7 @@ export default function ExplorePage() {
     } catch (_) {}
   }, []);
 
-  // Quick Action Category Icons (Gojek / Grab Style)
+  // Quick Action Category Icons
   const categoryList = [
     { key: 'ALL', name: 'Semua', icon: '🍲' },
     { key: 'MAKANAN', name: 'Makanan Berat', icon: '🍱' },
@@ -319,10 +327,10 @@ export default function ExplorePage() {
               Pusat Katalog Surplus & Redistribusi Pangan Surabaya
             </span>
             <h1 className="text-3xl font-black text-[#1B3A5C] tracking-tight">
-              Jelajahi Makanan Surplus Terdekat
+              Eksplor Pangan Surabaya
             </h1>
             <p className="text-xs text-slate-500 font-medium max-w-2xl">
-              Cari makanan diskon murah (Rescue Sale), donasi gratis Rp 0 untuk panti, atau bantu penuhi permintaan pangan yayasan Surabaya.
+              Cari makanan diskon murah (Rescue Sale), donasi steril Rp 0 untuk panti, atau bantu penuhi permintaan pangan yayasan Surabaya.
             </p>
           </div>
 
@@ -389,7 +397,7 @@ export default function ExplorePage() {
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
             </div>
 
-            {/* Quick Action Category Grid (Gojek / Grab Style) */}
+            {/* Quick Action Category Grid */}
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
               {categoryList.map((cat) => (
                 <button
@@ -492,9 +500,9 @@ export default function ExplorePage() {
             )}
           </div>
         ) : (
-          /* Tab Permintaan Bantuan Panti Asuhan (Two-Way Pull Donation) */
+          /* Tab Permintaan Bantuan Panti Asuhan dengan Foto & Badge */
           <div className="space-y-6">
-            <div className="p-5 bg-[#1B3A5C] text-white rounded-3xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">
                 <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
                   🤝 PROGRAM REDISTRIBUSI PANGAN YAYASAN & PANTI
@@ -518,45 +526,65 @@ export default function ExplorePage() {
               {pantiNeeds.map((need) => (
                 <div
                   key={need.id}
-                  className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-slate-400">{need.id}</span>
-                      <Badge variant={need.urgency === 'HIGH' ? 'danger' : 'warning'}>
-                        {need.urgency === 'HIGH' ? 'URGENT HARI INI' : 'BUTUH BESOK'}
-                      </Badge>
+                  {/* Panti Cover Image & Badges */}
+                  <div className="relative aspect-video bg-slate-100 overflow-hidden">
+                    <img src={need.imageUrl} alt={need.pantiName} className="w-full h-full object-cover" />
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
+                        need.urgency === 'HIGH' ? 'bg-red-500 text-white animate-pulse' : 'bg-amber-400 text-slate-950'
+                      }`}>
+                        {need.urgency === 'HIGH' ? '🚨 URGENT HARI INI' : '⏳ BUTUH BESOK'}
+                      </span>
+                      <span className="text-[10px] bg-slate-950/80 text-emerald-300 font-black px-2.5 py-1 rounded-lg backdrop-blur-xs">
+                        ✓ {need.legalStatus}
+                      </span>
                     </div>
-
-                    <div>
-                      <h4 className="font-extrabold text-base text-[#1B3A5C]">{need.pantiName}</h4>
-                      <p className="text-xs text-slate-500 font-medium">📍 {need.location}</p>
-                    </div>
-
-                    <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5 text-xs">
-                      <span className="font-black text-slate-800 block">Kebutuhan: {need.requestedItem}</span>
-                      <div className="flex justify-between text-slate-600 font-medium">
-                        <span>Target Kebutuhan:</span>
-                        <strong className="text-[#1B3A5C]">{need.targetQuantity}</strong>
-                      </div>
-                      <div className="flex justify-between text-slate-600 font-medium">
-                        <span>Sudah Terpenuhi:</span>
-                        <strong className="text-emerald-600">{need.fulfilledQuantity}</strong>
-                      </div>
-                      <div className="text-[10px] text-amber-700 font-bold pt-1 border-t border-slate-200">
-                        ⏰ Batas Waktu: {need.deadline}
-                      </div>
-                    </div>
+                    <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
+                      📍 {need.location.split('(')[0]}
+                    </span>
                   </div>
 
-                  <Button
-                    variant="gold"
-                    size="md"
-                    onClick={() => handleSanggupiPanti(need)}
-                    className="w-full font-black text-xs text-slate-950 py-3 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>🤝 Sanggupi Bantuan Panti ➔</span>
-                  </Button>
+                  <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-[10px] font-mono font-bold text-slate-400 block">{need.id}</span>
+                        <h4 className="font-extrabold text-base text-[#1B3A5C] mt-0.5">{need.pantiName}</h4>
+                      </div>
+
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                        <span className="font-black text-slate-800 block">Kebutuhan: {need.requestedItem}</span>
+                        
+                        {/* Progress Bar */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                            <span>Target: {need.targetQuantity}</span>
+                            <span className="text-emerald-700">Terpenuhi: {need.fulfilledQuantity}</span>
+                          </div>
+                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '60%' }}></div>
+                          </div>
+                        </div>
+
+                        <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-200">
+                          👤 PJ: <strong className="text-slate-700">{need.contactPerson}</strong>
+                        </div>
+                        <div className="text-[10px] text-amber-800 font-bold">
+                          ⏰ Batas Penjemputan: {need.deadline}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="gold"
+                      size="md"
+                      onClick={() => handleSanggupiPanti(need)}
+                      className="w-full font-black text-xs text-slate-950 py-3 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+                    >
+                      <span>🤝 Sanggupi Bantuan Panti ➔</span>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -567,7 +595,7 @@ export default function ExplorePage() {
       <Footer />
       <BottomNav user={session?.user} />
 
-      {/* Modal Mismatch Alert (Regular Consumer Attempting Free Food) */}
+      {/* Modal Mismatch Alert */}
       <Modal
         isOpen={mismatchModal.isOpen}
         onClose={() => setMismatchModal({ isOpen: false, itemTitle: '' })}

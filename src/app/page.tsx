@@ -21,6 +21,9 @@ export default function HomePage() {
   const [foods, setFoods] = useState<any[]>([]);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 2-in-1 Dual Tracker State
+  const [trackerTab, setTrackerTab] = useState<'AUDIT_PARTNER' | 'FOOD_CLAIM'>('AUDIT_PARTNER');
   const [landingSearchQuery, setLandingSearchQuery] = useState('');
 
   useEffect(() => {
@@ -130,50 +133,103 @@ export default function HomePage() {
         <Hero />
         <HowItWorks />
 
-        {/* Interactive Governance Audit Status Tracker Section (Landing Page Dedicated Widget) */}
-        <section className="py-12 bg-[#1B3A5C] border-y border-[#2C5A8F] text-white">
+        {/* 2-in-1 Dual Tracker Section (Audit Pendaftaran & Resi Klaim Makanan) */}
+        <section className="py-14 bg-[#1B3A5C] border-y border-[#2C5A8F] text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-[#0F1923] rounded-3xl p-6 sm:p-10 border-2 border-[#D4A843]/40 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="space-y-2 max-w-xl text-center md:text-left">
-                <span className="px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md inline-block">
-                  🔍 REPLATE GOVERNANCE TRACKER 24/7
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                  Cek Status Pendaftaran & Audit Berkas Partner
-                </h3>
-                <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                  Pernah mendaftar sebagai Provider, Yayasan Panti, atau Food Rescue Volunteer? Masukkan Kode Tracking, Email, atau No. WA Anda untuk memantau status audit tim Governance secara real-time.
-                </p>
+            <div className="bg-[#0F1923] rounded-3xl p-6 sm:p-10 border-2 border-[#D4A843]/40 shadow-2xl space-y-6">
+              {/* Tracker Tab Selector */}
+              <div className="flex flex-wrap items-center gap-2 p-1 bg-slate-900 rounded-2xl max-w-md border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTrackerTab('AUDIT_PARTNER');
+                    setLandingSearchQuery('');
+                  }}
+                  className={`flex-1 py-2 px-3.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
+                    trackerTab === 'AUDIT_PARTNER'
+                      ? 'bg-[#D4A843] text-slate-950 shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🔍 Status Audit Mitra
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTrackerTab('FOOD_CLAIM');
+                    setLandingSearchQuery('');
+                  }}
+                  className={`flex-1 py-2 px-3.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
+                    trackerTab === 'FOOD_CLAIM'
+                      ? 'bg-[#D4A843] text-slate-950 shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  📦 Lacak Resi Klaim Pangan
+                </button>
               </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (landingSearchQuery.trim()) {
-                    router.push(`/track-status?id=${encodeURIComponent(landingSearchQuery.trim())}`);
-                  }
-                }}
-                className="w-full md:w-auto shrink-0 space-y-2"
-              >
-                <div className="flex flex-col sm:flex-row gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-700 shadow-lg">
-                  <input
-                    type="text"
-                    placeholder="Kode Tracking / Email / No. WA..."
-                    value={landingSearchQuery}
-                    onChange={(e) => setLandingSearchQuery(e.target.value)}
-                    className="px-4 py-3 bg-slate-800 text-white font-mono font-bold text-xs rounded-xl border border-slate-700 focus:outline-none focus:border-[#D4A843] min-w-[260px]"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
-                  >
-                    <span>Cari Status Audit ➔</span>
-                  </button>
+              {/* Form & Description Layout */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="space-y-2 max-w-xl text-center md:text-left">
+                  <span className="px-3 py-1 bg-slate-800 text-[#D4A843] border border-amber-400/30 font-black text-[11px] uppercase tracking-wider rounded-lg inline-block">
+                    {trackerTab === 'AUDIT_PARTNER'
+                      ? 'AUDIT LEGALITAS MITRA REPLATE 24/7'
+                      : 'FOOD RESCUE LIVE TRACKER BPOM'}
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    {trackerTab === 'AUDIT_PARTNER'
+                      ? 'Cek Status Pendaftaran & Audit Berkas Partner'
+                      : 'Lacak Status Resi Penjemputan & Pengantaran Pangan'}
+                  </h3>
+                  <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                    {trackerTab === 'AUDIT_PARTNER'
+                      ? 'Pernah mendaftar sebagai Provider, Yayasan Panti, atau Food Rescue Volunteer? Masukkan Kode Tracking, Email, atau No. WA Anda untuk memantau status audit secara real-time.'
+                      : 'Sudah mengklaim makanan surplus atau donasi panti? Masukkan Kode Resi Anda (contoh: CLM-CNS-2026-9812) untuk melihat posisi kurir dan status penyiapan makanan.'}
+                  </p>
                 </div>
-                <p className="text-[10px] text-amber-300 font-medium text-center md:text-left">
-                  💡 Contoh ID: <strong className="font-mono">REPLATE-REG-2026-9812</strong> atau Email mitra.
-                </p>
-              </form>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!landingSearchQuery.trim()) return;
+
+                    if (trackerTab === 'AUDIT_PARTNER') {
+                      router.push(`/track-status?id=${encodeURIComponent(landingSearchQuery.trim())}`);
+                    } else {
+                      router.push(`/track-status?id=${encodeURIComponent(landingSearchQuery.trim())}`);
+                    }
+                  }}
+                  className="w-full md:w-auto shrink-0 space-y-2"
+                >
+                  <div className="flex flex-col sm:flex-row gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-700 shadow-lg">
+                    <input
+                      type="text"
+                      placeholder={
+                        trackerTab === 'AUDIT_PARTNER'
+                          ? 'Kode Tracking / Email / No. WA...'
+                          : 'Kode Resi (CLM-CNS-XXXX)...'
+                      }
+                      value={landingSearchQuery}
+                      onChange={(e) => setLandingSearchQuery(e.target.value)}
+                      className="px-4 py-3 bg-slate-800 text-white font-mono font-bold text-xs rounded-xl border border-slate-700 focus:outline-none focus:border-[#D4A843] min-w-[260px]"
+                    />
+                    <button
+                      type="submit"
+                      className="px-6 py-3 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
+                    >
+                      <span>Lacak Status ➔</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-amber-300 font-medium text-center md:text-left">
+                    💡 Contoh ID:{' '}
+                    <strong className="font-mono">
+                      {trackerTab === 'AUDIT_PARTNER' ? 'REPLATE-REG-2026-9812' : 'CLM-CNS-2026-9812'}
+                    </strong>
+                  </p>
+                </form>
+              </div>
             </div>
           </div>
         </section>
@@ -185,12 +241,12 @@ export default function HomePage() {
               <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
                 Surplus Makanan Aktif Surabaya
               </span>
-              <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Jelajah Penyelamatan Makanan</h2>
+              <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Eksplor Pangan Surabaya</h2>
             </div>
             <div className="flex items-center gap-3">
               <Link href="/explore">
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md">
-                  Lihat Semua Katalog di Explore ➔
+                  Lihat Semua di Eksplor Pangan ➔
                 </Button>
               </Link>
             </div>
@@ -213,7 +269,7 @@ export default function HomePage() {
               </Button>
 
               <span className="text-xs font-bold text-[#1B3A5C]">
-                Halaman {currentPage} dari {totalPages} (Total {foods.length} Surplus Makanan)
+                Halaman {currentPage} dari {totalPages} (Total {foods.length} Makanan)
               </span>
 
               <Button
@@ -232,7 +288,7 @@ export default function HomePage() {
           <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-xl border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center sm:text-left">
               <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
-                ⚡ PUSAT KATALOG RESCUE SALE & DONASI PANGAN Rp 0
+                ⚡ PUSAT RESCUE SALE, DONASI Rp 0 & KEBUTUHAN PANTI
               </span>
               <h3 className="text-xl font-black text-white">Eksplorasi Lengkap dengan Filter Jarak & Kategori</h3>
               <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xl">
@@ -244,7 +300,7 @@ export default function HomePage() {
                 type="button"
                 className="px-6 py-3.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition-all cursor-pointer whitespace-nowrap"
               >
-                <span>Buka Halaman Jelajah (Explore) ➔</span>
+                <span>Buka Eksplor Pangan ➔</span>
               </button>
             </Link>
           </div>

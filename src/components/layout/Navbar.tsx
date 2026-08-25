@@ -46,16 +46,15 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
 
   const publicNavLinks = [
     { href: '/', label: 'Beranda' },
-    { href: '/explore', label: 'Jelajah Surplus' },
+    { href: '/explore', label: 'Eksplor Pangan' },
     { href: '/about', label: 'Tentang Kami' },
     { href: '/how-it-works', label: 'Cara Kerja' },
-    { href: '/impact', label: 'Dampak Lingkungan' },
     { href: '/faq', label: 'FAQ' },
   ];
 
   const loggedInNavLinks = [
     { href: dashboardUrl, label: 'Dashboard' },
-    { href: '/explore', label: 'Jelajah Katalog' },
+    { href: '/explore', label: 'Eksplor Pangan' },
     { href: '/cart', label: 'Tas Klaim' },
     { href: '/chat', label: 'Chat' },
   ];
@@ -114,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {cartCount > 0 && (
-                  <span className="absolute 1 top-1 right-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full ring-2 ring-white animate-bounce">
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full ring-2 ring-white animate-bounce">
                     {cartCount}
                   </span>
                 )}

@@ -49,14 +49,17 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
       }
       setDeferredPrompt(null);
     } else {
-      alert('📱 PWA Replate Siap Dipasang! Jika dialog tidak muncul otomatis, ikuti 2 langkah mudah di bawah ini.');
+      alert('Aplikasi Replate Siap Dipasang! Jika dialog tidak muncul otomatis, ikuti petunjuk mudah di bawah ini.');
     }
   };
 
   if (isInstalled) {
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-950 border border-emerald-300 font-extrabold text-xs rounded-xl ${className}`}>
-        <span>✓ PWA Terinstall</span>
+        <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Aplikasi Terpasang</span>
       </span>
     );
   }
@@ -68,15 +71,17 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
         onClick={handleInstallClick}
         className={`px-3.5 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap border border-amber-400/40 ${className}`}
       >
-        <span className="text-sm leading-none">📱</span>
-        <span>Install App (PWA)</span>
+        <svg className="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span>Dapatkan Aplikasi</span>
       </button>
 
       {showModal && (
         <Modal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          title="📱 Pemasangan Aplikasi Replate (PWA)"
+          title="Pemasangan Aplikasi Replate (PWA)"
           size="md"
         >
           <div className="space-y-4 text-xs text-slate-700">
@@ -86,7 +91,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
                 Progressive Web App (PWA) Replate
               </span>
               <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                Nikmati akses cepat tanpa perlu download di Play Store/App Store. Replate dapat dipasang langsung di HP Android, iOS, maupun Laptop Windows/Mac Anda.
+                Nikmati akses instan tanpa perlu unduh di Play Store atau App Store. Replate dapat dipasang langsung di HP Android, iOS, maupun Laptop Windows dan Mac Anda.
               </p>
             </div>
 
@@ -94,10 +99,10 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
             <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-300 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-xs">
               <div className="space-y-0.5">
                 <strong className="font-extrabold text-emerald-950 text-xs block">
-                  ⚡ Tombol Instan Pasang Aplikasi:
+                  Tombol Pasang Aplikasi:
                 </strong>
                 <p className="text-[11px] text-emerald-800 font-medium">
-                  Klik untuk langsung memasang aplikasi Replate ke layar HP/Desktop Anda.
+                  Klik untuk memasang aplikasi Replate langsung ke layar perangkat Anda.
                 </p>
               </div>
 
@@ -106,7 +111,10 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
                 onClick={handleDirectInstallTrigger}
                 className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
               >
-                <span>📲 Download & Install Sekarang ➔</span>
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Unduh & Pasang Sekarang ➔</span>
               </button>
             </div>
 
@@ -119,7 +127,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
                   <span className="w-5 h-5 rounded-full bg-[#D4A843] text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px]">1</span>
                   <div>
                     <strong className="text-slate-900 font-extrabold block">Android / Chrome Desktop:</strong>
-                    <p className="text-slate-600 font-medium">Klik ikon 3 titik di kanan atas browser, lalu pilih <strong>"Install Replate App"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</p>
+                    <p className="text-slate-600 font-medium">Klik ikon 3 titik di kanan atas browser, lalu pilih <strong>&quot;Install Replate App&quot;</strong> atau <strong>&quot;Tambahkan ke Layar Utama&quot;</strong>.</p>
                   </div>
                 </div>
 
@@ -127,15 +135,15 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
                   <span className="w-5 h-5 rounded-full bg-[#1B3A5C] text-white font-black flex items-center justify-center shrink-0 text-[11px]">2</span>
                   <div>
                     <strong className="text-slate-900 font-extrabold block">iPhone / iOS (Safari):</strong>
-                    <p className="text-slate-600 font-medium">Klik tombol <strong>Share (Bagikan)</strong> di bagian bawah Safari, lalu gulir ke bawah dan pilih <strong>"Add to Home Screen (Tambahkan ke Layar Utama)"</strong>.</p>
+                    <p className="text-slate-600 font-medium">Klik tombol <strong>Share (Bagikan)</strong> di bagian bawah Safari, lalu gulir ke bawah dan pilih <strong>&quot;Add to Home Screen (Tambahkan ke Layar Utama)&quot;</strong>.</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="flex justify-end pt-2 border-t border-slate-200">
-              <Button variant="gold" size="sm" className="font-extrabold" onClick={() => setShowModal(false)}>
-                Tutup Modal ➔
+              <Button variant="gold" size="sm" className="font-extrabold text-slate-950" onClick={() => setShowModal(false)}>
+                Tutup ➔
               </Button>
             </div>
           </div>

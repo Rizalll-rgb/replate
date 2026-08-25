@@ -16,15 +16,81 @@ export default function AboutPage() {
     },
     {
       name: 'Fabio Daffa Airlangga',
-      nim: 'NIM Menyusul (PENS)',
+      nim: 'NIM: 23081494100 (PENS)',
       role: 'UI/UX Designer & Full Stack Developer',
       bio: 'Merancang sistem antarmuka kontras tinggi, alur transaksi intuitif, serta mendukung pengerjaan pengembangan frontend & backend.',
     },
     {
       name: 'Tina Nur Fadillah',
-      nim: 'NIM Menyusul (UNESA)',
+      nim: 'NIM: 23081494122 (UNESA)',
       role: 'Penulis Proposal & Konseptor Platform',
       bio: 'Merumuskan konsep kebaruan inovasi SDGs, riset urgensi dampak emisi food waste, serta penyusunan dokumen proposal kompetisi.',
+    },
+  ];
+
+  const ecosystemPartners = [
+    {
+      name: 'Warung Bakso Pak Kumis',
+      category: 'Food Provider',
+      location: 'Gubeng, Surabaya',
+      icon: '🍲',
+      type: 'Mitra Restoran',
+    },
+    {
+      name: 'Rotiboy Bakery Surabaya',
+      category: 'Food Provider',
+      location: 'Tunjungan, Surabaya',
+      icon: '🥐',
+      type: 'Mitra Bakery',
+    },
+    {
+      name: 'Dapur Catering Bu Rudy',
+      category: 'Food Provider',
+      location: 'Dharmahusada, Surabaya',
+      icon: '🍱',
+      type: 'Mitra Katering',
+    },
+    {
+      name: 'Hotel Majapahit Surabaya',
+      category: 'Food Provider',
+      location: 'Embong Malang, Surabaya',
+      icon: '🏨',
+      type: 'Mitra Perhotelan',
+    },
+    {
+      name: 'Panti Asuhan Kasih Ibu',
+      category: 'Food Beneficiary',
+      location: 'Wonokromo, Surabaya',
+      icon: '🏠',
+      type: 'Lembaga Sosial',
+    },
+    {
+      name: 'Panti Werdha Lansia Sejahtera',
+      category: 'Food Beneficiary',
+      location: 'Rungkut, Surabaya',
+      icon: '👵',
+      type: 'Panti Lansia',
+    },
+    {
+      name: 'Shelter Dhuafa & Mandiri',
+      category: 'Food Beneficiary',
+      location: 'Genteng, Surabaya',
+      icon: '🛖',
+      type: 'Shelter Komunitas',
+    },
+    {
+      name: 'Garda Pangan Surabaya',
+      category: 'Rescue Partner',
+      location: 'Jawa Timur',
+      icon: '🛵',
+      type: 'Relawan Penyelamat',
+    },
+    {
+      name: 'Sinergi Food Rescue Jatim',
+      category: 'Rescue Partner',
+      location: 'Surabaya Raya',
+      icon: '🚚',
+      type: 'Armada Komunitas',
     },
   ];
 
@@ -32,36 +98,118 @@ export default function AboutPage() {
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
       <Navbar />
 
-      <main className="flex-1 py-16 space-y-16">
+      <main className="flex-1 py-16 space-y-20">
+        {/* Header Hero */}
         <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-          <span className="inline-block px-3 py-1 rounded-full bg-[#1B3A5C]/10 text-[#1B3A5C] text-xs font-extrabold uppercase tracking-wider">
+          <span className="inline-block px-3.5 py-1.5 rounded-full bg-[#1B3A5C]/10 text-[#1B3A5C] text-xs font-black uppercase tracking-wider">
             Tentang Replate
           </span>
-          <h1 className="text-4xl font-extrabold text-[#1B3A5C]">Misi Zero Waste & Ketahanan Pangan</h1>
-          <p className="text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Replate lahir sebagai solusi digital inovatif untuk menangani timbulan food waste di perkotaan Indonesia, khususnya di kota metropolitan Surabaya, melalui redistribusi cerdas dan transparan.
+          <h1 className="text-4xl sm:text-5xl font-black text-[#1B3A5C] tracking-tight">
+            Misi Zero Waste & Ketahanan Pangan Surabaya
+          </h1>
+          <p className="text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+            Replate lahir sebagai platform Super App redistribusi pangan perkotaan untuk menghubungkan Food Provider, Panti Asuhan, dan Relawan Logistik secara aman, transparan, dan terukur.
           </p>
         </div>
 
+        {/* Visi & Inovasi */}
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-sm">
-            <h3 className="text-xl font-extrabold text-[#1B3A5C]">Visi Utama</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Membangun jembatan digital yang menghubungkan penyedia makanan berlebih (Food Provider) secara efisien, terukur, dan transparan dengan penerima manfaat yang membutuhkan, sehingga tidak ada makanan layak konsumsi yang terbuang ke tempat pembuangan akhir.
+          <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
+            <h3 className="text-xl font-black text-[#1B3A5C]">Visi Utama</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Membangun jembatan digital yang menghubungkan penyedia makanan berlebih (Food Provider) secara efisien, terukur, dan transparan dengan penerima manfaat yang membutuhkan, sehingga tidak ada makanan layak konsumsi yang terbuang ke TPA Benowo Surabaya.
             </p>
           </Card>
 
-          <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-sm">
-            <h3 className="text-xl font-extrabold text-[#1B3A5C]">Inovasi Unggulan Platform</h3>
-            <ul className="list-disc list-inside text-xs text-slate-600 space-y-2.5 font-medium leading-relaxed">
-              <li><strong>Smart Matching Engine 2.0:</strong> Kecocokan multi-kriteria berbasis jarak GPS, kategori gizi, urgensi kadaluarsa, & kapasitas panti.</li>
-              <li><strong>SOP Kelayakan Pangan BPOM RI:</strong> Checklist kelayakan 8-poin suhu simpan, integritas kemasan, & Self-Declare BPOM/Halal.</li>
-              <li><strong>Surat Jalan Digital No-Login WA:</strong> Rute pengantaran armada toko via WhatsApp tanpa perlu buat akun (`/driver-manifest/[id]`).</li>
-              <li><strong>Verifikasi QR Code & OTP Anti-Fraud:</strong> Sistem pindaian payload terenkripsi & konfirmasi serah terima dua arah.</li>
-              <li><strong>Kalkulator Dampak Emisi CO2e & CH4:</strong> Perhitungan otomatis pencegahan emisi metana TPA sesuai metodologi IPCC.</li>
+          <Card className="bg-white border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
+            <h3 className="text-xl font-black text-[#1B3A5C]">Inovasi Unggulan Platform</h3>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-2 font-medium leading-relaxed">
+              <li><strong>Smart Matching Engine 2.0:</strong> Algoritma pencocokan multi-kriteria berbasis jarak GPS & kapasitas panti.</li>
+              <li><strong>SOP 8-Poin Kelayakan BPOM:</strong> Protokol higienitas mutu pangan & suhu simpan standar BPOM RI.</li>
+              <li><strong>Surat Jalan Digital WA:</strong> Rute kurir armada tanpa login via WhatsApp (`/driver-manifest/[id]`).</li>
+              <li><strong>Verifikasi QR Barcode Anti-Fraud:</strong> Sistem pindaian payload terenkripsi serah terima pangan.</li>
+              <li><strong>Kalkulator Jejak Karbon IPCC:</strong> Perhitungan otomatis reduksi gas metana (CH4) & emisi CO2e.</li>
             </ul>
           </Card>
         </div>
+
+        {/* Section Dampak Lingkungan & Jejak Karbon */}
+        <section className="bg-[#1B3A5C] text-white py-16">
+          <div className="max-w-5xl mx-auto px-4 space-y-10">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-black text-[#D4A843] uppercase tracking-widest block">
+                METODOLOGI IPCC & SUSTAINABLE DEVELOPMENT GOALS
+              </span>
+              <h2 className="text-3xl font-black text-white">Dampak Lingkungan & Pengurangan Emisi Karbon</h2>
+              <p className="text-xs text-slate-300 max-w-xl mx-auto font-medium">
+                Setiap kilogram makanan yang diselamatkan melalui Replate mencegah terbentuknya gas metana (CH4) yang berpotensi memanaskan bumi 25x lebih kuat dari CO2.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+              <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
+                <span className="text-3xl font-black text-[#D4A843] block">154.832 Porsi</span>
+                <strong className="text-sm text-white block">Porsi Makanan Diselamatkan</strong>
+                <p className="text-[11px] text-slate-300">Teredistribusi steril kepada 89.210 penerima manfaat.</p>
+              </div>
+
+              <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
+                <span className="text-3xl font-black text-emerald-400 block">324.560 kg</span>
+                <strong className="text-sm text-white block">Food Waste Dicegah ke TPA</strong>
+                <p className="text-[11px] text-slate-300">Menyelamatkan beban TPA Benowo Surabaya.</p>
+              </div>
+
+              <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
+                <span className="text-3xl font-black text-cyan-400 block">811.400 kg CO2e</span>
+                <strong className="text-sm text-white block">Emisi Gas Rumah Kaca Dicegah</strong>
+                <p className="text-[11px] text-slate-300">Setara dengan menanam 38.000 bibit pohon produktif.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 25+ Jaringan Ekosistem Mitra Surabaya */}
+        <section className="max-w-6xl mx-auto px-4 space-y-8">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-black text-[#D4A843] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full uppercase tracking-widest inline-block">
+              JARINGAN EKOSISTEM SURABAYA
+            </span>
+            <h2 className="text-3xl font-black text-[#1B3A5C]">25+ Mitra Provider, Yayasan & Relawan Aktif</h2>
+            <p className="text-xs text-slate-500 max-w-xl mx-auto font-medium">
+              Didukung oleh jejaring restoran ternama, hotel berbintang, lembaga panti asuhan, dan armada komunitas peduli pangan Surabaya.
+            </p>
+          </div>
+
+          {/* Partner Cards Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {ecosystemPartners.map((partner, idx) => (
+              <div
+                key={idx}
+                className="p-4 bg-white rounded-2xl border border-slate-200 text-center space-y-2 shadow-xs hover:shadow-md transition-all flex flex-col items-center justify-between"
+              >
+                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl">
+                  {partner.icon}
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-black text-[#1B3A5C] line-clamp-1">{partner.name}</h4>
+                  <span className="text-[10px] font-bold text-amber-700 block">{partner.type}</span>
+                  <span className="text-[9px] text-slate-400 block truncate">{partner.location}</span>
+                </div>
+              </div>
+            ))}
+
+            {/* And Many More Card */}
+            <div className="p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center space-y-2 shadow-md flex flex-col items-center justify-center">
+              <span className="text-2xl block">✨</span>
+              <h4 className="text-xs font-black text-amber-300">
+                +20 Mitra Lainnya
+              </h4>
+              <p className="text-[10px] text-slate-200 font-medium leading-tight">
+                (and many more Surabaya partners...)
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* Section Tim Dibalik Replate */}
         <section className="bg-white py-16 border-t border-b border-slate-200">
