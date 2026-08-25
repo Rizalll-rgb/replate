@@ -365,13 +365,15 @@ export default function ExplorePage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link href="/cart">
-              <Button variant="gold" size="md" className="font-black text-xs text-slate-950 shadow-md flex items-center gap-2">
-                <span>🛍️ Buka Tas Klaim ➔</span>
-              </Button>
-            </Link>
-          </div>
+          {status === 'authenticated' && !!session?.user && (
+            <div className="flex items-center gap-3">
+              <Link href="/cart">
+                <Button variant="gold" size="md" className="font-black text-xs text-slate-950 shadow-md flex items-center gap-2">
+                  <span>🛍️ Buka Tas Klaim ➔</span>
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* 3 Core Tab Switcher */}
