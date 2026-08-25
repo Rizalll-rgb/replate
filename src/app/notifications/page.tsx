@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/Button';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
 
 interface NotificationItem {
@@ -59,7 +60,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] font-sans">
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] font-sans pb-20 md:pb-0">
       <Navbar user={session?.user} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
@@ -106,6 +107,7 @@ export default function NotificationsPage() {
         </div>
       </main>
       <Footer />
+      <BottomNav user={session?.user} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/Button';
@@ -17,20 +17,47 @@ export interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ user }) => {
   const pathname = usePathname();
+  const [cartCount, setCartCount] = useState<number>(0);
+  const [dashboardUrl, setDashboardUrl] = useState<string>('/dashboard/consumer');
+
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem('replate_tas_klaim');
+      if (savedCart) {
+        const items = JSON.parse(savedCart);
+        setCartCount(Array.isArray(items) ? items.length : 0);
+      }
+
+      const profile = localStorage.getItem('replate_onboarding_profile');
+      if (profile) {
+        const parsed = JSON.parse(profile);
+        if (parsed.role === 'FOOD_PROVIDER') setDashboardUrl('/dashboard/provider');
+        else if (parsed.role === 'FOOD_BENEFICIARY') setDashboardUrl('/dashboard/yayasan');
+        else if (parsed.role === 'RESCUE_VOLUNTEER') setDashboardUrl('/dashboard/rescue-partner');
+        else setDashboardUrl('/dashboard/consumer');
+      } else if (user?.role) {
+        if (user.role.includes('PROVIDER')) setDashboardUrl('/dashboard/provider');
+        else if (user.role.includes('BENEFICIARY') || user.role.includes('YAYASAN')) setDashboardUrl('/dashboard/yayasan');
+        else if (user.role.includes('VOLUNTEER') || user.role.includes('RESCUE')) setDashboardUrl('/dashboard/rescue-partner');
+        else setDashboardUrl('/dashboard/consumer');
+      }
+    } catch (_) {}
+  }, [user, pathname]);
 
   const publicNavLinks = [
     { href: '/', label: 'Beranda' },
+    { href: '/explore', label: 'Jelajah Surplus' },
     { href: '/about', label: 'Tentang Kami' },
     { href: '/how-it-works', label: 'Cara Kerja' },
-    { href: '/impact', label: 'Dampak' },
+    { href: '/impact', label: 'Dampak Lingkungan' },
     { href: '/faq', label: 'FAQ' },
   ];
 
   const loggedInNavLinks = [
-    { href: '/', label: 'Beranda' },
-    { href: '/explore', label: 'Jelajahi' },
-    { href: '/donation', label: 'Donasi' },
-    { href: '/notifications', label: 'Notifikasi' },
+    { href: dashboardUrl, label: 'Dashboard' },
+    { href: '/explore', label: 'Jelajah Katalog' },
+    { href: '/cart', label: 'Tas Klaim' },
+    { href: '/chat', label: 'Chat' },
   ];
 
   const navLinks = user ? loggedInNavLinks : publicNavLinks;
@@ -40,7 +67,9 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-8">
-          <Logo size="md" variant="dark" />
+          <Link href={user ? dashboardUrl : '/'}>
+            <Logo size="md" variant="dark" />
+          </Link>
 
           <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => {
@@ -49,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-semibold transition-colors py-1 ${
+                  className={`text-xs font-bold transition-colors py-1 ${
                     isActive
                       ? 'text-[#1B3A5C] font-extrabold border-b-2 border-[#1B3A5C]'
                       : 'text-gray-600 hover:text-[#1B3A5C]'
@@ -63,49 +92,54 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
         </div>
 
         {/* Right Side: Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {user ? (
             <>
-              {/* Search Bar */}
-              <div className="hidden lg:flex items-center relative">
-                <div className="absolute left-3 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Cari makanan..." 
-                  className="pl-9 pr-4 py-1.5 bg-gray-100 border-none rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-48 xl:w-64"
-                />
-              </div>
-
               {/* Chat Icon */}
-              <Link href="/chat" className="text-gray-500 hover:text-[#1B3A5C] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <Link
+                href="/chat"
+                className="text-gray-500 hover:text-[#1B3A5C] transition-colors p-2 rounded-xl hover:bg-slate-100 relative"
+                title="Pesan & Chat Transaksi"
+              >
+                <svg className="w-5 h-5 text-[#1B3A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
               </Link>
 
-              {/* Cart Icon */}
-              <Link href="/cart" className="text-gray-500 hover:text-[#1B3A5C] transition-colors relative">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              {/* Cart Icon (Tas Klaim) */}
+              <Link
+                href="/cart"
+                className="text-gray-500 hover:text-[#1B3A5C] transition-colors p-2 rounded-xl hover:bg-slate-100 relative"
+                title="Tas Klaim Makanan"
+              >
+                <svg className="w-5 h-5 text-[#1B3A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute 1 top-1 right-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full ring-2 ring-white animate-bounce">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
 
-              {/* User Avatar */}
-              <Link href="/dashboard" className="ml-2">
-                <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-sm font-bold border border-green-200">
-                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
+              {/* User Dashboard Direct Action Button */}
+              <Link href={dashboardUrl} className="ml-1">
+                <Button variant="gold" size="sm" className="font-extrabold text-xs text-slate-950 py-1.5 px-3.5 shadow-xs">
+                  <span>🚀 Masuk Dashboard ➔</span>
+                </Button>
               </Link>
             </>
           ) : (
             <>
               <PWAInstallButton />
               <Link href="/login">
-                <Button variant="outline" size="sm" className="font-semibold">
+                <Button variant="outline" size="sm" className="font-bold text-xs">
                   Masuk
                 </Button>
               </Link>
               <Link href="/register">
-                <Button variant="gold" size="sm" className="font-semibold shadow-xs">
-                  Daftar
+                <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs text-slate-950">
+                  Daftar Akun
                 </Button>
               </Link>
             </>
