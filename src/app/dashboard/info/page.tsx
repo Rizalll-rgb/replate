@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
 export default function DashboardInfoHubPage() {
@@ -10,7 +10,128 @@ export default function DashboardInfoHubPage() {
   const userRole = session?.user?.role || 'CONSUMER';
 
   const [activeTab, setActiveTab] = useState<'CARA_KERJA' | 'BPOM' | 'IPCC' | 'TENTANG_KAMI' | 'FAQ'>('CARA_KERJA');
+  const [selectedRoleFlow, setSelectedRoleFlow] = useState<'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER'>('PROVIDER');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Interactive Live Carbon Simulation State
+  const [simulatedPortions, setSimulatedPortions] = useState<number>(50);
+
+  const calcWasteKg = (simulatedPortions * 0.4).toFixed(1);
+  const calcCo2eKg = (Number(calcWasteKg) * 2.5).toFixed(1);
+  const calcCh4Kg = (Number(calcWasteKg) * 0.07).toFixed(2);
+  const calcCarKm = Math.round(Number(calcCo2eKg) * 5.0);
+  const calcKwh = Math.round(Number(calcCo2eKg) * 1.25);
+
+  const roleWorkflows = {
+    PROVIDER: {
+      roleTitle: 'Food Provider (Restoran, Bakery, Katering, Hotel)',
+      badge: '🏪 RESTORAN & PRODUSEN',
+      summary: 'Mengubah surplus makanan harian menjadi pendapatan tambahan atau aksi sosial CSR terukur.',
+      steps: [
+        {
+          num: 1,
+          title: 'Input Data & SOP Higienitas BPOM',
+          desc: 'Unggah menu makanan berlebih, jumlah porsi, batas waktu penjemputan, dan lengkapi 8-poin checklist kelayakan.',
+        },
+        {
+          num: 2,
+          title: 'Pilih Model Penyaluran',
+          desc: 'Tentukan jenis distribusi: Rescue Sale (diskon murah hingga 70%) atau Donasi Bebas Biaya (Rp 0).',
+        },
+        {
+          num: 3,
+          title: 'Verifikasi Serah Terima QR Kasir',
+          desc: 'Scan QR Barcode digital saat konsumen atau kurir relawan datang mengambil makanan di outlet.',
+        },
+        {
+          num: 4,
+          title: 'Laporan CSR & Sertifikat Otomatis',
+          desc: 'Dapatkan rekapitulasi data porsi terselamatkan dan cetak Sertifikat Mitra Berkelanjutan resmi 1 halaman.',
+        },
+      ],
+    },
+    BENEFICIARY: {
+      roleTitle: 'Food Beneficiary (Panti Asuhan, Yayasan Sosial, Shelter)',
+      badge: '🏠 PANTI ASUHAN & YAYASAN',
+      summary: 'Menerima pasokan makanan sehat dan steril secara gratis untuk memenuhi nutrisi anak asuh/lansia.',
+      steps: [
+        {
+          num: 1,
+          title: 'Ajukan Permintaan Pangan Panti',
+          desc: 'Buat daftar kebutuhan menu (misal: 50 porsi nasi kotak atau susu/roti) dan batas waktu yang diharapkan.',
+        },
+        {
+          num: 2,
+          title: 'Smart Matching & Alokasi Donatur',
+          desc: 'Sistem mencocokkan permohonan Anda dengan restoran atau donatur terdekat yang siap menyanggupi porsi.',
+        },
+        {
+          num: 3,
+          title: 'Pilih Metode Penjemputan',
+          desc: 'Pilih opsi Self-Pickup (ambil sendiri) atau diantar langsung oleh kurir relawan Rescue Partner ke lokasi panti.',
+        },
+        {
+          num: 4,
+          title: 'Konfirmasi Penerimaan & Ulasan Dampak',
+          desc: 'Tunjukkan QR konfirmasi serah terima dan bagikan cerita dampak nutrisi anak asuh ke publik.',
+        },
+      ],
+    },
+    CONSUMER: {
+      roleTitle: 'Food Consumer (Konsumen Umum, Mahasiswa, Warga)',
+      badge: '🛒 KONSUMEN & ANAK KOS',
+      summary: 'Mendapatkan makanan berkualitas tinggi dari restoran favorit dengan harga sangat hemat.',
+      steps: [
+        {
+          num: 1,
+          title: 'Jelajah Makanan Terdekat',
+          desc: 'Buka katalog Eksplor Pangan untuk menemukan makanan lezat diskon 50%-70% di sekitar area Anda di Surabaya.',
+        },
+        {
+          num: 2,
+          title: 'Klaim & Bayar via QRIS Resmi',
+          desc: 'Masukkan makanan ke Tas Klaim, lalu lakukan pembayaran instan QRIS standar Bank Indonesia tanpa biaya admin.',
+        },
+        {
+          num: 3,
+          title: 'Ambil di Toko dengan QR Resi',
+          desc: 'Kunjungi outlet sebelum batas waktu pickup berakhir dan tunjukkan QR Barcode di HP kepada staf kasir.',
+        },
+        {
+          num: 4,
+          title: 'Beri Ulasan Dampak Terverifikasi',
+          desc: 'Beri rating bintang dan ulasan rasa yang akan tayang otomatis di galeri Kisah Nyata Beranda Replate.',
+        },
+      ],
+    },
+    VOLUNTEER: {
+      roleTitle: 'Rescue Volunteer (Relawan Logistik & Armada Komunitas)',
+      badge: '🛵 KURIR RELAWAN LOGISTIK',
+      summary: 'Menghubungkan restoran dan panti asuhan melalui pengantaran cepat, higienis, dan terenkripsi.',
+      steps: [
+        {
+          num: 1,
+          title: 'Terima Penugasan Rute Terdekat',
+          desc: 'Dapatkan notifikasi alokasi bantuan makanan yang membutuhkan pengantaran segera di wilayah Anda.',
+        },
+        {
+          num: 2,
+          title: 'Buka Surat Jalan Digital via WA',
+          desc: 'Akses link manifest surat jalan digital tanpa login dengan instruksi rute Google Maps dan kontak PJ.',
+        },
+        {
+          num: 3,
+          title: 'Inspeksi & Serah Terima Outlet',
+          desc: 'Pastikan wadah makanan tersegel dan suhu aman, lalu scan QR Code outlet untuk memulai perjalanan.',
+        },
+        {
+          num: 4,
+          title: 'Antar Steril ke Shelter Panti',
+          desc: 'Serahkan paket makanan kepada pengurus panti dan konfirmasi selesai untuk memperbarui riwayat armada.',
+        },
+      ],
+    },
+  };
 
   const faqs = [
     {
@@ -45,7 +166,7 @@ export default function DashboardInfoHubPage() {
           </span>
           <h1 className="text-2xl font-black text-[#1B3A5C]">Pusat Informasi & Regulasi Replate</h1>
           <p className="text-xs text-slate-500 font-medium">
-            Pelajari seluruh panduan operasional, regulasi BPOM, formula emisi IPCC, dan FAQ tanpa perlu keluar workspace.
+            Pelajari seluruh panduan operasional per peran, regulasi BPOM, kalkulator simulasi emisi IPCC, dan FAQ.
           </p>
         </div>
 
@@ -65,7 +186,7 @@ export default function DashboardInfoHubPage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          📖 Cara Kerja
+          📖 Cara Kerja (4 Role)
         </button>
 
         <button
@@ -89,7 +210,7 @@ export default function DashboardInfoHubPage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          🌿 Dampak IPCC
+          🌿 Dampak IPCC & Kalkulator
         </button>
 
         <button
@@ -117,74 +238,105 @@ export default function DashboardInfoHubPage() {
         </button>
       </div>
 
-      {/* Tab 1: Cara Kerja */}
+      {/* Tab 1: Cara Kerja (Multi-Role POV Switcher) */}
       {activeTab === 'CARA_KERJA' && (
         <div className="space-y-6">
-          <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-lg font-black text-[#1B3A5C]">
-              Alur Kerja Ekosistem Redistribusi Pangan Replate
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              Replate menghubungkan 4 aktor utama dalam satu siklus tertutup (*closed-loop distribution*) yang higienis, terukur, dan transparan:
-            </p>
+          {/* Role Switcher Chips */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedRoleFlow('PROVIDER')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                selectedRoleFlow === 'PROVIDER'
+                  ? 'bg-[#1B3A5C] text-[#D4A843] shadow-md border-2 border-[#D4A843]'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              🏪 Food Provider (Resto)
+            </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="w-8 h-8 rounded-xl bg-blue-100 text-blue-900 font-black text-xs flex items-center justify-center">
-                  1
-                </span>
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Upload Surplus Makanan</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Restoran / Bakery mengisi checklist SOP BPOM dan menentukan harga diskon atau donasi Rp 0.
-                </p>
-              </div>
+            <button
+              type="button"
+              onClick={() => setSelectedRoleFlow('BENEFICIARY')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                selectedRoleFlow === 'BENEFICIARY'
+                  ? 'bg-[#1B3A5C] text-emerald-400 shadow-md border-2 border-emerald-400'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              🏠 Food Beneficiary (Panti)
+            </button>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 font-black text-xs flex items-center justify-center">
-                  2
-                </span>
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Smart Matching 2.0</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Algoritma mencocokkan makanan secara otomatis dengan panti asuhan atau pembeli terdekat (&lt; 3 km).
-                </p>
-              </div>
+            <button
+              type="button"
+              onClick={() => setSelectedRoleFlow('CONSUMER')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                selectedRoleFlow === 'CONSUMER'
+                  ? 'bg-[#1B3A5C] text-cyan-400 shadow-md border-2 border-cyan-400'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              🛒 Food Consumer (Konsumen)
+            </button>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="w-8 h-8 rounded-xl bg-purple-100 text-purple-900 font-black text-xs flex items-center justify-center">
-                  3
-                </span>
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Logistik & Surat Jalan</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Relawan kurir mengambil makanan menggunakan Surat Jalan Digital via WhatsApp tanpa perlu login.
-                </p>
-              </div>
+            <button
+              type="button"
+              onClick={() => setSelectedRoleFlow('VOLUNTEER')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                selectedRoleFlow === 'VOLUNTEER'
+                  ? 'bg-[#1B3A5C] text-purple-400 shadow-md border-2 border-purple-400'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              🛵 Rescue Volunteer (Kurir)
+            </button>
+          </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <span className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 font-black text-xs flex items-center justify-center">
-                  4
-                </span>
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Scan QR Serah Terima</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Serah terima fisik diverifikasi dengan pemindaian QR Code terenkripsi dan ulasan dampak terbit.
-                </p>
-              </div>
+          {/* Selected Role Flow Card */}
+          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-6">
+            <div className="space-y-1 border-b border-slate-100 pb-4">
+              <span className="text-[11px] font-black text-[#D4A843] uppercase tracking-wider block">
+                {roleWorkflows[selectedRoleFlow].badge}
+              </span>
+              <h3 className="text-xl font-black text-[#1B3A5C]">
+                {roleWorkflows[selectedRoleFlow].roleTitle}
+              </h3>
+              <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                {roleWorkflows[selectedRoleFlow].summary}
+              </p>
             </div>
-          </Card>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {roleWorkflows[selectedRoleFlow].steps.map((step) => (
+                <div key={step.num} className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <span className="w-8 h-8 rounded-xl bg-[#1B3A5C] text-[#D4A843] font-black text-xs flex items-center justify-center shadow-xs">
+                      {step.num}
+                    </span>
+                    <h4 className="font-extrabold text-xs text-[#1B3A5C]">{step.title}</h4>
+                    <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
       {/* Tab 2: Regulasi BPOM */}
       {activeTab === 'BPOM' && (
         <div className="space-y-6">
-          <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🛡️</span>
+          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🛡️</span>
               <div>
-                <h3 className="text-lg font-black text-[#1B3A5C]">
+                <h3 className="text-xl font-black text-[#1B3A5C]">
                   Protokol 8-Poin Rescue Readiness BPOM RI & WHO
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Standar baku mutu keamanan pangan yang wajib dipenuhi sebelum makanan diunggah ke platform.
+                  Standar baku mutu keamanan pangan yang wajib dipenuhi sebelum makanan diunggah ke platform Replate.
                 </p>
               </div>
             </div>
@@ -206,52 +358,114 @@ export default function DashboardInfoHubPage() {
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
-      {/* Tab 3: Formula IPCC */}
+      {/* Tab 3: Formula IPCC & Live Interactive Carbon Calculator (AUDITED HIGH CONTRAST) */}
       {activeTab === 'IPCC' && (
         <div className="space-y-6">
-          <Card className="p-6 bg-[#1B3A5C] text-white rounded-3xl border border-[#2C5A8F] shadow-md space-y-4">
-            <span className="text-xs font-black text-[#D4A843] uppercase tracking-widest block">
-              METODOLOGI PERHITUNGAN JEJAK KARBON IPCC 2006 / 2019 REFINEMENT
-            </span>
-            <h3 className="text-xl font-black text-white">
-              Formula Konversi Dampak Lingkungan Replate
-            </h3>
-            <p className="text-xs text-slate-200 leading-relaxed font-medium">
-              Replate menggunakan standar Intergovernmental Panel on Climate Change (IPCC) untuk menghitung pencegahan gas rumah kaca dari timbulan sampah organik di TPA Benowo Surabaya:
-            </p>
+          {/* Direct High-Contrast Dark Blue Container */}
+          <div className="p-6 sm:p-8 bg-[#1B3A5C] rounded-3xl border-2 border-[#2C5A8F] shadow-xl space-y-6 text-white">
+            <div className="space-y-2">
+              <span className="px-3.5 py-1 bg-[#0F1923] text-[#D4A843] border border-amber-400/40 rounded-xl text-[11px] font-black uppercase tracking-wider inline-block">
+                METODOLOGI PERHITUNGAN JEJAK KARBON IPCC 2006 / 2019 REFINEMENT
+              </span>
+              <h3 className="text-2xl font-black text-white tracking-tight">
+                Formula Baku Konversi Dampak Lingkungan Replate
+              </h3>
+              <p className="text-xs text-slate-200 leading-relaxed font-medium max-w-3xl">
+                Replate menggunakan standar Intergovernmental Panel on Climate Change (IPCC) untuk menghitung pencegahan gas rumah kaca dari timbulan sampah organik di TPA Benowo Surabaya:
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div className="p-4 bg-[#142C47] rounded-2xl border border-[#2C5A8F] space-y-1 text-center">
-                <span className="text-xl font-black text-[#D4A843] block">1 Porsi = 0.4 kg</span>
+            {/* 3 Core Mathematical Constants */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              <div className="p-5 bg-[#0F1923] rounded-2xl border border-[#2C5A8F] space-y-1 text-center shadow-md">
+                <span className="text-2xl font-black text-[#D4A843] block font-mono">1 Porsi = 0.4 kg</span>
                 <strong className="text-xs text-white block">Bobot Pangan Rata-Rata</strong>
-                <p className="text-[10px] text-slate-300">Standar porsi makanan siap santap Indonesia.</p>
+                <p className="text-[11px] text-slate-300 font-medium">Standar porsi makanan siap santap Indonesia.</p>
               </div>
 
-              <div className="p-4 bg-[#142C47] rounded-2xl border border-[#2C5A8F] space-y-1 text-center">
-                <span className="text-xl font-black text-emerald-400 block">1 kg Waste = 2.5 kg CO2e</span>
+              <div className="p-5 bg-[#0F1923] rounded-2xl border border-[#2C5A8F] space-y-1 text-center shadow-md">
+                <span className="text-2xl font-black text-emerald-400 block font-mono">1 kg = 2.5 kg CO2e</span>
                 <strong className="text-xs text-white block">Faktor Emisi Gas Rumah Kaca</strong>
-                <p className="text-[10px] text-slate-300">Reduksi emisi pembusukan anaerobik.</p>
+                <p className="text-[11px] text-slate-300 font-medium">Reduksi emisi pembusukan anaerobik.</p>
               </div>
 
-              <div className="p-4 bg-[#142C47] rounded-2xl border border-[#2C5A8F] space-y-1 text-center">
-                <span className="text-xl font-black text-cyan-400 block">1 kg Waste = 0.07 kg CH4</span>
+              <div className="p-5 bg-[#0F1923] rounded-2xl border border-[#2C5A8F] space-y-1 text-center shadow-md">
+                <span className="text-2xl font-black text-cyan-400 block font-mono">1 kg = 0.07 kg CH4</span>
                 <strong className="text-xs text-white block">Pencegahan Gas Metana</strong>
-                <p className="text-[10px] text-slate-300">Gas metana berpotensi pemanasan 28x CO2.</p>
+                <p className="text-[11px] text-slate-300 font-medium">Gas metana berpotensi pemanasan 28x CO2.</p>
               </div>
             </div>
-          </Card>
+
+            {/* LIVE INTERACTIVE SIMULATOR CARD */}
+            <div className="p-6 bg-[#0D1E32] rounded-2xl border-2 border-[#D4A843]/50 shadow-2xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
+                <div>
+                  <h4 className="text-base font-black text-[#D4A843] flex items-center gap-2">
+                    <span>🧮 Kalkulator Simulasi Dampak Lingkungan Riil</span>
+                  </h4>
+                  <p className="text-xs text-slate-300 font-medium">
+                    Geser slider di bawah untuk melihat kalkulasi dampak pengurangan emisi secara instan:
+                  </p>
+                </div>
+                <span className="text-lg font-black text-white bg-[#1B3A5C] px-4 py-1.5 rounded-xl border border-amber-400/40 shrink-0 font-mono">
+                  {simulatedPortions} Porsi Makanan
+                </span>
+              </div>
+
+              {/* Slider Input */}
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min="5"
+                  max="500"
+                  step="5"
+                  value={simulatedPortions}
+                  onChange={(e) => setSimulatedPortions(Number(e.target.value))}
+                  className="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#D4A843]"
+                />
+                <div className="flex justify-between text-[10px] text-slate-400 font-bold font-mono">
+                  <span>5 Porsi (Skala Warung)</span>
+                  <span>250 Porsi (Skala Resto)</span>
+                  <span>500 Porsi (Skala Hotel/Katering)</span>
+                </div>
+              </div>
+
+              {/* Calculated Results Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-700 text-center">
+                  <span className="text-xs text-slate-400 block font-bold">Food Waste Dicegah</span>
+                  <strong className="text-lg font-black text-emerald-400 font-mono">{calcWasteKg} kg</strong>
+                </div>
+
+                <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-700 text-center">
+                  <span className="text-xs text-slate-400 block font-bold">Reduksi Emisi CO2e</span>
+                  <strong className="text-lg font-black text-cyan-400 font-mono">{calcCo2eKg} kg</strong>
+                </div>
+
+                <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-700 text-center">
+                  <span className="text-xs text-slate-400 block font-bold">Pencegahan Metana (CH4)</span>
+                  <strong className="text-lg font-black text-amber-300 font-mono">{calcCh4Kg} kg</strong>
+                </div>
+
+                <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-700 text-center">
+                  <span className="text-xs text-slate-400 block font-bold">Setara Jarak Mobil</span>
+                  <strong className="text-lg font-black text-purple-300 font-mono">~{calcCarKm} km</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Tab 4: Tentang Kami & Ekosistem 25+ Mitra */}
       {activeTab === 'TENTANG_KAMI' && (
         <div className="space-y-6">
-          <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-lg font-black text-[#1B3A5C]">
+          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <h3 className="text-xl font-black text-[#1B3A5C]">
               Jejaring 25+ Mitra Ekosistem Pangan Surabaya
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -283,7 +497,7 @@ export default function DashboardInfoHubPage() {
             <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center font-bold text-xs text-amber-900">
               ✨ Dan lebih dari 20+ mitra resto & lembaga panti lainnya di seluruh wilayah Surabaya.
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
@@ -295,7 +509,7 @@ export default function DashboardInfoHubPage() {
               <button
                 type="button"
                 onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
-                className="w-full p-4 text-left flex items-center justify-between font-extrabold text-xs text-[#1B3A5C] hover:bg-slate-50 transition-colors cursor-pointer"
+                className="w-full p-4 text-left flex items-center justify-between font-extrabold text-xs sm:text-sm text-[#1B3A5C] hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <span>{faq.q}</span>
                 <span className="text-slate-400 font-mono text-base">
@@ -310,10 +524,10 @@ export default function DashboardInfoHubPage() {
             </Card>
           ))}
 
-          <div className="p-5 bg-[#1B3A5C] text-white rounded-3xl shadow-md border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+          <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-md border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
             <div className="space-y-1 text-center sm:text-left">
               <h4 className="font-black text-sm text-[#D4A843]">Butuh Bantuan Operasional Langsung?</h4>
-              <p className="text-[11px] text-slate-200 font-medium">
+              <p className="text-xs text-slate-200 font-medium">
                 Tim Helpdesk Governance Replate Surabaya siap mendampingi Anda 24/7.
               </p>
             </div>
