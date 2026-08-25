@@ -44,14 +44,13 @@ interface PantiNeed {
 
 export default function ExplorePage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS'>('RESCUE_SALE');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('FOOD_CONSUMER');
   const [isConsumerVerified, setIsConsumerVerified] = useState<boolean>(true);
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [pantiNeeds, setPantiNeeds] = useState<PantiNeed[]>([
@@ -127,15 +126,8 @@ export default function ExplorePage() {
   // Check login state and load surplus catalog
   useEffect(() => {
     try {
-      const profile = localStorage.getItem('replate_onboarding_profile');
-      if (profile) {
-        const parsed = JSON.parse(profile);
-        if (parsed.role) setUserRole(parsed.role);
-        setIsUserLoggedIn(true);
-      } else if (session?.user) {
-        setIsUserLoggedIn(true);
-      } else {
-        setIsUserLoggedIn(false);
+      if (session?.user?.role) {
+        setUserRole(session.user.role);
       }
 
       const cStatus = localStorage.getItem('replate_consumer_verification_status');
@@ -252,12 +244,12 @@ export default function ExplorePage() {
   ];
 
   const handleAddToCart = (food: FoodItem) => {
-    // 1. Auth Required Guard (If not logged in, trigger Auth Modal)
-    const loggedIn = !!session?.user || !!localStorage.getItem('replate_onboarding_profile');
-    if (!loggedIn) {
+    // 1. Strict Auth Check: Must be logged in via NextAuth session or authenticated token
+    const isAuthenticated = status === 'authenticated' && !!session?.user;
+    if (!isAuthenticated) {
       setAuthModal({
         isOpen: true,
-        actionTitle: 'Klaim Makanan Surplus',
+        actionTitle: 'Klaim Makanan',
         itemTitle: food.title,
       });
       return;
@@ -313,9 +305,9 @@ export default function ExplorePage() {
   };
 
   const handleSanggupiPanti = (need: PantiNeed) => {
-    // Auth Required Guard for Sanggupi Panti
-    const loggedIn = !!session?.user || !!localStorage.getItem('replate_onboarding_profile');
-    if (!loggedIn) {
+    // Strict Auth Check for Sanggupi Panti
+    const isAuthenticated = status === 'authenticated' && !!session?.user;
+    if (!isAuthenticated) {
       setAuthModal({
         isOpen: true,
         actionTitle: 'Sanggupi Bantuan Panti',
@@ -529,7 +521,7 @@ export default function ExplorePage() {
                           onClick={() => handleAddToCart(item)}
                           className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <span>+ Tas Klaim</span>
+                          <span>Klaim ➔</span>
                         </button>
                       </div>
                     </div>

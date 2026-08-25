@@ -18,7 +18,7 @@ import { useSession } from 'next-auth/react';
 
 export default function HomePage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [foods, setFoods] = useState<any[]>([]);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -121,7 +121,7 @@ export default function HomePage() {
   const paginatedFoods = foods.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleClaim = (id: string) => {
-    const isLoggedIn = !!session?.user || !!localStorage.getItem('replate_onboarding_profile');
+    const isLoggedIn = status === 'authenticated' && !!session?.user;
     if (!isLoggedIn) {
       const item = foods.find((f) => f.id === id);
       setAuthModal({
