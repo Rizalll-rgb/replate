@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardBody, CardFooter } from '../ui/Card';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 
 export interface FoodCardProps {
@@ -44,32 +43,31 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   const getCategoryDetails = (rawCat?: string) => {
     const cat = (rawCat || 'MEALS').toUpperCase();
     if (cat.includes('MEAL') || cat.includes('OLAHAN') || cat.includes('MAKANAN')) {
-      return { label: '🍛 Makanan Olahan (Meals)', badgeBg: 'bg-[#1B3A5C] text-white border-blue-400/50 shadow-md' };
+      return { label: 'Makanan Olahan (Meals)', badgeBg: 'bg-[#1B3A5C] text-white border-blue-400/50 shadow-md' };
     }
     if (cat.includes('BAKERY') || cat.includes('ROTI') || cat.includes('KUE')) {
-      return { label: '🥐 Roti & Kue (Bakery)', badgeBg: 'bg-amber-600 text-white border-amber-300/50 shadow-md' };
+      return { label: 'Roti & Kue (Bakery)', badgeBg: 'bg-amber-600 text-white border-amber-300/50 shadow-md' };
     }
     if (cat.includes('PRODUCE') || cat.includes('BUAH') || cat.includes('SAYUR') || cat.includes('FRUIT')) {
-      return { label: '🍎 Buah & Sayur (Produce)', badgeBg: 'bg-emerald-600 text-white border-emerald-300/50 shadow-md' };
+      return { label: 'Buah & Sayur (Produce)', badgeBg: 'bg-emerald-600 text-white border-emerald-300/50 shadow-md' };
     }
     if (cat.includes('DAIRY') || cat.includes('SUSU') || cat.includes('KEJU')) {
-      return { label: '🥛 Olahan Susu (Dairy)', badgeBg: 'bg-cyan-600 text-white border-cyan-300/50 shadow-md' };
+      return { label: 'Olahan Susu (Dairy)', badgeBg: 'bg-cyan-600 text-white border-cyan-300/50 shadow-md' };
     }
     if (cat.includes('BEVERAGE') || cat.includes('MINUMAN') || cat.includes('DRINK')) {
-      return { label: '🧃 Minuman Segar (Beverages)', badgeBg: 'bg-indigo-600 text-white border-indigo-300/50 shadow-md' };
+      return { label: 'Minuman Segar (Beverages)', badgeBg: 'bg-indigo-600 text-white border-indigo-300/50 shadow-md' };
     }
     if (cat.includes('SNACK') || cat.includes('CAMILAN') || cat.includes('SNACKS')) {
-      return { label: '🍿 Camilan & Snack', badgeBg: 'bg-orange-600 text-white border-orange-300/50 shadow-md' };
+      return { label: 'Camilan & Snack', badgeBg: 'bg-orange-600 text-white border-orange-300/50 shadow-md' };
     }
     if (cat.includes('PACKAGED') || cat.includes('KEMASAN') || cat.includes('KALENG') || cat.includes('GROCERY')) {
-      return { label: '📦 Makanan Kemasan (Packaged)', badgeBg: 'bg-purple-600 text-white border-purple-300/50 shadow-md' };
+      return { label: 'Makanan Kemasan (Packaged)', badgeBg: 'bg-purple-600 text-white border-purple-300/50 shadow-md' };
     }
-    return { label: `🍲 ${category || 'Lainnya'}`, badgeBg: 'bg-slate-800 text-white border-slate-500/50 shadow-md' };
+    return { label: category || 'Lainnya', badgeBg: 'bg-slate-800 text-white border-slate-500/50 shadow-md' };
   };
 
   const catDetails = getCategoryDetails(category);
 
-  // Fallback high-quality food photography illustrations if no custom photo uploaded
   const defaultPhotos: Record<string, string> = {
     MEALS: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
     BAKERY: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60',
@@ -103,7 +101,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
           <div className="absolute top-3 right-3 z-10">
             {isFree ? (
               <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-black text-xs shadow-md">
-                GRATIS (DONASI)
+                DONASI Rp 0
               </span>
             ) : (
               <span className="px-2.5 py-1 rounded-full bg-[#1B3A5C] text-[#D4A843] font-black text-xs shadow-md border border-amber-400/30">
@@ -145,7 +143,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
         </Button>
         {status === 'AVAILABLE' && onClaim && (
           <Button variant="gold" size="sm" className="w-full text-xs font-bold" onClick={() => onClaim(id)}>
-            {isFree ? 'Klaim Rescue' : 'Beli Sale'}
+            {isFree ? 'Klaim Donasi' : 'Klaim Diskon'}
           </Button>
         )}
         {onManage && (

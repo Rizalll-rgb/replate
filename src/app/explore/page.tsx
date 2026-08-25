@@ -11,11 +11,15 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
+import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 
 interface FoodItem {
   id: string;
   title: string;
+  description?: string;
   providerName: string;
+  providerPhone?: string;
+  providerAddress?: string;
   originalPrice: number;
   discountPrice: number;
   quantity: string;
@@ -26,6 +30,12 @@ interface FoodItem {
   type: 'RESCUE_SALE' | 'DONATION';
   imageUrl: string;
   rating?: number;
+  storageCondition?: string;
+  packagingType?: string;
+  weightPerUnitKg?: number;
+  allergens?: string[];
+  lat?: number;
+  lng?: number;
 }
 
 interface PantiNeed {
@@ -64,6 +74,9 @@ export default function ExplorePage() {
 
   const [userRole, setUserRole] = useState<string>('FOOD_CONSUMER');
   const [isConsumerVerified, setIsConsumerVerified] = useState<boolean>(true);
+
+  // Selected Food for Detail Modal (Rescue Sale & Donasi Pangan)
+  const [selectedFoodForModal, setSelectedFoodForModal] = useState<any | null>(null);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [pantiNeeds, setPantiNeeds] = useState<PantiNeed[]>([
@@ -204,7 +217,10 @@ export default function ExplorePage() {
           const mapped: FoodItem[] = items.map((item: any) => ({
             id: item.id || `food-${Math.random()}`,
             title: item.foodName || item.title || 'Makanan Surplus',
-            providerName: item.provider?.organizationName || item.providerName || 'Mitra Toko Replate',
+            description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
+            providerName: item.provider?.organizationName || item.providerName || 'Warung Bakso Pak Kumis',
+            providerPhone: item.provider?.phone || '081234567891',
+            providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
             originalPrice: item.originalPrice || 25000,
             discountPrice: item.discountPrice || item.price || 0,
             quantity: `${item.quantity || 10} Porsi`,
@@ -215,6 +231,12 @@ export default function ExplorePage() {
             type: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0 ? 'DONATION' : 'RESCUE_SALE',
             imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
             rating: item.rating || 4.8,
+            storageCondition: item.storageCondition || 'ROOM_TEMP',
+            packagingType: item.packagingType || 'PACKAGED',
+            weightPerUnitKg: item.weightPerUnitKg || 0.4,
+            allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
+            lat: item.lat || -7.2575,
+            lng: item.lng || 112.7521,
           }));
           setFoods(mapped);
         } else {
@@ -230,7 +252,10 @@ export default function ExplorePage() {
     {
       id: 'FOD-001',
       title: 'Nasi Paket Ayam Bakar Madu',
+      description: 'Nasi hangat dengan ayam bakar madu bumbu rempah, lalapan segar, dan sambal terasi terpisah dalam kemasan higienis.',
       providerName: 'Warung Bakso Pak Kumis',
+      providerPhone: '081234567891',
+      providerAddress: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
       originalPrice: 28000,
       discountPrice: 12000,
       quantity: '15 Porsi',
@@ -241,11 +266,20 @@ export default function ExplorePage() {
       type: 'RESCUE_SALE',
       imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
       rating: 4.9,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'PACKAGED',
+      weightPerUnitKg: 0.4,
+      allergens: ['Nut-Free', 'Halal BPJPH', 'Wadah Steril'],
+      lat: -7.2575,
+      lng: 112.7521,
     },
     {
       id: 'FOD-002',
       title: 'Roti Croissant & Choco Pastry',
+      description: 'Aneka roti croissant butter dan pastry cokelat lembut yang baru dipanggang hari ini di outlet bakery.',
       providerName: 'Rotiboy Bakery Surabaya',
+      providerPhone: '081234567892',
+      providerAddress: 'Tunjungan Plaza Lt. G, Jl. Basuki Rahmat, Surabaya',
       originalPrice: 18000,
       discountPrice: 6000,
       quantity: '25 Porsi',
@@ -256,11 +290,20 @@ export default function ExplorePage() {
       type: 'RESCUE_SALE',
       imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60',
       rating: 4.8,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'PACKAGED',
+      weightPerUnitKg: 0.25,
+      allergens: ['Dairy (Susu)', 'Halal BPJPH', 'Bebas Pengawet'],
+      lat: -7.2614,
+      lng: 112.7385,
     },
     {
       id: 'FOD-003',
       title: 'Prasmanan Nasi Goreng & Ayam Goreng',
+      description: 'Menu buffet hotel bintang 5 yang tidak tersentuh tamu, disimpan di warm chafing dish dengan suhu >60°C.',
       providerName: 'Hotel Majapahit Surabaya',
+      providerPhone: '081234567893',
+      providerAddress: 'Jl. Tunjungan No. 65, Surabaya',
       originalPrice: 45000,
       discountPrice: 0,
       quantity: '30 Porsi',
@@ -271,11 +314,20 @@ export default function ExplorePage() {
       type: 'DONATION',
       imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=60',
       rating: 5.0,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'STERILE_CONTAINER',
+      weightPerUnitKg: 0.45,
+      allergens: ['Nut-Free', 'Halal BPJPH', 'Steril Food Grade'],
+      lat: -7.2637,
+      lng: 112.7407,
     },
     {
       id: 'FOD-004',
       title: 'Sop Buntut & Daging Kuah Steril',
+      description: 'Sop daging kuah kaldu rempah kaya gizi, dikemas dalam wadah mangkok microwaveable kedap udara.',
       providerName: 'Dapur Katering Bu Rudy',
+      providerPhone: '081234567894',
+      providerAddress: 'Jl. Dharmahusada No. 140, Gubeng, Surabaya',
       originalPrice: 35000,
       discountPrice: 15000,
       quantity: '12 Porsi',
@@ -286,11 +338,20 @@ export default function ExplorePage() {
       type: 'RESCUE_SALE',
       imageUrl: 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=500&auto=format&fit=crop&q=60',
       rating: 4.7,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'PACKAGED',
+      weightPerUnitKg: 0.5,
+      allergens: ['Nut-Free', 'Halal BPJPH', 'Bebas MSG Berlebih'],
+      lat: -7.2689,
+      lng: 112.7681,
     },
     {
       id: 'FOD-005',
       title: 'Paket Roti Tawar Gandum & Donat Susu',
+      description: 'Paket roti gandum tinggi serat dan donat tabur gula halus, higienis untuk sarapan atau camilan panti.',
       providerName: 'Bakery Plaza Surabaya',
+      providerPhone: '081234567895',
+      providerAddress: 'Jl. Pemuda No. 33, Surabaya Pusat',
       originalPrice: 22000,
       discountPrice: 0,
       quantity: '20 Porsi',
@@ -301,6 +362,12 @@ export default function ExplorePage() {
       type: 'DONATION',
       imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60',
       rating: 4.9,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'PACKAGED',
+      weightPerUnitKg: 0.3,
+      allergens: ['Dairy (Susu)', 'Halal BPJPH'],
+      lat: -7.2655,
+      lng: 112.7472,
     },
   ];
 
@@ -392,6 +459,31 @@ export default function ExplorePage() {
         type: 'error',
       });
     }
+  };
+
+  const handleOpenFoodDetail = (item: FoodItem) => {
+    setSelectedFoodForModal({
+      id: item.id,
+      foodName: item.title,
+      description: item.description,
+      foodCategory: item.category === 'MAKANAN_BERAT' ? 'Makanan Olahan (Meals)' : item.category === 'ROTI_KUE' ? 'Roti & Bakery' : 'Makanan Surplus',
+      quantity: parseInt(item.quantity) || 10,
+      quantityUnit: 'Porsi',
+      price: item.isFree ? 0 : item.discountPrice,
+      pickupDeadline: item.pickupTime,
+      address: item.providerAddress || 'Jl. Raya Darmo No. 45, Surabaya',
+      storageCondition: item.storageCondition || 'ROOM_TEMP',
+      packagingType: item.packagingType || 'PACKAGED',
+      weightPerUnitKg: item.weightPerUnitKg || 0.4,
+      allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Wadah Steril'],
+      lat: item.lat || -7.2575,
+      lng: item.lng || 112.7521,
+      provider: {
+        name: item.providerName,
+        organizationName: item.providerName,
+        phone: item.providerPhone || '081234567891',
+      },
+    });
   };
 
   const handleSanggupiPanti = (need: PantiNeed) => {
@@ -537,7 +629,7 @@ export default function ExplorePage() {
           </div>
         )}
 
-        {/* Dynamic Content Grid */}
+        {/* Dynamic Content Grid (RESCUE SALE & DONASI PANGAN DENGAN DETAIL LENGKAP & GPS) */}
         {activeTab !== 'PANTI_NEEDS' ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -591,7 +683,16 @@ export default function ExplorePage() {
                         </p>
                       </div>
 
-                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      {/* Button Lihat Detail & Peta GPS Outlet */}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenFoodDetail(item)}
+                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span>Lihat Detail Spesifikasi & Peta GPS ➔</span>
+                      </button>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                         <div>
                           <span className="text-lg font-black text-[#1B3A5C] block">
                             {item.isFree ? 'Rp 0' : `Rp ${item.discountPrice.toLocaleString('id-ID')}`}
@@ -779,6 +880,19 @@ export default function ExplorePage() {
 
       <Footer />
       <BottomNav user={session?.user} />
+
+      {/* RICH FOOD DETAIL MODAL (RESCUE SALE & DONASI PANGAN Rp 0 DENGAN PETA GPS & WA DIRECT) */}
+      {selectedFoodForModal && (
+        <FoodDetailModal
+          isOpen={!!selectedFoodForModal}
+          onClose={() => setSelectedFoodForModal(null)}
+          food={selectedFoodForModal}
+          onClaim={(id) => {
+            const item = foods.find((f) => f.id === id);
+            if (item) handleAddToCart(item);
+          }}
+        />
+      )}
 
       {/* Modal Detail Profil Lembaga & Titik Lokasi Peta GPS (SAMA SEPERTI DI PROVIDER DONATIONS) */}
       <Modal
