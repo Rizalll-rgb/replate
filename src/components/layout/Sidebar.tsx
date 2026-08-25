@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/ui/Logo';
 import { signOut } from 'next-auth/react';
 
 export interface SidebarProps {
@@ -311,20 +312,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
       {/* Sidebar Content */}
       <aside
-        className={`fixed lg:sticky ${
-          role === 'ADMIN' ? 'lg:top-0 lg:h-screen' : 'lg:top-16 lg:h-[calc(100vh-4rem)]'
-        } w-64 shrink-0 bg-[#1B3A5C] text-white flex flex-col justify-between p-4 border-r border-[#142C47] overflow-y-auto z-30 transform transition-transform duration-300 ${
+        className={`fixed lg:sticky top-0 lg:h-screen w-64 shrink-0 bg-[#1B3A5C] text-white flex flex-col justify-between p-4 border-r border-[#142C47] overflow-y-auto z-30 transform transition-transform duration-300 ${
           isOpenMobile ? 'translate-x-0 inset-y-0 left-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-6">
-          <div className="px-3 py-2 border-b border-[#2C5A8F]/40 flex justify-between items-center">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#D4A843]">
-              Menu ({role.replace('_', ' ')})
-            </span>
-            <button onClick={() => setIsOpenMobile(false)} className="lg:hidden text-slate-400 hover:text-white">
+        <div className="space-y-4">
+          {/* Replate Logo Header at top of Sidebar */}
+          <div className="px-2 pt-2 pb-4 border-b border-[#2C5A8F]/40 flex items-center justify-between">
+            <Logo variant="light" size="md" href="/dashboard" />
+            <button onClick={() => setIsOpenMobile(false)} className="lg:hidden text-slate-400 hover:text-white font-bold p-1">
               ✕
             </button>
+          </div>
+
+          <div className="px-2 py-1 flex justify-between items-center">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#D4A843]">
+              MENU ({role.replace(/_/g, ' ')})
+            </span>
           </div>
 
           <nav className="space-y-1.5">
