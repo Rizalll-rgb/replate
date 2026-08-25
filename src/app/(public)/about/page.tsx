@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 
 export default function AboutPage() {
@@ -59,75 +58,66 @@ export default function AboutPage() {
 
   const ecosystemPartners = [
     {
-      name: 'Warung Bakso Pak Kumis',
-      category: 'Food Provider',
-      location: 'Gubeng, Surabaya',
-      tag: 'PK',
-      badgeColor: 'bg-amber-600',
-      type: 'Mitra Restoran',
-    },
-    {
       name: 'Rotiboy Bakery Surabaya',
       category: 'Food Provider',
-      location: 'Tunjungan, Surabaya',
-      tag: 'RB',
-      badgeColor: 'bg-orange-600',
+      location: 'Tunjungan Plaza, Surabaya',
+      logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Rotiboy_logo.png/320px-Rotiboy_logo.png',
       type: 'Mitra Bakery',
-    },
-    {
-      name: 'Dapur Catering Bu Rudy',
-      category: 'Food Provider',
-      location: 'Dharmahusada, Surabaya',
-      tag: 'BR',
-      badgeColor: 'bg-red-700',
-      type: 'Mitra Katering',
     },
     {
       name: 'Hotel Majapahit Surabaya',
       category: 'Food Provider',
       location: 'Embong Malang, Surabaya',
-      tag: 'HM',
-      badgeColor: 'bg-blue-900',
+      logoUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=60',
       type: 'Mitra Perhotelan',
+    },
+    {
+      name: 'Dapur Katering Bu Rudy',
+      category: 'Food Provider',
+      location: 'Dharmahusada, Surabaya',
+      logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=60',
+      type: 'Mitra Katering',
+    },
+    {
+      name: 'Warung Bakso Pak Kumis',
+      category: 'Food Provider',
+      location: 'Gubeng, Surabaya',
+      logoUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&auto=format&fit=crop&q=60',
+      type: 'Mitra Restoran',
     },
     {
       name: 'Panti Asuhan Kasih Ibu',
       category: 'Food Beneficiary',
       location: 'Wonokromo, Surabaya',
-      tag: 'KI',
-      badgeColor: 'bg-emerald-700',
+      logoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&auto=format&fit=crop&q=60',
       type: 'Lembaga Sosial',
     },
     {
       name: 'Panti Werdha Lansia Sejahtera',
       category: 'Food Beneficiary',
       location: 'Rungkut, Surabaya',
-      tag: 'WS',
-      badgeColor: 'bg-teal-700',
+      logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60',
       type: 'Panti Lansia',
     },
     {
       name: 'Shelter Dhuafa & Mandiri',
       category: 'Food Beneficiary',
       location: 'Genteng, Surabaya',
-      tag: 'SD',
-      badgeColor: 'bg-indigo-700',
+      logoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&auto=format&fit=crop&q=60',
       type: 'Shelter Komunitas',
     },
     {
       name: 'Garda Pangan Surabaya',
       category: 'Rescue Partner',
-      location: 'Jawa Timur',
-      tag: 'GP',
-      badgeColor: 'bg-green-700',
+      location: 'Surabaya Raya',
+      logoUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=200&auto=format&fit=crop&q=60',
       type: 'Relawan Penyelamat',
     },
     {
       name: 'Sinergi Food Rescue Jatim',
       category: 'Rescue Partner',
-      location: 'Surabaya Raya',
-      tag: 'SF',
-      badgeColor: 'bg-cyan-700',
+      location: 'Jawa Timur',
+      logoUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&auto=format&fit=crop&q=60',
       type: 'Armada Komunitas',
     },
   ];
@@ -232,13 +222,17 @@ export default function AboutPage() {
               {[...ecosystemPartners, ...ecosystemPartners].map((partner, idx) => (
                 <div
                   key={idx}
-                  className="inline-flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 text-center shadow-xs min-w-[200px] shrink-0 space-y-2"
+                  className="inline-flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 text-center shadow-xs min-w-[210px] shrink-0 space-y-2.5"
                 >
-                  <div className={`w-12 h-12 rounded-xl ${partner.badgeColor} text-white font-black text-sm flex items-center justify-center mx-auto shadow-sm`}>
-                    {partner.tag}
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden p-1 shadow-inner">
+                    <img
+                      src={partner.logoUrl}
+                      alt={partner.name}
+                      className="w-full h-full object-contain rounded-xl"
+                    />
                   </div>
                   <div className="space-y-0.5">
-                    <h4 className="text-xs font-black text-[#1B3A5C] truncate max-w-[170px]">{partner.name}</h4>
+                    <h4 className="text-xs font-black text-[#1B3A5C] truncate max-w-[180px]">{partner.name}</h4>
                     <span className="text-[10px] font-bold text-amber-700 block">{partner.type}</span>
                     <span className="text-[9px] text-slate-400 block truncate">{partner.location}</span>
                   </div>
@@ -246,7 +240,7 @@ export default function AboutPage() {
               ))}
 
               {/* And Many More Card */}
-              <div className="inline-flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center shadow-md min-w-[200px] shrink-0 space-y-1">
+              <div className="inline-flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center shadow-md min-w-[210px] shrink-0 space-y-1">
                 <span className="text-xs font-black px-2 py-1 bg-amber-400 text-slate-950 rounded-md">PLUS 20+</span>
                 <h4 className="text-xs font-black text-amber-300">
                   Mitra Lainnya
@@ -259,7 +253,7 @@ export default function AboutPage() {
           </div>
 
           {/* Disclaimer Note */}
-          <p className="text-[11px] text-slate-400 text-center italic max-w-xl mx-auto">
+          <p className="text-[11px] text-slate-500 text-center italic max-w-xl mx-auto font-medium">
             *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
           </p>
         </section>

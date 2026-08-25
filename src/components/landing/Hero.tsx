@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/Button';
 
-export const Hero: React.FC = () => {
+export default function Hero() {
   const [liveItems, setLiveItems] = useState<any[]>([
     {
       title: 'Bakso Sapi Komplit',
@@ -101,7 +101,7 @@ export const Hero: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Live Surplus Monitor Interactive Widget */}
+          {/* Right Column: Live Surplus Monitor Widget */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="w-full max-w-md bg-slate-900/90 border border-slate-700/80 rounded-3xl p-6 shadow-2xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -125,7 +125,7 @@ export const Hero: React.FC = () => {
               </div>
 
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Pantauan stok makanan berlebih aktif di Surabaya. Klik tombol klaim untuk langsung merespons surplus.
+                Pantauan stok makanan berlebih aktif di Surabaya. Klik klaim untuk langsung merespons surplus.
               </p>
 
               <div className="space-y-3 text-xs">
@@ -148,7 +148,7 @@ export const Hero: React.FC = () => {
                       <span className="text-slate-400 font-medium">Batas: {item.time}</span>
                       <Link href="/explore">
                         <Button variant="gold" size="sm" className="px-3 py-1 text-[11px] font-black text-slate-950">
-                          Klaim Makanan Ini ➔
+                          Klaim Makanan ➔
                         </Button>
                       </Link>
                     </div>
@@ -156,16 +156,21 @@ export const Hero: React.FC = () => {
                 ))}
               </div>
 
-              <div className="p-3 bg-[#1B3A5C]/60 rounded-xl border border-[#2C5A8F]/70 text-center space-y-1">
-                <span className="text-[11px] font-bold text-slate-200 block">
-                  Status Algoritma Smart Matching 2.0:
-                </span>
-                <span className="text-xs font-black text-[#D4A843] block">
-                  Skor Kecocokan 96% ke Panti Kasih Ibu Surabaya (Jarak 1.2 km)
-                </span>
-                <p className="text-[9px] text-slate-400">
-                  Perhitungan bobot multi-kriteria: Jarak GPS (40%) + Kapasitas Panti (30%) + Batas Simpan (30%)
-                </p>
+              {/* Action Hub for Public Visitors */}
+              <div className="p-3.5 bg-[#1B3A5C]/70 rounded-2xl border border-[#2C5A8F] flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-black text-[#D4A843] block">
+                    Punya Makanan Berlebih?
+                  </span>
+                  <p className="text-[10px] text-slate-300">
+                    Salurkan donasi atau jual diskon murah via platform.
+                  </p>
+                </div>
+                <Link href="/register">
+                  <Button variant="gold" size="sm" className="font-black text-[10px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap">
+                    Daftar Mitra ➔
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -173,4 +178,6 @@ export const Hero: React.FC = () => {
       </div>
     </section>
   );
-};
+}
+
+export { Hero };

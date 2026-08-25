@@ -175,7 +175,7 @@ export default function DashboardInfoHubPage() {
         </span>
       </div>
 
-      {/* 5 Core Information Tabs (No Emojis) */}
+      {/* 5 Core Information Tabs */}
       <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl">
         <button
           type="button"
@@ -196,7 +196,7 @@ export default function DashboardInfoHubPage() {
             activeTab === 'BPOM'
               ? 'bg-[#1B3A5C] text-white shadow-md'
               : 'text-slate-700 hover:text-slate-900 font-bold'
-            }`}
+          }`}
         >
           Regulasi BPOM
         </button>
@@ -238,10 +238,9 @@ export default function DashboardInfoHubPage() {
         </button>
       </div>
 
-      {/* Tab 1: Cara Kerja (Multi-Role POV Switcher) */}
+      {/* Tab 1: Cara Kerja */}
       {activeTab === 'CARA_KERJA' && (
         <div className="space-y-6">
-          {/* Role Switcher Chips */}
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               type="button"
@@ -292,7 +291,6 @@ export default function DashboardInfoHubPage() {
             </button>
           </div>
 
-          {/* Selected Role Flow Card */}
           <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-6">
             <div className="space-y-1 border-b border-slate-100 pb-4">
               <span className="text-[11px] font-black text-[#D4A843] uppercase tracking-wider block">
@@ -475,20 +473,20 @@ export default function DashboardInfoHubPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
               {[
-                { name: 'Warung Bakso Pak Kumis', type: 'Mitra Restoran', area: 'Gubeng', tag: 'PK', color: 'bg-amber-600' },
-                { name: 'Rotiboy Bakery Surabaya', type: 'Mitra Bakery', area: 'Tunjungan', tag: 'RB', color: 'bg-orange-600' },
-                { name: 'Dapur Catering Bu Rudy', type: 'Mitra Katering', area: 'Dharmahusada', tag: 'BR', color: 'bg-red-700' },
-                { name: 'Hotel Majapahit Surabaya', type: 'Mitra Hotel', area: 'Embong Malang', tag: 'HM', color: 'bg-blue-900' },
-                { name: 'Panti Asuhan Kasih Ibu', type: 'Yayasan Sosial', area: 'Wonokromo', tag: 'KI', color: 'bg-emerald-700' },
-                { name: 'Panti Werdha Lansia', type: 'Panti Lansia', area: 'Rungkut', tag: 'WS', color: 'bg-teal-700' },
-                { name: 'Shelter Dhuafa Mandiri', type: 'Shelter Komunitas', area: 'Genteng', tag: 'SD', color: 'bg-indigo-700' },
-                { name: 'Garda Pangan Surabaya', type: 'Relawan Penyelamat', area: 'Surabaya Raya', tag: 'GP', color: 'bg-green-700' },
-                { name: 'Sinergi Food Rescue', type: 'Armada Komunitas', area: 'Jawa Timur', tag: 'SF', color: 'bg-cyan-700' },
+                { name: 'Rotiboy Bakery Surabaya', type: 'Mitra Bakery', area: 'Tunjungan', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Rotiboy_logo.png/320px-Rotiboy_logo.png' },
+                { name: 'Hotel Majapahit Surabaya', type: 'Mitra Hotel', area: 'Embong Malang', logoUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Dapur Catering Bu Rudy', type: 'Mitra Katering', area: 'Dharmahusada', logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Warung Bakso Pak Kumis', type: 'Mitra Restoran', area: 'Gubeng', logoUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Panti Asuhan Kasih Ibu', type: 'Yayasan Sosial', area: 'Wonokromo', logoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Panti Werdha Lansia', type: 'Panti Lansia', area: 'Rungkut', logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Shelter Dhuafa Mandiri', type: 'Shelter Komunitas', area: 'Genteng', logoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Garda Pangan Surabaya', type: 'Relawan Penyelamat', area: 'Surabaya Raya', logoUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=200&auto=format&fit=crop&q=60' },
+                { name: 'Sinergi Food Rescue', type: 'Armada Komunitas', area: 'Jawa Timur', logoUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&auto=format&fit=crop&q=60' },
               ].map((item, idx) => (
-                <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+                <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-lg ${item.color} text-white font-black text-xs flex items-center justify-center shrink-0`}>
-                      {item.tag}
+                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden p-1 shrink-0 shadow-xs">
+                      <img src={item.logoUrl} alt={item.name} className="w-full h-full object-contain rounded-lg" />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-[#1B3A5C]">{item.name}</h4>
@@ -504,7 +502,7 @@ export default function DashboardInfoHubPage() {
               Dan lebih dari 20+ mitra resto & lembaga panti lainnya di seluruh wilayah Surabaya.
             </div>
 
-            <p className="text-[11px] text-slate-400 text-center italic max-w-xl mx-auto">
+            <p className="text-[11px] text-slate-500 text-center italic max-w-xl mx-auto font-medium">
               *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
             </p>
           </div>
