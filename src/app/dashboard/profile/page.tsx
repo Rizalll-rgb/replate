@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Toast } from '@/components/ui/Toast';
@@ -12,12 +12,12 @@ export default function DashboardProfilePage() {
   const { data: session } = useSession();
 
   const [profileData, setProfileData] = useState({
-    name: 'Pengguna Replate',
-    email: 'user@replate.id',
-    role: 'FOOD_CONSUMER',
+    name: 'Warung Bakso Pak Kumis',
+    email: 'mitra@replate.id',
+    role: 'FOOD_PROVIDER',
     phone: '0812-3456-7890',
-    address: 'Surabaya, Jawa Timur',
-    entityName: 'Personal Account',
+    address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+    entityName: 'Warung Bakso Pak Kumis Surabaya',
     isVerified: true,
   });
 
@@ -44,6 +44,7 @@ export default function DashboardProfilePage() {
         setProfileData((prev) => ({
           ...prev,
           entityName: parsed.entityName || prev.entityName,
+          name: parsed.name || parsed.entityName || prev.name,
           phone: parsed.phone || prev.phone,
           address: parsed.address || prev.address,
         }));
@@ -54,28 +55,44 @@ export default function DashboardProfilePage() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      localStorage.setItem('replate_onboarding_profile', JSON.stringify(profileData));
+      const existing = JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}');
+      const updated = {
+        ...existing,
+        name: profileData.name,
+        entityName: profileData.entityName,
+        phone: profileData.phone,
+        address: profileData.address,
+      };
+      localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
       setToastState({
         isOpen: true,
-        message: '✓ Pengaturan profil dan preferensi berhasil disimpan.',
+        message: 'Pengaturan profil dan identitas akun berhasil diperbarui secara permanen!',
         type: 'success',
       });
-    } catch (_) {}
+    } catch (_) {
+      setToastState({
+        isOpen: true,
+        message: 'Gagal menyimpan profil.',
+        type: 'error',
+      });
+    }
   };
 
   const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'FOOD_PROVIDER':
-        return { label: 'Food Provider (Penyedia)', bg: 'bg-blue-100 text-blue-900 border-blue-300' };
-      case 'FOOD_BENEFICIARY':
-        return { label: 'Food Beneficiary (Yayasan / Panti)', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' };
-      case 'RESCUE_VOLUNTEER':
-        return { label: 'Food Rescue Volunteer (Kurir)', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
-      case 'SUPER_ADMIN':
-        return { label: 'Super Administrator', bg: 'bg-red-100 text-red-900 border-red-300' };
-      default:
-        return { label: 'Food Consumer (Konsumen)', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+    const r = role.toUpperCase();
+    if (r.includes('PROVIDER')) {
+      return { label: 'Food Provider (Penyedia Pangan)', bg: 'bg-blue-100 text-blue-900 border-blue-300' };
     }
+    if (r.includes('BENEFICIARY') || r.includes('YAYASAN')) {
+      return { label: 'Food Beneficiary (Yayasan / Panti)', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' };
+    }
+    if (r.includes('VOLUNTEER') || r.includes('RESCUE')) {
+      return { label: 'Rescue Volunteer (Kurir Relawan)', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+    }
+    if (r.includes('ADMIN')) {
+      return { label: 'Super Administrator', bg: 'bg-red-100 text-red-900 border-red-300' };
+    }
+    return { label: 'Food Consumer (Konsumen)', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
   };
 
   const roleInfo = getRoleBadge(profileData.role);
@@ -124,23 +141,16 @@ export default function DashboardProfilePage() {
           {/* Quick Informational Center Links */}
           <Card className="p-5 bg-[#1B3A5C] text-white rounded-3xl border border-[#2C5A8F] shadow-md space-y-3">
             <h4 className="text-xs font-black text-[#D4A843] uppercase tracking-wider">
-              📚 Pusat Edukasi & Bantuan
+              Pusat Edukasi & Bantuan
             </h4>
             <p className="text-[11px] text-slate-200 leading-relaxed font-medium">
               Pelajari panduan cara kerja, regulasi SOP BPOM, dan kalkulasi jejak karbon IPCC langsung di dalam akun Anda:
             </p>
 
             <div className="space-y-2 pt-1">
-              <Link href="/dashboard/how-it-works" className="block">
+              <Link href="/dashboard/info" className="block">
                 <div className="p-2.5 bg-[#142C47] hover:bg-[#0D1E32] rounded-xl border border-[#2C5A8F] text-xs font-bold text-slate-100 flex items-center justify-between transition-all">
-                  <span>📖 Panduan Cara Kerja</span>
-                  <span className="text-[#D4A843]">➔</span>
-                </div>
-              </Link>
-
-              <Link href="/dashboard/faq" className="block">
-                <div className="p-2.5 bg-[#142C47] hover:bg-[#0D1E32] rounded-xl border border-[#2C5A8F] text-xs font-bold text-slate-100 flex items-center justify-between transition-all">
-                  <span>❓ FAQ & Pusat Bantuan 24/7</span>
+                  <span>Pusat Informasi & SOP BPOM</span>
                   <span className="text-[#D4A843]">➔</span>
                 </div>
               </Link>
@@ -169,7 +179,7 @@ export default function DashboardProfilePage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-extrabold text-slate-700 block">Nama Entitas / Resto / Panti:</label>
+                  <label className="font-extrabold text-slate-700 block">Nama Entitas / Usaha / Panti:</label>
                   <input
                     type="text"
                     value={profileData.entityName}
@@ -222,7 +232,7 @@ export default function DashboardProfilePage() {
           {/* SOP BPOM & Standar Higienitas Card */}
           <Card className="p-6 bg-slate-50 rounded-3xl border border-slate-200 shadow-xs space-y-3">
             <h4 className="text-xs font-black text-[#1B3A5C] uppercase tracking-wider">
-              🛡️ Kepatuhan Regulasi Pangan BPOM & Sertifikasi Replate
+              Kepatuhan Regulasi Pangan BPOM & Sertifikasi Replate
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
               Seluruh transaksi surplus dan bantuan pangan di akun Anda dilindungi oleh protokol kelayakan 8-poin BPOM RI, termasuk batas aman suhu simpan, inspeksi visual, serta surat jalan digital terenkripsi.

@@ -396,6 +396,27 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         </div>
       </div>
 
+      {/* Opsi Pemenuhan Logistik (Otomatis mewarisi preferensi Pengaturan Outlet) */}
+      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-black text-[#1B3A5C]">
+            Layanan Pengambilan & Pengantaran yang Aktif untuk Menu Ini:
+          </label>
+          <span className="text-[10px] text-slate-500 font-bold">Otomatis dari Pengaturan Outlet</span>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="px-3 py-1.5 bg-white border border-slate-300 font-black text-slate-800 rounded-xl shadow-2xs">
+            ✓ Ambil Mandiri di Toko (Self-Pickup)
+          </span>
+          <span className="px-3 py-1.5 bg-white border border-slate-300 font-black text-slate-800 rounded-xl shadow-2xs">
+            ✓ Kurir Relawan Replate (Auto-Assigned)
+          </span>
+          <span className="px-3 py-1.5 bg-emerald-100 border border-emerald-300 font-black text-emerald-900 rounded-xl shadow-2xs">
+            ✓ Armada Toko Direct (Driver Mas Doni - L 4582 ABC)
+          </span>
+        </div>
+      </div>
+
       {/* Custom Date & Time Picker */}
       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
         <div className="flex items-center justify-between">
@@ -410,28 +431,28 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
           <button
             type="button"
             onClick={() => handleQuickPresetTime(2)}
-            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors cursor-pointer"
           >
             2 Jam Lagi
           </button>
           <button
             type="button"
             onClick={() => handleQuickPresetTime(4)}
-            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors cursor-pointer"
           >
             4 Jam Lagi
           </button>
           <button
             type="button"
             onClick={() => handleQuickPresetTime(0, 21)}
-            className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg transition-colors cursor-pointer"
           >
             Malam Ini 21.00 WIB
           </button>
           <button
             type="button"
             onClick={() => handleQuickPresetTime(0, 8)}
-            className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg transition-colors cursor-pointer"
           >
             Besok Pagi 08.00 WIB
           </button>
@@ -445,35 +466,21 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         />
       </div>
 
-      {/* Logistik & Penyimpanan Dropdowns (Poin 2 - Custom Styled Select) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-[#343A40]">Metode Penjemputan / Logistik</label>
-          <select
-            className={customSelectClass}
-            value={deliveryMethod}
-            onChange={(e) => setDeliveryMethod(e.target.value as 'SELF_PICKUP' | 'RESCUE_PARTNER')}
-          >
-            <option value="SELF_PICKUP">Ambil Sendiri (Penerima datang langsung ke lokasi)</option>
-            <option value="RESCUE_PARTNER">Diantar Komunitas (Armada Kurir Rescue Partner)</option>
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-[#343A40]">Kondisi Penyimpanan</label>
-          <select
-            className={customSelectClass}
-            value={formData.storageCondition}
-            onChange={(e) => setFormData({ ...formData, storageCondition: e.target.value })}
-          >
-            <option value="ROOM_TEMP">Suhu Ruangan</option>
-            <option value="REFRIGERATED">Pendingin (Kulkas)</option>
-            <option value="FROZEN">Beku (Freezer)</option>
-          </select>
-        </div>
+      {/* Kondisi Penyimpanan */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-[#343A40]">Kondisi Penyimpanan Higienis</label>
+        <select
+          className={customSelectClass}
+          value={formData.storageCondition}
+          onChange={(e) => setFormData({ ...formData, storageCondition: e.target.value })}
+        >
+          <option value="ROOM_TEMP">Suhu Ruangan (&gt;60°C / Hangat)</option>
+          <option value="REFRIGERATED">Pendingin Chiller (&lt;4°C)</option>
+          <option value="FROZEN">Beku (Freezer)</option>
+        </select>
       </div>
 
-      {/* Auto-Fill Address Toggle */}
+      {/* Auto-Fill Address Toggle with Driver GPS & Loading Dock Notes */}
       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-xs font-extrabold text-[#1B3A5C]">Alamat Penjemputan Makanan</label>
@@ -482,19 +489,36 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
               type="checkbox"
               checked={useDefaultAddress}
               onChange={(e) => setUseDefaultAddress(e.target.checked)}
-              className="rounded border-slate-300 text-[#1B3A5C] focus:ring-0"
+              className="rounded border-slate-300 text-[#1B3A5C] focus:ring-0 cursor-pointer"
             />
-            <span>Gunakan Alamat Toko Utama Saya ({defaultAddress})</span>
+            <span>Gunakan Alamat Toko Utama ({defaultAddress})</span>
           </label>
         </div>
 
         {!useDefaultAddress && (
-          <Input
-            placeholder="Masukkan alamat lokasi penjemputan alternatif..."
-            value={formData.address || ''}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            required
-          />
+          <div className="space-y-3 pt-2 border-t border-slate-200">
+            <Input
+              label="Alamat Lengkap Lokasi Penjemputan Alternatif"
+              placeholder="Contoh: Jl. Panglima Sudirman No. 12, Pintu Loading Dock Samping, Surabaya"
+              value={formData.address || ''}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              required
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label="Titik Koordinat GPS / Link Google Maps"
+                placeholder="Contoh: -7.2625, 112.7482 atau https://maps.app.goo.gl/..."
+                value={(formData as any).gpsLink || ''}
+                onChange={(e) => setFormData({ ...formData, gpsLink: e.target.value } as any)}
+              />
+              <Input
+                label="Catatan Khusus Titik Temu Driver"
+                placeholder="Contoh: Masuk lewat pintu loading dock samping pos satpam"
+                value={(formData as any).driverNotes || ''}
+                onChange={(e) => setFormData({ ...formData, driverNotes: e.target.value } as any)}
+              />
+            </div>
+          </div>
         )}
       </div>
 

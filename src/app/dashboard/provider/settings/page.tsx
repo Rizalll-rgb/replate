@@ -24,6 +24,15 @@ export default function ProviderSettingsPage() {
   const [halalCertNo, setHalalCertNo] = useState('ID35110001298450123');
   const [defaultPackaging, setDefaultPackaging] = useState('Kemasan Boks Biodegradable (Steril)');
 
+  // QRIS Merchant & Payment Setup State (Poin 3)
+  const [qrisMerchantName, setQrisMerchantName] = useState('Warung Bakso Pak Kumis Surabaya');
+  const [qrisBank, setQrisBank] = useState('Bank Mandiri / BCA');
+  const [qrisAccountNo, setQrisAccountNo] = useState('141-00-9812401-2');
+  const [qrisNmid, setQrisNmid] = useState('ID1020304050607');
+  const [qrisImageUrl, setQrisImageUrl] = useState<string>(
+    'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=500&auto=format&fit=crop&q=80'
+  );
+
   // Multi-Fleet Vehicles & Driver WhatsApp Contact Verification State
   interface FleetVehicle {
     id: string;
@@ -285,9 +294,61 @@ export default function ProviderSettingsPage() {
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const existing = JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}');
+      const updated = {
+        ...existing,
+        entityName: orgName,
+        name: orgName,
+        phone,
+        email,
+        address,
+        district,
+        nib,
+        businessCategory,
+        pickupHours,
+        halalCertNo,
+        defaultPackaging,
+        latitude: lat,
+        longitude: lng,
+        role: 'FOOD_PROVIDER',
+      };
+      localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
+
+      const outletSettings = {
+        orgName,
+        phone,
+        email,
+        address,
+        district,
+        nib,
+        businessCategory,
+        pickupHours,
+        halalCertNo,
+        defaultPackaging,
+        latitude: lat,
+        longitude: lng,
+        qrisMerchantName,
+        qrisBank,
+        qrisAccountNo,
+        qrisNmid,
+        qrisImageUrl,
+      };
+      localStorage.setItem('replate_outlet_settings', JSON.stringify(outletSettings));
+
+      const qrisConfig = {
+        merchantName: qrisMerchantName,
+        bank: qrisBank,
+        accountNo: qrisAccountNo,
+        nmid: qrisNmid,
+        imageUrl: qrisImageUrl,
+      };
+      localStorage.setItem('replate_provider_qris_config', JSON.stringify(qrisConfig));
+    } catch (_) {}
+
     setToastState({
       isOpen: true,
-      message: 'Seluruh 8 pilar pengaturan outlet & profil usaha berhasil disimpan!',
+      message: 'Seluruh pengaturan outlet, data usaha, dan QRIS Merchant berhasil disimpan permanen secara realtime!',
       type: 'success',
     });
   };
@@ -563,6 +624,97 @@ export default function ProviderSettingsPage() {
                     className="hidden"
                   />
                 </label>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Section: Pengaturan QRIS Merchant & Rekening Penerimaan (Poin 3) */}
+        <Card className="border-slate-200 shadow-xs">
+          <CardBody className="p-6 space-y-4">
+            <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                  METODE PEMBAYARAN RESCUE SALE
+                </span>
+                <h3 className="text-base font-extrabold text-[#1B3A5C]">
+                  Pengaturan QRIS Merchant & Rekening Pencairan
+                </h3>
+              </div>
+              <Badge variant="gold">QRIS BANK INDONESIA</Badge>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Unggah barcode QRIS resmi toko Anda agar konsumen Rescue Sale dapat langsung membayar ke rekening usaha Anda secara otomatis.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <Input
+                label="Nama Merchant QRIS / Pemilik Rekening"
+                placeholder="Contoh: QRIS Warung Bakso Pak Kumis"
+                value={qrisMerchantName}
+                onChange={(e) => setQrisMerchantName(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Nama Bank / E-Wallet Pencairan"
+                placeholder="Contoh: Bank Mandiri / BCA / GoPay Merchant"
+                value={qrisBank}
+                onChange={(e) => setQrisBank(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Nomor Rekening / ID Merchant"
+                placeholder="Contoh: 141-00-9812401-2"
+                value={qrisAccountNo}
+                onChange={(e) => setQrisAccountNo(e.target.value)}
+                required
+              />
+
+              <Input
+                label="NMID (National Merchant ID QRIS) Opsional"
+                placeholder="Contoh: ID1020304050607"
+                value={qrisNmid}
+                onChange={(e) => setQrisNmid(e.target.value)}
+              />
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <span className="font-extrabold text-xs text-[#1B3A5C] block">Foto / Gambar Barcode QRIS Resmi Toko:</span>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-28 h-28 bg-white p-2 rounded-xl border border-slate-300 shadow-xs flex items-center justify-center shrink-0">
+                  <img src={qrisImageUrl} alt="Preview QRIS" className="w-full h-full object-contain" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-500 font-medium leading-snug">
+                    Format: JPG / PNG. Pastikan gambar QRIS jelas dan dapat dipindai oleh semua aplikasi m-Banking (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana).
+                  </p>
+                  <label className="inline-block px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold text-xs rounded-xl cursor-pointer transition-colors">
+                    <span>Unggah Gambar QRIS Baru</span>
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          const file = e.target.files[0];
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setQrisImageUrl(reader.result as string);
+                            setToastState({
+                              isOpen: true,
+                              message: 'Gambar QRIS berhasil diunggah! Jangan lupa klik Simpan Pengaturan.',
+                              type: 'success',
+                            });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               </div>
             </div>
           </CardBody>

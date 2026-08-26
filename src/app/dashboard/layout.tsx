@@ -32,6 +32,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     profileImage: session?.user?.image || null,
   };
 
+  const formatRoleTitle = (rawRole?: string) => {
+    if (!rawRole) return 'Food Provider';
+    const r = rawRole.toUpperCase();
+    if (r === 'PROVIDER' || r === 'FOOD_PROVIDER') return 'Food Provider';
+    if (r === 'BENEFICIARY' || r === 'FOOD_BENEFICIARY' || r === 'YAYASAN') return 'Food Beneficiary';
+    if (r === 'CONSUMER' || r === 'FOOD_CONSUMER') return 'Food Consumer';
+    if (r === 'VOLUNTEER' || r === 'RESCUE_VOLUNTEER' || r === 'RESCUE_PARTNER') return 'Rescue Volunteer';
+    if (r === 'ADMIN' || r === 'SUPER_ADMIN') return 'SuperAdmin';
+    return rawRole.replace(/_/g, ' ');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
       <div className="flex flex-1 min-h-screen">
@@ -42,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
-          <DashboardHeader user={currentUser} title={`Dashboard (${currentUser.role.replace(/_/g, ' ')})`} />
+          <DashboardHeader user={currentUser} title={`Dashboard (${formatRoleTitle(currentUser.role)})`} />
           <main className="p-4 sm:p-6 flex-1 overflow-y-auto pb-24 md:pb-6">{children}</main>
         </div>
       </div>

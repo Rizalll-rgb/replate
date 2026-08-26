@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/Input';
 import { Toast } from '@/components/ui/Toast';
 import { useSession } from 'next-auth/react';
 
+import Link from 'next/link';
+
 export default function MyListingsPage() {
   const { data: session } = useSession();
   const [foods, setFoods] = useState<any[]>([]);
@@ -189,6 +191,14 @@ export default function MyListingsPage() {
           <p className="text-xs text-slate-500 font-medium">
             Atur kuantitas stok, saklar penayangan publik, dan kelola status tayang porsi makanan berlebih.
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/provider/add-surplus">
+            <Button variant="gold" size="md" className="font-black text-xs text-slate-950 shadow-md">
+              + Unggah Surplus Baru ➔
+            </Button>
+          </Link>
         </div>
       </div>
 
