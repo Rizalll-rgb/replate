@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 import { signOut } from 'next-auth/react';
+import { FoodCard } from '@/components/food/FoodCard';
 
 export interface SidebarProps {
   role?: string;
@@ -107,6 +108,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      ),
+    },
+    {
+      href: '/dashboard/cart',
+      label: 'Tas Klaim',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
     },
@@ -296,6 +306,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
+      href: '/dashboard/cart',
+      label: 'Tas Klaim (Keranjang)',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
+    {
       href: '/dashboard/tracking',
       label: 'Pelacakan & Live Tracking',
       icon: (
@@ -386,22 +405,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
           isOpenMobile ? 'translate-x-0 inset-y-0 left-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto">
           {/* Replate Logo Header at top of Sidebar */}
-          <div className="px-2 pt-2 pb-4 border-b border-[#2C5A8F]/40 flex items-center justify-between">
+          <div className="px-4 pt-4 pb-4 border-b border-[#2C5A8F]/40 flex items-center justify-between">
             <Logo variant="light" size="md" href="/dashboard" />
             <button onClick={() => setIsOpenMobile(false)} className="lg:hidden text-slate-400 hover:text-white font-bold p-1 cursor-pointer">
               ✕
             </button>
           </div>
 
-          <div className="px-2 py-1 flex justify-between items-center">
+          <div className="px-4 py-1 flex justify-between items-center">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#D4A843]">
               MENU ({formatRoleDisplay(role)})
             </span>
           </div>
 
-          <nav className="space-y-1.5">
+          <nav className="space-y-1.5 px-2">
             {allLinks.map((link) => {
               const isOverviewRoute =
                 link.href === '/dashboard' ||
@@ -433,7 +452,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
           </nav>
         </div>
 
-        <div className="mt-8 border-t border-[#2C5A8F]/40 pt-4">
+        <div className="border-t border-[#2C5A8F]/40 pt-4 pb-4 px-4 shrink-0">
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
             className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-[#142C47] hover:text-red-300 w-full transition-colors cursor-pointer"

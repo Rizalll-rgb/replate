@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
+import { FoodCard } from '@/components/food/FoodCard';
 
 interface FoodItem {
   id: string;
@@ -369,16 +370,60 @@ export default function WorkspaceExplorePage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
-      {/* Header Info */}
-      <div className="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
-            WORKSPACE EKSPLOR PANGAN SURABAYA
-          </span>
-          <h1 className="text-2xl font-black text-[#1B3A5C]">Katalog Pangan & Kebutuhan Donasi Panti</h1>
-          <p className="text-xs text-slate-500 font-medium">
-            Akses langsung katalog Rescue Sale, Donasi Bebas Biaya Rp 0, dan Kebutuhan Panti Asuhan dari dalam workspace Anda.
-          </p>
+      {/* Header Info & Featured Promo Hero */}
+      <div className="relative bg-gradient-to-br from-[#1B3A5C] via-[#142C47] to-slate-900 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xl mb-4 border border-slate-800">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#D4A843]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-10 w-56 h-56 bg-emerald-500/10 rounded-full blur-2xl translate-y-1/2"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
+          <div className="flex-1 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">
+                Rekomendasi Spesial Hari Ini
+              </span>
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+                Selamatkan <span className="text-[#D4A843]">Surplus Pangan</span>,<br />Bantu Sesama.
+              </h1>
+              <p className="text-sm text-slate-300 font-medium max-w-md leading-relaxed">
+                Akses eksklusif katalog Rescue Sale dengan harga spesial, Donasi Bebas Biaya Rp 0, dan penuhi Kebutuhan Panti Asuhan langsung dari workspace Anda.
+              </p>
+            </div>
+            
+            <div className="pt-2 flex items-center gap-3">
+              <button 
+                onClick={() => setActiveTab('RESCUE_SALE')} 
+                className="px-5 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-900/20 transition-all cursor-pointer"
+              >
+                Lihat Semua Promo ➔
+              </button>
+            </div>
+          </div>
+
+          <div className="w-full sm:w-[340px] shrink-0 rotate-1 hover:rotate-0 transition-transform duration-500">
+            {/* Featured FoodCard */}
+            <div className="shadow-2xl shadow-black/40 rounded-3xl overflow-hidden ring-4 ring-white/10 bg-white">
+              <FoodCard
+                id="promo-hero-1"
+                title="Paket Nasi Kuning Komplit"
+                providerName="Dapur Bunda Rasa"
+                category="MAKANAN_BERAT"
+                quantity="5 Porsi"
+                discountPrice={12000}
+                originalPrice={25000}
+                isFree={false}
+                pickupTime="19:00 WIB"
+                distance="0.8 km"
+                imageUrl="https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
+                onDetail={() => {}}
+                onClaim={() => {}}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -451,86 +496,40 @@ export default function WorkspaceExplorePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFoods.map((item) => (
-              <div
+              <FoodCard
                 key={item.id}
-                className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-                  <div className="absolute top-3 left-3 flex gap-1.5">
-                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
-                      item.isFree ? 'bg-emerald-500 text-slate-950' : 'bg-[#D4A843] text-slate-950'
-                    }`}>
-                      {item.isFree ? 'DONASI Rp 0' : 'RESCUE SALE'}
-                    </span>
-                    <span className="text-[10px] bg-slate-950/80 text-white font-bold px-2 py-1 rounded-lg">
-                      {item.quantity}
-                    </span>
-                  </div>
-                  <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-                    {item.distance}
-                  </span>
-                </div>
-
-                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-bold text-slate-500 block truncate">
-                      {item.providerName}
-                    </span>
-                    <h4 className="font-black text-base text-[#1B3A5C]">{item.title}</h4>
-                    <p className="text-[11px] text-slate-600 font-medium">
-                      Batas Ambil: <strong>{item.pickupTime}</strong>
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedFoodForModal({
-                        id: item.id,
-                        foodName: item.title,
-                        description: item.description,
-                        foodCategory: item.category,
-                        quantity: parseInt(item.quantity) || 10,
-                        quantityUnit: 'Porsi',
-                        price: item.isFree ? 0 : item.discountPrice,
-                        pickupDeadline: item.pickupTime,
-                        address: item.providerAddress,
-                        lat: item.lat,
-                        lng: item.lng,
-                        provider: {
-                          name: item.providerName,
-                          phone: item.providerPhone,
-                        },
-                      })
-                    }
-                    className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <span>Lihat Detail Spesifikasi & Peta GPS ➔</span>
-                  </button>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-lg font-black text-[#1B3A5C] block">
-                        {item.isFree ? 'Rp 0' : `Rp ${item.discountPrice.toLocaleString('id-ID')}`}
-                      </span>
-                      {!item.isFree && (
-                        <span className="text-[11px] text-slate-400 line-through font-bold">
-                          Rp {item.originalPrice.toLocaleString('id-ID')}
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleClaimFood(item)}
-                      className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                    >
-                      Klaim Sekarang ➔
-                    </button>
-                  </div>
-                </div>
-              </div>
+                id={item.id}
+                title={item.title}
+                providerName={item.providerName}
+                category={item.category}
+                quantity={item.quantity}
+                discountPrice={item.discountPrice}
+                originalPrice={item.originalPrice}
+                isFree={item.isFree}
+                pickupTime={item.pickupTime}
+                distance={item.distance}
+                imageUrl={item.imageUrl}
+                onDetail={() =>
+                  setSelectedFoodForModal({
+                    id: item.id,
+                    foodName: item.title,
+                    description: item.description,
+                    foodCategory: item.category,
+                    quantity: parseInt(item.quantity) || 10,
+                    quantityUnit: 'Porsi',
+                    price: item.isFree ? 0 : item.discountPrice,
+                    pickupDeadline: item.pickupTime,
+                    address: item.providerAddress,
+                    lat: item.lat,
+                    lng: item.lng,
+                    provider: {
+                      name: item.providerName,
+                      phone: item.providerPhone,
+                    },
+                  })
+                }
+                onClaim={() => handleClaimFood(item)}
+              />
             ))}
           </div>
         </div>

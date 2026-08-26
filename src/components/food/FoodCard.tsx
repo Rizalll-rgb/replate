@@ -6,67 +6,62 @@ import { Button } from '../ui/Button';
 
 export interface FoodCardProps {
   id: string;
-  foodName: string;
-  category: string;
-  quantity: number;
-  quantityUnit: string;
+  foodName?: string;
+  title?: string;
+  category?: string;
+  foodCategory?: string;
+  quantity?: number | string;
+  quantityUnit?: string;
   price?: number | null;
-  pickupDeadline: string;
-  address: string;
+  discountPrice?: number | null;
+  originalPrice?: number | null;
+  pickupDeadline?: string;
+  pickupTime?: string;
+  address?: string;
   providerName?: string;
-  status: string;
-  distributionType: string;
+  status?: string;
+  distributionType?: string;
   photoUrl?: string | null;
+  imageUrl?: string | null;
+  isFree?: boolean;
+  distance?: string;
   onClaim?: (id: string) => void;
   onDetail?: (id: string) => void;
   onManage?: (id: string) => void;
 }
 
-export const FoodCard: React.FC<FoodCardProps> = ({
-  id,
-  foodName,
-  category,
-  quantity,
-  quantityUnit,
-  price = 0,
-  pickupDeadline,
-  address,
-  providerName,
-  status,
-  photoUrl,
-  onClaim,
-  onDetail,
-  onManage,
-}) => {
-  const isFree = !price || price === 0;
+export const FoodCard: React.FC<FoodCardProps> = (props) => {
+  const {
+    id,
+    onClaim,
+    onDetail,
+    onManage,
+  } = props;
 
-  const getCategoryDetails = (rawCat?: string) => {
-    const cat = (rawCat || 'MEALS').toUpperCase();
-    if (cat.includes('MEAL') || cat.includes('OLAHAN') || cat.includes('MAKANAN')) {
-      return { label: 'Makanan Olahan (Meals)', badgeBg: 'bg-[#1B3A5C] text-white border-blue-400/50 shadow-md' };
-    }
-    if (cat.includes('BAKERY') || cat.includes('ROTI') || cat.includes('KUE')) {
-      return { label: 'Roti & Kue (Bakery)', badgeBg: 'bg-amber-600 text-white border-amber-300/50 shadow-md' };
-    }
-    if (cat.includes('PRODUCE') || cat.includes('BUAH') || cat.includes('SAYUR') || cat.includes('FRUIT')) {
-      return { label: 'Buah & Sayur (Produce)', badgeBg: 'bg-emerald-600 text-white border-emerald-300/50 shadow-md' };
-    }
-    if (cat.includes('DAIRY') || cat.includes('SUSU') || cat.includes('KEJU')) {
-      return { label: 'Olahan Susu (Dairy)', badgeBg: 'bg-cyan-600 text-white border-cyan-300/50 shadow-md' };
-    }
-    if (cat.includes('BEVERAGE') || cat.includes('MINUMAN') || cat.includes('DRINK')) {
-      return { label: 'Minuman Segar (Beverages)', badgeBg: 'bg-indigo-600 text-white border-indigo-300/50 shadow-md' };
-    }
-    if (cat.includes('SNACK') || cat.includes('CAMILAN') || cat.includes('SNACKS')) {
-      return { label: 'Camilan & Snack', badgeBg: 'bg-orange-600 text-white border-orange-300/50 shadow-md' };
-    }
-    if (cat.includes('PACKAGED') || cat.includes('KEMASAN') || cat.includes('KALENG') || cat.includes('GROCERY')) {
-      return { label: 'Makanan Kemasan (Packaged)', badgeBg: 'bg-purple-600 text-white border-purple-300/50 shadow-md' };
-    }
-    return { label: category || 'Lainnya', badgeBg: 'bg-slate-800 text-white border-slate-500/50 shadow-md' };
-  };
+  const title = props.title || props.foodName || 'Makanan Surplus';
+  const providerName = props.providerName || 'Provider Tidak Diketahui';
+  const category = props.category || props.foodCategory || 'MEALS';
+  
+  let quantityStr = '1 Porsi';
+  if (typeof props.quantity === 'string') {
+    quantityStr = props.quantity;
+  } else if (typeof props.quantity === 'number') {
+    quantityStr = `${props.quantity} ${props.quantityUnit || 'Porsi'}`;
+  }
 
-  const catDetails = getCategoryDetails(category);
+  const isFree = props.isFree !== undefined ? props.isFree : (props.price === 0 || props.discountPrice === 0 || props.distributionType === 'FREE' || props.distributionType === 'DONATION');
+  const discountPrice = props.discountPrice !== undefined && props.discountPrice !== null ? props.discountPrice : (props.price || 0);
+  const originalPrice = props.originalPrice || undefined;
+
+  let pickupTimeStr = props.pickupTime || 'Hari ini';
+  if (!props.pickupTime && props.pickupDeadline) {
+    try {
+      const deadlineDate = new Date(props.pickupDeadline);
+      if (!isNaN(deadlineDate.getTime())) {
+        pickupTimeStr = `Hari ini ${deadlineDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`;
+      }
+    } catch (_) {}
+  }
 
   const defaultPhotos: Record<string, string> = {
     MEALS: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
@@ -77,81 +72,82 @@ export const FoodCard: React.FC<FoodCardProps> = ({
     SNACKS: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=500&auto=format&fit=crop&q=60',
   };
 
-  const catKey = (category || 'MEALS').toUpperCase();
-  const imageSrc = photoUrl || defaultPhotos[catKey] || defaultPhotos.MEALS;
-
-  const deadlineDate = new Date(pickupDeadline);
-  const formattedTime = deadlineDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  const catKey = category.toUpperCase();
+  const imageSrc = props.imageUrl || props.photoUrl || defaultPhotos[catKey] || defaultPhotos.MEALS;
 
   return (
-    <Card className="flex flex-col justify-between border-slate-200 hover:border-[#1B3A5C]/40 transition-all shadow-xs overflow-hidden group">
-      <div>
-        {/* Food Product Photo Image Preview */}
-        <div className="relative h-44 w-full bg-slate-900 overflow-hidden">
-          <img
-            src={imageSrc}
-            alt={foodName}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute top-3 left-3 z-10">
-            <span className={`px-3 py-1 rounded-xl font-black text-[10px] tracking-wide border shadow-lg uppercase backdrop-blur-md ${catDetails.badgeBg}`}>
-              {catDetails.label}
+    <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between group">
+      <div className="relative aspect-video bg-slate-100 overflow-hidden">
+        <img src={imageSrc} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        <div className="absolute top-3 left-3 flex gap-1.5">
+          <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
+            isFree
+              ? 'bg-emerald-500 text-slate-950'
+              : 'bg-[#D4A843] text-slate-950'
+          }`}>
+            {isFree ? 'DONASI Rp 0' : 'RESCUE SALE'}
+          </span>
+          <span className="text-[10px] bg-slate-950/80 text-white font-bold px-2 py-1 rounded-lg backdrop-blur-xs">
+            {quantityStr}
+          </span>
+        </div>
+        {props.distance && (
+          <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
+            Jarak: {props.distance}
+          </span>
+        )}
+      </div>
+
+      <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+        <div className="space-y-1">
+          <span className="text-[11px] font-bold text-slate-500 block truncate">
+            Toko: {providerName}
+          </span>
+          <h4 className="font-extrabold text-base text-[#1B3A5C] line-clamp-1">{title}</h4>
+          <p className="text-[11px] text-slate-600 font-medium">
+            Waktu Ambil: <strong>{pickupTimeStr}</strong>
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onDetail && onDetail(id)}
+          className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+        >
+          <span>Lihat Detail Spesifikasi & Peta GPS ➔</span>
+        </button>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div>
+            <span className="text-lg font-black text-[#1B3A5C] block">
+              {isFree ? 'Rp 0' : `Rp ${discountPrice.toLocaleString('id-ID')}`}
             </span>
-          </div>
-          <div className="absolute top-3 right-3 z-10">
-            {isFree ? (
-              <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-black text-xs shadow-md">
-                DONASI Rp 0
-              </span>
-            ) : (
-              <span className="px-2.5 py-1 rounded-full bg-[#1B3A5C] text-[#D4A843] font-black text-xs shadow-md border border-amber-400/30">
-                Rp {price?.toLocaleString('id-ID')}
+            {!isFree && originalPrice && (
+              <span className="text-[11px] text-slate-400 line-through font-bold">
+                Rp {originalPrice.toLocaleString('id-ID')}
               </span>
             )}
           </div>
+
+          {onManage ? (
+            <button
+              type="button"
+              onClick={() => onManage(id)}
+              className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Kelola Stok ➔</span>
+            </button>
+          ) : (onClaim && (!props.status || props.status === 'AVAILABLE' || props.status === 'ACTIVE')) ? (
+            <button
+              type="button"
+              onClick={() => onClaim(id)}
+              className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Klaim Sekarang ➔</span>
+            </button>
+          ) : null}
         </div>
-
-        <CardHeader className="pt-4 pb-2">
-          <CardTitle className="text-base font-extrabold text-[#1B3A5C] line-clamp-1">
-            {foodName}
-          </CardTitle>
-          {providerName && (
-            <p className="text-[11px] text-slate-500 font-bold mt-0.5">{providerName}</p>
-          )}
-        </CardHeader>
-
-        <CardBody className="space-y-2 py-2 text-xs text-slate-600">
-          <div className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
-            <span className="font-medium text-slate-500">Sisa Stok:</span>
-            <span className="font-extrabold text-[#1B3A5C]">
-              {quantity} {quantityUnit}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
-            <span className="font-medium text-slate-500">Batas Pickup:</span>
-            <span className="font-extrabold text-red-700">Hari ini {formattedTime}</span>
-          </div>
-
-          <p className="text-[11px] text-slate-500 line-clamp-1 mt-1 font-medium">{address}</p>
-        </CardBody>
       </div>
-
-      <CardFooter className="pt-3 border-t border-slate-200 gap-2">
-        <Button variant="outline" size="sm" className="w-full text-xs font-bold" onClick={() => onDetail && onDetail(id)}>
-          Lihat Detail
-        </Button>
-        {status === 'AVAILABLE' && onClaim && (
-          <Button variant="gold" size="sm" className="w-full text-xs font-bold" onClick={() => onClaim(id)}>
-            {isFree ? 'Klaim Donasi' : 'Klaim Diskon'}
-          </Button>
-        )}
-        {onManage && (
-          <Button variant="primary" size="sm" className="w-full text-xs font-bold" onClick={() => onManage(id)}>
-            Kelola Stok
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+    </div>
   );
 };
