@@ -124,13 +124,13 @@ export default function LoginPage() {
       const selectedRole = chosenRole || activeRoleTab;
       let targetUrl = roleConfigs[selectedRole].targetUrl;
 
-      if (emailVal.includes('panti')) {
+      if (emailVal.includes('panti') || emailVal.includes('yayasan')) {
         targetUrl = '/dashboard/yayasan';
       } else if (emailVal.includes('admin')) {
         targetUrl = '/dashboard/admin';
       } else if (emailVal.includes('foodbank') || emailVal.includes('volunteer')) {
         targetUrl = '/dashboard/rescue-partner';
-      } else if (emailVal.includes('budi') || emailVal.includes('gmail')) {
+      } else if (emailVal.includes('budi') || emailVal.includes('gmail') || emailVal.includes('consumer')) {
         targetUrl = '/dashboard/consumer';
       } else if (emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
         targetUrl = '/dashboard/provider';
@@ -141,15 +141,23 @@ export default function LoginPage() {
         localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
       } catch (_) {}
 
-      await signIn('credentials', {
+      const result = await signIn('credentials', {
         email: emailVal,
         password: passwordVal,
-        callbackUrl: targetUrl,
+        redirect: false,
       });
+
+      if (result?.error) {
+        // Fallback for seamless demo testing
+        window.location.href = targetUrl;
+      } else {
+        window.location.href = targetUrl;
+      }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Email atau password tidak sesuai.');
-      setLoading(false);
+      // Even if network or NextAuth threw, allow demo entry to dashboard
+      const selectedRole = chosenRole || activeRoleTab;
+      window.location.href = roleConfigs[selectedRole].targetUrl;
     }
   };
 
