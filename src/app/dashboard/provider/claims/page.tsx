@@ -177,11 +177,15 @@ export default function ProviderClaimsPage() {
   useEffect(() => {
     try {
       const savedClaimsStr = localStorage.getItem('replate_claims');
-      if (savedClaimsStr) {
-        const savedClaims = JSON.parse(savedClaimsStr);
-        if (Array.isArray(savedClaims) && savedClaims.length > 0) {
-          const pending = savedClaims
-            .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP')
+      const savedActiveClaimsStr = localStorage.getItem('replate_active_claims');
+      
+      let allSavedClaims: any[] = [];
+      if (savedClaimsStr) allSavedClaims = [...allSavedClaims, ...JSON.parse(savedClaimsStr)];
+      if (savedActiveClaimsStr) allSavedClaims = [...allSavedClaims, ...JSON.parse(savedActiveClaimsStr)];
+
+      if (allSavedClaims.length > 0) {
+        const pending = allSavedClaims
+          .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP' || c.status === 'AWAITING_VERIFICATION')
             .map((c: any) => ({
               code: c.claimCode || c.code || c.id,
               foodName: c.foodName,
@@ -197,7 +201,7 @@ export default function ProviderClaimsPage() {
               time: c.readyTime || 'Hari ini',
             }));
 
-          const inTransit = savedClaims
+          const inTransit = allSavedClaims
             .filter((c: any) => c.status === 'IN_TRANSIT' || c.status === 'PROVIDER_DELIVERING')
             .map((c: any) => ({
               code: c.claimCode || c.code || c.id,
@@ -214,7 +218,7 @@ export default function ProviderClaimsPage() {
               time: 'Dalam Pengiriman OTW',
             }));
 
-          const completed = savedClaims
+          const completed = allSavedClaims
             .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
             .map((c: any) => ({
               code: c.claimCode || c.code || c.id,
@@ -242,7 +246,6 @@ export default function ProviderClaimsPage() {
           setInTransitClaims(mergeUnique(inTransit, defaultInTransit));
           setCompletedClaims(mergeUnique(completed, defaultCompleted));
         }
-      }
     } catch (_) {}
   }, []);
 
@@ -362,7 +365,6 @@ export default function ProviderClaimsPage() {
     });
   };
 
-  // Manual Transfer / QRIS Payment Proof Approval Handler (Point 3)
   const handleApprovePaymentProof = (cleanCode: string) => {
     const target = pendingClaims.find((c) => c.code === cleanCode);
     setPendingClaims((prev) =>
@@ -370,6 +372,18 @@ export default function ProviderClaimsPage() {
         c.code === cleanCode ? { ...c, status: 'READY_FOR_PICKUP' } : c
       )
     );
+    
+    try {
+      const savedActiveStr = localStorage.getItem('replate_active_claims');
+      if (savedActiveStr) {
+        let activeClaims = JSON.parse(savedActiveStr);
+        activeClaims = activeClaims.map((c: any) => 
+          c.id === cleanCode || c.code === cleanCode ? { ...c, status: 'READY_FOR_PICKUP' } : c
+        );
+        localStorage.setItem('replate_active_claims', JSON.stringify(activeClaims));
+      }
+    } catch (_) {}
+
     setPaymentInspectModal({ isOpen: false, claim: null });
     if (target) {
       setIssuedTicketModal({
@@ -398,10 +412,10 @@ export default function ProviderClaimsPage() {
 
   // Filter payment claims vs pickup claims
   const paymentClaims = pendingClaims.filter(
-    (c) => c.status === 'PAYMENT_PROOF_UPLOADED' || c.status === 'WAITING_PAYMENT_AT_STORE'
+    (c) => c.status === 'PAYMENT_PROOF_UPLOADED' || c.status === 'WAITING_PAYMENT_AT_STORE' || c.status === 'AWAITING_VERIFICATION'
   );
   const pickupClaims = pendingClaims.filter(
-    (c) => c.status !== 'PAYMENT_PROOF_UPLOADED' && c.status !== 'WAITING_PAYMENT_AT_STORE'
+    (c) => c.status !== 'PAYMENT_PROOF_UPLOADED' && c.status !== 'WAITING_PAYMENT_AT_STORE' && c.status !== 'AWAITING_VERIFICATION'
   );
 
   return (

@@ -13,7 +13,7 @@ interface ClaimItem {
   foodName?: string;
   providerName: string;
   totalAmount: number;
-  status: 'READY_FOR_PICKUP' | 'COMPLETED';
+  status: 'AWAITING_PAYMENT' | 'AWAITING_VERIFICATION' | 'READY_FOR_PICKUP' | 'COMPLETED';
   createdAt: string;
   pickupTime: string;
   items?: any[];
@@ -46,6 +46,30 @@ export default function MyClaimsPage() {
     isOpen: false,
     claim: null,
   });
+
+  const [uploadModal, setUploadModal] = useState<{ isOpen: boolean; claimId: string | null }>({
+    isOpen: false,
+    claimId: null,
+  });
+
+  const handleUploadProof = () => {
+    if (!uploadModal.claimId) return;
+
+    const updated = claims.map((c) =>
+      c.id === uploadModal.claimId ? { ...c, status: 'AWAITING_VERIFICATION' as const } : c
+    );
+    setClaims(updated);
+    try {
+      localStorage.setItem('replate_active_claims', JSON.stringify(updated));
+    } catch (_) {}
+
+    setToastState({
+      isOpen: true,
+      message: '✓ Bukti transfer berhasil diunggah! Menunggu verifikasi dari Mitra.',
+      type: 'success',
+    });
+    setUploadModal({ isOpen: false, claimId: null });
+  };
 
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
@@ -222,14 +246,47 @@ export default function MyClaimsPage() {
                   className={`text-[10px] font-black px-3 py-1 rounded-full ${
                     claim.status === 'COMPLETED'
                       ? 'bg-slate-100 text-slate-600 border border-slate-200'
-                      : 'bg-emerald-100 text-emerald-900 border border-emerald-300 animate-pulse'
+                      : claim.status === 'READY_FOR_PICKUP'
+                      ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                      : claim.status === 'AWAITING_PAYMENT'
+                      ? 'bg-red-100 text-red-900 border border-red-300 animate-pulse'
+                      : 'bg-amber-100 text-amber-900 border border-amber-300'
                   }`}
                 >
-                  {claim.status === 'COMPLETED' ? '✓ SELESAI' : '⏳ SIAP DIAMBIL'}
+                  {claim.status === 'COMPLETED' ? '✓ SELESAI' 
+                    : claim.status === 'READY_FOR_PICKUP' ? '📦 SIAP DIAMBIL' 
+                    : claim.status === 'AWAITING_PAYMENT' ? '💳 MENUNGGU PEMBAYARAN'
+                    : '⏳ MENUNGGU VERIFIKASI MITRA'}
                 </span>
               </div>
 
-              {claim.status !== 'COMPLETED' ? (
+              {claim.status === 'AWAITING_PAYMENT' && (
+                <div className="space-y-4">
+                  <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-center space-y-2">
+                    <p className="text-xs font-bold text-red-800">Silakan lakukan pembayaran sebesar:</p>
+                    <p className="text-2xl font-black text-red-900">Rp {claim.totalAmount.toLocaleString('id-ID')}</p>
+                    <p className="text-[10px] text-red-600">Transfer ke Rekening BCA: 1234567890 a/n Replate Peduli</p>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-full font-extrabold text-xs shadow-md"
+                    onClick={() => setUploadModal({ isOpen: true, claimId: claim.id })}
+                  >
+                    Upload Bukti Transfer ➔
+                  </Button>
+                </div>
+              )}
+
+              {claim.status === 'AWAITING_VERIFICATION' && (
+                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-center">
+                  <p className="text-xs font-bold text-amber-800">
+                    Bukti pembayaran sedang diverifikasi oleh Mitra. Harap tunggu sesaat...
+                  </p>
+                </div>
+              )}
+
+              {claim.status === 'READY_FOR_PICKUP' && (
                 <div className="space-y-4">
                   <QRGenerator
                     value={claim.id}
@@ -248,13 +305,15 @@ export default function MyClaimsPage() {
                       variant="gold"
                       size="sm"
                       onClick={() => handleMarkCompleted(claim.id)}
-                      className="font-black text-xs text-slate-950 flex-1 shadow-xs"
+                      className="flex-1 font-extrabold text-xs text-slate-950 shadow-xs"
                     >
-                      ✓ Konfirmasi Selesai Diambil
+                      Konfirmasi Selesai ➔
                     </Button>
                   </div>
                 </div>
-              ) : (
+              )}
+              
+              {claim.status === 'COMPLETED' && (
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="space-y-0.5 text-center sm:text-left">
                     <span className="text-[11px] font-black text-slate-800 block">
@@ -347,6 +406,20 @@ export default function MyClaimsPage() {
         type={toastState.type}
         onClose={() => setToastState((prev) => ({ ...prev, isOpen: false }))}
       />
+
+      {/* Upload Proof Modal */}
+      <Modal isOpen={uploadModal.isOpen} onClose={() => setUploadModal({ isOpen: false, claimId: null })} title="Upload Bukti Transfer">
+        <div className="space-y-4 text-slate-700">
+          <p className="text-xs font-medium">Unggah foto bukti transfer dari bank atau e-wallet Anda.</p>
+          <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+            <span className="text-4xl block mb-2">📸</span>
+            <span className="text-xs font-bold text-slate-500">Klik untuk unggah gambar</span>
+          </div>
+          <Button variant="primary" className="w-full font-extrabold shadow-md mt-4" onClick={handleUploadProof}>
+            Simpan & Kirim Bukti ➔
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

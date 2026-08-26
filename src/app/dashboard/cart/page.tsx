@@ -74,6 +74,21 @@ export default function CartPage() {
     setIsCheckingOut(true);
     // Simulate network request
     setTimeout(() => {
+      try {
+        const newClaim = {
+          id: `CLM-CNS-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          foodName: cartItems.map((i: any) => `${i.foodName} (${i.quantity}x)`).join(', '),
+          providerName: cartItems[0]?.providerName || 'Mitra Replate',
+          totalAmount: cartItems.reduce((acc, item) => acc + (item.isFree ? 0 : item.price * item.quantity), 0),
+          status: 'AWAITING_PAYMENT',
+          createdAt: new Date().toISOString(),
+          pickupTime: cartItems[0]?.pickupTime || 'Hari ini 21:00 WIB',
+          items: cartItems
+        };
+        const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
+        localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
+      } catch (_) {}
+
       // Empty the cart
       localStorage.removeItem('replate_cart');
       setCartItems([]);
@@ -81,7 +96,7 @@ export default function CartPage() {
       
       setToastState({
         isOpen: true,
-        message: 'Klaim berhasil diproses! Silakan periksa menu Klaim Aktif Anda.',
+        message: 'Pesanan berhasil dibuat! Silakan unggah bukti pembayaran Anda.',
         type: 'success',
       });
       setIsCheckingOut(false);

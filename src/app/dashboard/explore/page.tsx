@@ -88,6 +88,15 @@ export default function WorkspaceExplorePage() {
     message: '',
     type: 'success',
   });
+  
+  const [syncRadius, setSyncRadius] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const radius = localStorage.getItem('replate_admin_sync_radius');
+      if (radius) setSyncRadius(parseInt(radius));
+    } catch (_) {}
+  }, []);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [pantiNeeds, setPantiNeeds] = useState<PantiNeed[]>([
@@ -470,13 +479,21 @@ export default function WorkspaceExplorePage() {
       {activeTab !== 'PANTI_NEEDS' ? (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <input
-              type="text"
-              placeholder="Cari menu makanan atau nama resto..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:max-w-xs px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
-            />
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Cari menu makanan atau nama resto..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full sm:max-w-xs px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
+              />
+              {syncRadius && (
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold whitespace-nowrap">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Radius &lt; {syncRadius} km
+                </div>
+              )}
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {categoryList.map((cat) => (
                 <button

@@ -12,6 +12,35 @@ import Link from 'next/link';
 
 export default function ConsumerBrowsePage() {
   const router = useRouter();
+  
+  const handleQuickClaim = (item: any) => {
+    try {
+      const existingCart = JSON.parse(localStorage.getItem('replate_cart') || '[]');
+      const isAlreadyInCart = existingCart.some((cartItem: any) => cartItem.id === item.id);
+      
+      if (!isAlreadyInCart) {
+        existingCart.push({
+          id: item.id,
+          foodName: item.title,
+          providerName: item.provider,
+          price: item.price,
+          originalPrice: item.originalPrice,
+          quantity: 1,
+          maxQuantity: 5,
+          imageUrl: item.imageUrl,
+          pickupTime: item.pickupTime,
+          isFree: false
+        });
+        localStorage.setItem('replate_cart', JSON.stringify(existingCart));
+      }
+      
+      router.push('/dashboard/cart');
+    } catch (e) {
+      console.error(e);
+      router.push('/dashboard/cart');
+    }
+  };
+
   const [foods, setFoods] = useState<any[]>([]);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +51,14 @@ export default function ConsumerBrowsePage() {
   const [consumerStatus, setConsumerStatus] = useState<'REGULAR_SAVER' | 'PENDING_VERIFICATION' | 'BENEFICIARY_VERIFIED'>('BENEFICIARY_VERIFIED');
   const [sktmNumber, setSktmNumber] = useState('KIS-357890123891');
   const [dailyQuotaLeft, setDailyQuotaLeft] = useState(2);
+  const [syncRadius, setSyncRadius] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const radius = localStorage.getItem('replate_admin_sync_radius');
+      if (radius) setSyncRadius(parseInt(radius));
+    } catch (_) {}
+  }, []);
 
   // Modal Verification Form State
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
@@ -255,18 +292,26 @@ export default function ConsumerBrowsePage() {
         )}
       </div>
 
-      {/* SMART MATCHING 2.0: REKOMENDASI HEMAT CERDAS UNTUK KONSUMEN */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 block mb-1">
               SMART MATCHING ENGINE 2.0 (UNTUK KONSUMEN)
             </span>
-            <h3 className="text-lg font-black text-[#1B3A5C]">
-              Rekomendasi Paling Cocok Berdasarkan Lokasi & Preferensi Anda
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h3 className="text-xl font-black text-[#1B3A5C]">
+                Rekomendasi Paling Cocok Berdasarkan Lokasi & Preferensi Anda
+              </h3>
+              {syncRadius && (
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-black rounded-md">
+                  Radius Tersinkronisasi Admin: &lt; {syncRadius} km
+                </span>
+              )}
+            </div>
           </div>
-          <span className="text-xs font-bold text-slate-500">Radius &lt; 1.5 km</span>
+          <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+            Radius &lt; {syncRadius || 1.5} km
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -298,11 +343,14 @@ export default function ConsumerBrowsePage() {
                   <span className="text-xs font-black text-[#1B3A5C] block">Rp {item.price.toLocaleString('id-ID')}</span>
                   <span className="text-[10px] text-slate-400 line-through">Rp {item.originalPrice.toLocaleString('id-ID')}</span>
                 </div>
-                <Link href="/explore">
-                  <Button variant="gold" size="sm" className="font-black text-[11px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap">
-                    Klaim Cepat ➔
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => handleQuickClaim(item)}
+                  variant="gold" 
+                  size="sm" 
+                  className="font-black text-[11px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap cursor-pointer"
+                >
+                  Klaim Cepat ➔
+                </Button>
               </div>
             </div>
           ))}

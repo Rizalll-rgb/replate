@@ -61,6 +61,7 @@ export default function AdminSettingsPage() {
     try {
       localStorage.setItem('replate_admin_grace_period_default', String(bpomRules.defaultGracePeriodMins));
       localStorage.setItem('replate_admin_grace_period_max', String(bpomRules.maxGracePeriodCapMins));
+      localStorage.setItem('replate_admin_sync_radius', String(alertRules.defaultRadiusKm));
     } catch (_) {}
 
     setToastState({
