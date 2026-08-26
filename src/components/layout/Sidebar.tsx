@@ -350,12 +350,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   ];
 
   const formatRoleDisplay = (r: string) => {
-    const up = r.toUpperCase();
-    if (up.includes('PROVIDER')) return 'FOOD PROVIDER';
-    if (up.includes('BENEFICIARY') || up.includes('YAYASAN')) return 'FOOD BENEFICIARY';
-    if (up.includes('CONSUMER')) return 'FOOD CONSUMER';
-    if (up.includes('VOLUNTEER') || up.includes('RESCUE')) return 'RESCUE VOLUNTEER';
-    if (up.includes('ADMIN')) return 'SUPERADMIN';
+    const up = (r || '').toUpperCase();
+    if (up.includes('PROVIDER')) return 'Food Provider';
+    if (up.includes('BENEFICIARY') || up.includes('YAYASAN')) return 'Food Beneficiary';
+    if (up.includes('CONSUMER')) return 'Food Consumer';
+    if (up.includes('VOLUNTEER') || up.includes('RESCUE')) return 'Rescue Volunteer';
+    if (up.includes('ADMIN')) return 'SuperAdmin';
     return r.replace(/_/g, ' ');
   };
 

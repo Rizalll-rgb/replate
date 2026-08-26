@@ -27,6 +27,11 @@ export default function ProviderClaimsPage() {
     claim: null,
   });
 
+  const [issuedTicketModal, setIssuedTicketModal] = useState<{ isOpen: boolean; claim: any | null }>({
+    isOpen: false,
+    claim: null,
+  });
+
   const defaultPending = [
     {
       code: 'FB-SALE-99102',
@@ -357,17 +362,24 @@ export default function ProviderClaimsPage() {
     });
   };
 
-  // Manual Transfer / QRIS Payment Proof Approval Handler
+  // Manual Transfer / QRIS Payment Proof Approval Handler (Point 3)
   const handleApprovePaymentProof = (cleanCode: string) => {
+    const target = pendingClaims.find((c) => c.code === cleanCode);
     setPendingClaims((prev) =>
       prev.map((c) =>
         c.code === cleanCode ? { ...c, status: 'READY_FOR_PICKUP' } : c
       )
     );
     setPaymentInspectModal({ isOpen: false, claim: null });
+    if (target) {
+      setIssuedTicketModal({
+        isOpen: true,
+        claim: { ...target, status: 'READY_FOR_PICKUP' },
+      });
+    }
     setToastState({
       isOpen: true,
-      message: `✅ Bukti Bayar Transfer/QRIS Resi "${cleanCode}" Berhasil Diverifikasi Lunas! Tiket QR Klaim Aktif.`,
+      message: `Bukti Bayar Transfer/QRIS Resi "${cleanCode}" Berhasil Diverifikasi Lunas! Tiket QR Klaim Aktif.`,
       type: 'success',
     });
   };
@@ -891,6 +903,90 @@ export default function ProviderClaimsPage() {
                 onClick={() => handleApprovePaymentProof(paymentInspectModal.claim.code)}
               >
                 ✓ Verifikasi Lunas & Aktifkan Tiket QR ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Tiket QR Resmi Terbit & Surat Jalan Kasir (Point 3) */}
+      {issuedTicketModal.isOpen && issuedTicketModal.claim && (
+        <Modal
+          isOpen={issuedTicketModal.isOpen}
+          onClose={() => setIssuedTicketModal({ isOpen: false, claim: null })}
+          title={`Tiket QR Resmi Terbit: ${issuedTicketModal.claim.code}`}
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700 text-center">
+            <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-300 space-y-1">
+              <span className="text-[10px] font-black text-emerald-900 uppercase tracking-widest block">
+                PEMBAYARAN TERVERIFIKASI LUNAS
+              </span>
+              <h4 className="text-lg font-black text-emerald-950">
+                Tiket QR Siap Diambil di Meja Kasir
+              </h4>
+              <p className="text-xs text-emerald-800 font-medium">
+                Resi #{issuedTicketModal.claim.code} telah aktif dan dipindahkan ke antrean Penyelamatan & Handover Makanan.
+              </p>
+            </div>
+
+            {/* Big QR Barcode Display */}
+            <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm max-w-xs mx-auto space-y-2">
+              <div className="w-48 h-48 mx-auto bg-slate-900 p-2 rounded-xl border border-slate-300 flex items-center justify-center">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                    `REPLATE-TICKET-${issuedTicketModal.claim.code}`
+                  )}`}
+                  alt="QR Barcode Resi"
+                  className="w-full h-full object-contain bg-white p-1 rounded-lg"
+                />
+              </div>
+              <span className="font-mono font-black text-sm text-[#1B3A5C] block">
+                {issuedTicketModal.claim.code}
+              </span>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-left space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-semibold">Nama Pembeli:</span>
+                <strong className="text-slate-900">{issuedTicketModal.claim.userName}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-semibold">Menu Makanan:</span>
+                <strong className="text-slate-900">{issuedTicketModal.claim.foodName}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-semibold">Kuantitas:</span>
+                <strong className="text-emerald-700 font-black">{issuedTicketModal.claim.quantity}</strong>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-slate-200">
+                <span className="text-slate-500 font-semibold">Status Pembayaran:</span>
+                <strong className="text-emerald-700 font-black">LUNAS (QRIS / Transfer)</strong>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <a
+                href={`https://wa.me/${(issuedTicketModal.claim.recipientPhone || '081234567890').replace(/\D/g, '')}?text=${encodeURIComponent(
+                  `Halo Kak ${issuedTicketModal.claim.userName}, pembayaran Rescue Sale untuk ${issuedTicketModal.claim.foodName} (${issuedTicketModal.claim.quantity}) telah LUNAS & DISETUJUI. Tunjukkan Kode Resi QR: ${issuedTicketModal.claim.code} di kasir saat mengambil makanan. Terima kasih!`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
+              >
+                <span>Kirim Link Tiket QR via WhatsApp ke Pembeli ➔</span>
+              </a>
+
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full font-black text-xs py-2.5 shadow-xs"
+                onClick={() => {
+                  setIssuedTicketModal({ isOpen: false, claim: null });
+                  setActiveTab('PENDING_PICKUP');
+                }}
+              >
+                Lihat di Tab Penyelamatan & Handover Kasir ➔
               </Button>
             </div>
           </div>

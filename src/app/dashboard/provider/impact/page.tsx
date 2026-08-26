@@ -28,13 +28,63 @@ export default function ProviderImpactPage() {
   }, [searchParams]);
 
   const providerName = session?.user?.name || 'Pak Kumis';
-  const orgName = session?.user?.name ? `${session.user.name}` : 'Warung Bakso Pak Kumis';
+  const [orgName, setOrgName] = useState('Warung Bakso Pak Kumis');
 
-  // Dynamic Real Metrics calculation (Poin 4)
-  const totalWeightKg = 142.5;
-  const totalCo2SavedKg = 356.25;
-  const totalBeneficiaries = 285;
-  const totalSurplusCount = 28;
+  // Dynamic Real Metrics state synchronized with Ringkasan & API (Point 6)
+  const [totalWeightKg, setTotalWeightKg] = useState<number>(42.5);
+  const [totalSurplusCount, setTotalSurplusCount] = useState<number>(2);
+  const [totalBeneficiaries, setTotalBeneficiaries] = useState<number>(106);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName) setOrgName(parsed.entityName);
+      }
+    } catch (_) {}
+
+    let localItems: any[] = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+    } catch (_) {}
+
+    fetch('/api/surplus?status=')
+      .then((res) => res.json())
+      .then((data) => {
+        let itemsList: any[] = [];
+        if (data.success && Array.isArray(data.data?.items)) {
+          itemsList = data.data.items;
+        } else if (data.success && Array.isArray(data.data)) {
+          itemsList = data.data;
+        }
+
+        const combined = [...localItems, ...itemsList];
+        const activeItems = combined.filter((item) => item.status === 'AVAILABLE' || !item.status);
+        if (activeItems.length > 0) {
+          setTotalSurplusCount(activeItems.length);
+        }
+
+        const calculatedWeight = combined.reduce((acc, curr) => {
+          const qty = Number(curr.quantity || 15);
+          const weightUnit = Number(curr.weightPerUnitKg || 0.4);
+          return acc + qty * weightUnit;
+        }, 0);
+
+        if (calculatedWeight > 0) {
+          const rounded = Math.round(calculatedWeight * 10) / 10;
+          setTotalWeightKg(rounded);
+          setTotalBeneficiaries(Math.round(rounded * 2.5));
+        }
+      })
+      .catch(() => {
+        if (localItems.length > 0) {
+          setTotalSurplusCount(localItems.length);
+        }
+      });
+  }, []);
+
+  const totalCo2SavedKg = Math.round(totalWeightKg * 2.5 * 10) / 10;
 
   const certData = formatCertificateData(
     providerName,

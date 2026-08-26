@@ -11,7 +11,7 @@ import { useSession } from 'next-auth/react';
 export default function ProviderOverviewPage() {
   const { data: session } = useSession();
   const [activeSurplusCount, setActiveSurplusCount] = useState<number>(2);
-  const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(1);
+  const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(3);
   const [totalRescuedKg, setTotalRescuedKg] = useState<number>(42.5);
   const [providerName, setProviderName] = useState<string>('Warung Bakso Pak Kumis');
 
@@ -19,7 +19,10 @@ export default function ProviderOverviewPage() {
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [selectedPantiForFormula, setSelectedPantiForFormula] = useState<any | null>(null);
 
-  // In-Workspace Instant Donation Allocation Modal State
+  // Selected Shelter Profile Detail Modal State (Point 1: Lihat Detail Modal with GPS Map)
+  const [selectedShelterProfile, setSelectedShelterProfile] = useState<any | null>(null);
+
+  // In-Workspace Instant Donation Allocation Modal State (Point 2: Matching Explore Fulfill Flow)
   const [allocateModal, setAllocateModal] = useState<{
     isOpen: boolean;
     panti: any | null;
@@ -45,16 +48,24 @@ export default function ProviderOverviewPage() {
     {
       id: 'PNT-SBY-001',
       pantiName: 'Panti Asuhan Kasih Ibu Surabaya',
+      shelterType: 'Panti Asuhan Anak Yatim',
       needTitle: '50 Porsi Nasi Kotak & Lauk Bergizi',
       distance: '1.2 km (Wonokromo, Surabaya Selatan)',
       matchScore: 96,
       urgency: 'URGENT HARI INI',
-      pj: 'Ibu Hajjah Maryam',
+      contactPerson: 'Ibu Hajjah Maryam',
       contactPhone: '081298765432',
       address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
       preferredDelivery: 'RESCUE_COURIER',
+      beneficiariesCount: 45,
+      legalStatus: 'Terverifikasi Dinsos Jatim',
+      legalPermit: 'DINSOS-SBY/2023/8912',
+      notes: 'Membutuhkan 40-50 porsi nasi lauk pauk bergizi untuk makan malam anak-anak panti.',
+      imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60',
+      lat: -7.2754,
+      lng: 112.7541,
       reasons: [
-        'Jarak 1.2 km dari outlet Anda (Radius terdekat < 2 km)',
+        'Jarak 1.2 km dari outlet Anda (Wonokromo)',
         'Kapasitas panti butuh 50 porsi (Stok Anda siap 35–40 porsi)',
         'Urgensi makan malam sebelum 20:00 WIB (Sisa waktu 2.5 jam)',
       ],
@@ -68,14 +79,22 @@ export default function ProviderOverviewPage() {
     {
       id: 'PNT-SBY-002',
       pantiName: 'Shelter Dhuafa & Anak Jalanan Mandiri',
+      shelterType: 'Shelter & Rumah Singgah',
       needTitle: '60 Porsi Makanan Siap Santap / Prasmanan',
       distance: '0.8 km (Genteng, Surabaya Pusat)',
       matchScore: 89,
       urgency: 'URGENT HARI INI',
-      pj: 'Mas Dedi Relawan',
+      contactPerson: 'Mas Dedi Relawan',
       contactPhone: '081567890123',
       address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
       preferredDelivery: 'PROVIDER_DIRECT',
+      beneficiariesCount: 25,
+      legalStatus: 'Terverifikasi Pemkot Surabaya',
+      legalPermit: 'DINSOS-SBY/2024/1109',
+      notes: 'Membutuhkan porsi makanan surplus siap santap untuk pembagian malam relawan.',
+      imageUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&auto=format&fit=crop&q=60',
+      lat: -7.2623,
+      lng: 112.7391,
       reasons: [
         'Jarak sangat dekat 0.8 km (Surabaya Pusat)',
         'Kebutuhan shelter 60 porsi (Bisa dipenuhi bertahap)',
@@ -313,8 +332,17 @@ export default function ProviderOverviewPage() {
 
                 <div className="text-[11px] text-slate-500 space-y-0.5">
                   <p>Alamat: <strong>{panti.address}</strong></p>
-                  <p>Penanggung Jawab: <strong>{panti.pj}</strong> ({panti.contactPhone})</p>
+                  <p>Penanggung Jawab: <strong>{panti.contactPerson}</strong> ({panti.contactPhone})</p>
                 </div>
+
+                {/* Button Lihat Detail Profil & Titik Peta GPS (Point 1) */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedShelterProfile(panti)}
+                  className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                >
+                  <span>Lihat Profil Detail & Titik Peta GPS ➔</span>
+                </button>
               </div>
 
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
@@ -350,6 +378,106 @@ export default function ProviderOverviewPage() {
           <p className="text-xs text-slate-500 font-medium">Unduh sertifikat resmi penyelamatan pangan untuk audit ESG.</p>
         </Link>
       </div>
+
+      {/* Modal Detail Profil Lembaga & Titik Lokasi Peta GPS (Point 1) */}
+      <Modal
+        isOpen={!!selectedShelterProfile}
+        onClose={() => setSelectedShelterProfile(null)}
+        title={selectedShelterProfile ? `Profil Lembaga & Lokasi: ${selectedShelterProfile.pantiName}` : 'Profil Lembaga'}
+        size="lg"
+      >
+        {selectedShelterProfile && (
+          <div className="space-y-4 text-xs">
+            <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-300 shadow-xs">
+              <img
+                src={selectedShelterProfile.imageUrl}
+                alt={selectedShelterProfile.pantiName}
+                className="w-full h-full object-cover opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent flex items-end p-4 text-white">
+                <div>
+                  <Badge variant="gold" size="sm" className="mb-1">
+                    {selectedShelterProfile.shelterType}
+                  </Badge>
+                  <h3 className="text-xl font-black text-white">{selectedShelterProfile.pantiName}</h3>
+                  <p className="text-xs text-slate-200">{selectedShelterProfile.address}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div>
+                <span className="text-slate-500 font-semibold block">Pengurus / Perwakilan:</span>
+                <span className="font-extrabold text-[#1B3A5C]">{selectedShelterProfile.contactPerson}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Kontak WhatsApp:</span>
+                <span className="font-bold text-slate-800">{selectedShelterProfile.contactPhone}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Kapasitas Jiwa Penerima:</span>
+                <span className="font-bold text-slate-800">{selectedShelterProfile.beneficiariesCount} Jiwa</span>
+              </div>
+              <div>
+                <span className="text-slate-500 font-semibold block">Identitas Verifikasi Dinsos:</span>
+                <span className="font-mono font-bold text-slate-800">{selectedShelterProfile.legalPermit}</span>
+              </div>
+            </div>
+
+            <a
+              href={`https://wa.me/${selectedShelterProfile.contactPhone.replace(/^0/, '62')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
+            >
+              <span>Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct) ➔</span>
+            </a>
+
+            {/* Embed Google Maps GPS */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS Surabaya</h4>
+                <span className="text-[10px] font-mono font-bold text-slate-500">
+                  GPS: {selectedShelterProfile.lat}, {selectedShelterProfile.lng}
+                </span>
+              </div>
+
+              <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+                <iframe
+                  title="Shelter Location Map"
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  scrolling="no"
+                  src={`https://maps.google.com/maps?q=${selectedShelterProfile.lat},${selectedShelterProfile.lng}&z=15&output=embed`}
+                  className="w-full h-full filter saturate-150"
+                />
+                <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
+                  Titik Lokasi: {selectedShelterProfile.pantiName}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>
+                Tutup Profil
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                className="font-black text-slate-950"
+                onClick={() => {
+                  const target = selectedShelterProfile;
+                  setSelectedShelterProfile(null);
+                  handleOpenAllocationModal(target);
+                }}
+              >
+                Sanggupi Bantuan Panti Ini ➔
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Modal Rincian Formula & Bobot Smart Matching 2.0 */}
       <Modal
@@ -395,27 +523,72 @@ export default function ProviderOverviewPage() {
         )}
       </Modal>
 
-      {/* In-Workspace Instant Donation Allocation Modal */}
+      {/* In-Workspace Instant Donation Allocation Modal (Point 2: Identical with Explore Sanggupi Permintaan) */}
       <Modal
         isOpen={allocateModal.isOpen}
         onClose={() => setAllocateModal({ isOpen: false, panti: null, portions: 30, deliveryMethod: 'RESCUE_COURIER', hygieneChecked: true })}
-        title={`Alokasi Donasi Langsung: ${allocateModal.panti?.pantiName || 'Panti Asuhan'}`}
+        title={`Alur Sanggupi Donasi: ${allocateModal.panti?.pantiName || 'Panti Asuhan'}`}
         size="lg"
       >
         {allocateModal.panti && (
           <form onSubmit={handleConfirmAllocationSubmit} className="space-y-4 text-xs text-slate-700">
-            <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1 shadow-md border border-[#2C5A8F]">
-              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
-                PENERIMA BANTUAN TARGET
-              </span>
-              <h4 className="text-lg font-black text-white">{allocateModal.panti.pantiName}</h4>
-              <p className="text-xs text-slate-200 font-medium">
-                Alamat: <strong>{allocateModal.panti.address}</strong> • Kontak: {allocateModal.panti.pj} ({allocateModal.panti.contactPhone})
+            <div className="p-5 bg-[#1B3A5C] text-white rounded-2xl space-y-1.5 shadow-md border border-[#2C5A8F]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-black uppercase text-[#D4A843] tracking-widest block">
+                  TARGET PENERIMA BANTUAN PANGAN
+                </span>
+                <span className="px-3 py-1 bg-[#D4A843] text-slate-950 font-black text-[10px] rounded-md shadow-xs">
+                  Kebutuhan: {allocateModal.panti.needTitle}
+                </span>
+              </div>
+
+              <h4 className="text-xl font-black text-white leading-snug drop-shadow-xs">
+                {allocateModal.panti.pantiName} ({allocateModal.panti.beneficiariesCount} Jiwa Penerima)
+              </h4>
+
+              <p className="text-xs text-slate-100 font-semibold flex items-center gap-2 pt-0.5">
+                <span>Lokasi: {allocateModal.panti.address}</span>
+                <span>•</span>
+                <span>Kontak: {allocateModal.panti.contactPerson} ({allocateModal.panti.contactPhone})</span>
               </p>
             </div>
 
+            {/* Smart Matching Engine Score Card */}
+            <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3 shadow-md border border-slate-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-mono block">SMART MATCHING 2.0 COMPATIBILITY SCORE:</span>
+                  <span className="text-xl font-black text-emerald-400">
+                    {allocateModal.panti.matchScore}% MATCH SCORE (HIGHLY RECOMMENDED)
+                  </span>
+                </div>
+                <span className="px-2.5 py-1 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-md">
+                  ✓ VERIFIKASI COCOK
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] pt-1 border-t border-slate-800">
+                <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700 text-center">
+                  <span className="text-slate-400 block font-semibold">Kategori Gizi</span>
+                  <span className="font-extrabold text-amber-400">30/30 Pts</span>
+                </div>
+                <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700 text-center">
+                  <span className="text-slate-400 block font-semibold">Proksimitas GPS</span>
+                  <span className="font-extrabold text-amber-400">25/25 Pts</span>
+                </div>
+                <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700 text-center">
+                  <span className="text-slate-400 block font-semibold">Urgensi Waktu</span>
+                  <span className="font-extrabold text-amber-400">20/20 Pts</span>
+                </div>
+                <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700 text-center">
+                  <span className="text-slate-400 block font-semibold">Standar BPOM</span>
+                  <span className="font-extrabold text-amber-400">10/10 Pts</span>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-1.5">
-              <label className="font-extrabold text-slate-800 block">Jumlah Porsi Yang Dialokasikan (Dari Stok Surplus Anda):</label>
+              <label className="font-extrabold text-slate-800 block">Jumlah Porsi Yang Siap Anda Donasikan:</label>
               <input
                 type="number"
                 min="1"
@@ -448,9 +621,9 @@ export default function ProviderOverviewPage() {
                 className="w-4 h-4 mt-0.5 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer"
               />
               <div className="space-y-0.5">
-                <span className="font-extrabold block text-xs">Konfirmasi 8-Poin SOP Higienitas BPOM RI</span>
+                <span className="font-extrabold block text-xs">Konfirmasi SOP Keamanan Pangan BPOM RI</span>
                 <span className="text-[11px] block text-emerald-800 leading-relaxed font-medium">
-                  Saya mengonfirmasi makanan dalam kondisi layak santap &lt; 4 jam, dikemas steril, dan siap diambil/diantar.
+                  Saya mengonfirmasi bahwa porsi makanan surplus yang dihibahkan dalam kondisi segar, siap santap &lt; 4 jam, dikemas steril, dan lulus 8-Checklist Higienitas Replate.
                 </span>
               </div>
             </label>
@@ -465,7 +638,7 @@ export default function ProviderOverviewPage() {
                 Batal
               </Button>
               <Button type="submit" variant="gold" size="sm" className="font-black text-slate-950 shadow-md">
-                Terbitkan Resi Tiket & Selesaikan Alokasi ➔
+                Konfirmasi & Terbitkan Resi Donasi ➔
               </Button>
             </div>
           </form>
