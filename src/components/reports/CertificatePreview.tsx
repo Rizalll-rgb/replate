@@ -93,7 +93,7 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({ data }) 
 
         {/* Formal Citation Text */}
         <p className="text-xs text-slate-700 max-w-2xl mx-auto leading-relaxed font-serif italic px-6 relative z-10">
-          &quot;Atas apresiasi tinggi dan kontribusi nyata dalam redistribusi makanan berlebih, pengurangan emisi gas rumah kaca, serta partisipasi aktif mewujudkan target Zero Hunger (SDG 2) dan Responsible Consumption (SDG 12.3) melalui platform Replate.&quot;
+          &quot;Atas apresiasi tinggi dan kontribusi nyata dalam redistribusi makanan berlebih, pencegahan emisi gas rumah kaca, serta partisipasi aktif mendukung pencapaian 5 Pilar SDGs: Zero Hunger (SDG 2), Inovasi Distribusi (SDG 9), Kota Berkelanjutan (SDG 11), Konsumsi Bertanggung Jawab (SDG 12), dan Aksi Iklim (SDG 13) melalui platform Replate.&quot;
         </p>
 
         {/* Real-Time Impact Metric Summary Box */}

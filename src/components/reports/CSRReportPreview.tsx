@@ -116,9 +116,9 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
 
         {/* Metodologi & SDG Standard */}
         <div className="space-y-2 text-xs text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h4 className="font-extrabold text-[#1B3A5C] text-sm">Metodologi Perhitungan & Pengesahan Standar SDG</h4>
+          <h4 className="font-extrabold text-[#1B3A5C] text-sm">Metodologi Perhitungan & Pengesahan 5 Pilar Standar SDG</h4>
           <p className="leading-relaxed">
-            Perhitungan pengurangan emisi CO2 didasarkan pada standar koefisien dekomposisi sampah organik food waste sebesar <strong className="text-slate-900">2.5 kg CO2e per 1 kg makanan</strong> diselamatkan (Standar FAO & BPOM RI). Dokumen ini mengesahkan kontribusi aktif perusahaan dalam mendukung <strong className="text-slate-900">SDG 12.3 (Food Loss & Waste Reduction)</strong> dan <strong className="text-slate-900">SDG 13 (Climate Action)</strong>.
+            Perhitungan pengurangan emisi CO2 didasarkan pada standar koefisien dekomposisi sampah organik food waste sebesar <strong className="text-slate-900">2.5 kg CO2e per 1 kg makanan</strong> diselamatkan (Standar IPCC & BPOM RI). Dokumen ini mengesahkan kontribusi aktif perusahaan dalam mendukung <strong className="text-slate-900">SDG 2 (Zero Hunger)</strong>, <strong className="text-slate-900">SDG 9 (Infrastruktur Digital)</strong>, <strong className="text-slate-900">SDG 11 (Kota Berkelanjutan)</strong>, <strong className="text-slate-900">SDG 12.3 (Reduksi Food Waste)</strong>, dan <strong className="text-slate-900">SDG 13 (Aksi Perubahan Iklim)</strong>.
           </p>
         </div>
 

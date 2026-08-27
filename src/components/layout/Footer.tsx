@@ -52,24 +52,28 @@ export const Footer: React.FC = () => {
           {/* SDG Alignment */}
           <div>
             <h4 className="text-white text-xs font-extrabold uppercase tracking-wider mb-4 border-slate-800 pb-2 border-b">
-              Komitmen SDG
+              Komitmen 5 Pilar SDG
             </h4>
             <ul className="space-y-2 text-xs">
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>SDG 2: Tanpa Kelaparan (Zero Hunger)</span>
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>SDG 2: Tanpa Kelaparan</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                <span>SDG 9: Industri & Inovasi</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>SDG 11: Kota Berkelanjutan</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#D4A843]" />
-                <span>SDG 12.3: Reduksi Food Waste 50%</span>
+                <span>SDG 12: Konsumsi Bertanggung Jawab</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                <span>SDG 13: Penanganan Perubahan Iklim</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-500" />
-                <span>SDG 17: Kemitraan Multipihak</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>SDG 13: Aksi Perubahan Iklim</span>
               </li>
             </ul>
           </div>

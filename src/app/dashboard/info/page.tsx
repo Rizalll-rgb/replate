@@ -456,6 +456,65 @@ export default function DashboardInfoHubPage() {
                 </div>
               </div>
             </div>
+
+            {/* 5 Pillars SDG Alignment Card */}
+            <div className="p-6 bg-[#0F1923] rounded-2xl border border-[#2C5A8F] space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+                <div>
+                  <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                    TARGET PROPOSAL TERCAPAI
+                  </span>
+                  <h4 className="text-base font-black text-white">
+                    Komitmen 5 Pilar UN Sustainable Development Goals
+                  </h4>
+                </div>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
+                  5 SDGS READY
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-amber-600 text-white font-black text-[10px] rounded">
+                    SDG 2
+                  </span>
+                  <strong className="text-white block text-xs">Zero Hunger</strong>
+                  <p className="text-[11px] text-slate-300">Donasi surplus siap santap untuk panti asuhan & dhuafa.</p>
+                </div>
+
+                <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-orange-600 text-white font-black text-[10px] rounded">
+                    SDG 9
+                  </span>
+                  <strong className="text-white block text-xs">Industri & Inovasi</strong>
+                  <p className="text-[11px] text-slate-300">Smart Matching 2.0 & Geofencing GPS redistribusi pangan.</p>
+                </div>
+
+                <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded">
+                    SDG 11
+                  </span>
+                  <strong className="text-white block text-xs">Kota Berkelanjutan</strong>
+                  <p className="text-[11px] text-slate-300">Kota sirkular zero-waste & reduksi beban TPA Benowo.</p>
+                </div>
+
+                <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-yellow-700 text-white font-black text-[10px] rounded">
+                    SDG 12
+                  </span>
+                  <strong className="text-white block text-xs">Konsumsi Bertanggung Jawab</strong>
+                  <p className="text-[11px] text-slate-300">Target 12.3: Reduksi 50% food waste via Rescue Sale diskon.</p>
+                </div>
+
+                <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                  <span className="inline-block px-2 py-0.5 bg-emerald-700 text-white font-black text-[10px] rounded">
+                    SDG 13
+                  </span>
+                  <strong className="text-white block text-xs">Aksi Perubahan Iklim</strong>
+                  <p className="text-[11px] text-slate-300">Pencegahan metana (CH4) & reduksi 2.5 kg CO2e/kg pangan.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
