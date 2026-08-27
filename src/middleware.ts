@@ -73,6 +73,9 @@ export default auth((req) => {
 
         // Shared dashboard routes accessible to all authenticated roles
         const isSharedDashboardRoute =
+            nextUrl.pathname.startsWith('/dashboard/profile') ||
+            nextUrl.pathname.startsWith('/dashboard/info') ||
+            nextUrl.pathname.startsWith('/dashboard/cart') ||
             nextUrl.pathname.startsWith('/dashboard/how-it-works') ||
             nextUrl.pathname.startsWith('/dashboard/faq');
 

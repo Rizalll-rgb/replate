@@ -5,11 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 import { signOut } from 'next-auth/react';
-import { FoodCard } from '@/components/food/FoodCard';
 
 export interface SidebarProps {
   role?: string;
 }
+
+const HomeIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+);
 
 export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   const pathname = usePathname();
@@ -18,12 +23,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   const providerLinks = [
     {
       href: '/dashboard/provider',
-      label: 'Ringkasan',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z" />
-        </svg>
-      ),
+      label: 'Beranda',
+      icon: <HomeIcon />,
     },
     {
       href: '/dashboard/provider/my-listings',
@@ -44,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/explore',
+      href: '/explore',
       label: 'Eksplor Pangan',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/tracking',
+      href: '/track-status',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,11 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
     {
       href: '/dashboard/consumer',
       label: 'Beranda',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      ),
+      icon: <HomeIcon />,
     },
     {
       href: '/dashboard/consumer/my-claims',
@@ -103,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/explore',
+      href: '/explore',
       label: 'Eksplor Pangan',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/tracking',
+      href: '/track-status',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,12 +141,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   const partnerLinks = [
     {
       href: '/dashboard/rescue-partner',
-      label: 'Ringkasan',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-        </svg>
-      ),
+      label: 'Beranda',
+      icon: <HomeIcon />,
     },
     {
       href: '/dashboard/rescue-partner/active',
@@ -161,7 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/explore',
+      href: '/explore',
       label: 'Eksplor Pangan',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/tracking',
+      href: '/track-status',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,12 +196,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   const adminLinks = [
     {
       href: '/dashboard/admin',
-      label: 'Overview Sistem',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
+      label: 'Beranda',
+      icon: <HomeIcon />,
     },
     {
       href: '/dashboard/admin/users',
@@ -229,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/explore',
+      href: '/explore',
       label: 'Eksplor Pangan',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/tracking',
+      href: '/track-status',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,12 +269,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   const yayasanLinks = [
     {
       href: '/dashboard/yayasan',
-      label: 'Ringkasan Panti',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h6m-6 0V10m0 0h6m-6 0H7" />
-        </svg>
-      ),
+      label: 'Beranda',
+      icon: <HomeIcon />,
     },
     {
       href: '/dashboard/yayasan/claims',
@@ -297,7 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/explore',
+      href: '/explore',
       label: 'Eksplor Pangan',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -315,7 +300,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/dashboard/tracking',
+      href: '/track-status',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
