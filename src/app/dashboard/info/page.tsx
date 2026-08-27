@@ -156,6 +156,16 @@ export default function DashboardInfoHubPage() {
     },
   ];
 
+  const formatRoleLabel = (r: string) => {
+    const upper = String(r || '').toUpperCase();
+    if (upper.includes('PROVIDER')) return 'Food Provider';
+    if (upper.includes('BENEFICIARY') || upper.includes('YAYASAN')) return 'Food Beneficiary';
+    if (upper.includes('VOLUNTEER') || upper.includes('RESCUE')) return 'Food Rescue Volunteer';
+    if (upper.includes('CONSUMER')) return 'Food Consumer';
+    if (upper.includes('ADMIN')) return 'SuperAdmin';
+    return String(r || '').replace(/_/g, ' ');
+  };
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
       {/* Header */}
@@ -171,7 +181,7 @@ export default function DashboardInfoHubPage() {
         </div>
 
         <span className="text-xs font-black bg-[#1B3A5C] text-[#D4A843] border border-amber-400/30 px-3.5 py-1.5 rounded-full shadow-xs">
-          Role: {String(userRole)}
+          Peran: {formatRoleLabel(userRole)}
         </span>
       </div>
 

@@ -140,6 +140,15 @@ export default function OnboardingProfilePage() {
   const isVolunteer = role === 'RESCUE_VOLUNTEER';
   const isConsumer = role === 'FOOD_CONSUMER';
 
+  const formatRoleLabel = (r: string) => {
+    if (r === 'FOOD_PROVIDER' || r === 'PROVIDER') return 'Food Provider';
+    if (r === 'FOOD_BENEFICIARY' || r === 'YAYASAN') return 'Food Beneficiary';
+    if (r === 'RESCUE_VOLUNTEER' || r === 'VOLUNTEER' || r === 'RESCUE_PARTNER') return 'Food Rescue Volunteer';
+    if (r === 'FOOD_CONSUMER' || r === 'CONSUMER') return 'Food Consumer';
+    if (r === 'SUPER_ADMIN' || r === 'ADMIN') return 'SuperAdmin';
+    return r.replace(/_/g, ' ');
+  };
+
   return (
     <div className="min-h-screen bg-[#0F1923] text-white flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
       <div className="w-full max-w-2xl space-y-6 relative z-10">
@@ -158,18 +167,14 @@ export default function OnboardingProfilePage() {
               ? 'Food Rescue Volunteer (Organisasi / Komunitas)'
               : isConsumer
               ? 'Food Consumer (Pembeli Rescue Sale)'
-              : 'Food Provider (Restoran / Outlet)'}
+              : 'Food Provider (Restoran / Hotel / Catering / Supermarket)'}
           </h1>
-          <p className="text-xs text-slate-300 font-medium max-w-md mx-auto leading-relaxed">
-            {isConsumer
-              ? 'Lengkapi profil akun konsumen Anda untuk menikmati makanan diskon murah Rescue Sale Surabaya.'
-              : isVolunteer
-              ? 'Daftarkan organisasi/komunitas relawan penyelamat pangan Anda. Manajemen driver armada akan diatur terpusat di dashboard.'
-              : 'Informasi ini digunakan oleh Smart Matching Engine 2.0 untuk mencocokkan rute distribusi pangan Surabaya.'}
+          <p className="text-xs text-slate-300 font-medium max-w-md mx-auto">
+            Informasi identitas dan kontak ini akan terintegrasi langsung pada surat jalan logistik & sertifikat transparansi IPCC.
           </p>
         </div>
 
-        {/* High-Contrast Container Card */}
+        {/* Form Card */}
         <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
           <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
@@ -183,8 +188,8 @@ export default function OnboardingProfilePage() {
               >
                 ⚡ Isi Contoh Simulasi Demo
               </button>
-              <span className="text-xs bg-slate-900 text-amber-300 font-mono font-bold px-2.5 py-1 rounded-lg border border-slate-700">
-                ROLE: {role}
+              <span className="text-xs bg-slate-900 text-amber-300 font-extrabold px-3 py-1 rounded-lg border border-slate-700">
+                Peran: {formatRoleLabel(role)}
               </span>
             </div>
           </div>
