@@ -11,48 +11,91 @@ export default function TrackRegistrationStatusPage() {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [profile, setProfile] = useState<any>({
-    entityName: 'Warung Bakso Pak Kumis Surabaya',
-    email: 'bakso.pak.kumis@replate.id',
-    phone: '081234567890',
-    contactPerson: 'Mas Doni',
-    address: 'Jl. Raya Gubeng No. 88, Surabaya',
-    category: 'RESTAURANT',
-    role: 'FOOD_PROVIDER',
-  });
-
+  const [profile, setProfile] = useState<any>(null);
   const [docsStatus, setDocsStatus] = useState<string>('DOCS_SUBMITTED_PENDING_REVIEW');
-  const [regId, setRegId] = useState('REPLATE-REG-2026-9812');
-  const [submittedTime, setSubmittedTime] = useState('24 Agustus 2026, 09:00 WIB');
-  const [isSearched, setIsSearched] = useState(true);
+  const [regId, setRegId] = useState('');
+  const [submittedTime, setSubmittedTime] = useState('Hari ini, 09:00 WIB');
+  const [isSearched, setIsSearched] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
         const queryId = new URLSearchParams(window.location.search).get('id');
-        let activeRegId = queryId || localStorage.getItem('replate_registration_id') || 'REPLATE-REG-2026-9812';
 
-        setRegId(activeRegId);
-        setSearchQuery(activeRegId);
-
-        const p = localStorage.getItem('replate_onboarding_profile');
-        if (p) {
-          const parsed = JSON.parse(p);
-          setProfile(parsed);
-        }
-
-        const d = localStorage.getItem('replate_onboarding_docs');
-        if (d) {
-          const parsed = JSON.parse(d);
-          if (parsed.status) setDocsStatus(parsed.status);
-          if (parsed.submittedAt) {
-            const dateObj = new Date(parsed.submittedAt);
-            setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
-          }
+        // Only auto-search if an explicit ID query param was passed in the URL (e.g. from onboarding redirect)
+        if (queryId && queryId.trim().length > 0) {
+          executeSearch(queryId.trim());
         }
       }
     } catch (_) {}
   }, []);
+
+  const executeSearch = (targetQuery: string) => {
+    setErrorMessage('');
+    const cleanQuery = targetQuery.trim();
+    if (!cleanQuery) {
+      setErrorMessage('Silakan masukkan Kode Tracking atau Email Anda terlebih dahulu.');
+      return;
+    }
+
+    setRegId(cleanQuery.toUpperCase());
+    setSearchQuery(cleanQuery);
+
+    try {
+      // Check stored onboarding data in localStorage
+      const storedProfile = localStorage.getItem('replate_onboarding_profile');
+      const storedDocs = localStorage.getItem('replate_onboarding_docs');
+
+      let resolvedProfile = {
+        entityName: 'Warung Bakso Pak Kumis Surabaya',
+        email: 'bakso.pak.kumis@replate.id',
+        phone: '0812-3456-7890',
+        contactPerson: 'Mas Doni',
+        address: 'Jl. Raya Gubeng No. 88, Surabaya',
+        category: 'RESTAURANT',
+        role: 'FOOD_PROVIDER',
+      };
+
+      if (storedProfile) {
+        try {
+          const parsed = JSON.parse(storedProfile);
+          if (parsed && typeof parsed === 'object') {
+            resolvedProfile = { ...resolvedProfile, ...parsed };
+          }
+        } catch (_) {}
+      }
+
+      if (cleanQuery.includes('@')) {
+        resolvedProfile.email = cleanQuery;
+      }
+
+      setProfile(resolvedProfile);
+
+      if (storedDocs) {
+        try {
+          const parsedDocs = JSON.parse(storedDocs);
+          if (parsedDocs.status) setDocsStatus(parsedDocs.status);
+          if (parsedDocs.submittedAt) {
+            const dateObj = new Date(parsedDocs.submittedAt);
+            setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
+          }
+        } catch (_) {}
+      } else {
+        setDocsStatus('DOCS_SUBMITTED_PENDING_REVIEW');
+        setSubmittedTime('24 Agustus 2026, 09:00 WIB');
+      }
+
+      setIsSearched(true);
+    } catch (_) {
+      setIsSearched(true);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch(searchQuery);
+  };
 
   const handleSimulateApprove = () => {
     try {
@@ -61,14 +104,6 @@ export default function TrackRegistrationStatusPage() {
       localStorage.setItem('replate_onboarding_docs', JSON.stringify({ ...parsed, status: 'APPROVED_ACTIVE' }));
     } catch (_) {}
     setDocsStatus('APPROVED_ACTIVE');
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setRegId(searchQuery.trim().toUpperCase());
-      setIsSearched(true);
-    }
   };
 
   const isApproved = docsStatus === 'APPROVED_ACTIVE';
@@ -82,7 +117,7 @@ export default function TrackRegistrationStatusPage() {
           {/* Header Card */}
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-xs">
-              <span>🔍 REPLATE GOVERNANCE TRACKER 24/7</span>
+              <span>REPLATE GOVERNANCE TRACKER 24/7</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#1B3A5C] tracking-tight">
               Pengecekan Status Pendaftaran Akun
@@ -97,41 +132,86 @@ export default function TrackRegistrationStatusPage() {
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Masukkan Kode Tracking (contoh: REPLATE-REG-2026-9812), Email, atau No. WA"
+                placeholder="Ketik Kode Tracking (contoh: REPLATE-REG-2026-9812), Email, atau No. WA"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] focus:bg-white font-mono"
+                className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] focus:bg-white font-mono"
               />
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
             </div>
             <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 py-3 px-6 shadow-xs shrink-0 cursor-pointer">
               <span>Cari Status ➔</span>
             </Button>
           </form>
 
-          {/* Real-time Timeline Status Card */}
-          {isSearched && (
+          {errorMessage && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl text-center">
+              {errorMessage}
+            </div>
+          )}
+
+          {/* Initial Clean Empty State (When not searched yet) */}
+          {!isSearched && (
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-xs">
+              <div className="w-14 h-14 bg-slate-100 border border-slate-200 text-[#1B3A5C] rounded-2xl flex items-center justify-center mx-auto text-2xl font-black">
+                📋
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-[#1B3A5C]">
+                  Belum Ada Kode Tracking yang Dicari
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+                  Ketik Kode Registrasi (yang didapat saat mendaftar) atau Email akun Anda pada kolom di atas untuk melacak perkembangan audit.
+                </p>
+              </div>
+
+              {/* Quick Preset Buttons for Evaluation */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <span className="text-[11px] font-bold text-slate-400 block">
+                  Atau coba klik contoh simulasi akun terdaftar:
+                </span>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => executeSearch('REPLATE-REG-2026-9812')}
+                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer"
+                  >
+                    REPLATE-REG-2026-9812 (Bakso Pak Kumis)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => executeSearch('panti.kasih.ibu@replate.id')}
+                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer"
+                  >
+                    panti.kasih.ibu@replate.id
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Real-time Timeline Status Card (Only shown after search) */}
+          {isSearched && profile && (
             <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
               {/* Header Info */}
               <div className="border-b border-[#2C5A8F] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-xs font-mono font-black text-amber-300 block uppercase tracking-wider bg-slate-900/70 px-3 py-1 rounded-lg border border-amber-400/30 w-fit mb-1">
-                    📌 KODE REPL-TRACK: {regId}
+                    KODE TRACKING: {regId}
                   </span>
-                  <h3 className="text-xl font-black text-white">{profile.entityName || 'Warung Bakso Pak Kumis'}</h3>
+                  <h3 className="text-xl font-black text-white">{profile.entityName || 'Entitas Terdaftar'}</h3>
                   <span className="text-xs text-slate-300 font-medium block">
-                    Penanggung Jawab: {profile.contactPerson || 'Mas Doni'} ({profile.phone || '0812-3456-7890'})
+                    Penanggung Jawab: {profile.contactPerson || 'Pengurus'} ({profile.phone || '0812-xxxx-xxxx'})
                   </span>
                 </div>
 
                 <div className="shrink-0">
                   {isApproved ? (
                     <span className="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
-                      🎉 AKUN RESMI AKTIF
+                      AKUN RESMI AKTIF
                     </span>
                   ) : (
                     <span className="px-3.5 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
-                      ⏳ AUDIT SEDANG BERLANGSUNG
+                      AUDIT SEDANG BERLANGSUNG
                     </span>
                   )}
                 </div>
@@ -140,7 +220,7 @@ export default function TrackRegistrationStatusPage() {
               {/* 5-Step Timeline Graphic */}
               <div className="space-y-4 text-xs">
                 <span className="font-black text-amber-300 uppercase tracking-wider block">
-                  📍 Timeline Proses Verifikasi Governance:
+                  Timeline Proses Verifikasi Governance:
                 </span>
 
                 <div className="relative pl-6 space-y-5 border-l-2 border-[#2C5A8F]">
@@ -221,21 +301,21 @@ export default function TrackRegistrationStatusPage() {
               {!isApproved ? (
                 <div className="p-4 bg-[#0F1923] border border-[#2C5A8F] rounded-2xl space-y-2.5 text-center shadow-lg pt-3">
                   <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block">
-                    ⚡ SIMULASI TESTING ACC SUPERADMIN
+                    SIMULASI TESTING ACC SUPERADMIN
                   </span>
                   <button
                     type="button"
                     onClick={handleSimulateApprove}
                     className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>👑 Simulasi SuperAdmin ACC & Aktifkan Akun ➔</span>
+                    <span>Simulasi SuperAdmin ACC & Aktifkan Akun ➔</span>
                   </button>
                 </div>
               ) : (
                 <div className="pt-2">
                   <Link href="/login">
                     <Button variant="gold" size="lg" className="w-full font-black text-slate-950 py-3 text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                      <span>🚀 Masuk Ke Halaman Login ➔</span>
+                      <span>Masuk Ke Halaman Login ➔</span>
                     </Button>
                   </Link>
                 </div>
