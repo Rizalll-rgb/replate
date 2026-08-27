@@ -243,8 +243,10 @@ export default function AboutPage() {
               <span className="text-xs font-black text-[#D4A843] uppercase tracking-widest block">
                 STATISTIK AKUMULATIF SURABAYA
               </span>
-              <h2 className="text-3xl font-black">Capaian Penyelamatan Makanan</h2>
-              <p className="text-xs text-slate-300 max-w-xl mx-auto font-medium">
+              <h2 className="text-3xl sm:text-4xl font-black text-white">
+                Capaian <span className="text-[#D4A843]">Penyelamatan Makanan</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-200 max-w-xl mx-auto font-medium">
                 Data dampak lingkungan dihitung berbasis standar Intergovernmental Panel on Climate Change (IPCC).
               </p>
             </div>
