@@ -56,19 +56,22 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Heading & CTAs */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-semibold text-[#D4A843]">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/90 border border-amber-400/30 text-xs font-black text-[#D4A843] tracking-widest uppercase">
               <span className="w-2 h-2 rounded-full bg-[#D4A843] animate-pulse" />
-              <span>Infinitera 2.0 Web Development Competition</span>
+              <span>REPLATE • DIGITAL FOOD REDISTRIBUTION ECOSYSTEM</span>
             </div>
 
-            {/* High Contrast Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white">
-              Platform Smart <span className="text-[#D4A843]">Redistribusi</span> Makanan Berlebih
+            {/* High Contrast Signature Brand Heading */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
+              Where Surplus <br className="hidden sm:inline" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4A843] via-amber-300 to-[#D4A843]">
+                Finds Purpose.
+              </span>
             </h1>
 
             {/* High Contrast Subtitle */}
-            <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              Menghubungkan Restoran, Bakery, dan Hotel dengan Penerima Manfaat & Komunitas di Surabaya secara aman, cepat, dan transparan — demi mewujudkan ekosistem kota zero-waste.
+            <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
+              Menghubungkan produsen makanan berlebih dengan masyarakat dan lembaga sosial di Surabaya melalui teknologi Smart Matching 2.0, verifikasi higienitas 8-Poin BPOM, dan transparansi logistik real-time.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-3">
