@@ -7,7 +7,7 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
 export default function PublicInfoHubPage() {
-  const [activeTab, setActiveTab] = useState<'CARA_KERJA' | 'BPOM' | 'IPCC' | 'TENTANG_KAMI' | 'FAQ'>('CARA_KERJA');
+  const [activeTab, setActiveTab] = useState<'CARA_KERJA' | 'BPOM' | 'IPCC' | 'FAQ'>('CARA_KERJA');
   const [selectedRoleFlow, setSelectedRoleFlow] = useState<'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER'>('PROVIDER');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -172,7 +172,7 @@ export default function PublicInfoHubPage() {
           </p>
         </div>
 
-        {/* 5 Core Information Tabs */}
+        {/* 4 Core Information Tabs */}
         <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-4xl mx-auto">
           <button
             type="button"
@@ -207,19 +207,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            Dampak IPCC & Kalkulator
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('TENTANG_KAMI')}
-            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
-              activeTab === 'TENTANG_KAMI'
-                ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-900 font-bold'
-            }`}
-          >
-            Ekosistem Mitra
+            Dampak IPCC & 5 SDGs
           </button>
 
           <button
@@ -453,60 +441,70 @@ export default function PublicInfoHubPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Tab 4: Tentang Kami & Ekosistem 25+ Mitra */}
-        {activeTab === 'TENTANG_KAMI' && (
-          <div className="space-y-6">
-            <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-xl font-black text-[#1B3A5C]">
-                Jejaring 25+ Mitra Ekosistem Pangan Surabaya
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                Didukung oleh kolaborasi restoran, hotel, bakery, panti asuhan, dan armada relawan peduli lingkungan di Kota Surabaya:
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                {[
-                  { name: 'Rotiboy Bakery Surabaya', type: 'Mitra Bakery', area: 'Tunjungan', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Rotiboy_logo.png/320px-Rotiboy_logo.png' },
-                  { name: 'Hotel Majapahit Surabaya', type: 'Mitra Hotel', area: 'Embong Malang', logoUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Dapur Catering Bu Rudy', type: 'Mitra Katering', area: 'Dharmahusada', logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Warung Bakso Pak Kumis', type: 'Mitra Restoran', area: 'Gubeng', logoUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Panti Asuhan Kasih Ibu', type: 'Yayasan Sosial', area: 'Wonokromo', logoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Panti Werdha Lansia', type: 'Panti Lansia', area: 'Rungkut', logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Shelter Dhuafa Mandiri', type: 'Shelter Komunitas', area: 'Genteng', logoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Garda Pangan Surabaya', type: 'Relawan Penyelamat', area: 'Surabaya Raya', logoUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=200&auto=format&fit=crop&q=60' },
-                  { name: 'Sinergi Food Rescue', type: 'Armada Komunitas', area: 'Jawa Timur', logoUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&auto=format&fit=crop&q=60' },
-                ].map((item, idx) => (
-                  <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden p-1 shrink-0 shadow-xs">
-                        <img src={item.logoUrl} alt={item.name} className="w-full h-full object-contain rounded-lg" />
-                      </div>
-                      <div>
-                        <h4 className="font-extrabold text-xs text-[#1B3A5C]">{item.name}</h4>
-                        <span className="text-[10px] text-amber-700 font-bold">{item.type}</span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-mono text-slate-400 shrink-0">Area: {item.area}</span>
+              {/* 5 Pillars SDG Alignment Card */}
+              <div className="p-6 bg-[#0F1923] rounded-2xl border border-[#2C5A8F] space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+                  <div>
+                    <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                      TARGET PROPOSAL TERCAPAI
+                    </span>
+                    <h4 className="text-base font-black text-white">
+                      Komitmen 5 Pilar UN Sustainable Development Goals
+                    </h4>
                   </div>
-                ))}
-              </div>
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
+                    5 SDGS READY
+                  </span>
+                </div>
 
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center font-bold text-xs text-amber-900">
-                Dan lebih dari 20+ mitra resto & lembaga panti lainnya di seluruh wilayah Surabaya.
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                    <span className="inline-block px-2 py-0.5 bg-amber-600 text-white font-black text-[10px] rounded">
+                      SDG 2
+                    </span>
+                    <strong className="text-white block text-xs">Zero Hunger</strong>
+                    <p className="text-[11px] text-slate-300">Donasi surplus siap santap untuk panti asuhan & dhuafa.</p>
+                  </div>
 
-              <p className="text-[11px] text-slate-500 text-center italic max-w-xl mx-auto font-medium">
-                *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
-              </p>
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                    <span className="inline-block px-2 py-0.5 bg-orange-600 text-white font-black text-[10px] rounded">
+                      SDG 9
+                    </span>
+                    <strong className="text-white block text-xs">Industri & Inovasi</strong>
+                    <p className="text-[11px] text-slate-300">Smart Matching 2.0 & Geofencing GPS redistribusi pangan.</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                    <span className="inline-block px-2 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded">
+                      SDG 11
+                    </span>
+                    <strong className="text-white block text-xs">Kota Berkelanjutan</strong>
+                    <p className="text-[11px] text-slate-300">Kota sirkular zero-waste & reduksi beban TPA Benowo.</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                    <span className="inline-block px-2 py-0.5 bg-yellow-700 text-white font-black text-[10px] rounded">
+                      SDG 12
+                    </span>
+                    <strong className="text-white block text-xs">Konsumsi Bertanggung Jawab</strong>
+                    <p className="text-[11px] text-slate-300">Target 12.3: Reduksi 50% food waste via Rescue Sale diskon.</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1.5">
+                    <span className="inline-block px-2 py-0.5 bg-emerald-700 text-white font-black text-[10px] rounded">
+                      SDG 13
+                    </span>
+                    <strong className="text-white block text-xs">Aksi Perubahan Iklim</strong>
+                    <p className="text-[11px] text-slate-300">Pencegahan metana (CH4) & reduksi 2.5 kg CO2e/kg pangan.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tab 5: FAQ & Bantuan */}
+        {/* Tab 4: FAQ & Bantuan */}
         {activeTab === 'FAQ' && (
           <div className="space-y-4">
             {faqs.map((faq, idx) => (
