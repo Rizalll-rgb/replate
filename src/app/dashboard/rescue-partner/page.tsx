@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/Button';
 import { ImpactDashboard } from '@/components/impact/ImpactDashboard';
 
 export default function PartnerOverviewPage() {
+  const [isFreshAccount, setIsFreshAccount] = useState(false);
   const [orgName, setOrgName] = useState('Komunitas Foodbank Surabaya Center');
   const [leaderName, setLeaderName] = useState('Mas Rizky Multazam');
 
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
+      setIsFreshAccount(isFresh);
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
@@ -41,13 +45,17 @@ export default function PartnerOverviewPage() {
           </Link>
           <Link href="/dashboard/rescue-partner/requests">
             <Button variant="gold" size="md" className="font-black text-xs text-slate-950">
-              Permintaan Match Baru (2)
+              Permintaan Match Baru ({isFreshAccount ? '0' : '2'})
             </Button>
           </Link>
         </div>
       </div>
 
-      <ImpactDashboard foodWeightKg={103.3} co2SavedKg={258.25} peopleFed={205} />
+      <ImpactDashboard
+        foodWeightKg={isFreshAccount ? 0 : 103.3}
+        co2SavedKg={isFreshAccount ? 0 : 258.25}
+        peopleFed={isFreshAccount ? 0 : 205}
+      />
 
       {/* SMART MATCHING 2.0: TUGAS PENJEMPUTAN RUTE LOGISTIK PALING EFISIEN */}
       <Card className="border-slate-200 shadow-xs rounded-3xl overflow-hidden bg-white">
