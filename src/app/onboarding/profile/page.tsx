@@ -13,12 +13,12 @@ export default function OnboardingProfilePage() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [formData, setFormData] = useState({
-    entityName: 'Komunitas Foodbank Surabaya Center',
-    category: 'COMMUNITY_ORGANIZATION',
-    address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat (Posko Utama)',
-    contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
-    phone: '0812-3456-7890',
-    capacity: '35 Kurir Relawan Aktif',
+    entityName: '',
+    category: 'RESTAURANT',
+    address: '',
+    contactPerson: '',
+    phone: '',
+    capacity: '',
     vehiclePlate: '',
   });
 
@@ -40,50 +40,66 @@ export default function OnboardingProfilePage() {
 
       setRole(detectedRole);
 
-      // Populate Role-specific default values
-      if (detectedRole === 'FOOD_BENEFICIARY') {
-        setFormData({
-          entityName: 'Panti Asuhan Kasih Ibu Surabaya',
-          category: 'YAYASAN_PANTI',
-          address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
-          contactPerson: 'Ibu Hajjah Maryam (Ketua Pengurus)',
-          phone: '0812-3456-7890',
-          capacity: '80 Anak Asuh & Lansia',
-          vehiclePlate: '',
-        });
-      } else if (detectedRole === 'RESCUE_VOLUNTEER') {
-        setFormData({
-          entityName: 'Komunitas Foodbank Surabaya Center',
-          category: 'COMMUNITY_ORGANIZATION',
-          address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat (Posko Utama Logistik)',
-          contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
-          phone: '0812-3456-7890',
-          capacity: '35 Kurir Relawan Aktif',
-          vehiclePlate: '',
-        });
-      } else if (detectedRole === 'FOOD_CONSUMER') {
-        setFormData({
-          entityName: 'Budi Santoso',
-          category: 'STUDENT',
-          address: 'Jl. Ketintang No. 12, Gayungan, Surabaya Pusat',
-          contactPerson: 'Budi Santoso',
-          phone: '0812-3456-7890',
-          capacity: 'Mahasiswa / Anak Kos',
-          vehiclePlate: '',
-        });
-      } else {
-        setFormData({
-          entityName: 'Warung Bakso Pak Kumis Surabaya',
-          category: 'RESTAURANT',
-          address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
-          contactPerson: 'Mas Doni (Penanggung Jawab Outlet)',
-          phone: '0812-3456-7890',
-          capacity: '50 Porsi / Hari',
-          vehiclePlate: '',
-        });
-      }
+      let defaultCategory = 'RESTAURANT';
+      if (detectedRole === 'FOOD_BENEFICIARY') defaultCategory = 'YAYASAN_PANTI';
+      else if (detectedRole === 'RESCUE_VOLUNTEER') defaultCategory = 'COMMUNITY_ORGANIZATION';
+      else if (detectedRole === 'FOOD_CONSUMER') defaultCategory = 'STUDENT';
+
+      setFormData({
+        entityName: '',
+        category: defaultCategory,
+        address: '',
+        contactPerson: '',
+        phone: '',
+        capacity: '',
+        vehiclePlate: '',
+      });
     }
   }, []);
+
+  const handleQuickFillDemo = () => {
+    if (role === 'FOOD_BENEFICIARY') {
+      setFormData({
+        entityName: 'Panti Asuhan Kasih Ibu Surabaya',
+        category: 'YAYASAN_PANTI',
+        address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
+        contactPerson: 'Ibu Hajjah Maryam (Ketua Pengurus)',
+        phone: '0812-3456-7890',
+        capacity: '80 Anak Asuh & Lansia',
+        vehiclePlate: '',
+      });
+    } else if (role === 'RESCUE_VOLUNTEER') {
+      setFormData({
+        entityName: 'Komunitas Foodbank Surabaya Center',
+        category: 'COMMUNITY_ORGANIZATION',
+        address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat',
+        contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
+        phone: '0812-3456-7890',
+        capacity: '35 Kurir Relawan Aktif',
+        vehiclePlate: '',
+      });
+    } else if (role === 'FOOD_CONSUMER') {
+      setFormData({
+        entityName: 'Budi Santoso',
+        category: 'STUDENT',
+        address: 'Jl. Ketintang No. 12, Gayungan, Surabaya Pusat',
+        contactPerson: 'Budi Santoso',
+        phone: '0812-3456-7890',
+        capacity: 'Mahasiswa / Anak Kos',
+        vehiclePlate: '',
+      });
+    } else {
+      setFormData({
+        entityName: 'Warung Bakso Pak Kumis Surabaya',
+        category: 'RESTAURANT',
+        address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
+        contactPerson: 'Mas Doni (Penanggung Jawab Outlet)',
+        phone: '0812-3456-7890',
+        capacity: '50 Porsi / Hari',
+        vehiclePlate: '',
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,13 +171,22 @@ export default function OnboardingProfilePage() {
 
         {/* High-Contrast Container Card */}
         <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="border-b border-[#2C5A8F] pb-3 flex items-center justify-between">
+          <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <span>🏪 Detail Identitas Operasional Resmi</span>
+              <span>Detail Identitas Operasional Resmi</span>
             </h3>
-            <span className="text-xs bg-slate-900 text-amber-300 font-mono font-bold px-2.5 py-1 rounded-lg border border-slate-700">
-              ROLE: {role}
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleQuickFillDemo}
+                className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
+              >
+                ⚡ Isi Contoh Simulasi Demo
+              </button>
+              <span className="text-xs bg-slate-900 text-amber-300 font-mono font-bold px-2.5 py-1 rounded-lg border border-slate-700">
+                ROLE: {role}
+              </span>
+            </div>
           </div>
 
           {successMessage && (
@@ -187,7 +212,15 @@ export default function OnboardingProfilePage() {
                 value={formData.entityName}
                 onChange={(e) => setFormData({ ...formData, entityName: e.target.value })}
                 className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                placeholder={isVolunteer ? 'Contoh: Komunitas Garda Pangan Surabaya' : 'Nama lengkap entitas'}
+                placeholder={
+                  isBeneficiary
+                    ? 'Contoh: Panti Asuhan Kasih Ibu Surabaya'
+                    : isVolunteer
+                    ? 'Contoh: Komunitas Garda Pangan Surabaya'
+                    : isConsumer
+                    ? 'Contoh: Budi Santoso'
+                    : 'Contoh: Warung Bakso Pak Kumis'
+                }
                 required
               />
             </div>
@@ -249,10 +282,12 @@ export default function OnboardingProfilePage() {
                   className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
                   placeholder={
                     isBeneficiary
-                      ? '80 Anak Asuh'
+                      ? 'Contoh: 80 Anak Asuh'
                       : isVolunteer
-                      ? '35 Kurir Relawan'
-                      : '50 Porsi / Hari'
+                      ? 'Contoh: 35 Kurir Relawan'
+                      : isConsumer
+                      ? 'Contoh: Mahasiswa / Pekerja'
+                      : 'Contoh: 50 Porsi / Hari'
                   }
                   required
                 />
@@ -273,7 +308,7 @@ export default function OnboardingProfilePage() {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                placeholder="Jl. Ketintang No. 12, Gayungan, Surabaya..."
+                placeholder="Contoh: Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat..."
                 required
               />
             </div>
@@ -288,7 +323,7 @@ export default function OnboardingProfilePage() {
                   value={formData.contactPerson}
                   onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                   className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder="Nama lengkap kamu"
+                  placeholder="Contoh: Budi Santoso"
                   required
                 />
               </div>
@@ -302,7 +337,7 @@ export default function OnboardingProfilePage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder="0812-xxxx-xxxx"
+                  placeholder="Contoh: 0812-3456-7890"
                   required
                 />
               </div>

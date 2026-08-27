@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '081234567890',
+    phone: '',
     password: '',
     confirmPassword: '',
     role: 'FOOD_PROVIDER' as Role,

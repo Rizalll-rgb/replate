@@ -11,10 +11,10 @@ export default function OnboardingPendingReviewPage() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<any>({
-    entityName: 'Warung Bakso Pak Kumis Surabaya',
+    entityName: 'Entitas Pendaftar Baru',
     category: 'RESTAURANT',
-    address: 'Jl. Raya Gubeng No. 88, Surabaya',
-    contactPerson: 'Mas Doni',
+    address: 'Surabaya',
+    contactPerson: 'Penanggung Jawab',
   });
 
   const [regId, setRegId] = useState<string>('REPLATE-REG-2026-9812');
