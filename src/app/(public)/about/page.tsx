@@ -14,6 +14,8 @@ export default function AboutPage() {
   });
 
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<'ALL' | 'FOOD_PROVIDER' | 'RESCUE_VOLUNTEER' | 'FOOD_BENEFICIARY'>('ALL');
+  const [carouselPage, setCarouselPage] = useState<number>(0);
+  const itemsPerPage = 3;
 
   useEffect(() => {
     try {
@@ -196,10 +198,21 @@ export default function AboutPage() {
     },
   ];
 
+  const handleRoleFilterChange = (filter: 'ALL' | 'FOOD_PROVIDER' | 'RESCUE_VOLUNTEER' | 'FOOD_BENEFICIARY') => {
+    setSelectedRoleFilter(filter);
+    setCarouselPage(0);
+  };
+
   const filteredPartners = ecosystemPartners.filter((item) => {
     if (selectedRoleFilter === 'ALL') return true;
     return item.category === selectedRoleFilter;
   });
+
+  const totalCarouselPages = Math.max(1, Math.ceil(filteredPartners.length / itemsPerPage));
+  const currentVisiblePartners = filteredPartners.slice(
+    carouselPage * itemsPerPage,
+    carouselPage * itemsPerPage + itemsPerPage
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
@@ -285,8 +298,8 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* SECTION: JEJARING EKOSISTEM MITRA BERDASARKAN ROLE */}
-        <section className="space-y-8 overflow-hidden py-4">
+        {/* SECTION: JEJARING EKOSISTEM MITRA BERDASARKAN ROLE (MAX 3 CARD CAROUSEL) */}
+        <section className="space-y-8 py-6">
           <div className="max-w-6xl mx-auto px-4 text-center space-y-3">
             <span className="text-xs font-black text-[#D4A843] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full uppercase tracking-widest inline-block">
               JARINGAN EKOSISTEM MULTI-PIHAK
@@ -302,7 +315,7 @@ export default function AboutPage() {
             <div className="flex flex-wrap items-center justify-center gap-2 pt-3">
               <button
                 type="button"
-                onClick={() => setSelectedRoleFilter('ALL')}
+                onClick={() => handleRoleFilterChange('ALL')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                   selectedRoleFilter === 'ALL'
                     ? 'bg-[#1B3A5C] text-white shadow-md'
@@ -314,7 +327,7 @@ export default function AboutPage() {
 
               <button
                 type="button"
-                onClick={() => setSelectedRoleFilter('FOOD_PROVIDER')}
+                onClick={() => handleRoleFilterChange('FOOD_PROVIDER')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                   selectedRoleFilter === 'FOOD_PROVIDER'
                     ? 'bg-blue-600 text-white shadow-md'
@@ -326,7 +339,7 @@ export default function AboutPage() {
 
               <button
                 type="button"
-                onClick={() => setSelectedRoleFilter('RESCUE_VOLUNTEER')}
+                onClick={() => handleRoleFilterChange('RESCUE_VOLUNTEER')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                   selectedRoleFilter === 'RESCUE_VOLUNTEER'
                     ? 'bg-purple-700 text-white shadow-md'
@@ -338,7 +351,7 @@ export default function AboutPage() {
 
               <button
                 type="button"
-                onClick={() => setSelectedRoleFilter('FOOD_BENEFICIARY')}
+                onClick={() => handleRoleFilterChange('FOOD_BENEFICIARY')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                   selectedRoleFilter === 'FOOD_BENEFICIARY'
                     ? 'bg-emerald-600 text-white shadow-md'
@@ -350,10 +363,48 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Categorized / Filtered Partners Grid Layout */}
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPartners.map((partner, idx) => (
+          {/* Interactive 3-Card Carousel Container */}
+          <div className="max-w-6xl mx-auto px-4 space-y-6">
+            {/* Header Navigation Controls */}
+            <div className="flex items-center justify-between px-2">
+              <span className="text-xs font-bold text-slate-500">
+                Menampilkan {currentVisiblePartners.length} dari total {filteredPartners.length} mitra (Halaman {carouselPage + 1} dari {totalCarouselPages})
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCarouselPage((prev) => Math.max(0, prev - 1))}
+                  disabled={carouselPage === 0}
+                  className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm transition-all ${
+                    carouselPage === 0
+                      ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                      : 'border-[#1B3A5C] text-[#1B3A5C] bg-white hover:bg-[#1B3A5C] hover:text-white shadow-xs cursor-pointer'
+                  }`}
+                  aria-label="Previous Slide"
+                >
+                  ❮
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCarouselPage((prev) => Math.min(totalCarouselPages - 1, prev + 1))}
+                  disabled={carouselPage >= totalCarouselPages - 1}
+                  className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm transition-all ${
+                    carouselPage >= totalCarouselPages - 1
+                      ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                      : 'border-[#1B3A5C] text-[#1B3A5C] bg-white hover:bg-[#1B3A5C] hover:text-white shadow-xs cursor-pointer'
+                  }`}
+                  aria-label="Next Slide"
+                >
+                  ❯
+                </button>
+              </div>
+            </div>
+
+            {/* Exactly 3 Cards Grid View */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all duration-300">
+              {currentVisiblePartners.map((partner, idx) => (
                 <div
                   key={idx}
                   className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
@@ -378,7 +429,7 @@ export default function AboutPage() {
                       <span className="text-[10px] text-slate-400 font-medium block">{partner.location}</span>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium min-h-[48px]">
                       {partner.desc}
                     </p>
                   </div>
@@ -390,30 +441,25 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Infinite Marquee Slider Track for Interactive Visual Experience */}
-          <div className="relative w-full overflow-hidden py-4 border-t border-b border-slate-200 bg-slate-100/60">
-            <div className="flex gap-4 animate-marquee whitespace-nowrap hover:pause">
-              {[...ecosystemPartners, ...ecosystemPartners].map((partner, idx) => (
-                <div
-                  key={idx}
-                  className="inline-flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-200 shadow-xs min-w-[240px] shrink-0"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden p-1 shrink-0">
-                    <img
-                      src={partner.logoUrl}
-                      alt={partner.name}
-                      className="w-full h-full object-contain rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-0.5 truncate">
-                    <h4 className="text-xs font-black text-[#1B3A5C] truncate">{partner.name}</h4>
-                    <span className="text-[10px] font-bold text-slate-500 block truncate">{partner.type}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* Carousel Dot Pagination Indicators */}
+            {totalCarouselPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                {Array.from({ length: totalCarouselPages }).map((_, dotIdx) => (
+                  <button
+                    key={dotIdx}
+                    type="button"
+                    onClick={() => setCarouselPage(dotIdx)}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                      carouselPage === dotIdx
+                        ? 'w-8 bg-[#1B3A5C]'
+                        : 'w-2.5 bg-slate-300 hover:bg-slate-400'
+                    }`}
+                    aria-label={`Slide ${dotIdx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
