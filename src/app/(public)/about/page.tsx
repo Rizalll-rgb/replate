@@ -13,6 +13,8 @@ export default function AboutPage() {
     ch4Kg: 22719,
   });
 
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<'ALL' | 'FOOD_PROVIDER' | 'RESCUE_VOLUNTEER' | 'FOOD_BENEFICIARY'>('ALL');
+
   useEffect(() => {
     try {
       const localSurplus = localStorage.getItem('replate_local_surplus');
@@ -57,70 +59,147 @@ export default function AboutPage() {
   ];
 
   const ecosystemPartners = [
+    // 1. Food Provider (Penyedia Pangan)
     {
       name: 'Rotiboy Bakery Surabaya',
-      category: 'Food Provider',
+      category: 'FOOD_PROVIDER' as const,
+      roleLabel: 'Food Provider',
       location: 'Tunjungan Plaza, Surabaya',
       logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Rotiboy_logo.png/320px-Rotiboy_logo.png',
-      type: 'Mitra Bakery',
+      type: 'Mitra Bakery & Roti',
+      badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
+      desc: 'Redistribusi surplus pastry fresh-baked harian & rotiboy butter steril.',
     },
     {
       name: 'Hotel Majapahit Surabaya',
-      category: 'Food Provider',
+      category: 'FOOD_PROVIDER' as const,
+      roleLabel: 'Food Provider',
       location: 'Embong Malang, Surabaya',
       logoUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=60',
-      type: 'Mitra Perhotelan',
+      type: 'Mitra Perhotelan (Buffet)',
+      badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
+      desc: 'Penyaluran surplus buffet & jamuan katering hotel bintang 5.',
     },
     {
       name: 'Dapur Katering Bu Rudy',
-      category: 'Food Provider',
+      category: 'FOOD_PROVIDER' as const,
+      roleLabel: 'Food Provider',
       location: 'Dharmahusada, Surabaya',
       logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=60',
-      type: 'Mitra Katering',
+      type: 'Mitra Katering & Kuliner',
+      badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
+      desc: 'Donasi porsi makanan siap santap & paket nasi kotak nusantara.',
     },
     {
       name: 'Warung Bakso Pak Kumis',
-      category: 'Food Provider',
-      location: 'Gubeng, Surabaya',
+      category: 'FOOD_PROVIDER' as const,
+      roleLabel: 'Food Provider',
+      location: 'Gubeng Kali, Surabaya',
       logoUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&auto=format&fit=crop&q=60',
-      type: 'Mitra Restoran',
+      type: 'Mitra Restoran Lokal',
+      badgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
+      desc: 'Pelopor Rescue Sale kuah bakso & menu siap santap higienis.',
     },
+
+    // 2. Rescue Volunteer & Food Banks (Armada Relawan & Food Bank)
     {
-      name: 'Panti Asuhan Kasih Ibu',
-      category: 'Food Beneficiary',
-      location: 'Wonokromo, Surabaya',
-      logoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&auto=format&fit=crop&q=60',
-      type: 'Lembaga Sosial',
-    },
-    {
-      name: 'Panti Werdha Lansia Sejahtera',
-      category: 'Food Beneficiary',
-      location: 'Rungkut, Surabaya',
-      logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60',
-      type: 'Panti Lansia',
-    },
-    {
-      name: 'Shelter Dhuafa & Mandiri',
-      category: 'Food Beneficiary',
-      location: 'Genteng, Surabaya',
+      name: 'Foodbank of Indonesia (FOI)',
+      category: 'RESCUE_VOLUNTEER' as const,
+      roleLabel: 'Rescue Volunteer / Food Bank',
+      location: 'Jejaring Nasional & Jawa Timur',
       logoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&auto=format&fit=crop&q=60',
-      type: 'Shelter Komunitas',
+      type: 'Organisasi Food Bank Nasional',
+      badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+      desc: 'Membuka akses pangan merata dan pencegahan kelaparan balita & lansia.',
     },
     {
       name: 'Garda Pangan Surabaya',
-      category: 'Rescue Partner',
+      category: 'RESCUE_VOLUNTEER' as const,
+      roleLabel: 'Rescue Volunteer / Food Bank',
       location: 'Surabaya Raya',
       logoUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=200&auto=format&fit=crop&q=60',
-      type: 'Relawan Penyelamat',
+      type: 'Food Rescue Community',
+      badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+      desc: 'Penyelamatan makanan berlebih dari industri hospitality di Surabaya.',
+    },
+    {
+      name: 'Food Bank Bandung (FBB)',
+      category: 'RESCUE_VOLUNTEER' as const,
+      roleLabel: 'Rescue Volunteer / Food Bank',
+      location: 'Jejaring Antar-Kota',
+      logoUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=60',
+      type: 'Jejaring Food Bank Regional',
+      badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+      desc: 'Benchmarking & integrasi standar logistik pangan darurat perkotaan.',
+    },
+    {
+      name: 'FoodCycle Indonesia',
+      category: 'RESCUE_VOLUNTEER' as const,
+      roleLabel: 'Rescue Volunteer / Food Bank',
+      location: 'Jejaring Nasional',
+      logoUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&auto=format&fit=crop&q=60',
+      type: 'Food Rescue Non-Profit',
+      badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+      desc: 'Mendistribusikan makanan berlebih dari pernikahan, event, & bakery.',
     },
     {
       name: 'Sinergi Food Rescue Jatim',
-      category: 'Rescue Partner',
-      location: 'Jawa Timur',
+      category: 'RESCUE_VOLUNTEER' as const,
+      roleLabel: 'Rescue Volunteer / Food Bank',
+      location: 'Jawa Timur Hub',
       logoUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&auto=format&fit=crop&q=60',
-      type: 'Armada Komunitas',
+      type: 'Armada Relawan Logistik',
+      badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+      desc: 'Pengantaran cepat menggunakan motor box pendingin & cooler bag steril.',
+    },
+
+    // 3. Food Beneficiary (Panti Asuhan, Yayasan & Shelter)
+    {
+      name: 'Yayasan Surplus Peduli Pangan',
+      category: 'FOOD_BENEFICIARY' as const,
+      roleLabel: 'Food Beneficiary',
+      location: 'Jawa Timur',
+      logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60',
+      type: 'Yayasan Penyaluran Sosial',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      desc: 'Penyaluran terstruktur untuk keluarga prasejahtera & kelompok rentan.',
+    },
+    {
+      name: 'Panti Asuhan Kasih Ibu',
+      category: 'FOOD_BENEFICIARY' as const,
+      roleLabel: 'Food Beneficiary',
+      location: 'Wonokromo, Surabaya',
+      logoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&auto=format&fit=crop&q=60',
+      type: 'Panti Asuhan Yatim Piatu',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      desc: 'Penerima manfaat 45 anak asuh terverifikasi Dinsos Kota Surabaya.',
+    },
+    {
+      name: 'Panti Werdha Lansia Sejahtera',
+      category: 'FOOD_BENEFICIARY' as const,
+      roleLabel: 'Food Beneficiary',
+      location: 'Rungkut, Surabaya',
+      logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60',
+      type: 'Panti Werdha & Lansia',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      desc: 'Penyaluran makanan lunak bernutrisi untuk 30 lansia dhuafa.',
+    },
+    {
+      name: 'Shelter Dhuafa & Anak Jalanan Mandiri',
+      category: 'FOOD_BENEFICIARY' as const,
+      roleLabel: 'Food Beneficiary',
+      location: 'Genteng, Surabaya',
+      logoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&auto=format&fit=crop&q=60',
+      type: 'Shelter Rumah Singgah',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      desc: 'Posko pembagian makan malam sehat untuk 25 anak jalanan & dhuafa.',
     },
   ];
+
+  const filteredPartners = ecosystemPartners.filter((item) => {
+    if (selectedRoleFilter === 'ALL') return true;
+    return item.category === selectedRoleFilter;
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
@@ -150,53 +229,53 @@ export default function AboutPage() {
           </div>
 
           <div className="bg-white border border-slate-200 p-8 space-y-4 shadow-xs rounded-3xl">
-            <h3 className="text-xl font-black text-[#1B3A5C]">Inovasi Unggulan Platform</h3>
-            <ul className="list-disc list-inside text-xs text-slate-600 space-y-2 font-medium leading-relaxed">
-              <li><strong>Smart Matching Engine 2.0:</strong> Algoritma pencocokan multi-kriteria berbasis jarak GPS & kapasitas panti.</li>
-              <li><strong>SOP 8-Poin Kelayakan BPOM:</strong> Protokol higienitas mutu pangan & suhu simpan standar BPOM RI.</li>
-              <li><strong>Surat Jalan Digital WA:</strong> Rute kurir armada tanpa login via WhatsApp.</li>
-              <li><strong>Verifikasi QR Barcode Anti-Fraud:</strong> Sistem pindaian payload terenkripsi serah terima pangan.</li>
-              <li><strong>Kalkulator Jejak Karbon IPCC:</strong> Perhitungan otomatis reduksi gas metana (CH4) & emisi CO2e.</li>
-            </ul>
+            <h3 className="text-xl font-black text-[#1B3A5C]">Inovasi Teknologi 2026</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Mengintegrasikan algoritma <strong>Smart Matching Engine 2.0</strong>, validasi kepatuhan <strong>8-Poin SOP Higienitas BPOM RI</strong>, sistem <strong>Meja Kasir POS & Scan QR</strong>, serta pelacakan surat jalan real-time demi mewujudkan ekosistem kota zero-waste.
+            </p>
           </div>
         </div>
 
-        {/* Section Dampak Lingkungan & Jejak Karbon (Dynamic IPCC Real Calculation) */}
+        {/* Live Aggregated Metrics */}
         <section className="bg-[#1B3A5C] text-white py-16">
-          <div className="max-w-5xl mx-auto px-4 space-y-10">
+          <div className="max-w-6xl mx-auto px-4 space-y-10">
             <div className="text-center space-y-2">
               <span className="text-xs font-black text-[#D4A843] uppercase tracking-widest block">
-                METODOLOGI IPCC & SUSTAINABLE DEVELOPMENT GOALS
+                STATISTIK AKUMULATIF SURABAYA
               </span>
-              <h2 className="text-3xl font-black text-white">Dampak Lingkungan & Pengurangan Emisi Karbon</h2>
+              <h2 className="text-3xl font-black">Capaian Penyelamatan Makanan</h2>
               <p className="text-xs text-slate-300 max-w-xl mx-auto font-medium">
-                Kalkulasi otomatis secara real-time dari total surplus pangan yang terdistribusi steril di sistem Replate.
+                Data dampak lingkungan dihitung berbasis standar Intergovernmental Panel on Climate Change (IPCC).
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-              <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
-                <span className="text-3xl font-black text-[#D4A843] block font-mono">
-                  {stats.portions.toLocaleString('id-ID')} Porsi
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="bg-[#0F1923] p-6 rounded-3xl border border-[#2C5A8F] text-center space-y-2 shadow-md">
+                <span className="text-3xl sm:text-4xl font-black text-[#D4A843] font-mono block">
+                  {stats.portions.toLocaleString('id-ID')}
                 </span>
-                <strong className="text-sm text-white block">Porsi Makanan Diselamatkan</strong>
-                <p className="text-[11px] text-slate-300">Teredistribusi steril kepada ribuan penerima manfaat.</p>
+                <h4 className="text-sm font-extrabold text-white">Total Porsi Makanan</h4>
+                <p className="text-xs text-slate-300 font-medium">
+                  Berhasil diselamatkan dan dinikmati penerima manfaat.
+                </p>
               </div>
 
-              <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
-                <span className="text-3xl font-black text-emerald-400 block font-mono">
+              <div className="bg-[#0F1923] p-6 rounded-3xl border border-[#2C5A8F] text-center space-y-2 shadow-md">
+                <span className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono block">
                   {stats.foodWasteKg.toLocaleString('id-ID')} kg
                 </span>
-                <strong className="text-sm text-white block">Food Waste Dicegah ke TPA</strong>
-                <p className="text-[11px] text-slate-300">Mencegah beban timbulan sampah TPA Benowo.</p>
+                <h4 className="text-sm font-extrabold text-white">Food Waste Tercegah</h4>
+                <p className="text-xs text-slate-300 font-medium">
+                  Timbulan sampah organik yang dialihkan dari TPA Benowo.
+                </p>
               </div>
 
-              <div className="p-6 bg-[#142C47] rounded-3xl border border-[#2C5A8F] space-y-2">
-                <span className="text-3xl font-black text-cyan-400 block font-mono">
-                  {stats.co2eKg.toLocaleString('id-ID')} kg CO2e
+              <div className="bg-[#0F1923] p-6 rounded-3xl border border-[#2C5A8F] text-center space-y-2 shadow-md">
+                <span className="text-3xl sm:text-4xl font-black text-cyan-400 font-mono block">
+                  {stats.co2eKg.toLocaleString('id-ID')} kg
                 </span>
-                <strong className="text-sm text-white block">Emisi Gas Rumah Kaca Dicegah</strong>
-                <p className="text-[11px] text-slate-300">
+                <h4 className="text-sm font-extrabold text-white">Reduksi Emisi CO2e</h4>
+                <p className="text-xs text-slate-300 font-medium">
                   Termasuk pencegahan ~{stats.ch4Kg.toLocaleString('id-ID')} kg gas metana (CH4).
                 </p>
               </div>
@@ -204,58 +283,136 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Section 25+ Jaringan Ekosistem Mitra Surabaya (Infinite Auto-Scrolling Logo Slider Marquee) */}
-        <section className="space-y-6 overflow-hidden py-4">
-          <div className="max-w-6xl mx-auto px-4 text-center space-y-2">
+        {/* SECTION: JEJARING EKOSISTEM MITRA BERDASARKAN ROLE */}
+        <section className="space-y-8 overflow-hidden py-4">
+          <div className="max-w-6xl mx-auto px-4 text-center space-y-3">
             <span className="text-xs font-black text-[#D4A843] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full uppercase tracking-widest inline-block">
-              JARINGAN EKOSISTEM SURABAYA
+              JARINGAN EKOSISTEM MULTI-PIHAK
             </span>
-            <h2 className="text-3xl font-black text-[#1B3A5C]">25+ Mitra Provider, Yayasan & Relawan Aktif</h2>
-            <p className="text-xs text-slate-500 max-w-xl mx-auto font-medium">
-              Didukung oleh jejaring restoran, hotel berbintang, lembaga panti asuhan, dan armada komunitas peduli pangan Surabaya.
+            <h2 className="text-3xl sm:text-4xl font-black text-[#1B3A5C]">
+              Jejaring Mitra Kolaborasi Replate
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
+              Kolaborasi terintegrasi antara <strong>Food Provider</strong> (Resto, Bakery & Hotel), <strong>Food Rescue Volunteer</strong> (Foodbank of Indonesia, Garda Pangan, FBB, FoodCycle), dan <strong>Food Beneficiary</strong> (Yayasan Surplus Peduli Pangan, Panti Asuhan & Shelter).
             </p>
+
+            {/* Role Filter Tabs Bar */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-3">
+              <button
+                type="button"
+                onClick={() => setSelectedRoleFilter('ALL')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedRoleFilter === 'ALL'
+                    ? 'bg-[#1B3A5C] text-white shadow-md'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                Semua Mitra ({ecosystemPartners.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRoleFilter('FOOD_PROVIDER')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedRoleFilter === 'FOOD_PROVIDER'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white text-blue-900 border border-blue-200 hover:bg-blue-50'
+                }`}
+              >
+                Food Provider (4)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRoleFilter('RESCUE_VOLUNTEER')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedRoleFilter === 'RESCUE_VOLUNTEER'
+                    ? 'bg-purple-700 text-white shadow-md'
+                    : 'bg-white text-purple-900 border border-purple-200 hover:bg-purple-50'
+                }`}
+              >
+                Rescue Volunteer & Food Bank (5)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRoleFilter('FOOD_BENEFICIARY')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedRoleFilter === 'FOOD_BENEFICIARY'
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50'
+                }`}
+              >
+                Food Beneficiary / Yayasan (4)
+              </button>
+            </div>
           </div>
 
-          {/* Marquee Slider Track */}
-          <div className="relative w-full overflow-hidden py-4">
+          {/* Categorized / Filtered Partners Grid Layout */}
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPartners.map((partner, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden p-1.5 shadow-inner shrink-0">
+                        <img
+                          src={partner.logoUrl}
+                          alt={partner.name}
+                          className="w-full h-full object-contain rounded-xl"
+                        />
+                      </div>
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border shadow-2xs ${partner.badgeColor}`}>
+                        {partner.roleLabel}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h4 className="text-base font-black text-[#1B3A5C] leading-snug">{partner.name}</h4>
+                      <span className="text-[11px] font-bold text-amber-700 block">{partner.type}</span>
+                      <span className="text-[10px] text-slate-400 font-medium block">{partner.location}</span>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                      {partner.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <span>Status Kemitraan:</span>
+                    <span className="text-emerald-700 font-black">✓ Terverifikasi Replate</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Infinite Marquee Slider Track for Interactive Visual Experience */}
+          <div className="relative w-full overflow-hidden py-4 border-t border-b border-slate-200 bg-slate-100/60">
             <div className="flex gap-4 animate-marquee whitespace-nowrap hover:pause">
               {[...ecosystemPartners, ...ecosystemPartners].map((partner, idx) => (
                 <div
                   key={idx}
-                  className="inline-flex flex-col items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 text-center shadow-xs min-w-[210px] shrink-0 space-y-2.5"
+                  className="inline-flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-200 shadow-xs min-w-[240px] shrink-0"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden p-1 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden p-1 shrink-0">
                     <img
                       src={partner.logoUrl}
                       alt={partner.name}
-                      className="w-full h-full object-contain rounded-xl"
+                      className="w-full h-full object-contain rounded-lg"
                     />
                   </div>
-                  <div className="space-y-0.5">
-                    <h4 className="text-xs font-black text-[#1B3A5C] truncate max-w-[180px]">{partner.name}</h4>
-                    <span className="text-[10px] font-bold text-amber-700 block">{partner.type}</span>
-                    <span className="text-[9px] text-slate-400 block truncate">{partner.location}</span>
+                  <div className="space-y-0.5 truncate">
+                    <h4 className="text-xs font-black text-[#1B3A5C] truncate">{partner.name}</h4>
+                    <span className="text-[10px] font-bold text-slate-500 block truncate">{partner.type}</span>
                   </div>
                 </div>
               ))}
-
-              {/* And Many More Card */}
-              <div className="inline-flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl border border-[#1B3A5C] text-center shadow-md min-w-[210px] shrink-0 space-y-1">
-                <span className="text-xs font-black px-2 py-1 bg-amber-400 text-slate-950 rounded-md">PLUS 20+</span>
-                <h4 className="text-xs font-black text-amber-300">
-                  Mitra Lainnya
-                </h4>
-                <p className="text-[10px] text-slate-200 font-medium leading-tight">
-                  (and many more partners...)
-                </p>
-              </div>
             </div>
           </div>
-
-          {/* Disclaimer Note */}
-          <p className="text-[11px] text-slate-500 text-center italic max-w-xl mx-auto font-medium">
-            *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
-          </p>
         </section>
 
         {/* Section Tim Dibalik Replate */}

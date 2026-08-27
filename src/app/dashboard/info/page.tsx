@@ -9,7 +9,7 @@ export default function DashboardInfoHubPage() {
   const { data: session } = useSession();
   const userRole = session?.user?.role || 'CONSUMER';
 
-  const [activeTab, setActiveTab] = useState<'CARA_KERJA' | 'BPOM' | 'IPCC' | 'TENTANG_KAMI' | 'FAQ'>('CARA_KERJA');
+  const [activeTab, setActiveTab] = useState<'CARA_KERJA' | 'BPOM' | 'IPCC' | 'FAQ'>('CARA_KERJA');
   const [selectedRoleFlow, setSelectedRoleFlow] = useState<'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER'>('PROVIDER');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -210,19 +210,7 @@ export default function DashboardInfoHubPage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          Dampak IPCC & Kalkulator
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('TENTANG_KAMI')}
-          className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
-            activeTab === 'TENTANG_KAMI'
-              ? 'bg-[#1B3A5C] text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-900 font-bold'
-          }`}
-        >
-          Ekosistem Mitra
+          Dampak IPCC & 5 SDGs
         </button>
 
         <button
@@ -519,56 +507,7 @@ export default function DashboardInfoHubPage() {
         </div>
       )}
 
-      {/* Tab 4: Tentang Kami & Ekosistem 25+ Mitra */}
-      {activeTab === 'TENTANG_KAMI' && (
-        <div className="space-y-6">
-          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-xl font-black text-[#1B3A5C]">
-              Jejaring 25+ Mitra Ekosistem Pangan Surabaya
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              Didukung oleh kolaborasi restoran, hotel, bakery, panti asuhan, dan armada relawan peduli lingkungan di Kota Surabaya:
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-              {[
-                { name: 'Rotiboy Bakery Surabaya', type: 'Mitra Bakery', area: 'Tunjungan', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Rotiboy_logo.png/320px-Rotiboy_logo.png' },
-                { name: 'Hotel Majapahit Surabaya', type: 'Mitra Hotel', area: 'Embong Malang', logoUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Dapur Catering Bu Rudy', type: 'Mitra Katering', area: 'Dharmahusada', logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Warung Bakso Pak Kumis', type: 'Mitra Restoran', area: 'Gubeng', logoUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Panti Asuhan Kasih Ibu', type: 'Yayasan Sosial', area: 'Wonokromo', logoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Panti Werdha Lansia', type: 'Panti Lansia', area: 'Rungkut', logoUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Shelter Dhuafa Mandiri', type: 'Shelter Komunitas', area: 'Genteng', logoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Garda Pangan Surabaya', type: 'Relawan Penyelamat', area: 'Surabaya Raya', logoUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=200&auto=format&fit=crop&q=60' },
-                { name: 'Sinergi Food Rescue', type: 'Armada Komunitas', area: 'Jawa Timur', logoUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&auto=format&fit=crop&q=60' },
-              ].map((item, idx) => (
-                <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden p-1 shrink-0 shadow-xs">
-                      <img src={item.logoUrl} alt={item.name} className="w-full h-full object-contain rounded-lg" />
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-xs text-[#1B3A5C]">{item.name}</h4>
-                      <span className="text-[10px] text-amber-700 font-bold">{item.type}</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-400 shrink-0">Area: {item.area}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center font-bold text-xs text-amber-900">
-              Dan lebih dari 20+ mitra resto & lembaga panti lainnya di seluruh wilayah Surabaya.
-            </div>
-
-            <p className="text-[11px] text-slate-500 text-center italic max-w-xl mx-auto font-medium">
-              *Catatan: Logo mitra dan lembaga sosial di atas ditampilkan sebagai visualisasi contoh simulasi ekosistem platform Replate.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 5: FAQ & Bantuan */}
+      {/* Tab 4: FAQ & Bantuan */}
       {activeTab === 'FAQ' && (
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
