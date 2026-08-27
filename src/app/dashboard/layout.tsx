@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (r === 'PROVIDER' || r === 'FOOD_PROVIDER') return 'Food Provider';
     if (r === 'BENEFICIARY' || r === 'FOOD_BENEFICIARY' || r === 'YAYASAN') return 'Food Beneficiary';
     if (r === 'CONSUMER' || r === 'FOOD_CONSUMER') return 'Food Consumer';
-    if (r === 'VOLUNTEER' || r === 'RESCUE_VOLUNTEER' || r === 'RESCUE_PARTNER') return 'Rescue Volunteer';
+    if (r === 'VOLUNTEER' || r === 'RESCUE_VOLUNTEER' || r === 'RESCUE_PARTNER') return 'Food Rescue Volunteer';
     if (r === 'ADMIN' || r === 'SUPER_ADMIN') return 'SuperAdmin';
     return rawRole.replace(/_/g, ' ');
   };
