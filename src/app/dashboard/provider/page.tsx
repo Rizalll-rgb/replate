@@ -128,6 +128,26 @@ export default function ProviderOverviewPage() {
       localClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
     } catch (_) {}
 
+    const isFresh = typeof window !== 'undefined' && localStorage.getItem('replate_is_fresh_account') === 'true';
+
+    if (isFresh) {
+      const activeItems = localItems.filter((item) => item.status === 'AVAILABLE' || !item.status);
+      setActiveSurplusCount(activeItems.length);
+
+      const calculatedWeight = localItems.reduce((acc, curr) => {
+        const qty = Number(curr.quantity || 15);
+        const weightUnit = Number(curr.weightPerUnitKg || 0.4);
+        return acc + qty * weightUnit;
+      }, 0);
+      setTotalRescuedKg(Math.round(calculatedWeight * 10) / 10);
+
+      const completedFromClaims = localClaims.filter(
+        (c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED'
+      ).length;
+      setCompletedClaimsCount(completedFromClaims);
+      return;
+    }
+
     fetch('/api/surplus?status=')
       .then((res) => res.json())
       .then((data) => {

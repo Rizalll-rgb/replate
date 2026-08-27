@@ -86,6 +86,14 @@ export default function OnboardingPendingReviewPage() {
   const handleGoToDashboard = async () => {
     setLoading(true);
     try {
+      localStorage.setItem('replate_is_fresh_account', 'true');
+      localStorage.removeItem('replate_local_surplus');
+      localStorage.removeItem('replate_claims');
+      localStorage.removeItem('replate_active_claims');
+      localStorage.removeItem('replate_provider_fleet_list');
+    } catch (_) {}
+
+    try {
       let demoEmail = 'bakso.pak.kumis@replate.id';
       if (targetDashboard.includes('yayasan')) demoEmail = 'panti.kasih.ibu@replate.id';
       else if (targetDashboard.includes('rescue-partner')) demoEmail = 'foodbank.surabaya@replate.id';

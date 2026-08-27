@@ -35,6 +35,18 @@ export default function MyListingsPage() {
       localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
     } catch (_) {}
 
+    const isFresh = typeof window !== 'undefined' && localStorage.getItem('replate_is_fresh_account') === 'true';
+
+    // If it's a fresh newly registered account, only display items explicitly added by the user!
+    if (isFresh) {
+      const normalizedLocal = localItems.map((item) => ({
+        ...item,
+        category: item.category || item.foodCategory || 'MEALS',
+      }));
+      setFoods(normalizedLocal);
+      return;
+    }
+
     fetch('/api/surplus?status=')
       .then((res) => res.json())
       .then((data) => {

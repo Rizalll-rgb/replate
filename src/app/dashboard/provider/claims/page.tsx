@@ -176,12 +176,20 @@ export default function ProviderClaimsPage() {
   // Sync with localStorage replate_claims & deduplicate unique keys
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
       const savedClaimsStr = localStorage.getItem('replate_claims');
       const savedActiveClaimsStr = localStorage.getItem('replate_active_claims');
       
       let allSavedClaims: any[] = [];
       if (savedClaimsStr) allSavedClaims = [...allSavedClaims, ...JSON.parse(savedClaimsStr)];
       if (savedActiveClaimsStr) allSavedClaims = [...allSavedClaims, ...JSON.parse(savedActiveClaimsStr)];
+
+      if (isFresh && allSavedClaims.length === 0) {
+        setPendingClaims([]);
+        setInTransitClaims([]);
+        setCompletedClaims([]);
+        return;
+      }
 
       if (allSavedClaims.length > 0) {
         const pending = allSavedClaims
@@ -553,7 +561,17 @@ export default function ProviderClaimsPage() {
                 : completedClaims;
 
             if (currentList.length === 0) {
-              return <p className="text-center text-slate-400 py-6 font-semibold">Tidak ada transaksi di tab ini.</p>;
+              return (
+                <div className="text-center py-10 space-y-2">
+                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                    📭
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">Belum Ada Transaksi di Tab Ini</p>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
+                    Klaim donasi atau pesanan Rescue Sale dari konsumen dan panti asuhan akan otomatis masuk ke tab ini.
+                  </p>
+                </div>
+              );
             }
 
             return currentList.map((tx, idx) => (
