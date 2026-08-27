@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Button } from '../ui/Button';
 
 export default function Hero() {
+  const { data: session } = useSession();
   const [liveItems, setLiveItems] = useState<any[]>([
     {
       title: 'Bakso Sapi Komplit',
@@ -75,7 +77,7 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-3">
-              <Link href="/register">
+              <Link href={session ? '/explore' : '/register'}>
                 <Button variant="gold" size="lg" className="w-full sm:w-auto text-base px-8 py-3.5 shadow-lg font-bold">
                   Mulai Selamatkan Makanan ➔
                 </Button>
@@ -149,7 +151,7 @@ export default function Hero() {
                     </div>
                     <div className="flex items-center justify-between border-t border-slate-700/60 pt-2 text-[11px]">
                       <span className="text-slate-400 font-medium">Batas: {item.time}</span>
-                      <Link href="/explore">
+                      <Link href={session ? '/explore' : '/login'}>
                         <Button variant="gold" size="sm" className="px-3 py-1 text-[11px] font-black text-slate-950">
                           Klaim Makanan ➔
                         </Button>
