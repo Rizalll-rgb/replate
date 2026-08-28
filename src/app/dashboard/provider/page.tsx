@@ -508,8 +508,10 @@ export default function ProviderOverviewPage() {
                 </button>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-[10px] text-slate-500 font-medium font-mono">Batas: {panti.cutoffTime}</span>
+              <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-[10px] text-amber-900 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-bold font-mono">
+                  📅 Batas: Hari ini ({todayFormatted.split(',')[0] || 'Hari Ini'}), {panti.cutoffTime}
+                </span>
                 <Button
                   variant="gold"
                   size="sm"

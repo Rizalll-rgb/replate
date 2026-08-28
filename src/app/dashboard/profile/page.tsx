@@ -11,10 +11,27 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 
+interface FleetVehicle {
+  id: string;
+  driverName: string;
+  driverPhone: string;
+  isPhoneVerified: boolean;
+  vehicleType: string;
+  plateNumber: string;
+  status: 'UNSUBMITTED' | 'PENDING' | 'APPROVED';
+  docs: {
+    driverPhoto: string;
+    vehiclePhoto: string;
+    ktpPhoto: string;
+    simPhoto: string;
+    stnkPhoto: string;
+  };
+}
+
 export default function DashboardProfilePage() {
   const { data: session } = useSession();
 
-  const [activeTab, setActiveTab] = useState<'AKUN' | 'OUTLET' | 'LEGALITAS'>('AKUN');
+  const [activeTab, setActiveTab] = useState<'AKUN' | 'OUTLET' | 'FLEET' | 'LEGALITAS'>('AKUN');
 
   const [profileData, setProfileData] = useState({
     name: 'Warung Bakso Pak Kumis',
@@ -28,19 +45,91 @@ export default function DashboardProfilePage() {
     businessCategory: 'Restoran / Warung Kuliner',
     pickupHours: '19:00 - 22:00 WIB',
     halalCertNo: 'ID35110001298450123',
+    maxRadiusKm: 12,
+    defaultPackaging: 'Kemasan Boks Biodegradable (Steril Food-Grade)',
     qrisBank: 'Bank Mandiri / BCA',
     qrisAccountNo: '141-00-9812401-2',
     qrisNmid: 'ID1020304050607',
+    qrisMerchantName: 'Warung Bakso Pak Kumis Surabaya',
+    qrisImageUrl: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=500&auto=format&fit=crop&q=80',
+    waAlerts: true,
+    autoMatchPanti: true,
   });
 
-  // Store Fleet Drivers
-  const [storeDrivers, setStoreDrivers] = useState([
-    { id: 'drv-1', name: 'Mas Doni', vehicle: 'Sepeda Motor Box Cooler (Plat L 4582 ABC)', phone: '0812-3456-7891', status: 'VERIFIED' },
-    { id: 'drv-2', name: 'Mas Agus', vehicle: 'Mobil Blind Van Pendingin (Plat L 1234 XYZ)', phone: '0813-9876-5432', status: 'VERIFIED' },
-  ]);
+  // Multi-Fleet Vehicles
+  const defaultFleetList: FleetVehicle[] = [
+    {
+      id: 'flt-101',
+      driverName: 'Mas Doni (Driver Outlet Utama)',
+      driverPhone: '0812-3456-7891',
+      isPhoneVerified: true,
+      vehicleType: 'Sepeda Motor Box Cooler (Steril)',
+      plateNumber: 'L 4582 ABC',
+      status: 'APPROVED',
+      docs: {
+        driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+        vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
+        ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+        simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+        stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+    {
+      id: 'flt-102',
+      driverName: 'Pak Joko (Driver Mobil Toko)',
+      driverPhone: '0819-8765-4321',
+      isPhoneVerified: true,
+      vehicleType: 'Mobil Box Steril Replate',
+      plateNumber: 'L 9912 XYZ',
+      status: 'APPROVED',
+      docs: {
+        driverPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60',
+        vehiclePhoto: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=500&auto=format&fit=crop&q=60',
+        ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+        simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+        stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+  ];
 
+  const [fleetList, setFleetList] = useState<FleetVehicle[]>(defaultFleetList);
+
+  // Add Driver Modal State
   const [addDriverModal, setAddDriverModal] = useState(false);
-  const [newDriver, setNewDriver] = useState({ name: '', phone: '', vehicle: '' });
+  const [newDriver, setNewDriver] = useState({
+    name: '',
+    phone: '',
+    vehicleType: 'Sepeda Motor Box Cooler (Steril)',
+    plateNumber: '',
+  });
+
+  // OTP Verification Modal
+  const [otpModal, setOtpModal] = useState<{
+    isOpen: boolean;
+    fleetId: string;
+    phone: string;
+    driverName: string;
+    sentOtp: string;
+    inputOtp: string;
+  }>({
+    isOpen: false,
+    fleetId: '',
+    phone: '',
+    driverName: '',
+    sentOtp: '',
+    inputOtp: '',
+  });
+
+  // Document Lightbox Modal
+  const [lightboxModal, setLightboxModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    imageUrl: string;
+  }>({
+    isOpen: false,
+    title: '',
+    imageUrl: '',
+  });
 
   const [toastState, setToastState] = useState({
     isOpen: false,
@@ -70,6 +159,11 @@ export default function DashboardProfilePage() {
           address: parsed.address || prev.address,
         }));
       }
+
+      const savedFleet = localStorage.getItem('replate_provider_fleet_list');
+      if (savedFleet) {
+        setFleetList(JSON.parse(savedFleet));
+      }
     } catch (_) {}
   }, [session]);
 
@@ -84,11 +178,15 @@ export default function DashboardProfilePage() {
         phone: profileData.phone,
         address: profileData.address,
         pickupHours: profileData.pickupHours,
+        maxRadiusKm: profileData.maxRadiusKm,
+        defaultPackaging: profileData.defaultPackaging,
+        qrisBank: profileData.qrisBank,
+        qrisAccountNo: profileData.qrisAccountNo,
       };
       localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
       setToastState({
         isOpen: true,
-        message: 'Pengaturan profil dan identitas akun berhasil diperbarui secara permanen!',
+        message: 'Seluruh konfigurasi profil, operasional outlet, dan rekening berhasil disimpan!',
         type: 'success',
       });
     } catch (_) {
@@ -100,24 +198,67 @@ export default function DashboardProfilePage() {
     }
   };
 
-  const handleAddDriver = (e: React.FormEvent) => {
+  const handleAddDriverSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDriver.name || !newDriver.phone) return;
-    setStoreDrivers((prev) => [
-      ...prev,
-      {
-        id: `drv-${Date.now()}`,
-        name: newDriver.name,
-        phone: newDriver.phone,
-        vehicle: newDriver.vehicle || 'Sepeda Motor Box (Plat L Standar)',
-        status: 'VERIFIED',
+
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const newVehicle: FleetVehicle = {
+      id: `flt-${Date.now()}`,
+      driverName: newDriver.name,
+      driverPhone: newDriver.phone,
+      isPhoneVerified: false,
+      vehicleType: newDriver.vehicleType,
+      plateNumber: newDriver.plateNumber || 'L 0000 XX',
+      status: 'APPROVED',
+      docs: {
+        driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+        vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',
+        ktpPhoto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+        simPhoto: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+        stnkPhoto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
       },
-    ]);
-    setNewDriver({ name: '', phone: '', vehicle: '' });
+    };
+
+    const updated = [...fleetList, newVehicle];
+    setFleetList(updated);
+    localStorage.setItem('replate_provider_fleet_list', JSON.stringify(updated));
     setAddDriverModal(false);
+
+    // Open OTP Modal
+    setOtpModal({
+      isOpen: true,
+      fleetId: newVehicle.id,
+      phone: newDriver.phone,
+      driverName: newDriver.name,
+      sentOtp: generatedOtp,
+      inputOtp: '',
+    });
+
+    setNewDriver({
+      name: '',
+      phone: '',
+      vehicleType: 'Sepeda Motor Box Cooler (Steril)',
+      plateNumber: '',
+    });
+  };
+
+  const handleVerifyOtp = () => {
+    if (otpModal.inputOtp !== otpModal.sentOtp && otpModal.inputOtp !== '123456') {
+      alert(`Kode OTP salah. Silakan gunakan kode simulasi: ${otpModal.sentOtp}`);
+      return;
+    }
+
+    const updated = fleetList.map((f) =>
+      f.id === otpModal.fleetId ? { ...f, isPhoneVerified: true } : f
+    );
+    setFleetList(updated);
+    localStorage.setItem('replate_provider_fleet_list', JSON.stringify(updated));
+    setOtpModal({ isOpen: false, fleetId: '', phone: '', driverName: '', sentOtp: '', inputOtp: '' });
+
     setToastState({
       isOpen: true,
-      message: `Driver "${newDriver.name}" berhasil didaftarkan ke armada outlet toko!`,
+      message: `Nomor WhatsApp Driver "${otpModal.driverName}" berhasil diverifikasi aktif!`,
       type: 'success',
     });
   };
@@ -143,16 +284,16 @@ export default function DashboardProfilePage() {
   const isProvider = String(profileData.role).toUpperCase().includes('PROVIDER');
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-16">
-      {/* Header */}
+    <div className="space-y-8 max-w-6xl mx-auto pb-16">
+      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
         <div>
           <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
-            MANAJEMEN IDENTITAS, OPERASIONAL & PENGATURAN TERPADU
+            SUITE PENGATURAN OUTLET, IDENTITAS & OPERASIONAL TERPADU
           </span>
-          <h1 className="text-2xl font-black text-[#1B3A5C]">Profil & Pengaturan Akun</h1>
+          <h1 className="text-2xl font-black text-[#1B3A5C]">Profil & Pengaturan Akun Mitra</h1>
           <p className="text-xs text-slate-500 font-medium">
-            Kelola data akun, konfigurasi operasional toko/outlet, audit verifikasi BPOM, dan kelola driver armada internal.
+            Kelola identitas, radius pengiriman, rekening QRIS, kelola armada driver internal toko, dan pantau sertifikasi BPOM.
           </p>
         </div>
 
@@ -161,7 +302,7 @@ export default function DashboardProfilePage() {
         </span>
       </div>
 
-      {/* 3 Core Navigation Tabs */}
+      {/* 4 Rich Core Tabs */}
       <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl">
         <button
           type="button"
@@ -172,21 +313,35 @@ export default function DashboardProfilePage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          👤 Identitas Akun & Profil
+          👤 Identitas & Keamanan Akun
         </button>
 
         {isProvider && (
-          <button
-            type="button"
-            onClick={() => setActiveTab('OUTLET')}
-            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
-              activeTab === 'OUTLET'
-                ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-900 font-bold'
-            }`}
-          >
-            🏬 Operasional Toko & Armada Driver
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setActiveTab('OUTLET')}
+              className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+                activeTab === 'OUTLET'
+                  ? 'bg-[#1B3A5C] text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-900 font-bold'
+              }`}
+            >
+              🏬 Operasional Toko, Radius & QRIS
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('FLEET')}
+              className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+                activeTab === 'FLEET'
+                  ? 'bg-[#1B3A5C] text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-900 font-bold'
+              }`}
+            >
+              🚚 Armada Driver Toko ({fleetList.length})
+            </button>
+          </>
         )}
 
         <button
@@ -198,14 +353,13 @@ export default function DashboardProfilePage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          🛡️ Legalitas & Verifikasi BPOM
+          🛡️ Legalitas & Audit BPOM RI
         </button>
       </div>
 
-      {/* TAB 1: IDENTITAS AKUN & PROFIL */}
+      {/* TAB 1: IDENTITAS & KEAMANAN AKUN */}
       {activeTab === 'AKUN' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left: Profile Card */}
           <div className="space-y-6">
             <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs text-center space-y-4">
               <Avatar name={profileData.name} size="xl" className="mx-auto border-4 border-[#1B3A5C]" />
@@ -216,17 +370,16 @@ export default function DashboardProfilePage() {
 
               <div className="pt-3 border-t border-slate-100 text-left space-y-2 text-xs">
                 <div className="flex justify-between text-slate-600">
-                  <span>Status Verifikasi:</span>
-                  <span className="font-black text-emerald-600">✓ Terverifikasi BPOM & NIB</span>
+                  <span>Status Legalitas:</span>
+                  <span className="font-black text-emerald-600">✓ Lolos Audit NIB & BPOM</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Wilayah Operasional:</span>
+                  <span>Wilayah Operasi:</span>
                   <strong className="text-slate-800">Surabaya Raya</strong>
                 </div>
               </div>
             </Card>
 
-            {/* Help & SOP Box */}
             <Card className="p-5 bg-[#1B3A5C] text-white rounded-3xl border border-[#2C5A8F] shadow-md space-y-3">
               <h4 className="text-xs font-black text-[#D4A843] uppercase tracking-wider">
                 Pusat Edukasi & Regulasi
@@ -236,13 +389,12 @@ export default function DashboardProfilePage() {
               </p>
               <Link href="/dashboard/info" className="block">
                 <div className="p-2.5 bg-[#142C47] hover:bg-[#0D1E32] rounded-xl border border-[#2C5A8F] text-xs font-bold text-slate-100 flex items-center justify-between transition-all">
-                  <span>Pusat Informasi & SOP ➔</span>
+                  <span>Pusat Informasi & SOP BPOM ➔</span>
                 </div>
               </Link>
             </Card>
           </div>
 
-          {/* Right: Edit Form */}
           <div className="md:col-span-2 space-y-6">
             <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-5">
               <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3">
@@ -253,22 +405,18 @@ export default function DashboardProfilePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-extrabold text-slate-700 block">Nama Kontak / Penanggung Jawab:</label>
-                    <input
-                      type="text"
+                    <Input
                       value={profileData.name}
                       onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                      className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus:outline-none focus:border-[#1B3A5C]"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-extrabold text-slate-700 block">Nama Toko / Lembaga / Panti:</label>
-                    <input
-                      type="text"
+                    <label className="font-extrabold text-slate-700 block">Nama Toko / Restoran / Entitas:</label>
+                    <Input
                       value={profileData.entityName}
                       onChange={(e) => setProfileData({ ...profileData, entityName: e.target.value })}
-                      className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus:outline-none focus:border-[#1B3A5C]"
                     />
                   </div>
                 </div>
@@ -276,21 +424,20 @@ export default function DashboardProfilePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-extrabold text-slate-700 block">Email Terdaftar:</label>
-                    <input
+                    <Input
                       type="email"
                       value={profileData.email}
                       disabled
-                      className="w-full p-3 bg-slate-100 border border-slate-200 rounded-xl font-mono text-xs text-slate-500 cursor-not-allowed"
+                      className="bg-slate-100 text-slate-500 font-mono cursor-not-allowed"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="font-extrabold text-slate-700 block">Nomor WhatsApp Aktif:</label>
-                    <input
+                    <Input
                       type="tel"
                       value={profileData.phone}
                       onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus:outline-none focus:border-[#1B3A5C]"
                     />
                   </div>
                 </div>
@@ -316,133 +463,246 @@ export default function DashboardProfilePage() {
         </div>
       )}
 
-      {/* TAB 2: OPERASIONAL TOKO & ARMADA DRIVER (PENGATURAN OUTLET TERPADU) */}
+      {/* TAB 2: OPERASIONAL TOKO, RADIUS & QRIS (PENGATURAN OUTLET KOMPREHENSIF) */}
       {activeTab === 'OUTLET' && isProvider && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Operational Times & Business Category */}
-            <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-              <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
-                <span>🕒 Jam Operasional & Pengambilan Surplus</span>
-              </h3>
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Operational Times & Packaging */}
+              <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
+                  <span>🕒 Jam Operasional & Kemasan Pangan</span>
+                </h3>
 
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">Jam Standar Penjemputan Makanan:</label>
-                  <input
-                    type="text"
-                    value={profileData.pickupHours}
-                    onChange={(e) => setProfileData({ ...profileData, pickupHours: e.target.value })}
-                    className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs"
-                    placeholder="Contoh: 19:00 - 22:00 WIB"
-                  />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    Waktu saat konsumen/kurir relawan dapat mengambil pesanan di kasir toko Anda.
-                  </span>
-                </div>
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-extrabold text-slate-700 block mb-1">Jam Standar Penjemputan Makanan:</label>
+                    <Input
+                      value={profileData.pickupHours}
+                      onChange={(e) => setProfileData({ ...profileData, pickupHours: e.target.value })}
+                      placeholder="Contoh: 19:00 - 22:00 WIB"
+                    />
+                    <span className="text-[10px] text-slate-500 block mt-1">
+                      Waktu saat konsumen/kurir relawan dapat mengambil pesanan di kasir toko Anda.
+                    </span>
+                  </div>
 
-                <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">Kategori Usaha:</label>
-                  <input
-                    type="text"
-                    value={profileData.businessCategory}
-                    disabled
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 cursor-not-allowed text-xs"
-                  />
-                </div>
+                  <div>
+                    <label className="font-extrabold text-slate-700 block mb-1">Standar Kemasan Bawaan:</label>
+                    <Input
+                      value={profileData.defaultPackaging}
+                      onChange={(e) => setProfileData({ ...profileData, defaultPackaging: e.target.value })}
+                    />
+                  </div>
 
-                <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">Metode Pengiriman yang Didukung:</label>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-xs font-bold text-emerald-800 block">✓ Ambil Mandiri di Toko (Self-Pickup)</span>
-                    <span className="text-xs font-bold text-purple-800 block">✓ Kurir Relawan Replate (Auto-Assigned)</span>
-                    <span className="text-xs font-bold text-blue-800 block">✓ Armada Toko Direct (Driver Mas Doni & Mas Agus)</span>
+                  {/* Geofencing Radius Slider */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="font-extrabold text-slate-800">Maksimum Radius Smart Matching:</label>
+                      <strong className="text-sm font-black text-[#1B3A5C]">{profileData.maxRadiusKm} KM</strong>
+                    </div>
+                    <input
+                      type="range"
+                      min="2"
+                      max="25"
+                      step="1"
+                      value={profileData.maxRadiusKm}
+                      onChange={(e) => setProfileData({ ...profileData, maxRadiusKm: parseInt(e.target.value) })}
+                      className="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#1B3A5C]"
+                    />
+                    <span className="text-[10px] text-slate-500 block">
+                      Jangkauan pencocokan otomatis panti asuhan & kurir di sekitar outlet Surabaya Anda.
+                    </span>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
 
-            {/* QRIS Merchant & Settlement Account */}
-            <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-              <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
-                <span>💳 Rekening Pencairan Dana & QRIS Toko</span>
-              </h3>
-
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">Bank Rekening Mitra:</label>
-                  <input
-                    type="text"
-                    value={profileData.qrisBank}
-                    className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs"
-                    onChange={(e) => setProfileData({ ...profileData, qrisBank: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">Nomor Rekening Pencairan Penjualan:</label>
-                  <input
-                    type="text"
-                    value={profileData.qrisAccountNo}
-                    className="w-full p-3 bg-white border border-slate-300 rounded-xl font-mono font-bold text-xs"
-                    onChange={(e) => setProfileData({ ...profileData, qrisAccountNo: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="font-extrabold text-slate-700 block mb-1">NMID QRIS Standar Bank Indonesia:</label>
-                  <input
-                    type="text"
-                    value={profileData.qrisNmid}
-                    disabled
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-600 cursor-not-allowed text-xs"
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Manage Store Fleet Drivers Section */}
-          <Card className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="font-black text-lg text-[#1B3A5C]">
-                  🚚 Kelola Armada Driver Internal Toko Anda
+              {/* QRIS Merchant & Payout Settlement */}
+              <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
+                  <span>💳 Rekening Pencairan Dana & QRIS Toko</span>
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Daftarkan staf atau kurir internal Anda untuk pengantaran donasi / pesanan berstatus Armada Toko.
-                </p>
-              </div>
 
-              <Button
-                variant="gold"
-                size="sm"
-                className="font-black text-slate-950 text-xs shadow-xs"
-                onClick={() => setAddDriverModal(true)}
-              >
-                + Tambah Driver Baru
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-extrabold text-slate-700 block mb-1">Bank Rekening Pencairan:</label>
+                    <Input
+                      value={profileData.qrisBank}
+                      onChange={(e) => setProfileData({ ...profileData, qrisBank: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-extrabold text-slate-700 block mb-1">Nomor Rekening Bank:</label>
+                    <Input
+                      value={profileData.qrisAccountNo}
+                      onChange={(e) => setProfileData({ ...profileData, qrisAccountNo: e.target.value })}
+                      className="font-mono font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-extrabold text-slate-700 block mb-1">NMID QRIS Standar Bank Indonesia:</label>
+                    <Input
+                      value={profileData.qrisNmid}
+                      onChange={(e) => setProfileData({ ...profileData, qrisNmid: e.target.value })}
+                      className="font-mono"
+                    />
+                  </div>
+
+                  {/* QRIS Image Preview */}
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
+                    <img
+                      src={profileData.qrisImageUrl}
+                      alt="QRIS Toko"
+                      className="w-14 h-14 object-cover rounded-lg border border-slate-300"
+                    />
+                    <div className="text-[11px]">
+                      <strong className="text-slate-800 block">QRIS Dinamis / Statis Terpasang</strong>
+                      <span className="text-emerald-700 font-bold block">✓ Siap menerima pembayaran Rescue Sale</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-200">
+              <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 shadow-md">
+                Simpan Konfigurasi Operasional Outlet ➔
               </Button>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {storeDrivers.map((driver) => (
-                <div key={driver.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-md uppercase">
-                      ✓ TERDAFTAR RESMI
-                    </span>
-                    <h4 className="font-extrabold text-sm text-[#1B3A5C] mt-1">{driver.name}</h4>
-                    <p className="text-xs text-slate-600 font-medium">{driver.vehicle}</p>
-                    <p className="text-xs font-mono text-slate-500">WA: {driver.phone}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+          </form>
         </div>
       )}
 
-      {/* TAB 3: LEGALITAS & AUDIT VERIFIKASI BPOM */}
+      {/* TAB 3: ARMADA DRIVER TOKO (MULTI-FLEET & VERIFIKASI DOKUMEN DRIVER) */}
+      {activeTab === 'FLEET' && isProvider && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <div>
+              <h3 className="font-black text-lg text-[#1B3A5C]">
+                🚚 Manajemen Armada Driver Internal Outlet Anda
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Daftarkan kurir atau staf internal toko untuk pengantaran donasi / pesanan langsung berstatus Armada Toko.
+              </p>
+            </div>
+
+            <Button
+              variant="gold"
+              size="sm"
+              className="font-black text-slate-950 text-xs shadow-xs"
+              onClick={() => setAddDriverModal(true)}
+            >
+              + Tambah Driver Toko Baru
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {fleetList.map((driver) => (
+              <Card key={driver.id} className="p-5 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={driver.docs.driverPhoto}
+                      alt={driver.driverName}
+                      className="w-12 h-12 rounded-2xl object-cover border-2 border-[#1B3A5C]"
+                    />
+                    <div>
+                      <h4 className="font-extrabold text-sm text-[#1B3A5C]">{driver.driverName}</h4>
+                      <p className="text-xs text-slate-600 font-medium">{driver.vehicleType}</p>
+                      <p className="text-xs font-mono text-slate-500">Plat: <strong>{driver.plateNumber}</strong></p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black rounded-lg uppercase">
+                    {driver.status === 'APPROVED' ? '✓ TERVERIFIKASI' : 'PENDING'}
+                  </span>
+                </div>
+
+                {/* WhatsApp Status & Quick Verify */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-slate-500 text-[10px] block">Nomor WhatsApp Driver:</span>
+                    <strong className="text-slate-800">{driver.driverPhone}</strong>
+                  </div>
+
+                  {driver.isPhoneVerified ? (
+                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                      ✓ WA Aktif
+                    </span>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[10px] py-1 px-2 font-bold"
+                      onClick={() => {
+                        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                        setOtpModal({
+                          isOpen: true,
+                          fleetId: driver.id,
+                          phone: driver.driverPhone,
+                          driverName: driver.driverName,
+                          sentOtp: otp,
+                          inputOtp: '',
+                        });
+                      }}
+                    >
+                      Kirim OTP WA ➔
+                    </Button>
+                  )}
+                </div>
+
+                {/* Document Thumbnails Preview */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                    Dokumen Legalitas Pengemudi:
+                  </span>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setLightboxModal({ isOpen: true, title: `Foto Kendaraan - ${driver.driverName}`, imageUrl: driver.docs.vehiclePhoto })}
+                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                    >
+                      <img src={driver.docs.vehiclePhoto} alt="Motor" className="w-full h-10 object-cover rounded" />
+                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">Armada</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLightboxModal({ isOpen: true, title: `Foto KTP - ${driver.driverName}`, imageUrl: driver.docs.ktpPhoto })}
+                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                    >
+                      <img src={driver.docs.ktpPhoto} alt="KTP" className="w-full h-10 object-cover rounded" />
+                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">KTP</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLightboxModal({ isOpen: true, title: `Foto SIM - ${driver.driverName}`, imageUrl: driver.docs.simPhoto })}
+                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                    >
+                      <img src={driver.docs.simPhoto} alt="SIM" className="w-full h-10 object-cover rounded" />
+                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">SIM</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLightboxModal({ isOpen: true, title: `Foto STNK - ${driver.driverName}`, imageUrl: driver.docs.stnkPhoto })}
+                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                    >
+                      <img src={driver.docs.stnkPhoto} alt="STNK" className="w-full h-10 object-cover rounded" />
+                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">STNK</span>
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: LEGALITAS & AUDIT BPOM RI */}
       {activeTab === 'LEGALITAS' && (
         <div className="space-y-6">
           <Card className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-6">
@@ -465,7 +725,7 @@ export default function DashboardProfilePage() {
               </div>
             </div>
 
-            {/* Explanation Box: Apa itu Verified BPOM & Cara Mendapatkannya */}
+            {/* Explanation Box */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="p-5 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2 text-emerald-950">
                 <strong className="text-sm font-black text-emerald-900 block">
@@ -516,7 +776,7 @@ export default function DashboardProfilePage() {
           title="Tambah Driver Armada Toko Internal"
           size="md"
         >
-          <form onSubmit={handleAddDriver} className="space-y-4 text-xs">
+          <form onSubmit={handleAddDriverSubmit} className="space-y-4 text-xs">
             <div>
               <label className="font-bold text-slate-700 block mb-1">Nama Lengkap Driver:</label>
               <Input
@@ -537,11 +797,24 @@ export default function DashboardProfilePage() {
               />
             </div>
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Jenis Kendaraan & Plat Nomor:</label>
+              <label className="font-bold text-slate-700 block mb-1">Jenis Kendaraan:</label>
+              <select
+                value={newDriver.vehicleType}
+                onChange={(e) => setNewDriver({ ...newDriver, vehicleType: e.target.value })}
+                className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs"
+              >
+                <option value="Sepeda Motor Box Cooler (Steril)">Sepeda Motor Box Cooler (Steril)</option>
+                <option value="Mobil Blind Van Pendingin">Mobil Blind Van Pendingin</option>
+                <option value="Sepeda Motor Standar">Sepeda Motor Standar</option>
+              </select>
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Plat Nomor Kendaraan:</label>
               <Input
-                value={newDriver.vehicle}
-                onChange={(e) => setNewDriver({ ...newDriver, vehicle: e.target.value })}
-                placeholder="Contoh: Motor Box Cooler (L 1234 XY)"
+                value={newDriver.plateNumber}
+                onChange={(e) => setNewDriver({ ...newDriver, plateNumber: e.target.value })}
+                placeholder="Contoh: L 4582 ABC"
+                required
               />
             </div>
 
@@ -550,10 +823,82 @@ export default function DashboardProfilePage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" type="submit" className="font-black">
-                Simpan Driver ➔
+                Simpan & Verifikasi OTP WA ➔
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* Modal OTP Verification WhatsApp */}
+      {otpModal.isOpen && (
+        <Modal
+          isOpen={otpModal.isOpen}
+          onClose={() => setOtpModal({ isOpen: false, fleetId: '', phone: '', driverName: '', sentOtp: '', inputOtp: '' })}
+          title={`Verifikasi WhatsApp Driver: ${otpModal.driverName}`}
+          size="sm"
+        >
+          <div className="space-y-4 text-center text-xs">
+            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
+              📲
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-slate-600">
+                Kode OTP telah dikirimkan ke WhatsApp <strong>{otpModal.phone}</strong>.
+              </p>
+              <div className="p-2 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 font-mono text-[11px]">
+                Simulasi Kode OTP: <strong>{otpModal.sentOtp}</strong>
+              </div>
+            </div>
+
+            <div>
+              <input
+                type="text"
+                maxLength={6}
+                value={otpModal.inputOtp}
+                onChange={(e) => setOtpModal({ ...otpModal, inputOtp: e.target.value })}
+                placeholder="Masukkan 6 Digit OTP"
+                className="w-full p-3 text-center tracking-widest font-mono text-base font-black border border-slate-300 rounded-xl"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOtpModal({ isOpen: false, fleetId: '', phone: '', driverName: '', sentOtp: '', inputOtp: '' })}
+              >
+                Batal
+              </Button>
+              <Button variant="gold" size="sm" className="font-black" onClick={handleVerifyOtp}>
+                Verifikasi ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Lightbox Modal for Driver Documents */}
+      {lightboxModal.isOpen && (
+        <Modal
+          isOpen={lightboxModal.isOpen}
+          onClose={() => setLightboxModal({ isOpen: false, title: '', imageUrl: '' })}
+          title={lightboxModal.title}
+          size="md"
+        >
+          <div className="space-y-3 text-center">
+            <img
+              src={lightboxModal.imageUrl}
+              alt={lightboxModal.title}
+              className="w-full max-h-96 object-contain rounded-2xl border border-slate-200"
+            />
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => setLightboxModal({ isOpen: false, title: '', imageUrl: '' })}>
+                Tutup Preview
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
 
