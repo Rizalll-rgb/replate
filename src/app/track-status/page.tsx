@@ -7,8 +7,12 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 
+import { useSession } from 'next-auth/react';
+import DashboardLayout from '@/app/dashboard/layout';
+
 export default function TrackRegistrationStatusPage() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<any>(null);
@@ -108,9 +112,9 @@ export default function TrackRegistrationStatusPage() {
 
   const isApproved = docsStatus === 'APPROVED_ACTIVE';
 
-  return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] font-sans">
-      <Navbar />
+  const content = (
+    <div className="min-h-screen flex flex-col font-sans w-full bg-transparent">
+      {!session && <Navbar />}
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 py-12">
         <div className="max-w-2xl w-full space-y-6">
@@ -322,10 +326,22 @@ export default function TrackRegistrationStatusPage() {
               )}
             </div>
           )}
+          {/* Footer Card */}
+          <div className="text-center pt-6 pb-4">
+            <p className="text-[11px] font-bold text-slate-500 font-mono">
+              SISTEM TERINTEGRASI REPLATE ID &copy; {new Date().getFullYear()}
+            </p>
+          </div>
         </div>
       </main>
 
-      <Footer />
+      {!session && <Footer />}
     </div>
   );
+
+  if (session) {
+    return <DashboardLayout>{content}</DashboardLayout>;
+  }
+
+  return content;
 }
