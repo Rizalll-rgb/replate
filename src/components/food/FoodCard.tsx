@@ -26,6 +26,7 @@ export interface FoodCardProps {
   isFree?: boolean;
   distance?: string;
   onClaim?: (id: string) => void;
+  onAddToCart?: (id: string) => void;
   onDetail?: (id: string) => void;
   onManage?: (id: string) => void;
 }
@@ -34,6 +35,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
   const {
     id,
     onClaim,
+    onAddToCart,
     onDetail,
     onManage,
   } = props;
@@ -138,13 +140,27 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
               <span>Kelola Stok ➔</span>
             </button>
           ) : (onClaim && (!props.status || props.status === 'AVAILABLE' || props.status === 'ACTIVE')) ? (
-            <button
-              type="button"
-              onClick={() => onClaim(id)}
-              className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>Klaim Sekarang ➔</span>
-            </button>
+            <div className="flex gap-1.5">
+              {onAddToCart && (
+                <button
+                  type="button"
+                  onClick={() => onAddToCart(id)}
+                  className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center cursor-pointer border border-slate-200"
+                  title="Masukkan Tas Klaim"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => onClaim(id)}
+                className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Beli Langsung ➔</span>
+              </button>
+            </div>
           ) : null}
         </div>
       </div>

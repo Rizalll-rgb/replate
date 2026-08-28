@@ -32,7 +32,7 @@ export default function AboutPage() {
         co2eKg: totalCo2e,
         ch4Kg: totalCh4,
       });
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   const teamMembers = [
@@ -43,8 +43,8 @@ export default function AboutPage() {
       bio: 'Mengembangkan arsitektur Next.js 14 App Router, integrasi database, algoritma Smart Matching 2.0, serta pengerjaan proposal teknis.',
     },
     {
-      name: 'Fabio Daffa Airlangga',
-      nim: 'NIM: 23081494100 (PENS)',
+      name: 'Fabio Daffa Airlangga Daniswara',
+      nim: 'NIM: 3125500036 (PENS)',
       role: 'UI/UX Designer & Full Stack Developer',
       bio: 'Merancang sistem antarmuka kontras tinggi, alur transaksi intuitif, serta mendukung pengerjaan pengembangan frontend & backend.',
     },

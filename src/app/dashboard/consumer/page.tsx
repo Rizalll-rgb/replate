@@ -263,7 +263,7 @@ export default function ConsumerBrowsePage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/cart">
+            <Link href="/dashboard/cart">
               <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md">
                 Buka Tas Klaim ➔
               </Button>

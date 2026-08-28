@@ -31,9 +31,10 @@ export interface FoodDetailModalProps {
     } | null;
   } | null;
   onClaim?: (id: string) => void;
+  onAddToCart?: (id: string) => void;
 }
 
-export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClose, food, onClaim }) => {
+export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClose, food, onClaim, onAddToCart }) => {
   if (!food) return null;
 
   const isFree = !food.price || food.price === 0;
@@ -64,17 +65,33 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
       <Button variant="outline" size="sm" onClick={onClose} className="font-bold">
         Tutup
       </Button>
+      {onAddToCart && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="font-black text-[#1B3A5C] shadow-sm flex items-center gap-1.5 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3"
+          title="Masukkan Tas Klaim"
+          onClick={() => {
+            onAddToCart(food.id);
+            onClose();
+          }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+        </Button>
+      )}
       {onClaim && (
         <Button
           variant="gold"
           size="sm"
-          className="font-black text-slate-950 shadow-md"
+          className="font-black text-slate-950 shadow-md flex-1"
           onClick={() => {
             onClaim(food.id);
             onClose();
           }}
         >
-          {isFree ? 'Klaim Donasi Sekarang ➔' : 'Klaim Rescue Diskon ➔'}
+          {isFree ? 'Beli Langsung ➔' : 'Beli Langsung ➔'}
         </Button>
       )}
     </div>

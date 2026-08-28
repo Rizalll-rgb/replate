@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
+import { FoodCard } from '@/components/food/FoodCard';
 
 interface FoodItem {
   id: string;
@@ -36,6 +37,7 @@ interface FoodItem {
   allergens?: string[];
   lat?: number;
   lng?: number;
+  status?: string;
 }
 
 interface PantiNeed {
@@ -461,6 +463,28 @@ export default function ExplorePage() {
     }
   };
 
+  const handleBuyNow = (item: FoodItem) => {
+    if (status !== 'authenticated' || !session?.user) {
+      setAuthModal({
+        isOpen: true,
+        actionTitle: 'Klaim Makanan Surplus',
+        itemTitle: item.title,
+      });
+      return;
+    }
+
+    if (item.isFree && !isConsumerVerified && userRole === 'FOOD_CONSUMER') {
+      setMismatchModal({
+        isOpen: true,
+        itemTitle: item.title,
+      });
+      return;
+    }
+
+    handleAddToCart(item);
+    router.push('/dashboard/cart?checkout=true');
+  };
+
   const handleOpenFoodDetail = (item: FoodItem) => {
     setSelectedFoodForModal({
       id: item.id,
@@ -649,71 +673,23 @@ export default function ExplorePage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredFoods.map((item) => (
-                  <div
+                  <FoodCard
                     key={item.id}
-                    className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between"
-                  >
-                    <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-                      <div className="absolute top-3 left-3 flex gap-1.5">
-                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
-                          item.isFree
-                            ? 'bg-emerald-500 text-slate-950'
-                            : 'bg-[#D4A843] text-slate-950'
-                        }`}>
-                          {item.isFree ? 'DONASI Rp 0' : 'RESCUE SALE'}
-                        </span>
-                        <span className="text-[10px] bg-slate-950/80 text-white font-bold px-2 py-1 rounded-lg backdrop-blur-xs">
-                          {item.quantity}
-                        </span>
-                      </div>
-                      <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-                        Jarak: {item.distance}
-                      </span>
-                    </div>
-
-                    <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                      <div className="space-y-1">
-                        <span className="text-[11px] font-bold text-slate-500 block truncate">
-                          Toko: {item.providerName}
-                        </span>
-                        <h4 className="font-extrabold text-base text-[#1B3A5C] line-clamp-1">{item.title}</h4>
-                        <p className="text-[11px] text-slate-600 font-medium">
-                          Waktu Ambil: <strong>{item.pickupTime}</strong>
-                        </p>
-                      </div>
-
-                      {/* Button Lihat Detail & Peta GPS Outlet */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenFoodDetail(item)}
-                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                      >
-                        <span>Lihat Detail Spesifikasi & Peta GPS ➔</span>
-                      </button>
-
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <div>
-                          <span className="text-lg font-black text-[#1B3A5C] block">
-                            {item.isFree ? 'Rp 0' : `Rp ${item.discountPrice.toLocaleString('id-ID')}`}
-                          </span>
-                          {!item.isFree && (
-                            <span className="text-[11px] text-slate-400 line-through font-bold">
-                              Rp {item.originalPrice.toLocaleString('id-ID')}
-                            </span>
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAddToCart(item)}
-                          className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <span>Klaim Sekarang ➔</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    id={item.id}
+                    title={item.title}
+                    providerName={item.providerName}
+                    category={item.category}
+                    quantity={item.quantity}
+                    discountPrice={item.discountPrice}
+                    originalPrice={item.originalPrice}
+                    status={item.status}
+                    isFree={item.isFree}
+                    distance={item.distance}
+                    imageUrl={item.imageUrl}
+                    onClaim={() => handleBuyNow(item)}
+                    onAddToCart={() => handleAddToCart(item)}
+                    onDetail={() => handleOpenFoodDetail(item)}
+                  />
                 ))}
               </div>
             )}
@@ -884,10 +860,14 @@ export default function ExplorePage() {
       {/* RICH FOOD DETAIL MODAL (RESCUE SALE & DONASI PANGAN Rp 0 DENGAN PETA GPS & WA DIRECT) */}
       {selectedFoodForModal && (
         <FoodDetailModal
-          isOpen={!!selectedFoodForModal}
+          isOpen={selectedFoodForModal !== null}
           onClose={() => setSelectedFoodForModal(null)}
           food={selectedFoodForModal}
           onClaim={(id) => {
+            const item = foods.find((f) => f.id === id);
+            if (item) handleBuyNow(item);
+          }}
+          onAddToCart={(id) => {
             const item = foods.find((f) => f.id === id);
             if (item) handleAddToCart(item);
           }}

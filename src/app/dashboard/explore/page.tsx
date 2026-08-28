@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -32,6 +33,7 @@ interface FoodItem {
   allergens?: string[];
   lat?: number;
   lng?: number;
+  status?: string;
 }
 
 interface PantiNeed {
@@ -59,6 +61,7 @@ interface PantiNeed {
 }
 
 export default function WorkspaceExplorePage() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS'>('RESCUE_SALE');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -351,6 +354,11 @@ export default function WorkspaceExplorePage() {
     } catch (_) {}
   };
 
+  const handleBuyNow = (item: FoodItem) => {
+    handleClaimFood(item);
+    router.push('/dashboard/cart?checkout=true');
+  };
+
   const handleConfirmFulfill = () => {
     if (!fulfillModal.need) return;
     const portionsNum = parseInt(fulfillModal.portions) || 0;
@@ -374,6 +382,30 @@ export default function WorkspaceExplorePage() {
       isOpen: true,
       message: `Terima kasih! Anda berhasil menyanggupi donasi ${portionsNum} porsi untuk ${fulfillModal.need.pantiName}.`,
       type: 'success',
+    });
+  };
+
+  const handleOpenFoodDetail = (item: FoodItem) => {
+    setSelectedFoodForModal({
+      id: item.id,
+      foodName: item.title,
+      description: item.description,
+      foodCategory: item.category === 'MAKANAN_BERAT' ? 'Makanan Olahan (Meals)' : item.category === 'ROTI_KUE' ? 'Roti & Bakery' : 'Makanan Surplus',
+      quantity: parseInt(item.quantity) || 10,
+      quantityUnit: 'Porsi',
+      price: item.isFree ? 0 : item.discountPrice,
+      pickupDeadline: item.pickupTime,
+      address: item.providerAddress || 'Jl. Raya Darmo No. 45, Surabaya',
+      storageCondition: item.storageCondition || 'ROOM_TEMP',
+      packagingType: item.packagingType || 'PACKAGED',
+      weightPerUnitKg: item.weightPerUnitKg || 0.4,
+      allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Wadah Steril'],
+      lat: item.lat || -7.2575,
+      lng: item.lng || 112.7521,
+      provider: {
+        name: item.providerName,
+        phone: item.providerPhone || '081234567890',
+      },
     });
   };
 
@@ -429,7 +461,34 @@ export default function WorkspaceExplorePage() {
                 distance="0.8 km"
                 imageUrl="https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
                 onDetail={() => {}}
-                onClaim={() => {}}
+                onClaim={() => handleBuyNow({
+                  id: "promo-hero-1",
+                  title: "Paket Nasi Kuning Komplit",
+                  providerName: "Dapur Bunda Rasa",
+                  category: "MAKANAN_BERAT",
+                  quantity: "5 Porsi",
+                  discountPrice: 12000,
+                  originalPrice: 25000,
+                  isFree: false,
+                  type: "RESCUE_SALE",
+                  pickupTime: "19:00 WIB",
+                  distance: "0.8 km",
+                  imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
+                })}
+                onAddToCart={() => handleClaimFood({
+                  id: "promo-hero-1",
+                  title: "Paket Nasi Kuning Komplit",
+                  providerName: "Dapur Bunda Rasa",
+                  category: "MAKANAN_BERAT",
+                  quantity: "5 Porsi",
+                  discountPrice: 12000,
+                  originalPrice: 25000,
+                  isFree: false,
+                  type: "RESCUE_SALE",
+                  pickupTime: "19:00 WIB",
+                  distance: "0.8 km",
+                  imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
+                })}
               />
             </div>
           </div>
@@ -526,26 +585,9 @@ export default function WorkspaceExplorePage() {
                 pickupTime={item.pickupTime}
                 distance={item.distance}
                 imageUrl={item.imageUrl}
-                onDetail={() =>
-                  setSelectedFoodForModal({
-                    id: item.id,
-                    foodName: item.title,
-                    description: item.description,
-                    foodCategory: item.category,
-                    quantity: parseInt(item.quantity) || 10,
-                    quantityUnit: 'Porsi',
-                    price: item.isFree ? 0 : item.discountPrice,
-                    pickupDeadline: item.pickupTime,
-                    address: item.providerAddress,
-                    lat: item.lat,
-                    lng: item.lng,
-                    provider: {
-                      name: item.providerName,
-                      phone: item.providerPhone,
-                    },
-                  })
-                }
-                onClaim={() => handleClaimFood(item)}
+                onDetail={() => handleOpenFoodDetail(item)}
+                onClaim={() => handleBuyNow(item)}
+                onAddToCart={() => handleClaimFood(item)}
               />
             ))}
           </div>
@@ -613,10 +655,14 @@ export default function WorkspaceExplorePage() {
       {/* Food Detail Modal */}
       {selectedFoodForModal && (
         <FoodDetailModal
-          isOpen={!!selectedFoodForModal}
+          isOpen={selectedFoodForModal !== null}
           onClose={() => setSelectedFoodForModal(null)}
           food={selectedFoodForModal}
           onClaim={(id) => {
+            const item = foods.find((f) => f.id === id);
+            if (item) handleBuyNow(item);
+          }}
+          onAddToCart={(id) => {
             const item = foods.find((f) => f.id === id);
             if (item) handleClaimFood(item);
           }}

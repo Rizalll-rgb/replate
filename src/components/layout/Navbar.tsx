@@ -55,7 +55,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
     { href: dashboardUrl, label: 'Dashboard' },
     { href: '/explore', label: 'Eksplor Pangan' },
     { href: '/cart', label: 'Tas Klaim' },
-    { href: '/chat', label: 'Chat' },
   ];
 
   const navLinks = user ? loggedInNavLinks : publicNavLinks;
@@ -91,20 +90,9 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
         <div className="flex items-center gap-3 sm:gap-4">
           {user ? (
             <>
-              {/* Chat Icon */}
-              <Link
-                href="/chat"
-                className="text-gray-500 hover:text-[#1B3A5C] transition-colors p-2 rounded-xl hover:bg-slate-100 relative"
-                title="Pesan & Chat Transaksi"
-              >
-                <svg className="w-5 h-5 text-[#1B3A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </Link>
-
               {/* Cart Icon (Tas Klaim) */}
               <Link
-                href="/cart"
+                href="/dashboard/cart"
                 className="text-gray-500 hover:text-[#1B3A5C] transition-colors p-2 rounded-xl hover:bg-slate-100 relative"
                 title="Tas Klaim Makanan"
               >

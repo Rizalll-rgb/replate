@@ -185,7 +185,7 @@ export default function ProviderClaimsPage() {
 
       if (allSavedClaims.length > 0) {
         const pending = allSavedClaims
-          .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP' || c.status === 'AWAITING_VERIFICATION')
+          .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP' || c.status === 'AWAITING_VERIFICATION' || c.status === 'WAITING_PAYMENT_APPROVAL')
             .map((c: any) => ({
               code: c.claimCode || c.code || c.id,
               foodName: c.foodName,
@@ -199,6 +199,7 @@ export default function ProviderClaimsPage() {
               courierPhone: c.contactPhone || '0812-9876-5432',
               address: c.address || 'Kota Surabaya',
               time: c.readyTime || 'Hari ini',
+              paymentProofUrl: c.paymentProof || c.paymentProofUrl,
             }));
 
           const inTransit = allSavedClaims
@@ -412,10 +413,10 @@ export default function ProviderClaimsPage() {
 
   // Filter payment claims vs pickup claims
   const paymentClaims = pendingClaims.filter(
-    (c) => c.status === 'PAYMENT_PROOF_UPLOADED' || c.status === 'WAITING_PAYMENT_AT_STORE' || c.status === 'AWAITING_VERIFICATION'
+    (c) => c.status === 'PAYMENT_PROOF_UPLOADED' || c.status === 'WAITING_PAYMENT_AT_STORE' || c.status === 'AWAITING_VERIFICATION' || c.status === 'WAITING_PAYMENT_APPROVAL'
   );
   const pickupClaims = pendingClaims.filter(
-    (c) => c.status !== 'PAYMENT_PROOF_UPLOADED' && c.status !== 'WAITING_PAYMENT_AT_STORE' && c.status !== 'AWAITING_VERIFICATION'
+    (c) => c.status !== 'PAYMENT_PROOF_UPLOADED' && c.status !== 'WAITING_PAYMENT_AT_STORE' && c.status !== 'AWAITING_VERIFICATION' && c.status !== 'WAITING_PAYMENT_APPROVAL'
   );
 
   return (

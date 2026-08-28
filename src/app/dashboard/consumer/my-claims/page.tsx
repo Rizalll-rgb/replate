@@ -278,7 +278,7 @@ export default function MyClaimsPage() {
                 </div>
               )}
 
-              {claim.status === 'AWAITING_VERIFICATION' && (
+              {(claim.status === 'AWAITING_VERIFICATION' || claim.status === 'WAITING_PAYMENT_APPROVAL') && (
                 <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-center">
                   <p className="text-xs font-bold text-amber-800">
                     Bukti pembayaran sedang diverifikasi oleh Mitra. Harap tunggu sesaat...
@@ -295,12 +295,6 @@ export default function MyClaimsPage() {
                   />
 
                   <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                    <Link href={`/chat?resi=${claim.id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full font-extrabold text-xs">
-                        💬 Hubungi Outlet via Chat
-                      </Button>
-                    </Link>
-
                     <Button
                       variant="gold"
                       size="sm"
