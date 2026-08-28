@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { QRScanner } from '@/components/qr/QRScanner';
@@ -64,7 +65,53 @@ export default function PartnerActivePickupsPage() {
   // Sync with localStorage replate_claims
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
       const savedClaimsStr = localStorage.getItem('replate_claims');
+
+      if (isFresh) {
+        if (savedClaimsStr) {
+          const savedClaims = JSON.parse(savedClaimsStr);
+          if (Array.isArray(savedClaims) && savedClaims.length > 0) {
+            const pending = savedClaims
+              .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED')
+              .map((c: any) => ({
+                code: c.claimCode || c.id,
+                foodName: c.foodName,
+                providerName: 'Mitra Provider Replate',
+                providerAddress: 'Surabaya Pusat',
+                shelterName: c.shelterName || 'Panti Asuhan Surabaya',
+                shelterAddress: c.address || 'Kota Surabaya',
+                quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+                status: c.status || 'AWAITING_RESCUE_PICKUP',
+                time: c.readyTime || 'Hari ini',
+              }));
+
+            const completed = savedClaims
+              .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
+              .map((c: any) => ({
+                code: c.claimCode || c.id,
+                foodName: c.foodName,
+                providerName: 'Mitra Provider Replate',
+                shelterName: c.shelterName || 'Panti Asuhan Surabaya',
+                quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+                status: 'COMPLETED',
+                time: c.createdAt || 'Selesai',
+                photoProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+              }));
+
+            setActivePickups(pending);
+            setCompletedPickups(completed);
+          } else {
+            setActivePickups([]);
+            setCompletedPickups([]);
+          }
+        } else {
+          setActivePickups([]);
+          setCompletedPickups([]);
+        }
+        return;
+      }
+
       if (savedClaimsStr) {
         const savedClaims = JSON.parse(savedClaimsStr);
         if (Array.isArray(savedClaims) && savedClaims.length > 0) {
@@ -275,7 +322,22 @@ export default function PartnerActivePickupsPage() {
       <div className="space-y-4">
         {activeTab === 'ACTIVE' ? (
           activePickups.length === 0 ? (
-            <Card className="p-8 text-center text-slate-400 font-semibold">Tidak ada penjemputan aktif saat ini.</Card>
+            <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-3 shadow-xs">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl border border-blue-200 text-blue-600 flex items-center justify-center mx-auto text-2xl">
+                🛵
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-black text-sm text-[#1B3A5C]">Tidak Ada Penjemputan Aktif Saat Ini</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                  Saat ini belum ada tugas pengantaran logistik pangan surplus yang ditugaskan ke armada relawan Anda.
+                </p>
+              </div>
+              <Link href="/dashboard/rescue-partner/requests" className="inline-block pt-2">
+                <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs">
+                  Cek Permintaan Match Baru ➔
+                </Button>
+              </Link>
+            </div>
           ) : (
             activePickups.map((item) => (
               <Card key={item.code} className="border-slate-200 shadow-xs hover:shadow-md transition-all">
@@ -343,34 +405,46 @@ export default function PartnerActivePickupsPage() {
             ))
           )
         ) : (
-          completedPickups.map((item) => (
-            <Card key={item.code} className="border-slate-200 shadow-xs">
-              <CardBody className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-black text-sm bg-emerald-700 text-white px-2.5 py-0.5 rounded-md">
-                      {item.code}
-                    </span>
-                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md">
-                      ✓ COMPLETED (TERAMBIL & DISERAHKAN)
-                    </span>
+          completedPickups.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-2 shadow-xs">
+              <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                📋
+              </div>
+              <h4 className="font-black text-sm text-[#1B3A5C]">Belum Ada Riwayat Pengantaran Selesai</h4>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
+                Penyaluran logistik yang telah berhasil diserahterimakan ke panti asuhan akan tampil di tab ini.
+              </p>
+            </div>
+          ) : (
+            completedPickups.map((item) => (
+              <Card key={item.code} className="border-slate-200 shadow-xs">
+                <CardBody className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-black text-sm bg-emerald-700 text-white px-2.5 py-0.5 rounded-md">
+                        {item.code}
+                      </span>
+                      <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md">
+                        ✓ COMPLETED (TERAMBIL & DISERAHKAN)
+                      </span>
+                    </div>
+                    <h4 className="font-extrabold text-[#1B3A5C] text-sm mt-1">
+                      {item.shelterName} — <span className="text-emerald-700">{item.foodName} ({item.quantity})</span>
+                    </h4>
+                    <p className="text-slate-500">Waktu Penyerahan: {item.time}</p>
                   </div>
-                  <h4 className="font-extrabold text-[#1B3A5C] text-sm mt-1">
-                    {item.shelterName} — <span className="text-emerald-700">{item.foodName} ({item.quantity})</span>
-                  </h4>
-                  <p className="text-slate-500">Waktu Penyerahan: {item.time}</p>
-                </div>
 
-                {item.photoProof && (
-                  <img
-                    src={item.photoProof}
-                    alt="Bukti Serah Terima Panti"
-                    className="w-24 h-16 object-cover rounded-xl border border-slate-300 shrink-0"
-                  />
-                )}
-              </CardBody>
-            </Card>
-          ))
+                  {item.photoProof && (
+                    <img
+                      src={item.photoProof}
+                      alt="Bukti Serah Terima Panti"
+                      className="w-24 h-16 object-cover rounded-xl border border-slate-300 shrink-0"
+                    />
+                  )}
+                </CardBody>
+              </Card>
+            ))
+          )
         )}
       </div>
 

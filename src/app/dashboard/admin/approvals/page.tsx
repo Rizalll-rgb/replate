@@ -211,6 +211,17 @@ export default function AdminApprovalsPage() {
     });
   };
 
+  const formatRoleLabel = (r?: string) => {
+    if (!r) return '-';
+    const upper = r.toUpperCase();
+    if (upper === 'PROVIDER' || upper === 'FOOD_PROVIDER') return 'Food Provider';
+    if (upper === 'BENEFICIARY' || upper === 'FOOD_BENEFICIARY' || upper === 'YAYASAN') return 'Food Beneficiary';
+    if (upper === 'RESCUE_PARTNER' || upper === 'VOLUNTEER' || upper === 'RESCUE_VOLUNTEER') return 'Rescue Volunteer';
+    if (upper === 'CONSUMER' || upper === 'FOOD_CONSUMER') return 'Food Consumer';
+    if (upper === 'ADMIN' || upper === 'SUPER_ADMIN') return 'SuperAdmin';
+    return r.replace(/_/g, ' ');
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Header Banner */}
@@ -300,7 +311,7 @@ export default function AdminApprovalsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={u.role === 'PROVIDER' ? 'gold' : 'primary'} size="sm">
-                          {u.role}
+                          {formatRoleLabel(u.role)}
                         </Badge>
                       </TableCell>
                       <TableCell>

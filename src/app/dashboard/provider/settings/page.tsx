@@ -142,6 +142,30 @@ export default function ProviderSettingsPage() {
         if (parsed.category) setBusinessCategory(parsed.category);
       }
 
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
+      if (isFresh) {
+        setFleetList([]);
+        setSelectedFleetId('');
+        setFleetApprovalStatus('UNSUBMITTED');
+        setUploadedNibDoc(null);
+        setNib('');
+        setHalalCertNo('');
+        if (p) {
+          try {
+            setQrisMerchantName(JSON.parse(p).entityName || '');
+          } catch (_) {}
+        }
+        setQrisAccountNo('');
+        setQrisNmid('');
+      } else {
+        const storedFleet = localStorage.getItem('replate_provider_fleet_list');
+        if (storedFleet) {
+          setFleetList(JSON.parse(storedFleet));
+        } else {
+          setFleetList(defaultFleetList);
+        }
+      }
+
       const saved = localStorage.getItem('replate_provider_can_deliver_direct');
       if (saved !== null) {
         setProviderCanDeliverDirect(saved === 'true');
@@ -152,7 +176,7 @@ export default function ProviderSettingsPage() {
       const savedFleetStatus = localStorage.getItem('replate_provider_fleet_status');
       if (savedFleetStatus) {
         setFleetApprovalStatus(savedFleetStatus as any);
-      } else {
+      } else if (!isFresh) {
         localStorage.setItem('replate_provider_fleet_status', 'APPROVED');
         setFleetApprovalStatus('APPROVED');
       }
@@ -903,35 +927,76 @@ export default function ProviderSettingsPage() {
                 </div>
               </div>
 
-              {/* Multi-Fleet Vehicles Selector Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-slate-800 scrollbar-thin">
-                {fleetList.map((flt, idx) => (
+              {/* Multi-Fleet Vehicles Selector Tabs or Empty State */}
+              {fleetList.length === 0 ? (
+                <div className="p-8 text-center bg-slate-900/80 border border-dashed border-slate-700 rounded-2xl space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0F1923] text-amber-300 border border-[#2C5A8F] flex items-center justify-center mx-auto text-xl shadow-xs">
+                    🛵
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-white">Belum Ada Driver Internal Toko</h4>
+                    <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                      Daftarkan kendaraan dan kurir internal outlet Anda untuk pengantaran langsung ke panti asuhan/konsumen.
+                    </p>
+                  </div>
                   <button
-                    key={flt.id}
                     type="button"
-                    onClick={() => setSelectedFleetId(flt.id)}
-                    className={`px-3.5 py-2 rounded-xl font-extrabold transition-all shrink-0 flex items-center gap-2 ${
-                      selectedFleetId === flt.id
-                        ? 'bg-[#1B3A5C] text-white border border-amber-400/50 shadow-sm'
-                        : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-white'
-                    }`}
+                    onClick={() => {
+                      const newId = `flt-${Date.now().toString().slice(-4)}`;
+                      const newVehicle: FleetVehicle = {
+                        id: newId,
+                        driverName: 'Driver Baru Outlet',
+                        driverPhone: '',
+                        isPhoneVerified: false,
+                        vehicleType: 'Sepeda Motor Box Cooler (Steril)',
+                        plateNumber: 'L ---- ---',
+                        status: 'UNSUBMITTED',
+                        docs: {
+                          driverPhoto: '',
+                          vehiclePhoto: '',
+                          ktpPhoto: '',
+                          simPhoto: '',
+                          stnkPhoto: '',
+                        },
+                      };
+                      setFleetList([newVehicle]);
+                      setSelectedFleetId(newId);
+                    }}
+                    className="px-4 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all inline-block"
                   >
-                    <span>🛵 Armada #{idx + 1} ({flt.plateNumber})</span>
-                    {flt.status === 'APPROVED' ? (
-                      <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded">✓ AKTIF</span>
-                    ) : flt.status === 'PENDING' ? (
-                      <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">⏳ PENDING</span>
-                    ) : (
-                      <span className="text-[9px] bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded">DRAFT</span>
-                    )}
+                    + Daftarkan Driver Toko Pertama ➔
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-slate-800 scrollbar-thin">
+                    {fleetList.map((flt, idx) => (
+                      <button
+                        key={flt.id}
+                        type="button"
+                        onClick={() => setSelectedFleetId(flt.id)}
+                        className={`px-3.5 py-2 rounded-xl font-extrabold transition-all shrink-0 flex items-center gap-2 ${
+                          selectedFleetId === flt.id
+                            ? 'bg-[#1B3A5C] text-white border border-amber-400/50 shadow-sm'
+                            : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span>🛵 Armada #{idx + 1} ({flt.plateNumber})</span>
+                        {flt.status === 'APPROVED' ? (
+                          <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded">✓ AKTIF</span>
+                        ) : flt.status === 'PENDING' ? (
+                          <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">⏳ PENDING</span>
+                        ) : (
+                          <span className="text-[9px] bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded">DRAFT</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Render Form Controls For Currently Selected Fleet */}
-              {(() => {
-                const currentFleet = fleetList.find((f) => f.id === selectedFleetId) || fleetList[0];
-                if (!currentFleet) return null;
+                  {/* Render Form Controls For Currently Selected Fleet */}
+                  {(() => {
+                    const currentFleet = fleetList.find((f) => f.id === selectedFleetId) || fleetList[0];
+                    if (!currentFleet) return null;
 
                 return (
                   <div className="space-y-4 pt-1 text-xs">
@@ -1577,6 +1642,8 @@ export default function ProviderSettingsPage() {
                   </div>
                 );
               })()}
+              </>
+            )}
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">

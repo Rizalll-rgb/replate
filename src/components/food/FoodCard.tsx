@@ -41,7 +41,12 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
   } = props;
 
   const title = props.title || props.foodName || 'Makanan Surplus';
-  const providerName = props.providerName || 'Provider Tidak Diketahui';
+  const providerName =
+    props.providerName ||
+    (props as any).provider?.name ||
+    (props as any).provider?.organizationName ||
+    (typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}').entityName || JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}').name) : null) ||
+    'Warung Bakso Pak Kumis';
   const category = props.category || props.foodCategory || 'MEALS';
   
   let quantityStr = '1 Porsi';

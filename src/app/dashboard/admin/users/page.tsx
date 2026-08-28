@@ -12,6 +12,17 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
 
+  const formatRoleLabel = (r?: string) => {
+    if (!r) return '-';
+    const upper = r.toUpperCase();
+    if (upper === 'PROVIDER' || upper === 'FOOD_PROVIDER') return 'Food Provider';
+    if (upper === 'BENEFICIARY' || upper === 'FOOD_BENEFICIARY' || upper === 'YAYASAN') return 'Food Beneficiary';
+    if (upper === 'RESCUE_PARTNER' || upper === 'VOLUNTEER' || upper === 'RESCUE_VOLUNTEER') return 'Rescue Volunteer';
+    if (upper === 'CONSUMER' || upper === 'FOOD_CONSUMER') return 'Food Consumer';
+    if (upper === 'ADMIN' || upper === 'SUPER_ADMIN') return 'SuperAdmin';
+    return r.replace(/_/g, ' ');
+  };
+
   const [usersList, setUsersList] = useState([
     {
       id: '1',
@@ -247,7 +258,7 @@ export default function AdminUsersPage() {
                   <TableCell className="text-xs text-slate-600 font-medium">{u.email}</TableCell>
                   <TableCell>
                     <Badge variant={u.role === 'PROVIDER' ? 'gold' : u.role === 'RESCUE_PARTNER' ? 'primary' : 'secondary'} size="sm">
-                      {u.role}
+                      {formatRoleLabel(u.role)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -312,7 +323,7 @@ export default function AdminUsersPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-extrabold text-[#1B3A5C] text-base">{selectedUser?.name}</span>
                 <Badge variant={selectedUser?.role === 'PROVIDER' ? 'gold' : 'primary'} size="sm">
-                  {selectedUser?.role}
+                  {formatRoleLabel(selectedUser?.role)}
                 </Badge>
               </div>
               <p className="text-slate-500 font-medium">{selectedUser?.org}</p>

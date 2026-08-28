@@ -103,6 +103,20 @@ export default function RescuePartnerSettingsPage() {
 
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
+      if (isFresh) {
+        setFleetList([]);
+        setSelectedFleetId('');
+        setSKNumber('');
+      } else {
+        const storedFleet = localStorage.getItem('replate_volunteer_fleet_list');
+        if (storedFleet) {
+          setFleetList(JSON.parse(storedFleet));
+        } else {
+          setFleetList(defaultFleetList);
+        }
+      }
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
@@ -271,35 +285,76 @@ export default function RescuePartnerSettingsPage() {
                 </button>
               </div>
 
-              {/* Multi-Fleet Vehicles Selector Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-slate-800 scrollbar-thin">
-                {fleetList.map((flt, idx) => (
+              {/* Multi-Fleet Vehicles Selector Tabs or Empty State */}
+              {fleetList.length === 0 ? (
+                <div className="p-8 text-center bg-slate-900/80 border border-dashed border-slate-700 rounded-2xl space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0F1923] text-amber-300 border border-[#2C5A8F] flex items-center justify-center mx-auto text-xl shadow-xs">
+                    🛵
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-white">Belum Ada Driver Relawan Komunitas</h4>
+                    <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                      Daftarkan anggota relawan logistik dan kendaraan operasional di bawah naungan komunitas Anda.
+                    </p>
+                  </div>
                   <button
-                    key={flt.id}
                     type="button"
-                    onClick={() => setSelectedFleetId(flt.id)}
-                    className={`px-3.5 py-2 rounded-xl font-extrabold transition-all shrink-0 flex items-center gap-2 ${
-                      selectedFleetId === flt.id
-                        ? 'bg-[#1B3A5C] text-white border border-amber-400/50 shadow-sm'
-                        : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-white'
-                    }`}
+                    onClick={() => {
+                      const newId = `vol-flt-${Date.now()}`;
+                      const newVehicle = {
+                        id: newId,
+                        driverName: 'Relawan Baru Komunitas',
+                        driverPhone: '',
+                        isPhoneVerified: false,
+                        vehicleType: 'Sepeda Motor Box Steril',
+                        plateNumber: 'L ---- ---',
+                        status: 'UNSUBMITTED' as const,
+                        docs: {
+                          driverPhoto: '',
+                          vehiclePhoto: '',
+                          ktpPhoto: '',
+                          simPhoto: '',
+                          stnkPhoto: '',
+                        },
+                      };
+                      setFleetList([newVehicle]);
+                      setSelectedFleetId(newId);
+                    }}
+                    className="px-4 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all inline-block"
                   >
-                    <span>🛵 Driver #{idx + 1} ({flt.driverName.split(' ')[0]})</span>
-                    {flt.status === 'APPROVED' ? (
-                      <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded">✓ TERAKREDITASI</span>
-                    ) : flt.status === 'PENDING' ? (
-                      <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">⏳ PENDING</span>
-                    ) : (
-                      <span className="text-[9px] bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded">DRAFT</span>
-                    )}
+                    + Daftarkan Driver Relawan Pertama ➔
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-slate-800 scrollbar-thin">
+                    {fleetList.map((flt, idx) => (
+                      <button
+                        key={flt.id}
+                        type="button"
+                        onClick={() => setSelectedFleetId(flt.id)}
+                        className={`px-3.5 py-2 rounded-xl font-extrabold transition-all shrink-0 flex items-center gap-2 ${
+                          selectedFleetId === flt.id
+                            ? 'bg-[#1B3A5C] text-white border border-amber-400/50 shadow-sm'
+                            : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span>🛵 Driver #{idx + 1} ({flt.driverName.split(' ')[0]})</span>
+                        {flt.status === 'APPROVED' ? (
+                          <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded">✓ TERAKREDITASI</span>
+                        ) : flt.status === 'PENDING' ? (
+                          <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">⏳ PENDING</span>
+                        ) : (
+                          <span className="text-[9px] bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded">DRAFT</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Form Display For Currently Selected Driver */}
-              {(() => {
-                const currentFleet = fleetList.find((f) => f.id === selectedFleetId) || fleetList[0];
-                if (!currentFleet) return null;
+                  {/* Form Display For Currently Selected Driver */}
+                  {(() => {
+                    const currentFleet = fleetList.find((f) => f.id === selectedFleetId) || fleetList[0];
+                    if (!currentFleet) return null;
 
                 return (
                   <div className="space-y-4 pt-1 text-xs">
@@ -392,6 +447,8 @@ export default function RescuePartnerSettingsPage() {
                   </div>
                 );
               })()}
+              </>
+            )}
             </div>
           </CardBody>
         </Card>

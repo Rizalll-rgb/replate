@@ -27,23 +27,30 @@ export default function YayasanDashboardPage() {
     },
   ];
 
+  const [isFreshAccount, setIsFreshAccount] = useState(false);
+  const [recipientCapacity, setRecipientCapacity] = useState('45 Jiwa');
+
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
+      setIsFreshAccount(isFresh);
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
         if (parsed.entityName) setPantiName(parsed.entityName);
         if (parsed.contactPerson) setContactPerson(parsed.contactPerson);
         if (parsed.address) setAddress(parsed.address);
+        if (parsed.capacity) setRecipientCapacity(parsed.capacity);
       }
     } catch (_) {}
   }, []);
 
   const stats = [
-    { label: 'Total Bantuan Diterima', value: '185 Porsi', color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Anak Yatim / Penerima', value: '45 Jiwa', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Total Emisi CO2 Dicegah', value: '92.5 kg', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Permintaan Bantuan Aktif', value: '2 Permintaan', color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Total Bantuan Diterima', value: isFreshAccount ? '0 Porsi' : '185 Porsi', color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Anak Yatim / Penerima', value: isFreshAccount ? recipientCapacity : '45 Jiwa', color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Emisi CO2 Dicegah', value: isFreshAccount ? '0.0 kg' : '92.5 kg', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Permintaan Bantuan Aktif', value: isFreshAccount ? '0 Permintaan' : '2 Permintaan', color: 'text-purple-600', bg: 'bg-purple-50' },
   ];
 
   return (

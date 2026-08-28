@@ -84,7 +84,32 @@ export default function MyClaimsPage() {
 
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
       const saved = localStorage.getItem('replate_active_claims');
+
+      if (isFresh) {
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const mapped = parsed.map((item: any) => ({
+              id: item.id,
+              foodName: item.items?.map((i: any) => `${i.name} (${i.quantity}x)`).join(', ') || item.foodName || 'Surplus Makanan Steril',
+              providerName: item.providerName || 'Outlet Provider',
+              totalAmount: item.totalAmount || 10000,
+              status: item.status || 'READY_FOR_PICKUP',
+              createdAt: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Hari ini',
+              pickupTime: item.pickupTime || '21:00 WIB',
+            }));
+            setClaims(mapped);
+          } else {
+            setClaims([]);
+          }
+        } else {
+          setClaims([]);
+        }
+        return;
+      }
+
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {

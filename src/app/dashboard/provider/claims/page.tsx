@@ -32,6 +32,12 @@ export default function ProviderClaimsPage() {
     claim: null,
   });
 
+  // In-Workspace Live Courier Tracking & Audit Log Modal (Point 1 & 7)
+  const [liveTrackingModal, setLiveTrackingModal] = useState<{ isOpen: boolean; claim: any | null }>({
+    isOpen: false,
+    claim: null,
+  });
+
   const defaultPending = [
     {
       code: 'FB-SALE-99102',
@@ -176,12 +182,20 @@ export default function ProviderClaimsPage() {
   // Sync with localStorage replate_claims & deduplicate unique keys
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
       const savedClaimsStr = localStorage.getItem('replate_claims');
       const savedActiveClaimsStr = localStorage.getItem('replate_active_claims');
       
       let allSavedClaims: any[] = [];
       if (savedClaimsStr) allSavedClaims = [...allSavedClaims, ...JSON.parse(savedClaimsStr)];
       if (savedActiveClaimsStr) allSavedClaims = [...allSavedClaims, ...JSON.parse(savedActiveClaimsStr)];
+
+      if (isFresh && allSavedClaims.length === 0) {
+        setPendingClaims([]);
+        setInTransitClaims([]);
+        setCompletedClaims([]);
+        return;
+      }
 
       if (allSavedClaims.length > 0) {
         const pending = allSavedClaims
@@ -256,12 +270,19 @@ export default function ProviderClaimsPage() {
     foodName: string;
     userName: string;
     quantity: string;
+    deliveryMethod?: string;
+    courierName?: string;
+    courierOrg?: string;
+    courierPhone?: string;
+    recipientPerson?: string;
+    address?: string;
   }>({
     isOpen: false,
     code: '',
     foodName: '',
     userName: '',
     quantity: '',
+    deliveryMethod: 'RESCUE_COURIER',
   });
 
   // Detailed Modal for Completed Claim (Fix Poin 1: Rich Identity Breakdown)
@@ -406,6 +427,12 @@ export default function ProviderClaimsPage() {
       foodName: tx.foodName,
       userName: tx.userName,
       quantity: tx.quantity,
+      deliveryMethod: tx.deliveryMethod || 'RESCUE_COURIER',
+      courierName: tx.courierName || '',
+      courierOrg: tx.courierOrg || '',
+      courierPhone: tx.courierPhone || '',
+      recipientPerson: tx.recipientPerson || '',
+      address: tx.address || '',
     });
     setCourierNameInput(tx.courierName || tx.userName);
     setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60');
@@ -554,7 +581,17 @@ export default function ProviderClaimsPage() {
                 : completedClaims;
 
             if (currentList.length === 0) {
-              return <p className="text-center text-slate-400 py-6 font-semibold">Tidak ada transaksi di tab ini.</p>;
+              return (
+                <div className="text-center py-10 space-y-2">
+                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                    📭
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">Belum Ada Transaksi di Tab Ini</p>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
+                    Klaim donasi atau pesanan Rescue Sale dari konsumen dan panti asuhan akan otomatis masuk ke tab ini.
+                  </p>
+                </div>
+              );
             }
 
             return currentList.map((tx, idx) => (
@@ -624,20 +661,36 @@ export default function ProviderClaimsPage() {
                       </Button>
                     </div>
                   ) : (
-                    <div className="px-3.5 py-2 bg-amber-50 text-amber-900 border border-amber-200 font-bold text-[11px] rounded-xl text-center">
-                      🚚 Dalam Pengiriman Kurir <br />
-                      <span className="text-[10px] text-amber-700 font-normal">(Menunggu Konfirmasi Sampai dari Kurir)</span>
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        className="font-black text-xs shadow-xs flex items-center gap-1"
+                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                      >
+                        <span>🛵 Status Live Tracking Kurir Komunitas ➔</span>
+                      </Button>
                     </div>
                   )
                 ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
-                    onClick={() => setDetailModal({ isOpen: true, claim: tx })}
-                  >
-                    Lihat Identitas & Detail Serah Terima ➔
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
+                      onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                    >
+                      <span>📋 Audit Log & Timeline ➔</span>
+                    </Button>
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      className="font-extrabold text-xs shadow-xs"
+                      onClick={() => setDetailModal({ isOpen: true, claim: tx })}
+                    >
+                      Detail Serah Terima ➔
+                    </Button>
+                  </div>
                 )}
               </div>
             ));
@@ -801,9 +854,22 @@ export default function ProviderClaimsPage() {
             </div>
 
             <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
-              <h4 className="font-extrabold text-[#1B3A5C] text-sm">
-                Konfirmasi Penyerahan Ke Kurir Relawan / Penerima
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-extrabold text-[#1B3A5C] text-sm">
+                  {confirmModal.deliveryMethod === 'RESCUE_COURIER'
+                    ? 'Serah Terima Paket ke Kurir Relawan Komunitas'
+                    : confirmModal.deliveryMethod === 'SHELTER_PICKUP'
+                    ? 'Serah Terima Ambil Mandiri di Kasir Toko'
+                    : 'Penugasan Pengantaran Driver Toko Sendiri'}
+                </h4>
+                <span className="px-2.5 py-0.5 bg-[#1B3A5C] text-white text-[10px] font-black rounded-md uppercase tracking-wider">
+                  {confirmModal.deliveryMethod === 'RESCUE_COURIER'
+                    ? '🛵 KURIR RELAWAN'
+                    : confirmModal.deliveryMethod === 'SHELTER_PICKUP'
+                    ? '🏬 AMBIL MANDIRI'
+                    : '🚚 ARMADA TOKO'}
+                </span>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <div className="relative h-36 bg-slate-800 rounded-xl overflow-hidden border border-slate-300">
@@ -813,40 +879,75 @@ export default function ProviderClaimsPage() {
                   </span>
                 </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-                      value={selectedStoreDriver}
-                      onChange={(e) => {
-                        setSelectedStoreDriver(e.target.value);
-                        setCourierNameInput(e.target.value);
-                      }}
-                    >
-                      {storeDriversList.map((drv) => (
-                        <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
-                          {drv.name} - {drv.vehicle}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-2.5">
+                  {confirmModal.deliveryMethod === 'RESCUE_COURIER' ? (
+                    <div className="p-3 bg-white rounded-xl border border-blue-200 space-y-1.5">
+                      <span className="text-[10px] font-black text-purple-700 uppercase tracking-wider block">
+                        DATA KURIR RELAWAN PENJEMPUT:
+                      </span>
+                      <div className="text-xs space-y-1">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Nama Relawan:</span>
+                          <strong className="text-[#1B3A5C] text-sm">{confirmModal.courierName || 'Budi Santoso (Relawan ID #RC-881)'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Mitra Food Rescue:</span>
+                          <strong className="text-slate-800">{confirmModal.courierOrg || 'Food Bank Surabaya Logistik'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Tujuan Alokasi:</span>
+                          <strong className="text-emerald-700">{confirmModal.userName}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  ) : confirmModal.deliveryMethod === 'SHELTER_PICKUP' ? (
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1.5">
+                      <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider block">
+                        PENERIMA AMBIL MANDIRI DI OUTLET:
+                      </span>
+                      <div className="text-xs space-y-1">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Nama Pengambil:</span>
+                          <strong className="text-[#1B3A5C] text-sm">{confirmModal.userName}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Lokasi Serah Terima:</span>
+                          <strong className="text-slate-800">Kasir / Outlet Toko Anda</strong>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                          value={selectedStoreDriver}
+                          onChange={(e) => {
+                            setSelectedStoreDriver(e.target.value);
+                            setCourierNameInput(e.target.value);
+                          }}
+                        >
+                          {storeDriversList.map((drv) => (
+                            <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
+                              {drv.name} - {drv.vehicle}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  <div>
-                    <label className="font-bold text-slate-800 block mb-1">Atau Nama Kurir / Penerima Mandiri:</label>
-                    <Input value={courierNameInput} onChange={(e) => setCourierNameInput(e.target.value)} placeholder="Nama lengkap kurir" />
-                  </div>
-
-                  <a
-                    href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                      `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
-                  >
-                    <span>💬 Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
-                  </a>
+                      <a
+                        href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                          `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
+                      >
+                        <span>💬 Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1002,6 +1103,137 @@ export default function ProviderClaimsPage() {
                 }}
               >
                 Lihat di Tab Penyelamatan & Handover Kasir ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* In-Workspace Live Courier Tracking & Audit Log Modal (Point 1 & 7) */}
+      {liveTrackingModal.isOpen && liveTrackingModal.claim && (
+        <Modal
+          isOpen={liveTrackingModal.isOpen}
+          onClose={() => setLiveTrackingModal({ isOpen: false, claim: null })}
+          title={`Live Tracking & Audit Log Resi: ${liveTrackingModal.claim.code}`}
+          size="lg"
+        >
+          <div className="space-y-5 text-xs text-slate-800">
+            {/* Header Status */}
+            <div className="p-4 bg-gradient-to-r from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                  REAL-TIME COURIER LOGISTICS TRACKING
+                </span>
+                <h3 className="text-base font-black">
+                  {liveTrackingModal.claim.foodName} ({liveTrackingModal.claim.quantity})
+                </h3>
+                <p className="text-xs text-slate-200 font-mono">
+                  Kode Resi: <strong>{liveTrackingModal.claim.code}</strong>
+                </p>
+              </div>
+
+              <span className="px-3 py-1 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs self-start sm:self-center">
+                {liveTrackingModal.claim.status === 'COMPLETED'
+                  ? '✓ Tiba & Diserahkan'
+                  : '🛵 Sedang Diantar Kurir'}
+              </span>
+            </div>
+
+            {/* Courier Profile & Contact */}
+            <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-black text-xl">
+                  🛵
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-purple-700 uppercase tracking-widest block">
+                    KURIR RELAWAN RESMI
+                  </span>
+                  <h4 className="font-extrabold text-sm text-purple-950">
+                    {liveTrackingModal.claim.courierName || 'Budi Santoso (Relawan ID #RC-881)'}
+                  </h4>
+                  <p className="text-xs text-purple-800 font-medium">
+                    {liveTrackingModal.claim.courierOrg || 'Food Bank Surabaya Logistik & Komunitas Garda Pangan'}
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href={`https://wa.me/${(liveTrackingModal.claim.courierPhone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(
+                  `Halo Mas ${liveTrackingModal.claim.courierName || 'Kurir'}, saya dari pihak Toko ingin menanyakan status pengantaran donasi resi ${liveTrackingModal.claim.code}.`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap"
+              >
+                <span>💬 Hubungi Kurir (WhatsApp)</span>
+              </a>
+            </div>
+
+            {/* Route & Beneficiary Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                <span className="text-slate-500 font-semibold block">Titik Penjemputan (Toko Anda):</span>
+                <strong className="text-[#1B3A5C] block">Warung Bakso Pak Kumis</strong>
+                <p className="text-[11px] text-slate-600">Jl. Raya Gubeng No. 88, Surabaya</p>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                <span className="text-slate-500 font-semibold block">Titik Tujuan Pengantaran:</span>
+                <strong className="text-emerald-800 block">{liveTrackingModal.claim.userName}</strong>
+                <p className="text-[11px] text-slate-600">
+                  {liveTrackingModal.claim.address || 'Panti Asuhan Kasih Ibu, Surabaya'}
+                </p>
+              </div>
+            </div>
+
+            {/* Checkpoint Timeline */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <span className="font-extrabold text-[#1B3A5C] text-xs uppercase tracking-wider block">
+                📋 Timeline Status Logistik Terverifikasi
+              </span>
+
+              <div className="space-y-3 pl-2 border-l-2 border-slate-300 text-xs">
+                <div className="relative pl-4">
+                  <span className="absolute -left-[21px] top-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100"></span>
+                  <strong className="text-slate-900 block">Surat Jalan Donasi Diterbitkan & Sanggupi Permintaan</strong>
+                  <span className="text-slate-500 text-[11px]">Hari ini, 18:30 WIB • Tiket manifest otomatis masuk sistem.</span>
+                </div>
+
+                <div className="relative pl-4">
+                  <span className="absolute -left-[21px] top-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100"></span>
+                  <strong className="text-slate-900 block">Kurir Relawan Tiba di Toko & Handover Selesai</strong>
+                  <span className="text-slate-500 text-[11px]">Hari ini, 19:00 WIB • Makanan diserahkan dalam kemasan steril.</span>
+                </div>
+
+                <div className="relative pl-4">
+                  <span className="absolute -left-[21px] top-0.5 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-100 animate-pulse"></span>
+                  <strong className="text-blue-950 block">Dalam Perjalanan Menuju Shelter Panti</strong>
+                  <span className="text-slate-500 text-[11px]">Hari ini, 19:15 WIB • Kurir sedang OTW (Estimasi Tiba: 20-25 Menit).</span>
+                </div>
+
+                <div className="relative pl-4">
+                  <span className={`absolute -left-[21px] top-0.5 w-3 h-3 rounded-full ${liveTrackingModal.claim.status === 'COMPLETED' ? 'bg-emerald-500 ring-4 ring-emerald-100' : 'bg-slate-300'}`}></span>
+                  <strong className={liveTrackingModal.claim.status === 'COMPLETED' ? 'text-emerald-950' : 'text-slate-400'}>
+                    Serah Terima di Panti Asuhan & Berita Acara Foto
+                  </strong>
+                  <span className="text-slate-500 text-[11px]">
+                    {liveTrackingModal.claim.status === 'COMPLETED'
+                      ? 'Hari ini, 19:40 WIB • Makanan diterima anak-anak panti dalam kondisi aman.'
+                      : 'Menunggu konfirmasi kedatangan di lokasi tujuan.'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                variant="primary"
+                size="sm"
+                className="font-bold text-xs"
+                onClick={() => setLiveTrackingModal({ isOpen: false, claim: null })}
+              >
+                Tutup Live Tracking
               </Button>
             </div>
           </div>

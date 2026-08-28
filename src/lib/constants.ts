@@ -141,28 +141,39 @@ export const MATCHING_CONFIG = {
 
 export const SDG_INFO = [
     {
-        number: 11,
-        title: 'Kota & Permukiman Berkelanjutan',
-        description: 'Mengurangi food waste di kota untuk ekosistem pangan berkelanjutan',
-        color: '#F99D26',
-    },
-    {
-        number: 13,
-        title: 'Penanganan Perubahan Iklim',
-        description: 'Setiap kg makanan diselamatkan = pengurangan emisi CO2',
-        color: '#48773C',
+        number: 2,
+        title: 'Tanpa Kelaparan (Zero Hunger)',
+        description: 'Redistribusi surplus pangan layak konsumsi untuk panti asuhan, yayasan sosial, dan kaum dhuafa.',
+        color: '#DDA63A',
+        badgeColor: 'bg-amber-600',
     },
     {
         number: 9,
         title: 'Industri, Inovasi & Infrastruktur',
-        description: 'Smart matching sebagai inovasi infrastruktur distribusi pangan digital',
+        description: 'Smart Matching Engine 2.0 & Geofencing GPS sebagai infrastruktur digital redistribusi pangan.',
         color: '#FD6925',
+        badgeColor: 'bg-orange-600',
     },
     {
-        number: 4,
-        title: 'Pendidikan Berkualitas',
-        description: 'Edukasi food waste awareness dan budaya berbagi',
-        color: '#C5192D',
+        number: 11,
+        title: 'Kota & Komunitas Berkelanjutan',
+        description: 'Mewujudkan ekosistem kota sirkular zero-waste di Surabaya dan menekan timbulan sampah di TPA Benowo.',
+        color: '#F99D26',
+        badgeColor: 'bg-amber-500',
+    },
+    {
+        number: 12,
+        title: 'Konsumsi & Produksi Bertanggung Jawab',
+        description: 'Target 12.3: Mengurangi 50% food waste per kapita via Rescue Sale diskon murah & SOP Higienitas BPOM.',
+        color: '#BF8B2E',
+        badgeColor: 'bg-yellow-700',
+    },
+    {
+        number: 13,
+        title: 'Penanganan Perubahan Iklim',
+        description: 'Pencegahan gas metana (CH4) dan reduksi 2.5 kg CO2e per 1 kg makanan terselamatkan (Standar IPCC).',
+        color: '#3F7E44',
+        badgeColor: 'bg-emerald-700',
     },
 ] as const;
 

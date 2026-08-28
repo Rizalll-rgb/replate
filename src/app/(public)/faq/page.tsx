@@ -29,7 +29,7 @@ export default function FAQPage() {
     },
     {
       q: 'Apakah pendaftaran platform Replate dipungut biaya?',
-      a: 'Pendaftaran Replate 100% GRATIS untuk seluruh role (Food Provider, Konsumen, Rescue Partner, Yayasan). Platform ini berkomitmen penuh mendukung pencapaian target Zero Hunger (SDG 2) & Sustainable Cities (SDG 11).',
+      a: 'Pendaftaran Replate 100% GRATIS untuk seluruh role (Food Provider, Konsumen, Rescue Partner, Yayasan). Platform ini berkomitmen penuh mendukung pencapaian 5 Pilar SDGs (SDG 2, SDG 9, SDG 11, SDG 12, dan SDG 13).',
     },
     {
       q: 'Bagaimana alur verifikasi akun Mitra Food Provider baru?',

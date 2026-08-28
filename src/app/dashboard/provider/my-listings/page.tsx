@@ -7,8 +7,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Toast } from '@/components/ui/Toast';
+import { Badge } from '@/components/ui/Badge';
 import { useSession } from 'next-auth/react';
-
 import Link from 'next/link';
 
 export default function MyListingsPage() {
@@ -17,12 +17,40 @@ export default function MyListingsPage() {
   const [activeTabFilter, setActiveTabFilter] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Quick Stock & Live Status Modal
   const [manageModal, setManageModal] = useState<{ isOpen: boolean; food: any | null }>({
     isOpen: false,
     food: null,
   });
   const [newQuantity, setNewQuantity] = useState<number>(0);
   const [isAvailableStatus, setIsAvailableStatus] = useState<boolean>(true);
+
+  // Full Edit Modal (Point 4: Comprehensive CRUD)
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; food: any | null }>({
+    isOpen: false,
+    food: null,
+  });
+  const [editFormData, setEditFormData] = useState({
+    foodName: '',
+    description: '',
+    foodCategory: 'MEALS',
+    quantity: 10,
+    price: 5000,
+    originalPrice: 15000,
+    isFree: false,
+    storageCondition: 'ROOM_TEMP',
+    packagingType: 'PACKAGED',
+    pickupDeadline: '',
+    allergens: 'Halal BPJPH, Wadah Food-Grade',
+  });
+
+  // Authentic Custom Delete Confirmation Modal (Point 5)
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; food: any | null }>({
+    isOpen: false,
+    food: null,
+  });
+
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
     message: '',
@@ -34,6 +62,18 @@ export default function MyListingsPage() {
     try {
       localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
     } catch (_) {}
+
+    const isFresh = typeof window !== 'undefined' && localStorage.getItem('replate_is_fresh_account') === 'true';
+
+    if (isFresh) {
+      const normalizedLocal = localItems.map((item) => ({
+        ...item,
+        category: item.category || item.foodCategory || 'MEALS',
+        providerName: item.providerName || (session?.user?.name) || 'Warung Bakso Pak Kumis',
+      }));
+      setFoods(normalizedLocal);
+      return;
+    }
 
     fetch('/api/surplus?status=')
       .then((res) => res.json())
@@ -55,12 +95,14 @@ export default function MyListingsPage() {
             remainingQuantity: 15,
             quantityUnit: 'porsi',
             price: 5000,
+            originalPrice: 18000,
             status: 'AVAILABLE',
             distributionType: 'SALE',
             address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
             pickupDeadline: new Date(Date.now() + 5 * 3600000).toISOString(),
             photos: ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'],
             provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
+            providerName: 'Warung Bakso Pak Kumis',
           },
           {
             id: 'SRP-102',
@@ -71,27 +113,33 @@ export default function MyListingsPage() {
             remainingQuantity: 10,
             quantityUnit: 'porsi',
             price: 0,
+            originalPrice: 12000,
             status: 'AVAILABLE',
             distributionType: 'FREE',
             address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
             pickupDeadline: new Date(Date.now() + 3 * 3600000).toISOString(),
             photos: ['https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80'],
             provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
+            providerName: 'Warung Bakso Pak Kumis',
           },
         ];
 
         const normalizedCombined = [...localItems, ...itemsList].map((item) => ({
           ...item,
           category: item.category || item.foodCategory || 'MEALS',
+          providerName: item.providerName || (session?.user?.name) || 'Warung Bakso Pak Kumis',
         }));
         setFoods(normalizedCombined.length > 0 ? normalizedCombined : fallback);
       })
       .catch(() => {
-        const normalizedLocal = localItems.map((item) => ({
-          ...item,
-          category: item.category || item.foodCategory || 'MEALS',
-        }));
-        setFoods(normalizedLocal.length > 0 ? normalizedLocal : []);
+        if (localItems.length > 0) {
+          const normalizedLocal = localItems.map((item) => ({
+            ...item,
+            category: item.category || item.foodCategory || 'MEALS',
+            providerName: item.providerName || (session?.user?.name) || 'Warung Bakso Pak Kumis',
+          }));
+          setFoods(normalizedLocal);
+        }
       });
   };
 
@@ -104,18 +152,22 @@ export default function MyListingsPage() {
     if (item) {
       setSelectedFood({
         id: item.id,
-        foodName: item.foodName,
+        foodName: item.foodName || item.title,
         description: item.description,
-        foodCategory: item.foodCategory || item.category || 'MEALS',
-        quantity: item.quantity,
-        quantityUnit: item.quantityUnit,
+        foodCategory: item.foodCategory || item.category,
+        quantity: item.remainingQuantity ?? item.quantity,
+        quantityUnit: item.quantityUnit || 'Porsi',
         price: item.price,
         pickupDeadline: item.pickupDeadline,
         address: item.address,
-        storageCondition: item.storageCondition || 'Suhu Ruangan',
-        packagingType: item.packagingType || 'Terkemas',
-        photos: item.photos,
+        storageCondition: item.storageCondition || 'ROOM_TEMP',
+        packagingType: item.packagingType || 'PACKAGED',
+        weightPerUnitKg: item.weightPerUnitKg || 0.4,
+        allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Wadah Food-Grade'],
+        lat: item.lat || -7.2575,
+        lng: item.lng || 112.7521,
         provider: item.provider || { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
+        providerName: item.providerName || 'Warung Bakso Pak Kumis',
       });
       setIsDetailOpen(true);
     }
@@ -128,6 +180,89 @@ export default function MyListingsPage() {
       setNewQuantity(item.remainingQuantity ?? item.quantity);
       setIsAvailableStatus(item.status === 'AVAILABLE' || item.status === 'ACTIVE' || !item.status);
     }
+  };
+
+  const handleOpenEdit = (foodItem: any) => {
+    setEditFormData({
+      foodName: foodItem.foodName || foodItem.title || '',
+      description: foodItem.description || '',
+      foodCategory: foodItem.foodCategory || foodItem.category || 'MEALS',
+      quantity: foodItem.quantity || 10,
+      price: foodItem.price || 0,
+      originalPrice: foodItem.originalPrice || (foodItem.price ? foodItem.price * 2 : 15000),
+      isFree: foodItem.price === 0 || foodItem.distributionType === 'FREE',
+      storageCondition: foodItem.storageCondition || 'ROOM_TEMP',
+      packagingType: foodItem.packagingType || 'PACKAGED',
+      pickupDeadline: foodItem.pickupDeadline ? new Date(foodItem.pickupDeadline).toISOString().slice(0, 16) : '',
+      allergens: Array.isArray(foodItem.allergens) ? foodItem.allergens.join(', ') : 'Halal BPJPH, Wadah Food-Grade',
+    });
+    setEditModal({ isOpen: true, food: foodItem });
+    setManageModal({ isOpen: false, food: null });
+  };
+
+  const handleSaveFullEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editModal.food) return;
+    const foodId = editModal.food.id;
+
+    const updatedItem = {
+      ...editModal.food,
+      foodName: editFormData.foodName,
+      title: editFormData.foodName,
+      description: editFormData.description,
+      foodCategory: editFormData.foodCategory,
+      category: editFormData.foodCategory,
+      quantity: Number(editFormData.quantity),
+      remainingQuantity: Number(editFormData.quantity),
+      price: editFormData.isFree ? 0 : Number(editFormData.price),
+      originalPrice: Number(editFormData.originalPrice),
+      distributionType: editFormData.isFree ? 'FREE' : 'SALE',
+      storageCondition: editFormData.storageCondition,
+      packagingType: editFormData.packagingType,
+      allergens: editFormData.allergens.split(',').map((s) => s.trim()).filter(Boolean),
+    };
+
+    // Update local storage
+    try {
+      const local = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      const updatedLocal = local.map((item: any) => (item.id === foodId ? updatedItem : item));
+      localStorage.setItem('replate_local_surplus', JSON.stringify(updatedLocal));
+    } catch (_) {}
+
+    setFoods((prev) => prev.map((f) => (f.id === foodId ? updatedItem : f)));
+    setEditModal({ isOpen: false, food: null });
+
+    setToastState({
+      isOpen: true,
+      message: `Menu "${editFormData.foodName}" berhasil diperbarui secara lengkap!`,
+      type: 'success',
+    });
+  };
+
+  const handleDuplicate = (foodItem: any) => {
+    const newId = `SRP-${Date.now()}`;
+    const duplicated = {
+      ...foodItem,
+      id: newId,
+      foodName: `${foodItem.foodName || foodItem.title} (Salinan)`,
+      title: `${foodItem.foodName || foodItem.title} (Salinan)`,
+      status: 'AVAILABLE',
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const local = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      localStorage.setItem('replate_local_surplus', JSON.stringify([duplicated, ...local]));
+    } catch (_) {}
+
+    setFoods((prev) => [duplicated, ...prev]);
+    setManageModal({ isOpen: false, food: null });
+
+    setToastState({
+      isOpen: true,
+      message: `Menu "${foodItem.foodName || foodItem.title}" berhasil diduplikasi ke listing baru!`,
+      type: 'success',
+    });
   };
 
   const handleSaveManage = async () => {
@@ -168,28 +303,48 @@ export default function MyListingsPage() {
     });
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.food) return;
+    const foodId = deleteModal.food.id;
+    const foodName = deleteModal.food.foodName || deleteModal.food.title;
+
+    try {
+      await fetch(`/api/surplus?id=${foodId}`, {
+        method: 'DELETE',
+      });
+    } catch (_) {}
+
+    // Update local storage cache
+    try {
+      const local = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      const filteredLocal = local.filter((item: any) => item.id !== foodId);
+      localStorage.setItem('replate_local_surplus', JSON.stringify(filteredLocal));
+    } catch (_) {}
+
+    setFoods((prev) => prev.filter((f) => f.id !== foodId));
+    setDeleteModal({ isOpen: false, food: null });
+
+    setToastState({
+      isOpen: true,
+      message: `Menu "${foodName}" berhasil dihapus permanen dari katalog!`,
+      type: 'success',
+    });
+  };
+
   const activeFoods = foods.filter((f) => f.status === 'AVAILABLE' || f.status === 'ACTIVE' || !f.status);
   const inactiveFoods = foods.filter((f) => f.status === 'UNAVAILABLE' || f.status === 'INACTIVE');
   const displayedFoods = activeTabFilter === 'ACTIVE' ? activeFoods : inactiveFoods;
 
-  const manageModalFooter = (
-    <div className="flex justify-end gap-2 w-full">
-      <Button variant="outline" size="sm" onClick={() => setManageModal({ isOpen: false, food: null })}>
-        Batal
-      </Button>
-      <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
-        Simpan Perubahan Status & Stok ➔
-      </Button>
-    </div>
-  );
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1B3A5C]">Kelola Daftar Surplus Makanan Saya</h2>
+          <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
+            MANAJEMEN KATALOG & STOK SURPLUS
+          </span>
+          <h1 className="text-2xl font-extrabold text-[#1B3A5C]">Kelola Daftar Surplus Makanan Toko</h1>
           <p className="text-xs text-slate-500 font-medium">
-            Atur kuantitas stok, saklar penayangan publik, dan kelola status tayang porsi makanan berlebih.
+            Edit rincian menu, kelola sisa porsi, atur status penayangan, dan duplikasi listing makanan harian.
           </p>
         </div>
 
@@ -202,11 +357,11 @@ export default function MyListingsPage() {
         </div>
       </div>
 
-      {/* Tabs Filter (Poin 5: Aktif Tayang vs Nonaktif / Diarsipkan) */}
+      {/* Tabs Filter */}
       <div className="flex items-center gap-3 border-b border-slate-200 text-xs font-bold pb-1">
         <button
           onClick={() => setActiveTabFilter('ACTIVE')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 cursor-pointer ${
             activeTabFilter === 'ACTIVE'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -218,7 +373,7 @@ export default function MyListingsPage() {
 
         <button
           onClick={() => setActiveTabFilter('INACTIVE')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 cursor-pointer ${
             activeTabFilter === 'INACTIVE'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -254,34 +409,66 @@ export default function MyListingsPage() {
         food={selectedFood}
       />
 
-      {/* Modal Kelola Stok & Status Penayangan (Poin 5 & 6) */}
-      {manageModal.isOpen && (
+      {/* Modal Kelola Stok & Aksi Lengkap (Point 4 & 5) */}
+      {manageModal.isOpen && manageModal.food && (
         <Modal
           isOpen={manageModal.isOpen}
           onClose={() => setManageModal({ isOpen: false, food: null })}
-          title={`Kelola Surplus: ${manageModal.food?.foodName}`}
+          title={`Kelola Menu: ${manageModal.food?.foodName || manageModal.food?.title}`}
           size="md"
-          footer={manageModalFooter}
         >
           <div className="space-y-5 text-xs text-slate-700">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
               <span className="text-slate-500 font-semibold block">Item Makanan:</span>
               <span className="font-extrabold text-[#1B3A5C] text-sm block">
-                {manageModal.food?.foodName}
+                {manageModal.food?.foodName || manageModal.food?.title}
               </span>
               <span className="text-slate-500 block">
-                Lokasi Penjemputan: {manageModal.food?.address}
+                Kategori: <strong>{manageModal.food?.category || manageModal.food?.foodCategory}</strong> • Lokasi: {manageModal.food?.address || 'Outlet Surabaya'}
               </span>
             </div>
 
-            {/* Toggle Status Penayangan Publik (Poin 5) */}
+            {/* Actions Grid: Edit Detail, Duplikasi, Hapus */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleOpenEdit(manageModal.food)}
+                className="p-2.5 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-extrabold rounded-xl border border-blue-200 text-center transition-colors flex flex-col items-center justify-center gap-1 cursor-pointer"
+              >
+                <span className="text-base">✏️</span>
+                <span>Edit Rincian Menu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDuplicate(manageModal.food)}
+                className="p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-extrabold rounded-xl border border-amber-200 text-center transition-colors flex flex-col items-center justify-center gap-1 cursor-pointer"
+              >
+                <span className="text-base">📋</span>
+                <span>Duplikasi Menu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteModal({ isOpen: true, food: manageModal.food });
+                  setManageModal({ isOpen: false, food: null });
+                }}
+                className="p-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-extrabold rounded-xl border border-red-200 text-center transition-colors flex flex-col items-center justify-center gap-1 cursor-pointer"
+              >
+                <span className="text-base">🗑️</span>
+                <span>Hapus Menu</span>
+              </button>
+            </div>
+
+            {/* Toggle Status Penayangan */}
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <label className="font-extrabold text-slate-800 block">Status Penayangan Publik:</label>
+              <label className="font-extrabold text-slate-800 block">Saklar Penayangan Publik:</label>
               <label className="flex items-center justify-between cursor-pointer p-3 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-[#1B3A5C] transition-colors">
                 <div className="flex items-center gap-2">
                   <span className={`w-3 h-3 rounded-full ${isAvailableStatus ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
                   <span className="font-extrabold text-xs text-[#1B3A5C]">
-                    {isAvailableStatus ? 'Aktif Tayang (Publik Bisa Mengklaim)' : 'Nonaktif (Disembunyikan dari Publik)'}
+                    {isAvailableStatus ? 'Aktif Tayang (Bisa Diklaim / Dipesan)' : 'Nonaktif (Disembunyikan)'}
                   </span>
                 </div>
                 <input
@@ -291,22 +478,204 @@ export default function MyListingsPage() {
                   className="w-5 h-5 text-[#1B3A5C] rounded border-slate-300 focus:ring-0 cursor-pointer"
                 />
               </label>
-              <p className="text-[11px] text-slate-500">
-                *Mengubah status ke Nonaktif akan memindahkan makanan ini ke tab <strong>Nonaktif / Diarsipkan</strong> dan menyembunyikannya dari pencarian publik.
-              </p>
             </div>
 
-            <div className="space-y-2">
-              <label className="font-bold text-slate-800 block">Update Sisa Kuantitas Stok:</label>
+            {/* Quantity Input */}
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-800 block">Update Kuantitas Porsi Tersedia:</label>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
+                  min="0"
                   value={newQuantity}
                   onChange={(e) => setNewQuantity(parseInt(e.target.value) || 0)}
-                  className="w-32 font-bold"
+                  className="w-32 font-black text-sm"
                 />
-                <span className="font-bold text-slate-700">{manageModal.food?.quantityUnit}</span>
+                <span className="font-bold text-slate-700">{manageModal.food?.quantityUnit || 'Porsi'}</span>
               </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+              <Button variant="outline" size="sm" onClick={() => setManageModal({ isOpen: false, food: null })}>
+                Batal
+              </Button>
+              <Button variant="gold" size="sm" className="font-black text-slate-950" onClick={handleSaveManage}>
+                Simpan Perubahan ➔
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Full Edit Rincian Menu (Point 4) */}
+      {editModal.isOpen && editModal.food && (
+        <Modal
+          isOpen={editModal.isOpen}
+          onClose={() => setEditModal({ isOpen: false, food: null })}
+          title={`Edit Rincian Menu: ${editFormData.foodName}`}
+          size="lg"
+        >
+          <form onSubmit={handleSaveFullEdit} className="space-y-4 text-xs text-slate-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Nama Menu Makanan:</label>
+                <Input
+                  value={editFormData.foodName}
+                  onChange={(e) => setEditFormData({ ...editFormData, foodName: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Kategori Pangan:</label>
+                <select
+                  value={editFormData.foodCategory}
+                  onChange={(e) => setEditFormData({ ...editFormData, foodCategory: e.target.value })}
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs"
+                >
+                  <option value="MEALS">🍱 Makanan Olahan Matang (Meals)</option>
+                  <option value="BAKERY">🥐 Roti, Kue & Pastry</option>
+                  <option value="PRODUCE">🥗 Sayuran & Buah Segar</option>
+                  <option value="DAIRY">🥛 Produk Olahan Susu / Minuman</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-extrabold text-slate-800 block">Deskripsi & Kondisi Makanan:</label>
+              <textarea
+                rows={3}
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Jumlah Porsi:</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editFormData.quantity}
+                  onChange={(e) => setEditFormData({ ...editFormData, quantity: parseInt(e.target.value) || 1 })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Harga Normal (Rp):</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={editFormData.originalPrice}
+                  onChange={(e) => setEditFormData({ ...editFormData, originalPrice: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Harga Diskon Rescue Sale (Rp):</label>
+                <Input
+                  type="number"
+                  min="0"
+                  disabled={editFormData.isFree}
+                  value={editFormData.isFree ? 0 : editFormData.price}
+                  onChange={(e) => setEditFormData({ ...editFormData, price: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editFormData.isFree}
+                onChange={(e) => setEditFormData({ ...editFormData, isFree: e.target.checked, price: 0 })}
+                className="w-4 h-4 text-emerald-600 rounded"
+              />
+              <span className="font-black text-emerald-900 text-xs">
+                Donasi Bebas Biaya (Rp 0 / Gratis Khusus Panti Asuhan & Dhuafa)
+              </span>
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Suhu Penyimpanan (SOP BPOM):</label>
+                <select
+                  value={editFormData.storageCondition}
+                  onChange={(e) => setEditFormData({ ...editFormData, storageCondition: e.target.value })}
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs"
+                >
+                  <option value="ROOM_TEMP">Suhu Ruang Higienis (25°C)</option>
+                  <option value="WARMER">Pemanas / Warmer (&gt; 60°C)</option>
+                  <option value="CHILLED">Pendingin / Chiller (&lt; 4°C)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-800 block">Label Alergen & Wadah:</label>
+                <Input
+                  value={editFormData.allergens}
+                  onChange={(e) => setEditFormData({ ...editFormData, allergens: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+              <Button variant="outline" size="sm" type="button" onClick={() => setEditModal({ isOpen: false, food: null })}>
+                Batal
+              </Button>
+              <Button variant="gold" size="sm" type="submit" className="font-black text-slate-950">
+                Simpan Rincian Menu ➔
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Authentic Branded Custom Delete Confirmation Modal (Point 5) */}
+      {deleteModal.isOpen && deleteModal.food && (
+        <Modal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, food: null })}
+          title="⚠️ Konfirmasi Hapus Menu Surplus"
+          size="sm"
+        >
+          <div className="space-y-4 text-center text-xs">
+            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+              🗑️
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-base font-black text-slate-900">
+                Hapus &quot;{deleteModal.food.foodName || deleteModal.food.title}&quot;?
+              </h3>
+              <p className="text-slate-500 font-medium">
+                Menu ini akan dihapus secara permanen dari katalog surplus toko Anda dan tidak dapat dipesan lagi oleh konsumen/panti.
+              </p>
+            </div>
+
+            <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-red-900 text-[11px] font-semibold text-left">
+              ✓ Porsi tersisa: <strong>{deleteModal.food.remainingQuantity ?? deleteModal.food.quantity} Porsi</strong> <br />
+              ✓ Status: <strong>{deleteModal.food.status || 'AVAILABLE'}</strong>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteModal({ isOpen: false, food: null })}
+                className="font-bold"
+              >
+                Batalkan
+              </Button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer"
+              >
+                Ya, Hapus Permanen ➔
+              </button>
             </div>
           </div>
         </Modal>

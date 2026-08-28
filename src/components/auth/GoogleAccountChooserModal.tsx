@@ -47,6 +47,10 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
   ];
 
   const handleChoose = (account: { name: string; email: string }) => {
+    try {
+      localStorage.removeItem('replate_is_fresh_account');
+      localStorage.setItem('replate_is_fresh_account', 'false');
+    } catch (_) {}
     setSelectingEmail(account.email);
     setTimeout(() => {
       setSelectingEmail(null);

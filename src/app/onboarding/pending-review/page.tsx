@@ -11,10 +11,10 @@ export default function OnboardingPendingReviewPage() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<any>({
-    entityName: 'Warung Bakso Pak Kumis Surabaya',
+    entityName: 'Entitas Pendaftar Baru',
     category: 'RESTAURANT',
-    address: 'Jl. Raya Gubeng No. 88, Surabaya',
-    contactPerson: 'Mas Doni',
+    address: 'Surabaya',
+    contactPerson: 'Penanggung Jawab',
   });
 
   const [regId, setRegId] = useState<string>('REPLATE-REG-2026-9812');
@@ -85,6 +85,14 @@ export default function OnboardingPendingReviewPage() {
 
   const handleGoToDashboard = async () => {
     setLoading(true);
+    try {
+      localStorage.setItem('replate_is_fresh_account', 'true');
+      localStorage.removeItem('replate_local_surplus');
+      localStorage.removeItem('replate_claims');
+      localStorage.removeItem('replate_active_claims');
+      localStorage.removeItem('replate_provider_fleet_list');
+    } catch (_) {}
+
     try {
       let demoEmail = 'bakso.pak.kumis@replate.id';
       if (targetDashboard.includes('yayasan')) demoEmail = 'panti.kasih.ibu@replate.id';

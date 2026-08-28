@@ -7,6 +7,7 @@ import { ImpactChart } from '@/components/impact/ImpactChart';
 import { CertificatePreview } from '@/components/reports/CertificatePreview';
 import { CSRReportPreview } from '@/components/reports/CSRReportPreview';
 import { formatCertificateData } from '@/lib/pdf';
+import { FOOD_WASTE_CO2_FACTOR } from '@/lib/impact';
 import { useSession } from 'next-auth/react';
 
 export default function ProviderImpactPage() {
@@ -84,7 +85,7 @@ export default function ProviderImpactPage() {
       });
   }, []);
 
-  const totalCo2SavedKg = Math.round(totalWeightKg * 2.5 * 10) / 10;
+  const totalCo2SavedKg = Math.round(totalWeightKg * FOOD_WASTE_CO2_FACTOR * 10) / 10;
 
   const certData = formatCertificateData(
     providerName,

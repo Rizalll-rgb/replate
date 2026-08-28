@@ -110,6 +110,12 @@ export default function ConsumerBrowsePage() {
 
   useEffect(() => {
     try {
+      const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
+      if (isFresh) {
+        setConsumerStatus('REGULAR_SAVER');
+        setSktmNumber('');
+      }
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);

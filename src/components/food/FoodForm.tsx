@@ -395,28 +395,6 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
           </span>
         </div>
       </div>
-
-      {/* Opsi Pemenuhan Logistik (Otomatis mewarisi preferensi Pengaturan Outlet) */}
-      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-black text-[#1B3A5C]">
-            Layanan Pengambilan & Pengantaran yang Aktif untuk Menu Ini:
-          </label>
-          <span className="text-[10px] text-slate-500 font-bold">Otomatis dari Pengaturan Outlet</span>
-        </div>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-3 py-1.5 bg-white border border-slate-300 font-black text-slate-800 rounded-xl shadow-2xs">
-            ✓ Ambil Mandiri di Toko (Self-Pickup)
-          </span>
-          <span className="px-3 py-1.5 bg-white border border-slate-300 font-black text-slate-800 rounded-xl shadow-2xs">
-            ✓ Kurir Relawan Replate (Auto-Assigned)
-          </span>
-          <span className="px-3 py-1.5 bg-emerald-100 border border-emerald-300 font-black text-emerald-900 rounded-xl shadow-2xs">
-            ✓ Armada Toko Direct (Driver Mas Doni - L 4582 ABC)
-          </span>
-        </div>
-      </div>
-
       {/* Custom Date & Time Picker */}
       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
         <div className="flex items-center justify-between">

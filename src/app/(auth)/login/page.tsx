@@ -113,7 +113,12 @@ export default function LoginPage() {
       password: 'password123',
     });
     try {
+      localStorage.removeItem('replate_is_fresh_account');
+      localStorage.setItem('replate_is_fresh_account', 'false');
       localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[role].mockProfile));
+      if (role === 'FOOD_CONSUMER') {
+        localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+      }
     } catch (_) {}
   };
 
@@ -123,6 +128,16 @@ export default function LoginPage() {
     try {
       const selectedRole = chosenRole || activeRoleTab;
       let targetUrl = roleConfigs[selectedRole].targetUrl;
+
+      // Always clear fresh account flag when logging into demo presets
+      try {
+        localStorage.removeItem('replate_is_fresh_account');
+        localStorage.setItem('replate_is_fresh_account', 'false');
+        localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
+        if (selectedRole === 'FOOD_CONSUMER') {
+          localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+        }
+      } catch (_) {}
 
       if (emailVal.includes('panti') || emailVal.includes('yayasan')) {
         targetUrl = '/dashboard/yayasan';
@@ -135,11 +150,6 @@ export default function LoginPage() {
       } else if (emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
         targetUrl = '/dashboard/provider';
       }
-
-      // Sync active mock profile in localStorage
-      try {
-        localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
-      } catch (_) {}
 
       const result = await signIn('credentials', {
         email: emailVal,
@@ -167,6 +177,15 @@ export default function LoginPage() {
   };
 
   const handleQuickDemoClick = (role: RoleType) => {
+    try {
+      localStorage.removeItem('replate_is_fresh_account');
+      localStorage.setItem('replate_is_fresh_account', 'false');
+      localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[role].mockProfile));
+      if (role === 'FOOD_CONSUMER') {
+        localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+      }
+    } catch (_) {}
+
     handleRoleTabChange(role);
     handleLoginWithCredentials(roleConfigs[role].demoEmail, 'password123', role);
   };

@@ -99,13 +99,26 @@ export default function OnboardingDocumentsPage() {
 
         {/* High Contrast Container Card */}
         <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="border-b border-[#2C5A8F] pb-3 flex items-center justify-between">
+          <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
               <span>📄 Verifikasi 3 Berkas Asli Wajib</span>
             </h3>
-            <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/40 font-black px-2.5 py-1 rounded-lg">
-              REQUIRED AUDIT
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNibDoc(sampleNibImage);
+                  setKtpDoc(sampleKtpImage);
+                  setStorePhoto(sampleStoreImage);
+                }}
+                className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
+              >
+                ⚡ Gunakan Berkas Contoh Demo
+              </button>
+              <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/40 font-black px-2.5 py-1 rounded-lg">
+                REQUIRED AUDIT
+              </span>
+            </div>
           </div>
 
           {validationError && (
