@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
@@ -15,10 +16,14 @@ export interface NavbarProps {
   } | null;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ user }) => {
+export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
+  const { data: session } = useSession();
   const pathname = usePathname();
   const [cartCount, setCartCount] = useState<number>(0);
   const [dashboardUrl, setDashboardUrl] = useState<string>('/dashboard/consumer');
+  const [activeRoleName, setActiveRoleName] = useState<string>('');
+
+  const activeUser = propUser || session?.user;
 
   useEffect(() => {
     try {
@@ -31,18 +36,37 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
       const profile = localStorage.getItem('replate_onboarding_profile');
       if (profile) {
         const parsed = JSON.parse(profile);
-        if (parsed.role === 'FOOD_PROVIDER') setDashboardUrl('/dashboard/provider');
-        else if (parsed.role === 'FOOD_BENEFICIARY') setDashboardUrl('/dashboard/yayasan');
-        else if (parsed.role === 'RESCUE_VOLUNTEER') setDashboardUrl('/dashboard/rescue-partner');
-        else setDashboardUrl('/dashboard/consumer');
-      } else if (user?.role) {
-        if (user.role.includes('PROVIDER')) setDashboardUrl('/dashboard/provider');
-        else if (user.role.includes('BENEFICIARY') || user.role.includes('YAYASAN')) setDashboardUrl('/dashboard/yayasan');
-        else if (user.role.includes('VOLUNTEER') || user.role.includes('RESCUE')) setDashboardUrl('/dashboard/rescue-partner');
-        else setDashboardUrl('/dashboard/consumer');
+        if (parsed.role === 'FOOD_PROVIDER') {
+          setDashboardUrl('/dashboard/provider');
+          setActiveRoleName('Food Provider');
+        } else if (parsed.role === 'FOOD_BENEFICIARY') {
+          setDashboardUrl('/dashboard/yayasan');
+          setActiveRoleName('Food Beneficiary');
+        } else if (parsed.role === 'RESCUE_VOLUNTEER') {
+          setDashboardUrl('/dashboard/rescue-partner');
+          setActiveRoleName('Rescue Volunteer');
+        } else {
+          setDashboardUrl('/dashboard/consumer');
+          setActiveRoleName('Consumer');
+        }
+      } else if (activeUser?.role) {
+        const role = String(activeUser.role).toUpperCase();
+        if (role.includes('PROVIDER')) {
+          setDashboardUrl('/dashboard/provider');
+          setActiveRoleName('Food Provider');
+        } else if (role.includes('BENEFICIARY') || role.includes('YAYASAN')) {
+          setDashboardUrl('/dashboard/yayasan');
+          setActiveRoleName('Food Beneficiary');
+        } else if (role.includes('VOLUNTEER') || role.includes('RESCUE')) {
+          setDashboardUrl('/dashboard/rescue-partner');
+          setActiveRoleName('Rescue Volunteer');
+        } else {
+          setDashboardUrl('/dashboard/consumer');
+          setActiveRoleName('Consumer');
+        }
       }
     } catch (_) {}
-  }, [user, pathname]);
+  }, [activeUser, pathname]);
 
   const publicNavLinks = [
     { href: '/', label: 'Beranda' },
@@ -52,20 +76,20 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
   ];
 
   const loggedInNavLinks = [
-    { href: dashboardUrl, label: 'Dashboard' },
+    { href: dashboardUrl, label: 'Workspace Dashboard' },
     { href: '/explore', label: 'Eksplor Pangan' },
-    { href: '/cart', label: 'Tas Klaim' },
-    { href: '/chat', label: 'Chat' },
+    { href: '/track-status', label: 'Pelacakan Status' },
+    { href: '/info', label: 'Pusat Informasi' },
   ];
 
-  const navLinks = user ? loggedInNavLinks : publicNavLinks;
+  const navLinks = activeUser ? loggedInNavLinks : publicNavLinks;
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-8">
-          <Logo size="md" variant="dark" href={user ? dashboardUrl : '/'} />
+          <Logo size="md" variant="dark" href={activeUser ? dashboardUrl : '/'} />
 
           <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => {
@@ -89,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-3 sm:gap-4">
-          {user ? (
+          {activeUser ? (
             <>
               {/* Chat Icon */}
               <Link
@@ -120,8 +144,8 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
 
               {/* User Dashboard Direct Action Button */}
               <Link href={dashboardUrl} className="ml-1">
-                <Button variant="gold" size="sm" className="font-extrabold text-xs text-slate-950 py-1.5 px-3.5 shadow-xs">
-                  <span>🚀 Masuk Dashboard ➔</span>
+                <Button variant="gold" size="sm" className="font-extrabold text-xs text-slate-950 py-1.5 px-3.5 shadow-xs whitespace-nowrap">
+                  <span>🚀 Workspace ({activeRoleName || 'Dashboard'}) ➔</span>
                 </Button>
               </Link>
             </>

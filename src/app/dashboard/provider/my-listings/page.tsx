@@ -180,18 +180,60 @@ export default function MyListingsPage() {
     });
   };
 
+  const handleDeleteFood = async () => {
+    if (!manageModal.food) return;
+    const foodId = manageModal.food.id;
+    const foodName = manageModal.food.foodName;
+
+    if (!confirm(`Apakah Anda yakin ingin menghapus menu "${foodName}" dari katalog surplus toko Anda?`)) {
+      return;
+    }
+
+    try {
+      await fetch(`/api/surplus?id=${foodId}`, {
+        method: 'DELETE',
+      });
+    } catch (_) {}
+
+    // Update local storage cache
+    try {
+      const local = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      const filteredLocal = local.filter((item: any) => item.id !== foodId);
+      localStorage.setItem('replate_local_surplus', JSON.stringify(filteredLocal));
+    } catch (_) {}
+
+    setFoods((prev) => prev.filter((f) => f.id !== foodId));
+    setManageModal({ isOpen: false, food: null });
+
+    setToastState({
+      isOpen: true,
+      message: `Menu "${foodName}" berhasil dihapus dari katalog!`,
+      type: 'success',
+    });
+  };
+
   const activeFoods = foods.filter((f) => f.status === 'AVAILABLE' || f.status === 'ACTIVE' || !f.status);
   const inactiveFoods = foods.filter((f) => f.status === 'UNAVAILABLE' || f.status === 'INACTIVE');
   const displayedFoods = activeTabFilter === 'ACTIVE' ? activeFoods : inactiveFoods;
 
   const manageModalFooter = (
-    <div className="flex justify-end gap-2 w-full">
-      <Button variant="outline" size="sm" onClick={() => setManageModal({ isOpen: false, food: null })}>
-        Batal
-      </Button>
-      <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
-        Simpan Perubahan Status & Stok ➔
-      </Button>
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 w-full">
+      <button
+        type="button"
+        onClick={handleDeleteFood}
+        className="text-xs text-red-600 hover:text-red-800 font-black px-3 py-1.5 hover:bg-red-50 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+      >
+        <span>🗑️ Hapus Menu Ini</span>
+      </button>
+
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={() => setManageModal({ isOpen: false, food: null })}>
+          Batal
+        </Button>
+        <Button variant="gold" size="sm" className="font-extrabold" onClick={handleSaveManage}>
+          Simpan Perubahan ➔
+        </Button>
+      </div>
     </div>
   );
 

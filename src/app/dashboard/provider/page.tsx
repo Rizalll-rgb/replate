@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
+import { QRCodeSVG } from 'qrcode.react';
 import { useSession } from 'next-auth/react';
 
 export default function ProviderOverviewPage() {
@@ -887,33 +888,20 @@ export default function ProviderOverviewPage() {
               </div>
 
               {/* QR Box Visual */}
-              <div className="flex justify-center p-3 bg-white rounded-xl border border-slate-200">
-                <svg className="w-36 h-36" viewBox="0 0 100 100" fill="none">
-                  <rect width="100" height="100" fill="white" />
-                  {/* Top Left Marker */}
-                  <rect x="10" y="10" width="25" height="25" fill="#1B3A5C" />
-                  <rect x="15" y="15" width="15" height="15" fill="white" />
-                  <rect x="18" y="18" width="9" height="9" fill="#1B3A5C" />
-                  {/* Top Right Marker */}
-                  <rect x="65" y="10" width="25" height="25" fill="#1B3A5C" />
-                  <rect x="70" y="15" width="15" height="15" fill="white" />
-                  <rect x="73" y="18" width="9" height="9" fill="#1B3A5C" />
-                  {/* Bottom Left Marker */}
-                  <rect x="10" y="65" width="25" height="25" fill="#1B3A5C" />
-                  <rect x="15" y="70" width="15" height="15" fill="white" />
-                  <rect x="18" y="73" width="9" height="9" fill="#1B3A5C" />
-                  {/* QR Pattern dots */}
-                  <rect x="42" y="15" width="6" height="6" fill="#D4A843" />
-                  <rect x="52" y="15" width="6" height="6" fill="#1B3A5C" />
-                  <rect x="42" y="25" width="6" height="6" fill="#1B3A5C" />
-                  <rect x="42" y="42" width="16" height="16" fill="#1B3A5C" />
-                  <rect x="46" y="46" width="8" height="8" fill="#D4A843" />
-                  <rect x="65" y="42" width="8" height="8" fill="#1B3A5C" />
-                  <rect x="75" y="52" width="8" height="8" fill="#D4A843" />
-                  <rect x="65" y="65" width="12" height="12" fill="#1B3A5C" />
-                  <rect x="80" y="80" width="8" height="8" fill="#1B3A5C" />
-                  <rect x="20" y="45" width="8" height="8" fill="#D4A843" />
-                </svg>
+              <div className="flex justify-center p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    ticket: issuedTicketModal.ticketData.code,
+                    food: issuedTicketModal.ticketData.foodName,
+                    panti: issuedTicketModal.ticketData.shelterName,
+                    status: issuedTicketModal.ticketData.status,
+                    time: issuedTicketModal.ticketData.time,
+                  })}
+                  size={160}
+                  level="H"
+                  includeMargin={true}
+                  className="rounded-xl shadow-xs"
+                />
               </div>
 
               <p className="text-[11px] text-slate-500 font-medium">

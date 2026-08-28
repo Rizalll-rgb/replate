@@ -263,12 +263,19 @@ export default function ProviderClaimsPage() {
     foodName: string;
     userName: string;
     quantity: string;
+    deliveryMethod?: string;
+    courierName?: string;
+    courierOrg?: string;
+    courierPhone?: string;
+    recipientPerson?: string;
+    address?: string;
   }>({
     isOpen: false,
     code: '',
     foodName: '',
     userName: '',
     quantity: '',
+    deliveryMethod: 'RESCUE_COURIER',
   });
 
   // Detailed Modal for Completed Claim (Fix Poin 1: Rich Identity Breakdown)
@@ -413,6 +420,12 @@ export default function ProviderClaimsPage() {
       foodName: tx.foodName,
       userName: tx.userName,
       quantity: tx.quantity,
+      deliveryMethod: tx.deliveryMethod || 'RESCUE_COURIER',
+      courierName: tx.courierName || '',
+      courierOrg: tx.courierOrg || '',
+      courierPhone: tx.courierPhone || '',
+      recipientPerson: tx.recipientPerson || '',
+      address: tx.address || '',
     });
     setCourierNameInput(tx.courierName || tx.userName);
     setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60');
@@ -818,9 +831,22 @@ export default function ProviderClaimsPage() {
             </div>
 
             <div className="space-y-3 p-4 bg-blue-50/60 rounded-xl border border-blue-100">
-              <h4 className="font-extrabold text-[#1B3A5C] text-sm">
-                Konfirmasi Penyerahan Ke Kurir Relawan / Penerima
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-extrabold text-[#1B3A5C] text-sm">
+                  {confirmModal.deliveryMethod === 'RESCUE_COURIER'
+                    ? 'Serah Terima Paket ke Kurir Relawan Komunitas'
+                    : confirmModal.deliveryMethod === 'SHELTER_PICKUP'
+                    ? 'Serah Terima Ambil Mandiri di Kasir Toko'
+                    : 'Penugasan Pengantaran Driver Toko Sendiri'}
+                </h4>
+                <span className="px-2.5 py-0.5 bg-[#1B3A5C] text-white text-[10px] font-black rounded-md uppercase tracking-wider">
+                  {confirmModal.deliveryMethod === 'RESCUE_COURIER'
+                    ? '🛵 KURIR RELAWAN'
+                    : confirmModal.deliveryMethod === 'SHELTER_PICKUP'
+                    ? '🏬 AMBIL MANDIRI'
+                    : '🚚 ARMADA TOKO'}
+                </span>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <div className="relative h-36 bg-slate-800 rounded-xl overflow-hidden border border-slate-300">
@@ -830,40 +856,75 @@ export default function ProviderClaimsPage() {
                   </span>
                 </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-                      value={selectedStoreDriver}
-                      onChange={(e) => {
-                        setSelectedStoreDriver(e.target.value);
-                        setCourierNameInput(e.target.value);
-                      }}
-                    >
-                      {storeDriversList.map((drv) => (
-                        <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
-                          {drv.name} - {drv.vehicle}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-2.5">
+                  {confirmModal.deliveryMethod === 'RESCUE_COURIER' ? (
+                    <div className="p-3 bg-white rounded-xl border border-blue-200 space-y-1.5">
+                      <span className="text-[10px] font-black text-purple-700 uppercase tracking-wider block">
+                        DATA KURIR RELAWAN PENJEMPUT:
+                      </span>
+                      <div className="text-xs space-y-1">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Nama Relawan:</span>
+                          <strong className="text-[#1B3A5C] text-sm">{confirmModal.courierName || 'Budi Santoso (Relawan ID #RC-881)'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Mitra Food Rescue:</span>
+                          <strong className="text-slate-800">{confirmModal.courierOrg || 'Food Bank Surabaya Logistik'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Tujuan Alokasi:</span>
+                          <strong className="text-emerald-700">{confirmModal.userName}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  ) : confirmModal.deliveryMethod === 'SHELTER_PICKUP' ? (
+                    <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1.5">
+                      <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider block">
+                        PENERIMA AMBIL MANDIRI DI OUTLET:
+                      </span>
+                      <div className="text-xs space-y-1">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Nama Pengambil:</span>
+                          <strong className="text-[#1B3A5C] text-sm">{confirmModal.userName}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Lokasi Serah Terima:</span>
+                          <strong className="text-slate-800">Kasir / Outlet Toko Anda</strong>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                          value={selectedStoreDriver}
+                          onChange={(e) => {
+                            setSelectedStoreDriver(e.target.value);
+                            setCourierNameInput(e.target.value);
+                          }}
+                        >
+                          {storeDriversList.map((drv) => (
+                            <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
+                              {drv.name} - {drv.vehicle}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  <div>
-                    <label className="font-bold text-slate-800 block mb-1">Atau Nama Kurir / Penerima Mandiri:</label>
-                    <Input value={courierNameInput} onChange={(e) => setCourierNameInput(e.target.value)} placeholder="Nama lengkap kurir" />
-                  </div>
-
-                  <a
-                    href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                      `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
-                  >
-                    <span>💬 Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
-                  </a>
+                      <a
+                        href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                          `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
+                      >
+                        <span>💬 Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
 
