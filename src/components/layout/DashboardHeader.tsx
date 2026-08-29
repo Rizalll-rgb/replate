@@ -146,6 +146,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          {/* Cart Icon for Consumer & Beneficiary */}
+          {(userRole === 'Food Consumer' || userRole === 'Food Beneficiary') && (
+            <button
+              onClick={() => router.push('/dashboard/cart')}
+              className="relative p-2 text-slate-500 hover:text-[#1B3A5C] transition-colors rounded-xl hover:bg-slate-100"
+              title="Tas Klaim (Keranjang)"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </button>
+          )}
+
           {/* User Info Avatar Button - Clicking directly opens Profile Modal */}
           <DropdownMenu
             trigger={
