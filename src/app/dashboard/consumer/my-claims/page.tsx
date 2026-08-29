@@ -13,7 +13,7 @@ interface ClaimItem {
   foodName?: string;
   providerName: string;
   totalAmount: number;
-  status: 'AWAITING_PAYMENT' | 'AWAITING_VERIFICATION' | 'READY_FOR_PICKUP' | 'COMPLETED';
+  status: 'AWAITING_PAYMENT' | 'AWAITING_VERIFICATION' | 'WAITING_PAYMENT_APPROVAL' | 'READY_FOR_PICKUP' | 'COMPLETED' | string;
   createdAt: string;
   pickupTime: string;
   items?: any[];
