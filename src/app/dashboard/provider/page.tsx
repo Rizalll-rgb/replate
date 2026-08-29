@@ -885,7 +885,7 @@ export default function ProviderOverviewPage() {
               <span className="text-[11px] font-black text-[#1B3A5C] uppercase tracking-wider block">
                 KODE RESI MANIFEST DONASI
               </span>
-              <div className="font-mono text-2xl font-black text-[#D4A843] tracking-widest bg-slate-950 text-amber-400 py-2 px-4 rounded-xl">
+              <div className="font-mono text-2xl font-black text-[#D4A843] tracking-widest bg-slate-950 py-2 px-4 rounded-xl">
                 {issuedTicketModal.ticketData.code}
               </div>
 
