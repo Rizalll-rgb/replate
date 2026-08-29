@@ -94,6 +94,107 @@ export default function WorkspaceExplorePage() {
   
   const [syncRadius, setSyncRadius] = useState<number | null>(null);
 
+  // Multi-Slide Interactive Promo Hero Carousel State (Point 9)
+  const promoSlides = [
+    {
+      id: 'promo-1',
+      badge: '🏷️ RESCUE SALE 50%-70% HARI INI',
+      title: 'Selamatkan Surplus Lezat, Hemat Hingga 70%',
+      highlight: 'Surplus Pangan Lezat',
+      description: 'Dapatkan hidangan restoran & bakery berkualitas mulai Rp 5.000, bantu kurangi emisi gas metana dan susut pangan Bappenas.',
+      btnText: 'Lihat Rescue Sale ➔',
+      targetTab: 'RESCUE_SALE' as const,
+      foodPreview: {
+        id: 'hero-food-1',
+        title: 'Bakso Sapi Urat Komplit',
+        providerName: 'Warung Bakso Pak Kumis',
+        category: 'MAKANAN_BERAT',
+        quantity: '15 Porsi',
+        discountPrice: 6000,
+        originalPrice: 18000,
+        isFree: false,
+        pickupTime: '19:30 WIB',
+        distance: '1.2 km',
+        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+    {
+      id: 'promo-2',
+      badge: '🎁 GERAKAN 1.000 PORSI DONASI BEBAS BIAYA',
+      title: 'Bantu Panti Asuhan & Dhuafa Surabaya (Rp 0)',
+      highlight: 'Nutrisi Anak Panti',
+      description: 'Salurkan kelebihan makanan bergizi langsung ke 12 panti asuhan terverifikasi dengan armada kurir relawan Food Bank.',
+      btnText: 'Lihat Donasi Pangan ➔',
+      targetTab: 'DONATION' as const,
+      foodPreview: {
+        id: 'hero-food-2',
+        title: 'Buah Potong Segar Kemasan Kotak',
+        providerName: 'Fresh Mart Darmo',
+        category: 'BUAH_SAYUR',
+        quantity: '12 Box',
+        discountPrice: 0,
+        originalPrice: 15000,
+        isFree: true,
+        pickupTime: '19:00 WIB',
+        distance: '1.8 km',
+        imageUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+    {
+      id: 'promo-3',
+      badge: '🛡️ 100% SOP HIGIENE BPOM RI & HALAL BPJPH',
+      title: 'Jaminan Standar Keamanan Pangan Steril',
+      highlight: 'Higienis & Steril BPOM',
+      description: 'Seluruh mitra dapur diaudit standar suhu simpan, inspeksi visual, serta surat jalan manifest digital terenkripsi.',
+      btnText: 'Eksplor Pangan Halal ➔',
+      targetTab: 'RESCUE_SALE' as const,
+      foodPreview: {
+        id: 'hero-food-3',
+        title: 'Nasi Kotak Ayam Bakar Madu',
+        providerName: 'Katering Berkah Surabaya',
+        category: 'MAKANAN_BERAT',
+        quantity: '24 Porsi',
+        discountPrice: 8500,
+        originalPrice: 25000,
+        isFree: false,
+        pickupTime: '20:00 WIB',
+        distance: '2.4 km',
+        imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+    {
+      id: 'promo-4',
+      badge: '🥐 HAPPY HOUR BAKERY & RESTO (19:00 - 22:00 WIB)',
+      title: 'Nikmati Aneka Pastry & Roti Fresh Malam Hari',
+      highlight: 'Artisan Bakery Surabaya',
+      description: 'Jelajahi sajian roti artisan dan pastry lezat yang siap dijemput di kasir toko favorit Anda sebelum jam tutup operasional.',
+      btnText: 'Jelajah Roti & Pastry ➔',
+      targetTab: 'RESCUE_SALE' as const,
+      foodPreview: {
+        id: 'hero-food-4',
+        title: 'Aneka Croissant & Roti Pastry',
+        providerName: 'Surabaya Artisan Bakery',
+        category: 'ROTI_KUE',
+        quantity: '18 Pcs',
+        discountPrice: 5000,
+        originalPrice: 15000,
+        isFree: false,
+        pickupTime: '21:00 WIB',
+        distance: '0.8 km',
+        imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60',
+      },
+    },
+  ];
+
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % promoSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [promoSlides.length]);
+
   useEffect(() => {
     try {
       const radius = localStorage.getItem('replate_admin_sync_radius');
@@ -412,88 +513,135 @@ export default function WorkspaceExplorePage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Header Info & Featured Promo Hero */}
-      <div className="relative bg-gradient-to-br from-[#1B3A5C] via-[#142C47] to-slate-900 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xl mb-4 border border-slate-800">
-        {/* Decorative background elements */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-[#D4A843]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-10 w-56 h-56 bg-emerald-500/10 rounded-full blur-2xl translate-y-1/2"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
-          <div className="flex-1 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">
-                Rekomendasi Spesial Hari Ini
-              </span>
-            </div>
+      {/* Multi-Slide Interactive Promo Hero Carousel (Point 9) */}
+      {(() => {
+        const slide = promoSlides[currentSlideIndex];
+        return (
+          <div className="relative bg-gradient-to-br from-[#1B3A5C] via-[#142C47] to-slate-900 rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xl mb-4 border border-slate-800 transition-all duration-500">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-72 h-72 bg-[#D4A843]/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-10 w-56 h-56 bg-emerald-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none"></div>
             
-            <div className="space-y-2">
-              <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">
-                Selamatkan <span className="text-[#D4A843]">Surplus Pangan</span>,<br />Bantu Sesama.
-              </h1>
-              <p className="text-sm text-slate-300 font-medium max-w-md leading-relaxed">
-                Akses eksklusif katalog Rescue Sale dengan harga spesial, Donasi Bebas Biaya Rp 0, dan penuhi Kebutuhan Panti Asuhan langsung dari workspace Anda.
-              </p>
-            </div>
-            
-            <div className="pt-2 flex items-center gap-3">
-              <button 
-                onClick={() => setActiveTab('RESCUE_SALE')} 
-                className="px-5 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-900/20 transition-all cursor-pointer"
-              >
-                Lihat Semua Promo ➔
-              </button>
-            </div>
-          </div>
+            <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+                    <span className="w-2 h-2 rounded-full bg-[#D4A843] animate-ping"></span>
+                    <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest">
+                      {slide.badge}
+                    </span>
+                  </div>
 
-          <div className="w-full sm:w-[340px] shrink-0 rotate-1 hover:rotate-0 transition-transform duration-500">
-            {/* Featured FoodCard */}
-            <div className="shadow-2xl shadow-black/40 rounded-3xl overflow-hidden ring-4 ring-white/10 bg-white">
-              <FoodCard
-                id="promo-hero-1"
-                title="Paket Nasi Kuning Komplit"
-                providerName="Dapur Bunda Rasa"
-                category="MAKANAN_BERAT"
-                quantity="5 Porsi"
-                discountPrice={12000}
-                originalPrice={25000}
-                isFree={false}
-                pickupTime="19:00 WIB"
-                distance="0.8 km"
-                imageUrl="https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
-                onDetail={() => {}}
-                onClaim={() => handleBuyNow({
-                  id: "promo-hero-1",
-                  title: "Paket Nasi Kuning Komplit",
-                  providerName: "Dapur Bunda Rasa",
-                  category: "MAKANAN_BERAT",
-                  quantity: "5 Porsi",
-                  discountPrice: 12000,
-                  originalPrice: 25000,
-                  isFree: false,
-                  type: "RESCUE_SALE",
-                  pickupTime: "19:00 WIB",
-                  distance: "0.8 km",
-                  imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
-                })}
-                onAddToCart={() => handleClaimFood({
-                  id: "promo-hero-1",
-                  title: "Paket Nasi Kuning Komplit",
-                  providerName: "Dapur Bunda Rasa",
-                  category: "MAKANAN_BERAT",
-                  quantity: "5 Porsi",
-                  discountPrice: 12000,
-                  originalPrice: 25000,
-                  isFree: false,
-                  type: "RESCUE_SALE",
-                  pickupTime: "19:00 WIB",
-                  distance: "0.8 km",
-                  imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60"
-                })}
-              />
+                  <span className="text-[10px] text-slate-400 font-mono font-bold">
+                    Slide {currentSlideIndex + 1}/{promoSlides.length}
+                  </span>
+                </div>
+                
+                <div className="space-y-2">
+                  <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
+                    {slide.title}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-md leading-relaxed">
+                    {slide.description}
+                  </p>
+                </div>
+                
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <button 
+                    onClick={() => setActiveTab(slide.targetTab)} 
+                    className="px-5 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-900/20 transition-all cursor-pointer"
+                  >
+                    {slide.btnText}
+                  </button>
+
+                  {/* Previous / Next Arrow Controls */}
+                  <div className="flex items-center gap-1.5 ml-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentSlideIndex((prev) => (prev - 1 + promoSlides.length) % promoSlides.length)}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                      title="Slide Sebelumnya"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentSlideIndex((prev) => (prev + 1) % promoSlides.length)}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                      title="Slide Selanjutnya"
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dot Indicators */}
+                <div className="flex items-center gap-1.5 pt-2">
+                  {promoSlides.map((_, dotIdx) => (
+                    <button
+                      key={dotIdx}
+                      type="button"
+                      onClick={() => setCurrentSlideIndex(dotIdx)}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        currentSlideIndex === dotIdx ? 'w-6 bg-[#D4A843]' : 'w-2 bg-white/30 hover:bg-white/50'
+                      }`}
+                      aria-label={`Slide ${dotIdx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="w-full sm:w-[320px] shrink-0 rotate-1 hover:rotate-0 transition-transform duration-500">
+                {/* Featured FoodCard Preview */}
+                <div className="shadow-2xl shadow-black/40 rounded-3xl overflow-hidden ring-4 ring-white/10 bg-white">
+                  <FoodCard
+                    id={slide.foodPreview.id}
+                    title={slide.foodPreview.title}
+                    providerName={slide.foodPreview.providerName}
+                    category={slide.foodPreview.category}
+                    quantity={slide.foodPreview.quantity}
+                    discountPrice={slide.foodPreview.discountPrice}
+                    originalPrice={slide.foodPreview.originalPrice}
+                    isFree={slide.foodPreview.isFree}
+                    pickupTime={slide.foodPreview.pickupTime}
+                    distance={slide.foodPreview.distance}
+                    imageUrl={slide.foodPreview.imageUrl}
+                    onDetail={() => handleOpenFoodDetail({
+                      id: slide.foodPreview.id,
+                      title: slide.foodPreview.title,
+                      description: 'Menu surplus pilihan hari ini, terverifikasi standar sanitasi BPOM RI.',
+                      providerName: slide.foodPreview.providerName,
+                      originalPrice: slide.foodPreview.originalPrice,
+                      discountPrice: slide.foodPreview.discountPrice,
+                      quantity: slide.foodPreview.quantity,
+                      pickupTime: slide.foodPreview.pickupTime,
+                      distance: slide.foodPreview.distance,
+                      category: slide.foodPreview.category,
+                      isFree: slide.foodPreview.isFree,
+                      type: slide.foodPreview.isFree ? 'DONATION' : 'RESCUE_SALE',
+                      imageUrl: slide.foodPreview.imageUrl,
+                    })}
+                    onClaim={() => handleClaimFood({
+                      id: slide.foodPreview.id,
+                      title: slide.foodPreview.title,
+                      providerName: slide.foodPreview.providerName,
+                      originalPrice: slide.foodPreview.originalPrice,
+                      discountPrice: slide.foodPreview.discountPrice,
+                      quantity: slide.foodPreview.quantity,
+                      pickupTime: slide.foodPreview.pickupTime,
+                      distance: slide.foodPreview.distance,
+                      category: slide.foodPreview.category,
+                      isFree: slide.foodPreview.isFree,
+                      type: slide.foodPreview.isFree ? 'DONATION' : 'RESCUE_SALE',
+                      imageUrl: slide.foodPreview.imageUrl,
+                    })}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* 3 Main Navigation Tabs */}
       <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-2xl">
