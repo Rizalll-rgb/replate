@@ -621,7 +621,21 @@ export default function WorkspaceExplorePage() {
                       type: slide.foodPreview.isFree ? 'DONATION' : 'RESCUE_SALE',
                       imageUrl: slide.foodPreview.imageUrl,
                     })}
-                    onClaim={() => handleClaimFood({
+                    onClaim={() => handleBuyNow({
+                      id: slide.foodPreview.id,
+                      title: slide.foodPreview.title,
+                      providerName: slide.foodPreview.providerName,
+                      originalPrice: slide.foodPreview.originalPrice,
+                      discountPrice: slide.foodPreview.discountPrice,
+                      quantity: slide.foodPreview.quantity,
+                      pickupTime: slide.foodPreview.pickupTime,
+                      distance: slide.foodPreview.distance,
+                      category: slide.foodPreview.category,
+                      isFree: slide.foodPreview.isFree,
+                      type: slide.foodPreview.isFree ? 'DONATION' : 'RESCUE_SALE',
+                      imageUrl: slide.foodPreview.imageUrl,
+                    })}
+                    onAddToCart={() => handleClaimFood({
                       id: slide.foodPreview.id,
                       title: slide.foodPreview.title,
                       providerName: slide.foodPreview.providerName,

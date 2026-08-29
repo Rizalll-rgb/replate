@@ -180,50 +180,13 @@ export default function CartPage() {
 
   const handleStartCheckout = () => {
     if (selectedCartItems.length === 0) return;
-    executeCompleteClaim();
-  };
-
-  const executeCompleteClaim = () => {
     setIsCheckingOut(true);
-
-    setTimeout(() => {
-      try {
-        const isFree = subtotal === 0;
-        const resiCode = isFree
-          ? `CLM-YYS-2026-${Math.floor(1000 + Math.random() * 9000)}`
-          : `CLM-CNS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-
-        const newClaimStatus = isFree 
-          ? (deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'COURIER_ON_THE_WAY')
-          : 'AWAITING_PAYMENT';
-
-        const newClaim = {
-          id: resiCode,
-          foodName: selectedCartItems.map((i: any) => `${i.foodName} (${i.quantity}x)`).join(', '),
-          providerName: selectedCartItems[0]?.providerName || 'Mitra Replate',
-          totalAmount,
-          deliveryMethod,
-          status: newClaimStatus,
-          paymentProof: null,
-          createdAt: new Date().toISOString(),
-          pickupTime: selectedCartItems[0]?.pickupTime || 'Hari ini 21:00 WIB',
-          items: selectedCartItems
-        };
-        const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
-        localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
-        
-        // Remove selected items from cart
-        const remainingItems = cartItems.filter(item => !selectedIds.has(item.id));
-        saveCart(remainingItems);
-        setSelectedIds(new Set());
-        
-        router.push('/dashboard/consumer/my-claims');
-      } catch (error) {
-        // error handling
-      } finally {
-        setIsCheckingOut(false);
-      }
-    }, 1500);
+    
+    // Save selected items for the unified checkout page
+    localStorage.setItem('replate_checkout_pending', JSON.stringify(selectedCartItems));
+    
+    // Navigate to the checkout page
+    router.push('/dashboard/checkout/cart');
   };
 
   if (!isLoaded) return null;
@@ -478,58 +441,7 @@ export default function CartPage() {
               
               {/* Checkout Sidebar Summary */}
               <div className="lg:col-span-1 space-y-4">
-                {/* Delivery Method Selection */}
-                <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-sm text-xs sticky top-24">
-                  <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider">
-                    Metode Pengambilan
-                  </h4>
 
-                  <div className="space-y-2">
-                    <label
-                      className={`p-3 rounded-2xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
-                        deliveryMethod === 'SELF_PICKUP'
-                          ? 'bg-amber-50/50 border-[#D4A843] shadow-sm'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        checked={deliveryMethod === 'SELF_PICKUP'}
-                        onChange={() => setDeliveryMethod('SELF_PICKUP')}
-                        className="mt-0.5 w-4 h-4 text-[#1B3A5C]"
-                      />
-                      <div className="space-y-0.5">
-                        <span className="font-extrabold text-slate-900 block">🏬 Ambil Mandiri (Self-Pickup)</span>
-                        <p className="text-[10px] text-slate-500">
-                          Bebas ongkir (Rp 0). Ambil di gerai.
-                        </p>
-                      </div>
-                    </label>
-
-                    <label
-                      className={`p-3 rounded-2xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
-                        deliveryMethod === 'COURIER_DELIVERY'
-                          ? 'bg-amber-50/50 border-[#D4A843] shadow-sm'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        checked={deliveryMethod === 'COURIER_DELIVERY'}
-                        onChange={() => setDeliveryMethod('COURIER_DELIVERY')}
-                        className="mt-0.5 w-4 h-4 text-[#1B3A5C]"
-                      />
-                      <div className="space-y-0.5">
-                        <span className="font-extrabold text-slate-900 block">🛵 Diantar Kurir (+Rp 5.000)</span>
-                        <p className="text-[10px] text-slate-500">
-                          Oleh armada relawan Replate.
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                </div>
 
                 {/* Ringkasan Belanja */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-72">
@@ -575,7 +487,7 @@ export default function CartPage() {
                         Memproses...
                       </span>
                     ) : (
-                      `Beli (${totalItems}) ➔`
+                      'Selesaikan & Lanjut Bayar ➔'
                     )}
                   </Button>
                 </div>

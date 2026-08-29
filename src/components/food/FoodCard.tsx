@@ -83,7 +83,10 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
   const imageSrc = props.imageUrl || props.photoUrl || defaultPhotos[catKey] || defaultPhotos.MEALS;
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between group">
+    <div 
+      className={`bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between group ${onDetail ? 'cursor-pointer' : ''}`}
+      onClick={() => onDetail && onDetail(id)}
+    >
       <div className="relative aspect-video bg-slate-100 overflow-hidden">
         <img src={imageSrc} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         <div className="absolute top-3 left-3 flex gap-1.5">
@@ -118,7 +121,10 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
 
         <button
           type="button"
-          onClick={() => onDetail && onDetail(id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDetail && onDetail(id);
+          }}
           className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
         >
           <span>Lihat Detail Spesifikasi & Peta GPS ➔</span>
@@ -139,7 +145,10 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
           {onManage ? (
             <button
               type="button"
-              onClick={() => onManage(id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onManage(id);
+              }}
               className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span>Kelola Stok ➔</span>
@@ -149,7 +158,10 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
               {onAddToCart && (
                 <button
                   type="button"
-                  onClick={() => onAddToCart(id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCart(id);
+                  }}
                   className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center cursor-pointer border border-slate-200"
                   title="Masukkan Tas Klaim"
                 >
@@ -160,7 +172,10 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
               )}
               <button
                 type="button"
-                onClick={() => onClaim(id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClaim(id);
+                }}
                 className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Beli Langsung ➔</span>

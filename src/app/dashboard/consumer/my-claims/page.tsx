@@ -13,6 +13,8 @@ interface ClaimItem {
   foodName?: string;
   providerName: string;
   totalAmount: number;
+  paymentMethod?: string;
+  address?: string;
   status: 'AWAITING_PAYMENT' | 'AWAITING_VERIFICATION' | 'WAITING_PAYMENT_APPROVAL' | 'READY_FOR_PICKUP' | 'COMPLETED' | string;
   createdAt: string;
   pickupTime: string;
@@ -290,18 +292,33 @@ export default function MyClaimsPage() {
 
               {claim.status === 'AWAITING_PAYMENT' && (
                 <div className="space-y-4">
-                  <div className="p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-inner max-w-xs mx-auto space-y-2 text-center">
-                    <img
-                      src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60"
-                      alt="QRIS Code"
-                      className="w-48 h-48 mx-auto object-cover rounded-xl border border-slate-200"
-                    />
-                    <span className="font-mono text-[11px] font-black text-slate-800 block">
-                      NMID: ID102026891230491
-                    </span>
-                  </div>
+                  {(!claim.paymentMethod || claim.paymentMethod === 'QRIS') ? (
+                    <div className="p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-inner max-w-xs mx-auto space-y-2 text-center">
+                      <img
+                        src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60"
+                        alt="QRIS Code"
+                        className="w-48 h-48 mx-auto object-cover rounded-xl border border-slate-200"
+                      />
+                      <span className="font-mono text-[11px] font-black text-slate-800 block">
+                        NMID: ID102026891230491
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-inner mx-auto space-y-3 text-center">
+                      <h4 className="font-bold text-slate-800 text-sm">Transfer Bank {claim.paymentMethod}</h4>
+                      <div className="bg-slate-100 py-3 rounded-xl border border-slate-200">
+                        <span className="font-mono text-xl font-black text-[#1B3A5C] tracking-wider block">
+                          {claim.paymentMethod === 'BCA' ? '8077 1234 5678' : claim.paymentMethod === 'MANDIRI' ? '89012 3456 7890' : claim.paymentMethod === 'BNI' ? '8210 9876 5432' : '8888 1234 5678'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">Virtual Account Replate Indonesia</p>
+                    </div>
+                  )}
+                  
                   <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-center space-y-2">
-                    <p className="text-xs font-bold text-red-800">Silakan scan QRIS di atas untuk membayar sebesar:</p>
+                    <p className="text-xs font-bold text-red-800">
+                      Silakan {(!claim.paymentMethod || claim.paymentMethod === 'QRIS') ? 'scan QRIS di atas' : 'transfer ke VA di atas'} untuk membayar sebesar:
+                    </p>
                     <p className="text-2xl font-black text-red-900">Rp {claim.totalAmount.toLocaleString('id-ID')}</p>
                   </div>
                   <Button
