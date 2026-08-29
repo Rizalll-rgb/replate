@@ -291,6 +291,21 @@ export default function ProviderClaimsPage() {
     claim: null,
   });
 
+  // Incident & Dispute Resolution State (Pencegahan & Perlindungan Produk / Driver)
+  const [incidentModal, setIncidentModal] = useState<{
+    isOpen: boolean;
+    claim: any | null;
+    issueType: string;
+    description: string;
+    photoProof: string | null;
+  }>({
+    isOpen: false,
+    claim: null,
+    issueType: 'PACKAGING_DAMAGED',
+    description: '',
+    photoProof: null,
+  });
+
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
   const [courierNameInput, setCourierNameInput] = useState<string>('');
   const [selectedStoreDriver, setSelectedStoreDriver] = useState<string>('Driver A: Mas Doni (Plat L 4582 ABC)');
@@ -1281,7 +1296,26 @@ export default function ProviderClaimsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-extrabold text-xs text-red-600 border-red-200 hover:bg-red-50 flex items-center gap-1"
+                onClick={() => {
+                  const target = liveTrackingModal.claim;
+                  setLiveTrackingModal({ isOpen: false, claim: null });
+                  setIncidentModal({
+                    isOpen: true,
+                    claim: target,
+                    issueType: 'PACKAGING_DAMAGED',
+                    description: '',
+                    photoProof: null,
+                  });
+                }}
+              >
+                <span>⚠️ Laporkan Kendala / Insiden Pengantaran ➔</span>
+              </Button>
+
               <Button
                 variant="primary"
                 size="sm"
@@ -1292,6 +1326,93 @@ export default function ProviderClaimsPage() {
               </Button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Incident & Food Safety Dispute Resolution Modal */}
+      {incidentModal.isOpen && incidentModal.claim && (
+        <Modal
+          isOpen={incidentModal.isOpen}
+          onClose={() => setIncidentModal({ isOpen: false, claim: null, issueType: 'PACKAGING_DAMAGED', description: '', photoProof: null })}
+          title={`🚨 Pusat Pelaporan Kendala & Mediasi: ${incidentModal.claim.code}`}
+          size="lg"
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const ticketCode = `INC-${Date.now().toString().slice(-6)}`;
+              setToastState({
+                isOpen: true,
+                message: `Laporan Darurat #${ticketCode} tercatat! Tim Pengawas Replate & Koordinator Lapangan telah menerima tiket eskalasi dan siap mendampingi.`,
+                type: 'success',
+              });
+              setIncidentModal({ isOpen: false, claim: null, issueType: 'PACKAGING_DAMAGED', description: '', photoProof: null });
+            }}
+            className="space-y-4 text-xs text-slate-700"
+          >
+            <div className="p-4 bg-red-50 rounded-2xl border border-red-200 space-y-1">
+              <span className="text-[10px] font-black text-red-700 uppercase tracking-widest block">
+                SOP PENANGANAN DARURAT PRODUK & DRIVER (FOOD SAFETY ESCALATION)
+              </span>
+              <h4 className="text-sm font-black text-red-950">
+                Penyelesaian Insiden Resi {incidentModal.claim.code} ({incidentModal.claim.foodName})
+              </h4>
+              <p className="text-[11px] text-red-800 leading-relaxed font-medium">
+                Setiap laporan diverifikasi menggunakan perbandingan Foto Checkpoint Meja Toko vs Foto Penyerahan Akhir untuk menjamin akuntabilitas 100%.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-slate-900 block">Kategori Kendala / Insiden:</label>
+              <select
+                value={incidentModal.issueType}
+                onChange={(e) => setIncidentModal({ ...incidentModal, issueType: e.target.value })}
+                className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs text-[#1B3A5C] focus:ring-2 focus:ring-[#D4A843]"
+              >
+                <option value="PACKAGING_DAMAGED">📦 Kemasan Rusak / Segel Terbuka / Makanan Tumpah di Jalan</option>
+                <option value="DRIVER_BREAKDOWN">🛵 Kendala Armada Driver (Mogok / Ban Bocor / Kecelakaan Ringan)</option>
+                <option value="SAFETY_TIMEOUT">⏱️ Waktu Antar Melebihi 2.5 Jam (Beresiko Melewati Ambang Suhu BPOM)</option>
+                <option value="RECIPIENT_UNREACHABLE">📍 Penerima Tidak Berada di Tempat / Alamat Panti Tidak Ditemukan</option>
+                <option value="PORTION_MISMATCH">🔢 Ketidakcocokan Jumlah Porsi / Menu Tertukar</option>
+                <option value="OTHER">⚠️ Kendala Teknis / Operasional Lainnya</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-slate-900 block">Penjelasan Rinci Kronologi Kejadian:</label>
+              <textarea
+                rows={3}
+                required
+                value={incidentModal.description}
+                onChange={(e) => setIncidentModal({ ...incidentModal, description: e.target.value })}
+                placeholder="Jelaskan kondisi fisik makanan, estimasi lokasi driver, atau alasan pelaporan..."
+                className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#D4A843]"
+              />
+            </div>
+
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-medium space-y-1">
+              <span className="font-extrabold block">🛡️ Kebijakan Proteksi & Jaminan Replate:</span>
+              <ul className="list-disc list-inside space-y-0.5 text-[10px]">
+                <li>Jika kurir mengalami kendala di jalan, sistem mengalokasikan <strong>Kurir Backup Terdekat</strong>.</li>
+                <li>Dana Rescue Sale dilindungi <strong>100% Refund Guarantee</strong> jika makanan tidak layak konsumsi.</li>
+                <li>Untuk donasi panti, sistem mengaktifkan suplai makanan darurat dari mitra provider terdekat.</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIncidentModal({ isOpen: false, claim: null, issueType: 'PACKAGING_DAMAGED', description: '', photoProof: null })}
+              >
+                Batal
+              </Button>
+              <Button type="submit" variant="gold" size="sm" className="font-black text-slate-950 bg-red-600 hover:bg-red-700 text-white shadow-md">
+                Kirim Laporan Eskalasi & SOS ➔
+              </Button>
+            </div>
+          </form>
         </Modal>
       )}
 
