@@ -51,6 +51,8 @@ export default function AboutPage() {
       nim: 'NIM: 3125500036 (PENS)',
       role: 'UI/UX Designer & Full Stack Developer',
       bio: 'Merancang sistem antarmuka kontras tinggi, alur transaksi intuitif, serta mendukung pengerjaan pengembangan frontend & backend.',
+      src: '/images/team/fabio.jpg',
+      imagePosition: 'object-top',
     },
     {
       name: 'Tina Nur Fadillah',
@@ -472,7 +474,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {teamMembers.map((member, idx) => (
                 <div key={idx} className="border border-slate-200 p-6 text-center space-y-4 hover:shadow-md transition-all bg-white rounded-3xl">
-                  <Avatar name={member.name} size="xl" className="mx-auto border-2 border-[#1B3A5C]" />
+                  <Avatar name={member.name} src={(member as any).src} size="xl" className={`mx-auto border-2 border-[#1B3A5C] ${(member as any).imagePosition || ''}`} />
                   <div>
                     <h4 className="text-base font-extrabold text-[#1B3A5C]">{member.name}</h4>
                     <p className="text-[11px] font-bold text-[#D4A843] uppercase tracking-wider mt-0.5">
