@@ -180,19 +180,11 @@ export default function CartPage() {
 
   const handleStartCheckout = () => {
     if (selectedCartItems.length === 0) return;
-
-    if (totalAmount > 0) {
-      setPaymentStep('QRIS');
-      setPaymentProof(null);
-      setIsQrisModalOpen(true);
-    } else {
-      executeCompleteClaim();
-    }
+    executeCompleteClaim();
   };
 
   const executeCompleteClaim = () => {
     setIsCheckingOut(true);
-    setIsQrisModalOpen(false);
 
     setTimeout(() => {
       try {
@@ -203,7 +195,7 @@ export default function CartPage() {
 
         const newClaimStatus = isFree 
           ? (deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'COURIER_ON_THE_WAY')
-          : 'WAITING_PAYMENT_APPROVAL';
+          : 'AWAITING_PAYMENT';
 
         const newClaim = {
           id: resiCode,
@@ -212,7 +204,7 @@ export default function CartPage() {
           totalAmount,
           deliveryMethod,
           status: newClaimStatus,
-          paymentProof: isFree ? null : (paymentProof || 'https://via.placeholder.com/300x500?text=Bukti+Transfer'),
+          paymentProof: null,
           createdAt: new Date().toISOString(),
           pickupTime: selectedCartItems[0]?.pickupTime || 'Hari ini 21:00 WIB',
           items: selectedCartItems
@@ -225,19 +217,12 @@ export default function CartPage() {
         saveCart(remainingItems);
         setSelectedIds(new Set());
         
-        setSuccessReceipt({
-          resiCode,
-          foodName: newClaim.foodName,
-          provider: newClaim.providerName,
-          totalAmount,
-          method: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Kurir Komunitas Replate',
-          time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
-          status: newClaimStatus,
-        });
-        
-      } catch (_) {}
-
-      setIsCheckingOut(false);
+        router.push('/dashboard/consumer/my-claims');
+      } catch (error) {
+        // error handling
+      } finally {
+        setIsCheckingOut(false);
+      }
     }, 1500);
   };
 
@@ -432,7 +417,7 @@ export default function CartPage() {
                             
                             {/* Image */}
                             <div className="w-24 h-24 sm:w-28 sm:h-28 relative rounded-xl overflow-hidden shrink-0 border border-slate-200">
-                              <Image src={item.imageUrl || 'https://via.placeholder.com/150'} alt={item.foodName || ''} fill className="object-cover" />
+                              <img src={item.imageUrl || 'https://via.placeholder.com/150'} alt={item.foodName || ''} className="w-full h-full object-cover" />
                               {item.isFree && (
                                 <div className="absolute top-0 left-0 w-full py-0.5 bg-emerald-500 text-white text-[9px] text-center font-black uppercase tracking-wider">
                                   Gratis

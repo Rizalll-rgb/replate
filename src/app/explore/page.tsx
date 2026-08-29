@@ -448,6 +448,7 @@ export default function ExplorePage() {
         existingCart.push(cartItem);
       }
       localStorage.setItem('replate_cart', JSON.stringify(existingCart));
+      localStorage.setItem('replate_tas_klaim', JSON.stringify(existingCart));
 
       setToastState({
         isOpen: true,
@@ -481,8 +482,7 @@ export default function ExplorePage() {
       return;
     }
 
-    handleAddToCart(item);
-    router.push('/dashboard/cart?checkout=true');
+    router.push(`/dashboard/checkout/${item.id}`);
   };
 
   const handleOpenFoodDetail = (item: FoodItem) => {

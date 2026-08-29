@@ -77,13 +77,10 @@ export default auth((req) => {
             nextUrl.pathname.startsWith('/dashboard/profile') ||
             nextUrl.pathname.startsWith('/dashboard/info') ||
             nextUrl.pathname.startsWith('/dashboard/cart') ||
+            nextUrl.pathname.startsWith('/dashboard/checkout') ||
             nextUrl.pathname.startsWith('/dashboard/how-it-works') ||
             nextUrl.pathname.startsWith('/dashboard/faq') ||
-            nextUrl.pathname.startsWith('/dashboard/explore') ||
-            nextUrl.pathname.startsWith('/dashboard/tracking') ||
-            nextUrl.pathname.startsWith('/dashboard/info') ||
-            nextUrl.pathname.startsWith('/dashboard/profile') ||
-            nextUrl.pathname.startsWith('/dashboard/cart');
+            nextUrl.pathname.startsWith('/dashboard/tracking');
 
         // Ensure users can only access their role's dashboard (or shared dashboard routes)
         if (userRole && userRole !== 'ADMIN' && !isSharedDashboardRoute) {

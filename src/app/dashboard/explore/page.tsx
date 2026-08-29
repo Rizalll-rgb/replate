@@ -345,6 +345,7 @@ export default function WorkspaceExplorePage() {
         existingCart.push(cartItem);
       }
       localStorage.setItem('replate_cart', JSON.stringify(existingCart));
+      localStorage.setItem('replate_tas_klaim', JSON.stringify(existingCart));
 
       setToastState({
         isOpen: true,
@@ -355,8 +356,7 @@ export default function WorkspaceExplorePage() {
   };
 
   const handleBuyNow = (item: FoodItem) => {
-    handleClaimFood(item);
-    router.push('/dashboard/cart?checkout=true');
+    router.push(`/dashboard/checkout/${item.id}`);
   };
 
   const handleConfirmFulfill = () => {

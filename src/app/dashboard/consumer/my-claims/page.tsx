@@ -93,14 +93,15 @@ export default function MyClaimsPage() {
           if (Array.isArray(parsed) && parsed.length > 0) {
             const mapped = parsed.map((item: any) => ({
               id: item.id,
-              foodName: item.items?.map((i: any) => `${i.name} (${i.quantity}x)`).join(', ') || item.foodName || 'Surplus Makanan Steril',
+              foodName: item.items?.map((i: any) => `${i.title || i.foodName || i.name} (${i.quantity})`).join(', ') || item.foodName || 'Surplus Makanan Steril',
               providerName: item.providerName || 'Outlet Provider',
               totalAmount: item.totalAmount || 10000,
               status: item.status || 'READY_FOR_PICKUP',
               createdAt: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Hari ini',
               pickupTime: item.pickupTime || '21:00 WIB',
             }));
-            setClaims(mapped);
+            const unique = Array.from(new Map(mapped.map((c: any) => [c.id, c])).values()) as ClaimItem[];
+            setClaims(unique);
           } else {
             setClaims([]);
           }
@@ -113,16 +114,18 @@ export default function MyClaimsPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const mapped = parsed.map((item: any) => ({
-            id: item.id,
-            foodName: item.items?.map((i: any) => `${i.name} (${i.quantity}x)`).join(', ') || item.foodName || 'Surplus Makanan Steril',
-            providerName: item.providerName || 'Warung Bakso Pak Kumis',
+            const mapped = parsed.map((item: any) => ({
+              id: item.id,
+              foodName: item.items?.map((i: any) => `${i.title || i.foodName || i.name} (${i.quantity})`).join(', ') || item.foodName || 'Surplus Makanan Steril',
+              providerName: item.providerName || 'Warung Bakso Pak Kumis',
             totalAmount: item.totalAmount || 10000,
             status: item.status || 'READY_FOR_PICKUP',
             createdAt: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Hari ini',
             pickupTime: item.pickupTime || '21:00 WIB',
           }));
-          setClaims([...mapped, ...claims.slice(1)]);
+          const combined = [...mapped, ...claims.slice(1)];
+          const unique = Array.from(new Map(combined.map((c) => [c.id, c])).values());
+          setClaims(unique);
         }
       }
     } catch (_) {}
@@ -287,10 +290,19 @@ export default function MyClaimsPage() {
 
               {claim.status === 'AWAITING_PAYMENT' && (
                 <div className="space-y-4">
+                  <div className="p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-inner max-w-xs mx-auto space-y-2 text-center">
+                    <img
+                      src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60"
+                      alt="QRIS Code"
+                      className="w-48 h-48 mx-auto object-cover rounded-xl border border-slate-200"
+                    />
+                    <span className="font-mono text-[11px] font-black text-slate-800 block">
+                      NMID: ID102026891230491
+                    </span>
+                  </div>
                   <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-center space-y-2">
-                    <p className="text-xs font-bold text-red-800">Silakan lakukan pembayaran sebesar:</p>
+                    <p className="text-xs font-bold text-red-800">Silakan scan QRIS di atas untuk membayar sebesar:</p>
                     <p className="text-2xl font-black text-red-900">Rp {claim.totalAmount.toLocaleString('id-ID')}</p>
-                    <p className="text-[10px] text-red-600">Transfer ke Rekening BCA: 1234567890 a/n Replate Peduli</p>
                   </div>
                   <Button
                     variant="primary"
