@@ -482,23 +482,58 @@ export default function ProviderClaimsPage() {
           </Button>
         </div>
 
-        {/* Manual Code Input Bar */}
-        <div className="flex items-center gap-3 border-t border-slate-800 pt-3">
+        {/* Manual Code Input & Quick Resi Tracker Bar (Point 10) */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 border-t border-slate-800 pt-3">
           <Input
-            placeholder="Atau Ketik Kode Resi (Contoh: FB-DON-88192 / QR-DON-891023)..."
+            placeholder="Ketik / Tempel Kode Resi (Contoh: FB-DON-88192 / FB-SALE-99102)..."
             value={manualCodeInput}
             onChange={(e) => setManualCodeInput(e.target.value)}
-            className="text-xs bg-slate-800 text-white border-slate-700 placeholder-slate-400"
+            className="text-xs bg-slate-800 text-white border-slate-700 placeholder-slate-400 flex-1"
           />
-          <Button
-            variant="gold"
-            size="md"
-            disabled={!manualCodeInput.trim()}
-            onClick={() => handleVerifyCodeAtStore(manualCodeInput)}
-            className="font-extrabold shrink-0 text-xs shadow-md"
-          >
-            Konfirmasi Handover ➔
-          </Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="md"
+              disabled={!manualCodeInput.trim()}
+              onClick={() => {
+                const found = [...pendingClaims, ...inTransitClaims, ...completedClaims, ...paymentClaims].find(
+                  (c) => c.code.toLowerCase() === manualCodeInput.trim().toLowerCase()
+                );
+                if (found) {
+                  setLiveTrackingModal({ isOpen: true, claim: found });
+                } else {
+                  // Fallback generate preview tracking for any valid format
+                  setLiveTrackingModal({
+                    isOpen: true,
+                    claim: {
+                      code: manualCodeInput.trim().toUpperCase(),
+                      foodName: 'Paket Surplus Donasi Pangan',
+                      userName: 'Penerima Terdaftar Surabaya',
+                      quantity: '1 Porsi',
+                      status: 'IN_TRANSIT',
+                      deliveryMethod: manualCodeInput.includes('DIR') ? 'PROVIDER_DIRECT' : 'RESCUE_COURIER',
+                      courierName: 'Budi Santoso (Relawan ID #RC-881)',
+                      courierOrg: 'Food Bank Surabaya Logistik',
+                      courierPhone: '0812-9876-5432',
+                      address: 'Surabaya Raya',
+                    },
+                  });
+                }
+              }}
+              className="font-extrabold text-xs text-white border-slate-600 hover:bg-slate-800 flex-1 sm:flex-initial"
+            >
+              🔍 Lacak Status Resi ➔
+            </Button>
+            <Button
+              variant="gold"
+              size="md"
+              disabled={!manualCodeInput.trim()}
+              onClick={() => handleVerifyCodeAtStore(manualCodeInput)}
+              className="font-black text-xs shadow-md text-slate-950 flex-1 sm:flex-initial"
+            >
+              Konfirmasi Handover ➔
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -594,29 +629,36 @@ export default function ProviderClaimsPage() {
               );
             }
 
-            return currentList.map((tx, idx) => (
-              <div
-                key={`${tx.code}-${idx}`}
-                className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-100/60 transition-colors"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-[#1B3A5C] text-sm">{tx.foodName}</span>
-                    <Badge variant={activeTab === 'COMPLETED' ? 'success' : activeTab === 'IN_TRANSIT' ? 'warning' : 'primary'} size="sm">
-                      {tx.quantity}
-                    </Badge>
+            return currentList.map((tx, idx) => {
+              const displayQty = tx.quantity
+                ? (String(tx.quantity).includes('Porsi') || String(tx.quantity).includes('Pcs') || String(tx.quantity).includes('Box')
+                    ? String(tx.quantity)
+                    : `${tx.quantity} Porsi`)
+                : '1 Porsi';
+
+              return (
+                <div
+                  key={`${tx.code}-${idx}`}
+                  className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-100/60 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-[#1B3A5C] text-sm">{tx.foodName}</span>
+                      <Badge variant={activeTab === 'COMPLETED' ? 'success' : activeTab === 'IN_TRANSIT' ? 'warning' : 'primary'} size="sm">
+                        {displayQty}
+                      </Badge>
+                    </div>
+                    <p className="text-slate-600 font-medium">Penerima / Pembeli: <strong>{tx.userName}</strong> ({tx.recipientType || 'Penerima'})</p>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
+                      <span>
+                        Kode Resi: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
+                      </span>
+                      <span>•</span>
+                      <span>
+                        Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🛵 Kurir Relawan'}</strong>
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-slate-600 font-medium">Penerima / Pembeli: <strong>{tx.userName}</strong> ({tx.recipientType || 'Penerima'})</p>
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
-                    <span>
-                      Kode Resi: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
-                    </span>
-                    <span>•</span>
-                    <span>
-                      Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🛵 Kurir Relawan'}</strong>
-                    </span>
-                  </div>
-                </div>
 
                 {activeTab === 'PAYMENT_VERIFY' ? (
                   <Button
@@ -643,21 +685,29 @@ export default function ProviderClaimsPage() {
                     </Button>
                   ) : tx.deliveryMethod === 'PROVIDER_DIRECT' ? (
                     <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        className="font-black text-xs shadow-xs flex items-center gap-1"
+                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                      >
+                        <span>📍 Live Tracking Driver Toko ➔</span>
+                      </Button>
                       <a
                         href={`/driver-manifest/${tx.code}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white hover:!text-white focus:!text-white active:!text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                        className="px-3 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white hover:!text-white focus:!text-white active:!text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0 cursor-pointer"
                       >
-                        <span className="!text-white font-extrabold">📲 Web Surat Jalan Driver (No-Login) ➔</span>
+                        <span className="!text-white font-extrabold">📲 Surat Jalan Driver ➔</span>
                       </a>
                       <Button
-                        variant="gold"
+                        variant="primary"
                         size="sm"
                         className="font-black text-xs shadow-xs"
                         onClick={() => handleDirectPickupCompleteAtStore(tx)}
                       >
-                        ✓ Konfirmasi Selesai ➔
+                        ✓ Selesai ➔
                       </Button>
                     </div>
                   ) : (
@@ -693,8 +743,9 @@ export default function ProviderClaimsPage() {
                   </div>
                 )}
               </div>
-            ));
-          })()}
+            );
+          });
+        })()}
         </CardBody>
       </Card>
 
@@ -1118,55 +1169,59 @@ export default function ProviderClaimsPage() {
           size="lg"
         >
           <div className="space-y-5 text-xs text-slate-800">
-            {/* Header Status */}
-            <div className="p-4 bg-gradient-to-r from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+            {/* Header Status with High Contrast Typography (Point 7) */}
+            <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-[#142C47] to-[#1B3A5C] text-white rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#2C5A8F]">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
                   REAL-TIME COURIER LOGISTICS TRACKING
                 </span>
-                <h3 className="text-base font-black">
-                  {liveTrackingModal.claim.foodName} ({liveTrackingModal.claim.quantity})
+                <h3 className="text-xl font-black text-white leading-tight drop-shadow-xs">
+                  {liveTrackingModal.claim.foodName} ({liveTrackingModal.claim.quantity || '1 Porsi'})
                 </h3>
                 <p className="text-xs text-slate-200 font-mono">
-                  Kode Resi: <strong>{liveTrackingModal.claim.code}</strong>
+                  Kode Resi: <strong className="text-[#D4A843] bg-slate-950/80 px-2 py-0.5 rounded">{liveTrackingModal.claim.code}</strong>
                 </p>
               </div>
 
-              <span className="px-3 py-1 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs self-start sm:self-center">
+              <span className="px-3.5 py-1.5 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs self-start sm:self-center">
                 {liveTrackingModal.claim.status === 'COMPLETED'
                   ? '✓ Tiba & Diserahkan'
                   : '🛵 Sedang Diantar Kurir'}
               </span>
             </div>
 
-            {/* Courier Profile & Contact */}
-            <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Courier / Driver Profile & Contact (Point 8: Adaptable for Store Fleet vs Volunteer) */}
+            <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'}`}>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-black text-xl">
-                  🛵
+                <div className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black text-xl shadow-xs ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'bg-blue-600' : 'bg-purple-600'}`}>
+                  {liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚' : '🛵'}
                 </div>
                 <div>
-                  <span className="text-[10px] font-black text-purple-700 uppercase tracking-widest block">
-                    KURIR RELAWAN RESMI
+                  <span className={`text-[10px] font-black uppercase tracking-widest block ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'text-blue-700' : 'text-purple-700'}`}>
+                    {liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'ARMADA DRIVER INTERNAL TOKO' : 'KURIR RELAWAN RESMI KOMUNITAS'}
                   </span>
-                  <h4 className="font-extrabold text-sm text-purple-950">
-                    {liveTrackingModal.claim.courierName || 'Budi Santoso (Relawan ID #RC-881)'}
+                  <h4 className="font-extrabold text-sm text-slate-900">
+                    {liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT'
+                      ? 'Mas Doni (Sepeda Motor Box Cooler L 4582 ABC)'
+                      : (liveTrackingModal.claim.courierName || 'Budi Santoso (Relawan ID #RC-881)')}
                   </h4>
-                  <p className="text-xs text-purple-800 font-medium">
-                    {liveTrackingModal.claim.courierOrg || 'Food Bank Surabaya Logistik & Komunitas Garda Pangan'}
+                  <p className="text-xs text-slate-600 font-medium">
+                    {liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT'
+                      ? 'Armada Toko Warung Bakso Pak Kumis'
+                      : (liveTrackingModal.claim.courierOrg || 'Food Bank Surabaya Logistik & Komunitas Garda Pangan')}
                   </p>
                 </div>
               </div>
 
               <a
                 href={`https://wa.me/${(liveTrackingModal.claim.courierPhone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(
-                  `Halo Mas ${liveTrackingModal.claim.courierName || 'Kurir'}, saya dari pihak Toko ingin menanyakan status pengantaran donasi resi ${liveTrackingModal.claim.code}.`
+                  `Halo, saya dari pihak Toko ingin menanyakan status pengantaran donasi resi ${liveTrackingModal.claim.code}.`
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap"
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap"
               >
-                <span>💬 Hubungi Kurir (WhatsApp)</span>
+                <span>💬 Hubungi Driver (WhatsApp)</span>
               </a>
             </div>
 
