@@ -56,7 +56,7 @@ export default function AboutPage() {
     },
     {
       name: 'Tina Nur Fadillah',
-      nim: 'NIM: 23081494122 (UNESA)',
+      nim: 'NIM: 23080574640 (UNESA)',
       role: 'Penulis Proposal & Konseptor Platform',
       bio: 'Merumuskan konsep kebaruan inovasi SDGs, riset urgensi dampak emisi food waste, serta penyusunan dokumen proposal kompetisi.',
     },
@@ -319,8 +319,8 @@ export default function AboutPage() {
                 type="button"
                 onClick={() => handleRoleFilterChange('ALL')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedRoleFilter === 'ALL'
-                    ? 'bg-[#1B3A5C] text-white shadow-md'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  ? 'bg-[#1B3A5C] text-white shadow-md'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                   }`}
               >
                 Semua Mitra ({ecosystemPartners.length})
@@ -330,8 +330,8 @@ export default function AboutPage() {
                 type="button"
                 onClick={() => handleRoleFilterChange('FOOD_PROVIDER')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedRoleFilter === 'FOOD_PROVIDER'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-blue-900 border border-blue-200 hover:bg-blue-50'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-white text-blue-900 border border-blue-200 hover:bg-blue-50'
                   }`}
               >
                 Food Provider (4)
@@ -341,8 +341,8 @@ export default function AboutPage() {
                 type="button"
                 onClick={() => handleRoleFilterChange('RESCUE_VOLUNTEER')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedRoleFilter === 'RESCUE_VOLUNTEER'
-                    ? 'bg-purple-700 text-white shadow-md'
-                    : 'bg-white text-purple-900 border border-purple-200 hover:bg-purple-50'
+                  ? 'bg-purple-700 text-white shadow-md'
+                  : 'bg-white text-purple-900 border border-purple-200 hover:bg-purple-50'
                   }`}
               >
                 Rescue Volunteer & Food Bank (5)
@@ -352,8 +352,8 @@ export default function AboutPage() {
                 type="button"
                 onClick={() => handleRoleFilterChange('FOOD_BENEFICIARY')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedRoleFilter === 'FOOD_BENEFICIARY'
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50'
                   }`}
               >
                 Food Beneficiary / Yayasan (4)
@@ -375,8 +375,8 @@ export default function AboutPage() {
                   onClick={() => setCarouselPage((prev) => Math.max(0, prev - 1))}
                   disabled={carouselPage === 0}
                   className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm transition-all ${carouselPage === 0
-                      ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
-                      : 'border-[#1B3A5C] text-[#1B3A5C] bg-white hover:bg-[#1B3A5C] hover:text-white shadow-xs cursor-pointer'
+                    ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                    : 'border-[#1B3A5C] text-[#1B3A5C] bg-white hover:bg-[#1B3A5C] hover:text-white shadow-xs cursor-pointer'
                     }`}
                   aria-label="Previous Slide"
                 >
@@ -388,8 +388,8 @@ export default function AboutPage() {
                   onClick={() => setCarouselPage((prev) => Math.min(totalCarouselPages - 1, prev + 1))}
                   disabled={carouselPage >= totalCarouselPages - 1}
                   className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm transition-all ${carouselPage >= totalCarouselPages - 1
-                      ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
-                      : 'border-[#1B3A5C] text-[#1B3A5C] bg-white hover:bg-[#1B3A5C] hover:text-white shadow-xs cursor-pointer'
+                    ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                    : 'border-[#1B3A5C] text-[#1B3A5C] bg-white hover:bg-[#1B3A5C] hover:text-white shadow-xs cursor-pointer'
                     }`}
                   aria-label="Next Slide"
                 >
@@ -447,8 +447,8 @@ export default function AboutPage() {
                     type="button"
                     onClick={() => setCarouselPage(dotIdx)}
                     className={`h-2.5 rounded-full transition-all cursor-pointer ${carouselPage === dotIdx
-                        ? 'w-8 bg-[#1B3A5C]'
-                        : 'w-2.5 bg-slate-300 hover:bg-slate-400'
+                      ? 'w-8 bg-[#1B3A5C]'
+                      : 'w-2.5 bg-slate-300 hover:bg-slate-400'
                       }`}
                     aria-label={`Slide ${dotIdx + 1}`}
                   />
