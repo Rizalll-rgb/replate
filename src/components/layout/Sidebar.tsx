@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/track-status',
+      href: '/dashboard/tracking',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/track-status',
+      href: '/dashboard/tracking',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/track-status',
+      href: '/dashboard/tracking',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +209,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/track-status',
+      href: '/dashboard/tracking',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,7 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       ),
     },
     {
-      href: '/track-status',
+      href: '/dashboard/tracking',
       label: 'Pelacakan & Live Tracking',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

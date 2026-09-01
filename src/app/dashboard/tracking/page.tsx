@@ -44,7 +44,7 @@ export default function WorkspaceLiveTrackingPage() {
   const defaultManifests: TrackingManifest[] = [
     {
       id: 'TRK-001',
-      trackingCode: 'FB-DON-88192',
+      trackingCode: 'RPL-DON-2026-88192',
       foodName: '45 Porsi Nasi Ayam Bakar & Lauk Bersih',
       quantity: '45 Porsi',
       sourceName: 'Warung Bakso Pak Kumis (Genteng)',
@@ -72,7 +72,7 @@ export default function WorkspaceLiveTrackingPage() {
     },
     {
       id: 'TRK-002',
-      trackingCode: 'FB-DIR-88291',
+      trackingCode: 'RPL-DIR-2026-88291',
       foodName: '40 Porsi Rice Bowl Ayam Geprek Steril',
       quantity: '40 Porsi',
       sourceName: 'Dapur Outlet Pak Kumis (Genteng)',
@@ -99,7 +99,7 @@ export default function WorkspaceLiveTrackingPage() {
     },
     {
       id: 'TRK-003',
-      trackingCode: 'FB-SALE-99102',
+      trackingCode: 'RPL-RSC-2026-99102',
       foodName: '3 Porsi Nasi Goreng Buffet Specialty (Rescue Sale)',
       quantity: '3 Porsi',
       sourceName: 'Warung Bakso Pak Kumis (Genteng)',

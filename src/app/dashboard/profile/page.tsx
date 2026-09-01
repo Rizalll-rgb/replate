@@ -38,6 +38,9 @@ export default function DashboardProfilePage() {
     email: 'mitra@replate.id',
     role: 'FOOD_PROVIDER',
     phone: '0812-3456-7890',
+    province: 'Jawa Timur',
+    city: 'Kota Surabaya',
+    district: 'Gubeng',
     address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
     entityName: 'Warung Bakso Pak Kumis Surabaya',
     isVerified: true,
@@ -52,9 +55,16 @@ export default function DashboardProfilePage() {
     qrisNmid: 'ID1020304050607',
     qrisMerchantName: 'Warung Bakso Pak Kumis Surabaya',
     qrisImageUrl: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=500&auto=format&fit=crop&q=80',
+    lat: -7.2754,
+    lng: 112.7541,
     waAlerts: true,
     autoMatchPanti: true,
   });
+
+  const [mapSearchQuery, setMapSearchQuery] = useState('');
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [mapZoom, setMapZoom] = useState(15);
+  const [activeIslandTab, setActiveIslandTab] = useState<'SEMUA' | 'JABODETABEK' | 'JATENG_DIY' | 'JATIM' | 'SUMATERA' | 'BALI_NUSA' | 'KALIMANTAN' | 'SULAWESI_PAPUA'>('SEMUA');
 
   // Multi-Fleet Vehicles
   const defaultFleetList: FleetVehicle[] = [
@@ -442,19 +452,537 @@ export default function DashboardProfilePage() {
                   </div>
                 </div>
 
+                {/* Indonesian Regional Hierarchy (Province, City, District) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="font-extrabold text-slate-700 block">Provinsi di Indonesia:</label>
+                    <select
+                      value={profileData.province}
+                      onChange={(e) => {
+                        const prov = e.target.value;
+                        const provCenterMap: Record<string, { lat: number; lng: number }> = {
+                          'DKI Jakarta': { lat: -6.2088, lng: 106.8456 },
+                          'Jawa Barat': { lat: -6.9175, lng: 107.6191 },
+                          'Jawa Tengah': { lat: -6.9932, lng: 110.4203 },
+                          'DI Yogyakarta': { lat: -7.7956, lng: 110.3695 },
+                          'Jawa Timur': { lat: -7.2754, lng: 112.7541 },
+                          'Banten': { lat: -6.1104, lng: 106.1554 },
+                          'Bali': { lat: -8.6705, lng: 115.2126 },
+                          'Sumatera Utara': { lat: 3.5952, lng: 98.6722 },
+                          'Sumatera Barat': { lat: -0.9471, lng: 100.4172 },
+                          'Riau': { lat: 0.5071, lng: 101.4478 },
+                          'Kepulauan Riau': { lat: 1.1301, lng: 104.0529 },
+                          'Sumatera Selatan': { lat: -2.9909, lng: 104.7565 },
+                          'Lampung': { lat: -5.4297, lng: 105.2625 },
+                          'Kalimantan Timur': { lat: -0.9634, lng: 116.7058 },
+                          'Kalimantan Selatan': { lat: -3.3194, lng: 114.5908 },
+                          'Kalimantan Barat': { lat: -0.0263, lng: 109.3425 },
+                          'Sulawesi Selatan': { lat: -5.1477, lng: 119.4327 },
+                          'Sulawesi Utara': { lat: 1.4748, lng: 124.8428 },
+                          'Nusa Tenggara Barat': { lat: -8.5833, lng: 116.1167 },
+                          'Papua': { lat: -2.5916, lng: 140.6690 },
+                        };
+                        const center = provCenterMap[prov] || { lat: -7.2754, lng: 112.7541 };
+                        setProfileData(prev => ({ ...prev, province: prov, lat: center.lat, lng: center.lng }));
+                        setToastState({ isOpen: true, message: `Peta dipusatkan ke Provinsi ${prov}!`, type: 'success' });
+                      }}
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#D4A843]"
+                    >
+                      <option value="Jawa Timur">Jawa Timur</option>
+                      <option value="DKI Jakarta">DKI Jakarta</option>
+                      <option value="Jawa Barat">Jawa Barat</option>
+                      <option value="Jawa Tengah">Jawa Tengah</option>
+                      <option value="DI Yogyakarta">DI Yogyakarta</option>
+                      <option value="Banten">Banten</option>
+                      <option value="Bali">Bali</option>
+                      <option value="Sumatera Utara">Sumatera Utara</option>
+                      <option value="Sumatera Barat">Sumatera Barat</option>
+                      <option value="Riau">Riau</option>
+                      <option value="Kepulauan Riau">Kepulauan Riau (Batam)</option>
+                      <option value="Sumatera Selatan">Sumatera Selatan</option>
+                      <option value="Lampung">Lampung</option>
+                      <option value="Kalimantan Timur">Kalimantan Timur (IKN)</option>
+                      <option value="Kalimantan Selatan">Kalimantan Selatan</option>
+                      <option value="Kalimantan Barat">Kalimantan Barat</option>
+                      <option value="Sulawesi Selatan">Sulawesi Selatan</option>
+                      <option value="Sulawesi Utara">Sulawesi Utara</option>
+                      <option value="Nusa Tenggara Barat">Nusa Tenggara Barat</option>
+                      <option value="Papua">Papua</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-extrabold text-slate-700 block">Kota / Kabupaten:</label>
+                    <Input
+                      value={profileData.city}
+                      onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
+                      placeholder="Contoh: Kota Surabaya / Jakarta Selatan / Bandung"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-extrabold text-slate-700 block">Kecamatan:</label>
+                    <Input
+                      value={profileData.district}
+                      onChange={(e) => setProfileData({ ...profileData, district: e.target.value })}
+                      placeholder="Contoh: Gubeng / Kebayoran Baru / Coblong"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
-                  <label className="font-extrabold text-slate-700 block">Alamat Lengkap di Surabaya:</label>
+                  <label className="font-extrabold text-slate-700 block">Alamat Lengkap Outlet / Resto:</label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={profileData.address}
                     onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
-                    className="w-full p-3 bg-white border border-slate-300 rounded-xl font-medium text-xs text-slate-900 focus:outline-none focus:border-[#1B3A5C]"
+                    placeholder="Nama Jalan, Nomor Bangunan, Kelurahan, Patokan Lokasi..."
+                    className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#D4A843]"
                   />
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-end">
-                  <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 shadow-md">
-                    Simpan Perubahan Profil ➔
+                {/* GPS Location & Visual Interactive Map Pin Picker (Skala Nasional Indonesia) */}
+                <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <label className="font-black text-slate-900 text-sm block">
+                          🗺️ Peta Interaktif GPS Outlet (Cakupan Nasional Indonesia):
+                        </label>
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[10px] font-black rounded-md">
+                          🇮🇩 Seluruh Nusantara
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-500 font-medium">
+                        Cari alamat di seluruh kota di Indonesia, klik langsung pada peta luas, atau perbesar layar penuh.
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setIsMapModalOpen(true)}
+                        className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-[#c49835] text-slate-950 text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <span>🖥️ Mode Layar Penuh (Perbesar)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (typeof window !== 'undefined' && navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                              (pos) => {
+                                setProfileData(prev => ({
+                                  ...prev,
+                                  lat: Number(pos.coords.latitude.toFixed(5)),
+                                  lng: Number(pos.coords.longitude.toFixed(5)),
+                                }));
+                                setToastState({ isOpen: true, message: 'Titik GPS berhasil disinkronkan ke lokasi presisi Anda!', type: 'success' });
+                              },
+                              () => {
+                                setProfileData(prev => ({ ...prev, lat: -7.2754, lng: 112.7541 }));
+                                setToastState({ isOpen: true, message: 'Koordinat GPS diset default', type: 'success' });
+                              }
+                            );
+                          }
+                        }}
+                        className="px-3.5 py-1.5 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0"
+                      >
+                        <span>📍 Deteksi GPS Saya</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Search Bar for ANY Indonesian City / Address / Landmark */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Ketik alamat jalan, kota, mall di Indonesia (contoh: Sudirman Jakarta, Malioboro Jogja, Dago Bandung, IKN Sepaku, Losari Makassar, Kuta Bali)..."
+                        value={mapSearchQuery}
+                        onChange={(e) => setMapSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const query = mapSearchQuery.toLowerCase();
+                            const nationalLandmarks = [
+                              // Jabodetabek & Jabar
+                              { key: 'jakarta', name: 'DKI Jakarta (Monas / Thamrin)', lat: -6.1754, lng: 106.8272 },
+                              { key: 'monas', name: 'Monas, Jakarta Pusat', lat: -6.1754, lng: 106.8272 },
+                              { key: 'scbd', name: 'SCBD, Jakarta Selatan', lat: -6.2297, lng: 106.8074 },
+                              { key: 'senopati', name: 'Senopati, Jakarta Selatan', lat: -6.2341, lng: 106.8123 },
+                              { key: 'bandung', name: 'Kota Bandung (Jl. Riau / Dago)', lat: -6.9039, lng: 107.6186 },
+                              { key: 'dago', name: 'Dago, Bandung', lat: -6.8833, lng: 107.6144 },
+                              { key: 'bekasi', name: 'Summarecon Bekasi', lat: -6.2383, lng: 106.9756 },
+                              { key: 'tangerang', name: 'BSD City, Tangerang Selatan', lat: -6.3016, lng: 106.6524 },
+                              { key: 'bsd', name: 'BSD City, Tangerang Selatan', lat: -6.3016, lng: 106.6524 },
+                              { key: 'depok', name: 'Margonda Raya, Depok', lat: -6.3728, lng: 106.8335 },
+                              { key: 'bogor', name: 'Pajajaran, Kota Bogor', lat: -6.5971, lng: 106.8060 },
+                              // Jateng & DIY
+                              { key: 'semarang', name: 'Simpang Lima, Semarang', lat: -6.9904, lng: 110.4228 },
+                              { key: 'solo', name: 'Slamet Riyadi, Solo / Surakarta', lat: -7.5666, lng: 110.8166 },
+                              { key: 'surakarta', name: 'Slamet Riyadi, Solo / Surakarta', lat: -7.5666, lng: 110.8166 },
+                              { key: 'jogja', name: 'Malioboro, Kota Yogyakarta', lat: -7.7956, lng: 110.3695 },
+                              { key: 'yogyakarta', name: 'Malioboro, Kota Yogyakarta', lat: -7.7956, lng: 110.3695 },
+                              { key: 'malioboro', name: 'Malioboro, Kota Yogyakarta', lat: -7.7956, lng: 110.3695 },
+                              // Jatim
+                              { key: 'surabaya', name: 'Kota Surabaya (Gubeng / Darmo)', lat: -7.2754, lng: 112.7541 },
+                              { key: 'gubeng', name: 'Raya Gubeng / Siloam, Surabaya', lat: -7.2754, lng: 112.7541 },
+                              { key: 'darmo', name: 'Raya Darmo / Taman Bungkul, Surabaya', lat: -7.2920, lng: 112.7390 },
+                              { key: 'tunjungan', name: 'Tunjungan Plaza, Surabaya', lat: -7.2580, lng: 112.7440 },
+                              { key: 'malang', name: 'Kota Malang (Ijen / Tugu)', lat: -7.9797, lng: 112.6304 },
+                              { key: 'sidoarjo', name: 'Alun-Alun Sidoarjo', lat: -7.4478, lng: 112.7183 },
+                              { key: 'gresik', name: 'Gresik Kota Baru', lat: -7.1566, lng: 112.6555 },
+                              // Sumatera
+                              { key: 'medan', name: 'Merdeka Walk, Kota Medan', lat: 3.5952, lng: 98.6722 },
+                              { key: 'palembang', name: 'Jembatan Ampera, Palembang', lat: -2.9909, lng: 104.7565 },
+                              { key: 'batam', name: 'Batam Centre / Nagoya', lat: 1.1301, lng: 104.0529 },
+                              { key: 'pekanbaru', name: 'Jl. Sudirman, Pekanbaru', lat: 0.5071, lng: 101.4478 },
+                              { key: 'padang', name: 'Pantai Padang, Kota Padang', lat: -0.9471, lng: 100.4172 },
+                              { key: 'lampung', name: 'Tanjung Karang, Bandar Lampung', lat: -5.4297, lng: 105.2625 },
+                              { key: 'aceh', name: 'Masjid Raya Baiturrahman, Banda Aceh', lat: 5.5483, lng: 95.3238 },
+                              // Bali & Nusa Tenggara
+                              { key: 'bali', name: 'Kuta / Seminyak, Bali', lat: -8.7185, lng: 115.1686 },
+                              { key: 'denpasar', name: 'Renon, Kota Denpasar', lat: -8.6705, lng: 115.2126 },
+                              { key: 'kuta', name: 'Pantai Kuta, Badung, Bali', lat: -8.7185, lng: 115.1686 },
+                              { key: 'mataram', name: 'Lombok Epicentrum, Mataram', lat: -8.5833, lng: 116.1167 },
+                              { key: 'lombok', name: 'Lombok Epicentrum, Mataram', lat: -8.5833, lng: 116.1167 },
+                              // Kalimantan & IKN
+                              { key: 'ikn', name: 'KIPP Ibu Kota Nusantara (IKN Sepaku)', lat: -0.9634, lng: 116.7058 },
+                              { key: 'nusantara', name: 'KIPP Ibu Kota Nusantara (IKN Sepaku)', lat: -0.9634, lng: 116.7058 },
+                              { key: 'balikpapan', name: 'Sudirman / Permai, Balikpapan', lat: -1.2379, lng: 116.8529 },
+                              { key: 'samarinda', name: 'Tepian Mahakam, Samarinda', lat: -0.5022, lng: 117.1536 },
+                              { key: 'banjarmasin', name: 'Menara Pandang, Banjarmasin', lat: -3.3194, lng: 114.5908 },
+                              { key: 'pontianak', name: 'Tugu Khatulistiwa, Pontianak', lat: -0.0263, lng: 109.3425 },
+                              // Sulawesi & Papua
+                              { key: 'makassar', name: 'Pantai Losari / Pettarani, Makassar', lat: -5.1477, lng: 119.4327 },
+                              { key: 'losari', name: 'Pantai Losari, Makassar', lat: -5.1477, lng: 119.4327 },
+                              { key: 'manado', name: 'Boulevard / Malalayang, Manado', lat: 1.4748, lng: 124.8428 },
+                              { key: 'jayapura', name: 'Teluk Youtefa / Abepura, Jayapura', lat: -2.5916, lng: 140.6690 },
+                              { key: 'ambon', name: 'Pattimura Park, Kota Ambon', lat: -3.6954, lng: 128.1814 },
+                            ];
+                            const found = nationalLandmarks.find(l => query.includes(l.key));
+                            if (found) {
+                              setProfileData(prev => ({ ...prev, lat: found.lat, lng: found.lng }));
+                              setToastState({ isOpen: true, message: `Pin dipindahkan ke ${found.name}!`, type: 'success' });
+                            } else {
+                              setToastState({ isOpen: true, message: `Mencari "${mapSearchQuery}" di peta Indonesia...`, type: 'success' });
+                            }
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#D4A843]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const query = (mapSearchQuery || '').toLowerCase();
+                        const nationalLandmarks = [
+                          { key: 'jakarta', name: 'DKI Jakarta (Monas / Thamrin)', lat: -6.1754, lng: 106.8272 },
+                          { key: 'bandung', name: 'Kota Bandung (Jl. Riau / Dago)', lat: -6.9039, lng: 107.6186 },
+                          { key: 'semarang', name: 'Simpang Lima, Semarang', lat: -6.9904, lng: 110.4228 },
+                          { key: 'jogja', name: 'Malioboro, Kota Yogyakarta', lat: -7.7956, lng: 110.3695 },
+                          { key: 'surabaya', name: 'Kota Surabaya (Gubeng / Darmo)', lat: -7.2754, lng: 112.7541 },
+                          { key: 'malang', name: 'Kota Malang (Ijen / Tugu)', lat: -7.9797, lng: 112.6304 },
+                          { key: 'medan', name: 'Merdeka Walk, Kota Medan', lat: 3.5952, lng: 98.6722 },
+                          { key: 'palembang', name: 'Jembatan Ampera, Palembang', lat: -2.9909, lng: 104.7565 },
+                          { key: 'batam', name: 'Batam Centre / Nagoya', lat: 1.1301, lng: 104.0529 },
+                          { key: 'bali', name: 'Kuta / Seminyak, Bali', lat: -8.7185, lng: 115.1686 },
+                          { key: 'denpasar', name: 'Renon, Kota Denpasar', lat: -8.6705, lng: 115.2126 },
+                          { key: 'ikn', name: 'KIPP Ibu Kota Nusantara (IKN Sepaku)', lat: -0.9634, lng: 116.7058 },
+                          { key: 'balikpapan', name: 'Sudirman / Permai, Balikpapan', lat: -1.2379, lng: 116.8529 },
+                          { key: 'makassar', name: 'Pantai Losari / Pettarani, Makassar', lat: -5.1477, lng: 119.4327 },
+                          { key: 'manado', name: 'Boulevard / Malalayang, Manado', lat: 1.4748, lng: 124.8428 },
+                          { key: 'jayapura', name: 'Teluk Youtefa / Abepura, Jayapura', lat: -2.5916, lng: 140.6690 },
+                        ];
+                        const found = nationalLandmarks.find(l => query.includes(l.key));
+                        if (found) {
+                          setProfileData(prev => ({ ...prev, lat: found.lat, lng: found.lng }));
+                          setToastState({ isOpen: true, message: `Pin dipindahkan ke ${found.name}!`, type: 'success' });
+                        } else {
+                          setToastState({ isOpen: true, message: `Lokasi "${mapSearchQuery || 'Indonesia'}" dipetakan!`, type: 'success' });
+                        }
+                      }}
+                      className="px-4 py-2.5 bg-[#1B3A5C] text-white font-black text-xs rounded-xl hover:bg-[#142C47] transition-all cursor-pointer shrink-0"
+                    >
+                      🔍 Cari Lokasi
+                    </button>
+                  </div>
+
+                  {/* Regional Tabs for 8 Regions Across Indonesia */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                      {[
+                        { key: 'SEMUA', label: '🇮🇩 Seluruh Nusantara' },
+                        { key: 'JABODETABEK', label: '🏙️ Jabodetabek & Jabar' },
+                        { key: 'JATENG_DIY', label: '🏛️ Jateng & DIY' },
+                        { key: 'JATIM', label: '🌊 Jawa Timur' },
+                        { key: 'SUMATERA', label: '🌴 Sumatera' },
+                        { key: 'BALI_NUSA', label: '🏖️ Bali & Nusa Tenggara' },
+                        { key: 'KALIMANTAN', label: '🌳 Kalimantan & IKN' },
+                        { key: 'SULAWESI_PAPUA', label: '⛰️ Sulawesi & Papua' },
+                      ].map((tab) => (
+                        <button
+                          key={tab.key}
+                          type="button"
+                          onClick={() => setActiveIslandTab(tab.key as any)}
+                          className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                            activeIslandTab === tab.key
+                              ? 'bg-[#1B3A5C] text-[#D4A843] shadow-xs'
+                              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Quick Landmark & City Pills Across Indonesia */}
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1.5 bg-white rounded-xl border border-slate-200">
+                      {[
+                        // JABODETABEK & JABAR
+                        { name: '📍 Jakarta Pusat (Monas)', region: 'JABODETABEK', lat: -6.1754, lng: 106.8272 },
+                        { name: '📍 Jakarta Selatan (SCBD)', region: 'JABODETABEK', lat: -6.2297, lng: 106.8074 },
+                        { name: '📍 Bandung (Dago / Riau)', region: 'JABODETABEK', lat: -6.9039, lng: 107.6186 },
+                        { name: '📍 Tangerang Selatan (BSD City)', region: 'JABODETABEK', lat: -6.3016, lng: 106.6524 },
+                        { name: '📍 Bekasi (Summarecon)', region: 'JABODETABEK', lat: -6.2383, lng: 106.9756 },
+                        { name: '📍 Bogor (Pajajaran)', region: 'JABODETABEK', lat: -6.5971, lng: 106.8060 },
+                        
+                        // JATENG & DIY
+                        { name: '📍 Semarang (Simpang Lima)', region: 'JATENG_DIY', lat: -6.9904, lng: 110.4228 },
+                        { name: '📍 Solo / Surakarta (Slamet Riyadi)', region: 'JATENG_DIY', lat: -7.5666, lng: 110.8166 },
+                        { name: '📍 Yogyakarta (Malioboro)', region: 'JATENG_DIY', lat: -7.7956, lng: 110.3695 },
+                        { name: '📍 Sleman, DIY (UGM / Kaliurang)', region: 'JATENG_DIY', lat: -7.7713, lng: 110.3775 },
+                        
+                        // JATIM
+                        { name: '📍 Surabaya (Gubeng / Darmo)', region: 'JATIM', lat: -7.2754, lng: 112.7541 },
+                        { name: '📍 Malang (Ijen / Tugu)', region: 'JATIM', lat: -7.9797, lng: 112.6304 },
+                        { name: '📍 Sidoarjo (Alun-Alun)', region: 'JATIM', lat: -7.4478, lng: 112.7183 },
+                        { name: '📍 Gresik (Gresik Kota Baru)', region: 'JATIM', lat: -7.1566, lng: 112.6555 },
+                        { name: '📍 Kediri (Jl. Dhoho)', region: 'JATIM', lat: -7.8166, lng: 112.0166 },
+                        
+                        // SUMATERA
+                        { name: '📍 Medan (Merdeka Walk)', region: 'SUMATERA', lat: 3.5952, lng: 98.6722 },
+                        { name: '📍 Palembang (Jembatan Ampera)', region: 'SUMATERA', lat: -2.9909, lng: 104.7565 },
+                        { name: '📍 Batam (Batam Centre / Nagoya)', region: 'SUMATERA', lat: 1.1301, lng: 104.0529 },
+                        { name: '📍 Pekanbaru (Jl. Sudirman)', region: 'SUMATERA', lat: 0.5071, lng: 101.4478 },
+                        { name: '📍 Padang (Pantai Padang)', region: 'SUMATERA', lat: -0.9471, lng: 100.4172 },
+                        { name: '📍 Bandar Lampung (Tj. Karang)', region: 'SUMATERA', lat: -5.4297, lng: 105.2625 },
+                        { name: '📍 Banda Aceh (Baiturrahman)', region: 'SUMATERA', lat: 5.5483, lng: 95.3238 },
+                        
+                        // BALI & NUSA
+                        { name: '📍 Denpasar (Renon / Sanur)', region: 'BALI_NUSA', lat: -8.6705, lng: 115.2126 },
+                        { name: '📍 Badung (Kuta / Seminyak / Canggu)', region: 'BALI_NUSA', lat: -8.7185, lng: 115.1686 },
+                        { name: '📍 Mataram (Lombok Epicentrum)', region: 'BALI_NUSA', lat: -8.5833, lng: 116.1167 },
+                        { name: '📍 Kupang (Pantai Lasiana)', region: 'BALI_NUSA', lat: -10.1772, lng: 123.6070 },
+                        
+                        // KALIMANTAN & IKN
+                        { name: '📍 IKN Nusantara (KIPP Sepaku)', region: 'KALIMANTAN', lat: -0.9634, lng: 116.7058 },
+                        { name: '📍 Balikpapan (Sudirman / Permai)', region: 'KALIMANTAN', lat: -1.2379, lng: 116.8529 },
+                        { name: '📍 Samarinda (Tepian Mahakam)', region: 'KALIMANTAN', lat: -0.5022, lng: 117.1536 },
+                        { name: '📍 Banjarmasin (Menara Pandang)', region: 'KALIMANTAN', lat: -3.3194, lng: 114.5908 },
+                        { name: '📍 Pontianak (Tugu Khatulistiwa)', region: 'KALIMANTAN', lat: -0.0263, lng: 109.3425 },
+                        
+                        // SULAWESI & PAPUA
+                        { name: '📍 Makassar (Pantai Losari / Pettarani)', region: 'SULAWESI_PAPUA', lat: -5.1477, lng: 119.4327 },
+                        { name: '📍 Manado (Boulevard / Malalayang)', region: 'SULAWESI_PAPUA', lat: 1.4748, lng: 124.8428 },
+                        { name: '📍 Palu (Teluk Palu)', region: 'SULAWESI_PAPUA', lat: -0.9003, lng: 119.8779 },
+                        { name: '📍 Jayapura (Teluk Youtefa / Abepura)', region: 'SULAWESI_PAPUA', lat: -2.5916, lng: 140.6690 },
+                        { name: '📍 Ambon (Pattimura Park)', region: 'SULAWESI_PAPUA', lat: -3.6954, lng: 128.1814 },
+                        { name: '📍 Sorong (Papua Barat Daya)', region: 'SULAWESI_PAPUA', lat: -0.8762, lng: 131.2558 },
+                      ]
+                        .filter(loc => activeIslandTab === 'SEMUA' || loc.region === activeIslandTab)
+                        .map((loc, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setProfileData(prev => ({ ...prev, lat: loc.lat, lng: loc.lng }));
+                              setToastState({ isOpen: true, message: `Peta dipindahkan ke ${loc.name}!`, type: 'success' });
+                            }}
+                            className={`px-2.5 py-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer ${
+                              profileData.lat === loc.lat && profileData.lng === loc.lng
+                                ? 'bg-[#1B3A5C] text-[#D4A843] border-[#1B3A5C] shadow-xs'
+                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {loc.name}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Visual Large Click-to-Pin Map Viewport (Spacious on Laptop) */}
+                  <div
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      const xPercent = (x / rect.width) - 0.5;
+                      const yPercent = (y / rect.height) - 0.5;
+                      
+                      // Scale offset dynamically according to zoom
+                      const zoomScale = Math.pow(2, 16 - mapZoom);
+                      const newLng = Number((profileData.lng + (xPercent * 0.012 * zoomScale)).toFixed(5));
+                      const newLat = Number((profileData.lat - (yPercent * 0.012 * zoomScale)).toFixed(5));
+                      
+                      setProfileData(prev => ({ ...prev, lat: newLat, lng: newLng }));
+                      setToastState({ isOpen: true, message: `Pin dititikkan ke koordinat (${newLat}, ${newLng})!`, type: 'success' });
+                    }}
+                    className="relative w-full h-80 sm:h-96 lg:h-[440px] rounded-2xl border-2 border-slate-300 overflow-hidden bg-slate-200 shadow-inner cursor-crosshair group transition-all"
+                  >
+                    <iframe
+                      title="Outlet Map Coordinate Picker"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      src={`https://maps.google.com/maps?q=${profileData.lat || -7.2754},${profileData.lng || 112.7541}&z=${mapZoom}&output=embed`}
+                      className="w-full h-full pointer-events-none filter saturate-125"
+                    />
+
+                    {/* Central Target Pin Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="flex flex-col items-center -translate-y-4">
+                        <div className="px-2.5 py-1 bg-slate-950/90 text-[#D4A843] rounded-lg font-mono text-[10px] font-black shadow-lg whitespace-nowrap mb-1 border border-slate-700">
+                          📍 {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
+                        </div>
+                        <div className="w-9 h-9 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-sm font-black animate-bounce">
+                          📍
+                        </div>
+                        <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
+                      </div>
+                    </div>
+
+                    {/* Top Left Helper Overlay Badge */}
+                    <div className="absolute top-3 left-3 bg-[#1B3A5C]/95 backdrop-blur-xs text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-md flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span>🎯 Klik di titik manapun pada peta untuk memindahkan pin outlet</span>
+                    </div>
+
+                    {/* Bottom Right Zoom & Control Buttons */}
+                    <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-slate-900/85 backdrop-blur-xs p-1.5 rounded-xl shadow-lg">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMapZoom(prev => Math.min(19, prev + 1));
+                          setToastState({ isOpen: true, message: `Zoom Level: ${Math.min(19, mapZoom + 1)} (Mendekat)`, type: 'success' });
+                        }}
+                        className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
+                        title="Perbesar (Zoom In)"
+                      >
+                        🔍+ Zoom In
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMapZoom(prev => Math.max(12, prev - 1));
+                          setToastState({ isOpen: true, message: `Zoom Level: ${Math.max(12, mapZoom - 1)} (Menjauh)`, type: 'success' });
+                        }}
+                        className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
+                        title="Perkecil (Zoom Out)"
+                      >
+                        🔍- Zoom Out
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMapModalOpen(true);
+                        }}
+                        className="px-2.5 py-1 bg-[#D4A843] hover:bg-[#c49835] text-slate-950 font-black text-xs rounded-lg transition-colors cursor-pointer"
+                        title="Layar Penuh"
+                      >
+                        🖥️ Fullscreen
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Directional Precision Nudge Controls */}
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-black text-slate-800 block">
+                        🕹️ Geser Presisi Pin Koordinat (±100m):
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Gunakan tombol arah mata angin untuk menyempurnakan lokasi gang/titik presisi:
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 self-center sm:self-auto flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileData(prev => ({ ...prev, lat: Number((prev.lat + 0.0012).toFixed(5)) }));
+                          setToastState({ isOpen: true, message: 'Pin digeser ke Utara (+100m)', type: 'success' });
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                      >
+                        ⬆️ Utara
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileData(prev => ({ ...prev, lat: Number((prev.lat - 0.0012).toFixed(5)) }));
+                          setToastState({ isOpen: true, message: 'Pin digeser ke Selatan (-100m)', type: 'success' });
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                      >
+                        ⬇️ Selatan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileData(prev => ({ ...prev, lng: Number((prev.lng - 0.0012).toFixed(5)) }));
+                          setToastState({ isOpen: true, message: 'Pin digeser ke Barat (-100m)', type: 'success' });
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                      >
+                        ⬅️ Barat
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileData(prev => ({ ...prev, lng: Number((prev.lng + 0.0012).toFixed(5)) }));
+                          setToastState({ isOpen: true, message: 'Pin digeser ke Timur (+100m)', type: 'success' });
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                      >
+                        ➡️ Timur
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-500 block mb-1">Latitude:</span>
+                      <Input
+                        value={profileData.lat || -7.2754}
+                        onChange={(e) => setProfileData({ ...profileData, lat: parseFloat(e.target.value) || 0 })}
+                        className="font-mono text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-500 block mb-1">Longitude:</span>
+                      <Input
+                        value={profileData.lng || 112.7541}
+                        onChange={(e) => setProfileData({ ...profileData, lng: parseFloat(e.target.value) || 0 })}
+                        className="font-mono text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-blue-50/90 rounded-xl border border-blue-200 text-xs text-blue-950 font-medium">
+                    🗺️ <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke panti asuhan & kurir relawan terdekat.
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2 border-t border-slate-100">
+                  <Button variant="gold" size="sm" type="submit" className="font-black text-xs text-slate-950 shadow-md">
+                    Simpan Perubahan Identitas ➔
                   </Button>
                 </div>
               </form>
@@ -463,28 +991,25 @@ export default function DashboardProfilePage() {
         </div>
       )}
 
-      {/* TAB 2: OPERASIONAL TOKO, RADIUS & QRIS (PENGATURAN OUTLET KOMPREHENSIF) */}
+      {/* TAB 2: OPERASIONAL TOKO & PENGATURAN OUTLET (Point 17 & 18) */}
       {activeTab === 'OUTLET' && isProvider && (
         <div className="space-y-6">
           <form onSubmit={handleSaveProfile} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Operational Times & Packaging */}
+              {/* Pickup Windows & Packaging */}
               <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
                 <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
-                  <span>🕒 Jam Operasional & Kemasan Pangan</span>
+                  <span>⏰ Waktu Operasional & Standar Kemasan</span>
                 </h3>
 
-                <div className="space-y-3 text-xs">
+                <div className="space-y-4 text-xs">
                   <div>
-                    <label className="font-extrabold text-slate-700 block mb-1">Jam Standar Penjemputan Makanan:</label>
+                    <label className="font-extrabold text-slate-700 block mb-1">Batas Waktu Penjemputan Makanan:</label>
                     <Input
                       value={profileData.pickupHours}
                       onChange={(e) => setProfileData({ ...profileData, pickupHours: e.target.value })}
                       placeholder="Contoh: 19:00 - 22:00 WIB"
                     />
-                    <span className="text-[10px] text-slate-500 block mt-1">
-                      Waktu saat konsumen/kurir relawan dapat mengambil pesanan di kasir toko Anda.
-                    </span>
                   </div>
 
                   <div>
@@ -495,71 +1020,49 @@ export default function DashboardProfilePage() {
                     />
                   </div>
 
-                  {/* Geofencing Radius Slider */}
+                  {/* Geofencing Radius Locked (Point 17) */}
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="font-extrabold text-slate-800">Maksimum Radius Smart Matching:</label>
-                      <strong className="text-sm font-black text-[#1B3A5C]">{profileData.maxRadiusKm} KM</strong>
+                      <label className="font-extrabold text-slate-800 text-xs">Maksimum Radius Smart Matching:</label>
+                      <span className="px-2.5 py-1 bg-[#1B3A5C] text-[#D4A843] text-xs font-black rounded-lg shadow-xs">
+                        Radius 5.0 KM (Terkunci Otomatis)
+                      </span>
                     </div>
-                    <input
-                      type="range"
-                      min="2"
-                      max="25"
-                      step="1"
-                      value={profileData.maxRadiusKm}
-                      onChange={(e) => setProfileData({ ...profileData, maxRadiusKm: parseInt(e.target.value) })}
-                      className="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#1B3A5C]"
-                    />
-                    <span className="text-[10px] text-slate-500 block">
-                      Jangkauan pencocokan otomatis panti asuhan & kurir di sekitar outlet Surabaya Anda.
-                    </span>
+                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-medium space-y-0.5">
+                      <span className="font-extrabold block">🔒 Ditetapkan Otomatis oleh Sistem Replate Engine 2.0:</span>
+                      <p className="text-[10.5px] leading-relaxed">
+                        Untuk menjaga kualitas makanan hangat &gt;60°C dan dingin &lt;4°C sesuai standar BPOM RI, radius geofencing donasi dikunci otomatis maksimal <strong>5.0 KM</strong> dari outlet Anda.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Card>
 
-              {/* QRIS Merchant & Payout Settlement */}
+              {/* Direct QRIS Payment & Settlement Info (Point 18) */}
               <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
                 <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
-                  <span>💳 Rekening Pencairan Dana & QRIS Toko</span>
+                  <span>⚡ Sistem Pembayaran Langsung QRIS Dinamis</span>
                 </h3>
 
                 <div className="space-y-3 text-xs">
-                  <div>
-                    <label className="font-extrabold text-slate-700 block mb-1">Bank Rekening Pencairan:</label>
-                    <Input
-                      value={profileData.qrisBank}
-                      onChange={(e) => setProfileData({ ...profileData, qrisBank: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-extrabold text-slate-700 block mb-1">Nomor Rekening Bank:</label>
-                    <Input
-                      value={profileData.qrisAccountNo}
-                      onChange={(e) => setProfileData({ ...profileData, qrisAccountNo: e.target.value })}
-                      className="font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-extrabold text-slate-700 block mb-1">NMID QRIS Standar Bank Indonesia:</label>
-                    <Input
-                      value={profileData.qrisNmid}
-                      onChange={(e) => setProfileData({ ...profileData, qrisNmid: e.target.value })}
-                      className="font-mono"
-                    />
+                  <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 space-y-1.5 font-medium">
+                    <strong className="block font-black text-emerald-900 text-xs">✓ Tanpa Saldo Mengendap (Direct Settlement)</strong>
+                    <p className="text-[11px] leading-relaxed">
+                      Platform Replate tidak menggunakan sistem penarikan saldo dompet manual. Setiap pembayaran transaksi Rescue Sale langsung diteruskan seketika ke kasir outlet via QRIS Dinamis Standar Bank Indonesia / pembayaran langsung saat serah terima.
+                    </p>
                   </div>
 
                   {/* QRIS Image Preview */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-4">
                     <img
                       src={profileData.qrisImageUrl}
                       alt="QRIS Toko"
-                      className="w-14 h-14 object-cover rounded-lg border border-slate-300"
+                      className="w-16 h-16 object-cover rounded-xl border border-slate-300 shadow-2xs"
                     />
-                    <div className="text-[11px]">
-                      <strong className="text-slate-800 block">QRIS Dinamis / Statis Terpasang</strong>
+                    <div className="text-[11px] space-y-0.5">
+                      <strong className="text-slate-800 block text-xs">QRIS Standar Bank Indonesia</strong>
                       <span className="text-emerald-700 font-bold block">✓ Siap menerima pembayaran Rescue Sale</span>
+                      <span className="text-[10px] text-slate-500 block">NMID: ID102030405060 (Terverifikasi)</span>
                     </div>
                   </div>
                 </div>
@@ -796,20 +1299,30 @@ export default function DashboardProfilePage() {
                 required
               />
             </div>
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Jenis Kendaraan:</label>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700 block">Nomor Induk Kependudukan (NIK KTP Driver):</label>
+              <Input
+                type="text"
+                placeholder="Contoh: 3578012304900001 (16 Digit)"
+                maxLength={16}
+                className="font-mono"
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700 block">Jenis Kendaraan & Karakteristik Muatan:</label>
               <select
                 value={newDriver.vehicleType}
                 onChange={(e) => setNewDriver({ ...newDriver, vehicleType: e.target.value })}
                 className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs"
               >
-                <option value="Sepeda Motor Box Cooler (Steril)">Sepeda Motor Box Cooler (Steril)</option>
-                <option value="Mobil Blind Van Pendingin">Mobil Blind Van Pendingin</option>
-                <option value="Sepeda Motor Standar">Sepeda Motor Standar</option>
+                <option value="Sepeda Motor Box Cooler (Steril)">Sepeda Motor + Box Cooler Steril (Kapasitas 1-35 Porsi, Suhu Dingin &lt;4°C / Panas &gt;60°C)</option>
+                <option value="Mobil Blind Van Pendingin">Mobil Blind Van Pendingin (Kapasitas 35-150 Porsi Besar)</option>
+                <option value="Sepeda Motor Standar">Sepeda Motor Standar (Khusus Makanan Kering / Suhu Ruang 1-20 Porsi)</option>
               </select>
             </div>
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Plat Nomor Kendaraan:</label>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700 block">Plat Nomor Kendaraan:</label>
               <Input
                 value={newDriver.plateNumber}
                 onChange={(e) => setNewDriver({ ...newDriver, plateNumber: e.target.value })}
@@ -818,12 +1331,39 @@ export default function DashboardProfilePage() {
               />
             </div>
 
+            {/* Document Uploads for SuperAdmin Approval */}
+            <div className="space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+              <span className="font-extrabold text-[#1B3A5C] text-[11px] block">
+                📑 Upload Dokumen Verifikasi Driver (Wajib Diaudit SuperAdmin):
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1 text-center">
+                  <span className="text-[10px] font-bold text-slate-600 block">1. Foto KTP Driver</span>
+                  <span className="text-[9px] text-emerald-700 font-black block">✓ KTP_Driver.jpg</span>
+                  <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded block">Tersimpan</span>
+                </div>
+                <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1 text-center">
+                  <span className="text-[10px] font-bold text-slate-600 block">2. Foto SIM C/A Aktif</span>
+                  <span className="text-[9px] text-emerald-700 font-black block">✓ SIM_Driver.jpg</span>
+                  <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded block">Tersimpan</span>
+                </div>
+                <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1 text-center">
+                  <span className="text-[10px] font-bold text-slate-600 block">3. Foto Box Kendaraan</span>
+                  <span className="text-[9px] text-emerald-700 font-black block">✓ Armada_Steril.jpg</span>
+                  <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded block">Tersimpan</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-500 leading-relaxed font-medium pt-1">
+                🛡️ Dokumen driver akan otomatis masuk ke antrean verifikasi <strong>SuperAdmin Replate</strong>. Setelah diapprove, armada ini langsung dapat dipilih pada penugasan pengantaran langsung.
+              </p>
+            </div>
+
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
               <Button variant="outline" size="sm" type="button" onClick={() => setAddDriverModal(false)}>
                 Batal
               </Button>
-              <Button variant="gold" size="sm" type="submit" className="font-black">
-                Simpan & Verifikasi OTP WA ➔
+              <Button variant="gold" size="sm" type="submit" className="font-black text-slate-950">
+                Ajukan Driver & Verifikasi OTP WA ➔
               </Button>
             </div>
           </form>
@@ -896,6 +1436,91 @@ export default function DashboardProfilePage() {
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => setLightboxModal({ isOpen: false, title: '', imageUrl: '' })}>
                 Tutup Preview
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Fullscreen Map Coordinate Picker Modal for Laptop / Desktop Freedom (Point 5) */}
+      {isMapModalOpen && (
+        <Modal
+          isOpen={isMapModalOpen}
+          onClose={() => setIsMapModalOpen(false)}
+          title="🗺️ Penentuan Titik Koordinat GPS Outlet (Layar Penuh)"
+          size="xl"
+        >
+          <div className="space-y-3.5 text-xs text-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 bg-slate-900 text-white rounded-xl shadow-md">
+              <div>
+                <strong className="text-[#D4A843] text-sm block">📍 Koordinat Terpilih: {profileData.lat || -7.2754}, {profileData.lng || 112.7541}</strong>
+                <span className="text-[11px] text-slate-300">Klik di mana saja pada peta luas ini untuk memindahkan pin lokasi outlet Anda.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMapZoom(prev => Math.min(19, prev + 1))}
+                  className="px-3 py-1.5 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
+                >
+                  🔍+ Zoom In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapZoom(prev => Math.max(12, prev - 1))}
+                  className="px-3 py-1.5 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
+                >
+                  🔍- Zoom Out
+                </button>
+                <Button variant="gold" size="sm" className="font-black text-slate-950" onClick={() => setIsMapModalOpen(false)}>
+                  ✓ Gunakan Titik Ini
+                </Button>
+              </div>
+            </div>
+
+            {/* Gigantic Interactive Canvas for Laptop */}
+            <div
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const xPercent = (x / rect.width) - 0.5;
+                const yPercent = (y / rect.height) - 0.5;
+                const zoomScale = Math.pow(2, 16 - mapZoom);
+                const newLng = Number((profileData.lng + (xPercent * 0.018 * zoomScale)).toFixed(5));
+                const newLat = Number((profileData.lat - (yPercent * 0.018 * zoomScale)).toFixed(5));
+                setProfileData(prev => ({ ...prev, lat: newLat, lng: newLng }));
+                setToastState({ isOpen: true, message: `Titik pin dipindahkan ke (${newLat}, ${newLng})!`, type: 'success' });
+              }}
+              className="relative w-full h-[60vh] rounded-2xl border-2 border-slate-300 overflow-hidden bg-slate-200 shadow-inner cursor-crosshair"
+            >
+              <iframe
+                title="Fullscreen Map Coordinate Picker"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                src={`https://maps.google.com/maps?q=${profileData.lat || -7.2754},${profileData.lng || 112.7541}&z=${mapZoom}&output=embed`}
+                className="w-full h-full pointer-events-none filter saturate-125"
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex flex-col items-center -translate-y-4">
+                  <div className="px-3 py-1 bg-slate-950/95 text-[#D4A843] rounded-lg font-mono text-xs font-black shadow-2xl mb-1 border border-slate-700">
+                    📍 {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-base font-black animate-bounce">
+                    📍
+                  </div>
+                  <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              <span className="text-slate-500 font-medium text-[11px]">
+                Tip: Tekan pada peta untuk langsung menitikkan lokasi outlet Anda secara presisi.
+              </span>
+              <Button variant="gold" size="md" className="font-black text-slate-950 shadow-md" onClick={() => setIsMapModalOpen(false)}>
+                ✓ Selesai & Simpan Titik Ini
               </Button>
             </div>
           </div>

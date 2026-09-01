@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { QRScanner } from '@/components/qr/QRScanner';
+import { QRGenerator } from '@/components/qr/QRGenerator';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -38,9 +39,27 @@ export default function ProviderClaimsPage() {
     claim: null,
   });
 
+  const formatClaimQuantity = (c: any) => {
+    if (!c) return '1 Porsi';
+    if (typeof c.quantity === 'string' && c.quantity.trim().length > 0 && !c.quantity.includes('undefined')) {
+      return c.quantity;
+    }
+    if (typeof c.quantity === 'number') {
+      return `${c.quantity} ${c.quantityUnit || 'Porsi'}`;
+    }
+    if (typeof c.portions === 'number' || (typeof c.portions === 'string' && c.portions)) {
+      return `${c.portions} Porsi`;
+    }
+    if (Array.isArray(c.items) && c.items.length > 0) {
+      const total = c.items.reduce((acc: number, it: any) => acc + Number(it.quantity || it.portions || 1), 0);
+      return `${total} Porsi (${c.items.length} Menu)`;
+    }
+    return '1 Porsi';
+  };
+
   const defaultPending = [
     {
-      code: 'FB-SALE-99102',
+      code: 'RPL-RSC-2026-99102',
       foodName: 'Nasi Goreng Buffet Specialty',
       userName: 'Ahmad Fauzi (Konsumen Umum)',
       recipientPerson: 'Ahmad Fauzi',
@@ -56,7 +75,7 @@ export default function ProviderClaimsPage() {
       time: 'Hari ini 20:00 WIB',
     },
     {
-      code: 'FB-DON-88192',
+      code: 'RPL-DON-2026-88192',
       foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
       userName: 'Panti Asuhan Kasih Ibu (Yayasan)',
       recipientPerson: 'Ibu Ratna (Ketua Pengurus Panti)',
@@ -68,11 +87,12 @@ export default function ProviderClaimsPage() {
       courierName: 'Budi Santoso (Relawan ID #RC-881)',
       courierOrg: 'Food Bank Surabaya Logistik',
       courierPhone: '0812-9876-5432',
+      courierVehicle: 'Motor Box Cooler Steril (Plat L 8912 RC)',
       address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
       time: 'Hari ini 19:00 WIB',
     },
     {
-      code: 'FB-CLAIM-101',
+      code: 'RPL-RSC-2026-101',
       foodName: 'Bakso Sapi Urat Super',
       userName: 'Budi Santoso (Konsumen Individu)',
       recipientPerson: 'Pak Budi Santoso (Penerima Mandiri)',
@@ -87,7 +107,7 @@ export default function ProviderClaimsPage() {
       time: 'Hari ini 19:30 WIB',
     },
     {
-      code: 'FB-DIR-88291',
+      code: 'RPL-DIR-2026-88291',
       foodName: 'Paket Rice Bowl Ayam Geprek (Diantar Toko)',
       userName: 'Panti Asuhan Wonokromo (Panti A)',
       recipientPerson: 'Pak Mahmud (Pengurus Panti A)',
@@ -96,9 +116,11 @@ export default function ProviderClaimsPage() {
       quantity: '40 Porsi',
       status: 'READY_FOR_PICKUP',
       deliveryMethod: 'PROVIDER_DIRECT',
+      manifestSent: false,
       courierName: 'Driver B: Mas Agus (Plat L 1234 XYZ)',
       courierOrg: 'Armada Driver Toko Pak Kumis',
       courierPhone: '0813-9876-5432',
+      courierVehicle: 'Mobil Blind Van Pendingin (Plat L 1234 XYZ)',
       address: 'Jl. Wonokromo No. 45, Wonokromo, Surabaya',
       time: 'Hari ini 19:30 WIB',
     },
@@ -106,7 +128,7 @@ export default function ProviderClaimsPage() {
 
   const defaultInTransit = [
     {
-      code: 'FB-CLAIM-103',
+      code: 'RPL-LOG-2026-103',
       foodName: 'Nasi Goreng Buffet + Ayam Bakar',
       userName: 'Rumah Singgah Anak Jalanan (Shelter)',
       recipientPerson: 'Pak Heru (Koordinator Dapur Rumah Singgah)',
@@ -118,11 +140,12 @@ export default function ProviderClaimsPage() {
       courierName: 'Mas Rizky (Relawan Komunitas Surabaya)',
       courierOrg: 'Replate Volunteer Fleet',
       courierPhone: '0815-6789-0123',
+      courierVehicle: 'Sepeda Motor Box Cooler (Plat L 4582 ABC)',
       address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
       time: 'Hari ini 21:00 WIB',
     },
     {
-      code: 'FB-DIR-99382',
+      code: 'RPL-DIR-2026-99382',
       foodName: 'Menu Surplus Bakso Urat & Soto Sapi',
       userName: 'Siti Aminah (Konsumen B)',
       recipientPerson: 'Siti Aminah (Pembeli Rescue Sale)',
@@ -131,9 +154,11 @@ export default function ProviderClaimsPage() {
       quantity: '5 Porsi',
       status: 'IN_TRANSIT',
       deliveryMethod: 'PROVIDER_DIRECT',
+      manifestSent: true,
       courierName: 'Driver A: Mas Doni (Plat L 4582 ABC)',
       courierOrg: 'Armada Driver Toko Pak Kumis',
       courierPhone: '0812-3456-7890',
+      courierVehicle: 'Sepeda Motor Box Steril (Plat L 4582 ABC)',
       address: 'Jl. Rungkut Asri No. 12, Rungkut, Surabaya',
       time: 'Dalam Pengiriman Armada Toko (OTW)',
     },
@@ -141,7 +166,7 @@ export default function ProviderClaimsPage() {
 
   const defaultCompleted = [
     {
-      code: 'FB-DON-77182',
+      code: 'RPL-DON-2026-77182',
       foodName: 'Paket Roti Bakery Steril & Susu UHT',
       userName: 'Panti Werdha Lansia Sejahtera',
       recipientPerson: 'Suster Maria (PJ Konsumsi Panti Werdha)',
@@ -153,12 +178,13 @@ export default function ProviderClaimsPage() {
       courierName: 'Mas Rizky Relawan (#RC-104)',
       courierOrg: 'Food Bank Surabaya Logistik',
       courierPhone: '0813-4567-8901',
+      courierVehicle: 'Sepeda Motor Box Cooler (Plat L 9981 RC)',
       address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
       time: '21 Aug 2026, 14:00 WIB',
       handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
     },
     {
-      code: 'FB-DON-66102',
+      code: 'RPL-DON-2026-66102',
       foodName: 'Nasi Paket Ayam Goreng Buffet',
       userName: 'Keluarga Ibu Ratna (Masyarakat Rentan)',
       recipientPerson: 'Ibu Ratna (Kepala Keluarga Rentan)',
@@ -169,6 +195,7 @@ export default function ProviderClaimsPage() {
       deliveryMethod: 'PROVIDER_DIRECT',
       driverName: 'Mas Doni (Driver Armada Toko Pak Kumis)',
       driverPhone: '0812-3456-7891',
+      courierVehicle: 'Mobil Blind Van Pendingin (Plat L 1234 XYZ)',
       address: 'Jl. Krembangan Barat No. 8, Surabaya',
       time: '20 Aug 2026, 18:30 WIB',
       handoverProof: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60',
@@ -200,67 +227,72 @@ export default function ProviderClaimsPage() {
       if (allSavedClaims.length > 0) {
         const pending = allSavedClaims
           .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP' || c.status === 'AWAITING_VERIFICATION' || c.status === 'WAITING_PAYMENT_APPROVAL')
-            .map((c: any) => ({
-              code: c.claimCode || c.code || c.id,
-              foodName: c.foodName,
-              userName: c.shelterName || c.userName || 'Penerima Bantuan',
-              recipientType: c.shelterType || 'Penerima Manfaat',
-              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
-              status: c.status,
-              deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
-              courierName: c.courierName || 'Kurir Relawan Replate',
-              courierOrg: c.courierOrg || 'Tim Logistik Rescue',
-              courierPhone: c.contactPhone || '0812-9876-5432',
-              address: c.address || 'Kota Surabaya',
-              time: c.readyTime || 'Hari ini',
-              paymentProofUrl: c.paymentProof || c.paymentProofUrl,
-            }));
+          .map((c: any) => ({
+            code: c.claimCode || c.code || c.id,
+            foodName: c.foodName || 'Paket Pangan Surplus',
+            userName: c.shelterName || c.userName || 'Penerima Bantuan',
+            recipientType: c.shelterType || 'Penerima Manfaat',
+            quantity: formatClaimQuantity(c),
+            status: c.status,
+            deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+            manifestSent: c.manifestSent || false,
+            courierName: c.courierName || 'Kurir Relawan Replate',
+            courierOrg: c.courierOrg || 'Tim Logistik Rescue',
+            courierPhone: c.contactPhone || '0812-9876-5432',
+            courierVehicle: c.courierVehicle || 'Motor Box Cooler Steril',
+            address: c.address || 'Kota Surabaya',
+            time: c.readyTime || 'Hari ini',
+            paymentProofUrl: c.paymentProof || c.paymentProofUrl,
+          }));
 
-          const inTransit = allSavedClaims
-            .filter((c: any) => c.status === 'IN_TRANSIT' || c.status === 'PROVIDER_DELIVERING')
-            .map((c: any) => ({
-              code: c.claimCode || c.code || c.id,
-              foodName: c.foodName,
-              userName: c.shelterName || c.userName || 'Penerima Bantuan',
-              recipientType: c.shelterType || 'Penerima Manfaat',
-              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
-              status: 'IN_TRANSIT',
-              deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
-              courierName: c.courierName || 'Kurir Relawan Replate',
-              courierOrg: c.courierOrg || 'Tim Logistik Rescue',
-              courierPhone: c.contactPhone || '0812-9876-5432',
-              address: c.address || 'Kota Surabaya',
-              time: 'Dalam Pengiriman OTW',
-            }));
+        const inTransit = allSavedClaims
+          .filter((c: any) => c.status === 'IN_TRANSIT' || c.status === 'PROVIDER_DELIVERING')
+          .map((c: any) => ({
+            code: c.claimCode || c.code || c.id,
+            foodName: c.foodName || 'Paket Pangan Surplus',
+            userName: c.shelterName || c.userName || 'Penerima Bantuan',
+            recipientType: c.shelterType || 'Penerima Manfaat',
+            quantity: formatClaimQuantity(c),
+            status: 'IN_TRANSIT',
+            deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+            manifestSent: c.manifestSent || true,
+            courierName: c.courierName || 'Kurir Relawan Replate',
+            courierOrg: c.courierOrg || 'Tim Logistik Rescue',
+            courierPhone: c.contactPhone || '0812-9876-5432',
+            courierVehicle: c.courierVehicle || 'Motor Box Cooler Steril',
+            address: c.address || 'Kota Surabaya',
+            time: 'Dalam Pengiriman OTW',
+          }));
 
-          const completed = allSavedClaims
-            .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
-            .map((c: any) => ({
-              code: c.claimCode || c.code || c.id,
-              foodName: c.foodName,
-              userName: c.shelterName || c.userName || 'Penerima Bantuan',
-              recipientType: c.shelterType || 'Penerima Manfaat',
-              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
-              status: 'COMPLETED',
-              deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
-              courierName: c.courierName || 'Mas Relawan Surabaya',
-              courierOrg: c.courierOrg || 'Komunitas Food Rescue',
-              courierPhone: c.contactPhone || '0812-9876-5432',
-              address: c.address || 'Kota Surabaya',
-              time: c.createdAt || 'Selesai',
-              handoverProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
-            }));
+        const completed = allSavedClaims
+          .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
+          .map((c: any) => ({
+            code: c.claimCode || c.code || c.id,
+            foodName: c.foodName || 'Paket Pangan Surplus',
+            userName: c.shelterName || c.userName || 'Penerima Bantuan',
+            recipientType: c.shelterType || 'Penerima Manfaat',
+            quantity: formatClaimQuantity(c),
+            status: 'COMPLETED',
+            deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
+            courierName: c.courierName || 'Mas Relawan Surabaya',
+            courierOrg: c.courierOrg || 'Komunitas Food Rescue',
+            courierPhone: c.contactPhone || '0812-9876-5432',
+            courierVehicle: c.courierVehicle || 'Motor Box Cooler Steril',
+            address: c.address || 'Kota Surabaya',
+            time: c.createdAt || 'Selesai',
+            handoverProof: c.handoverProof || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+          }));
 
-          const mergeUnique = (arr1: any[], arr2: any[]) => {
-            const map = new Map();
-            [...arr1, ...arr2].forEach(item => map.set(item.code, item));
-            return Array.from(map.values());
-          };
+        const mergeUnique = (arr1: any[], arr2: any[]) => {
+          const map = new Map();
+          [...arr1, ...arr2].forEach(item => map.set(item.code, item));
+          return Array.from(map.values());
+        };
 
-          setPendingClaims(mergeUnique(pending, defaultPending));
-          setInTransitClaims(mergeUnique(inTransit, defaultInTransit));
-          setCompletedClaims(mergeUnique(completed, defaultCompleted));
-        }
+        setPendingClaims(mergeUnique(pending, defaultPending));
+        setInTransitClaims(mergeUnique(inTransit, defaultInTransit));
+        setCompletedClaims(mergeUnique(completed, defaultCompleted));
+      }
     } catch (_) {}
   }, []);
 
@@ -672,91 +704,150 @@ export default function ProviderClaimsPage() {
                       <span>
                         Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🛵 Kurir Relawan'}</strong>
                       </span>
+                      {tx.deliveryMethod === 'RESCUE_COURIER' && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-900 border border-purple-200 rounded font-black text-[10px]">
+                          {tx.status === 'AWAITING_RESCUE_PICKUP'
+                            ? '⏳ Menunggu Driver Relawan di Pool Siaga'
+                            : '🚚 Driver Relawan OTW Menuju Toko'}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Dedicated Volunteer Courier Profile Info Box (Point 5) */}
+                    {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status !== 'AWAITING_RESCUE_PICKUP' && (
+                      <div className="p-3 bg-purple-50/90 rounded-xl border border-purple-200 mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={tx.courierAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
+                            alt={tx.courierName || 'Kurir Relawan'}
+                            className="w-11 h-11 rounded-full object-cover border-2 border-purple-600 shadow-xs shrink-0"
+                          />
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <strong className="text-purple-950 font-extrabold text-xs">
+                                {tx.courierName || 'Budi Santoso'}
+                              </strong>
+                              <span className="text-[9px] bg-purple-200 text-purple-900 font-black px-1.5 py-0.5 rounded">
+                                Relawan ID #{tx.courierId || 'RC-881'}
+                              </span>
+                              <span className="text-[9px] bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.5 rounded">
+                                ⏱️ ETA: ~12 Menit
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-purple-900 font-medium">
+                              Armada: <strong>{tx.courierVehicle || 'Motor Box Cooler Steril (Plat L 8912 RC)'}</strong> • {tx.courierOrg || 'Komunitas Food Bank Surabaya'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <a
+                          href={`https://wa.me/${(tx.courierPhone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(
+                            `Halo Mas ${tx.courierName || 'Driver Relawan'}, saya dari Toko mengonfirmasi donasi resi ${tx.code} siap diserahterimakan.`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs transition-colors shrink-0 flex items-center justify-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                        >
+                          <span>💬 Chat WA Driver</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
 
-                {activeTab === 'PAYMENT_VERIFY' ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Buka & Unduh Tiket QR Button (Point 3 & 12) */}
                   <Button
-                    variant="gold"
+                    variant="outline"
                     size="sm"
-                    className="font-extrabold text-xs shadow-xs flex items-center gap-1.5"
-                    onClick={() => setPaymentInspectModal({ isOpen: true, claim: tx })}
+                    className="font-bold text-xs border-slate-300 hover:bg-slate-100 flex items-center gap-1"
+                    onClick={() => setIssuedTicketModal({ isOpen: true, claim: tx })}
                   >
-                    <span>💳 Inspect Struk Bayar & Verifikasi Lunas ➔</span>
+                    <span>🎟️ Tiket QR</span>
                   </Button>
-                ) : activeTab === 'PENDING_PICKUP' ? (
-                  <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs" onClick={() => openConfirmModal(tx)}>
-                    Konfirmasi Handover ➔
-                  </Button>
-                ) : activeTab === 'IN_TRANSIT' ? (
-                  tx.deliveryMethod === 'SHELTER_PICKUP' ? (
+
+                  {activeTab === 'PAYMENT_VERIFY' ? (
                     <Button
                       variant="gold"
                       size="sm"
-                      className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                      onClick={() => handleDirectPickupCompleteAtStore(tx)}
+                      className="font-extrabold text-xs shadow-xs flex items-center gap-1.5"
+                      onClick={() => setPaymentInspectModal({ isOpen: true, claim: tx })}
                     >
-                      ✓ Verifikasi Serah Terima Langsung Toko ➔
+                      <span>💳 Inspect Struk Bayar & Verifikasi Lunas ➔</span>
                     </Button>
-                  ) : tx.deliveryMethod === 'PROVIDER_DIRECT' ? (
-                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                  ) : activeTab === 'PENDING_PICKUP' ? (
+                    <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs text-slate-950" onClick={() => openConfirmModal(tx)}>
+                      Konfirmasi Handover ➔
+                    </Button>
+                  ) : activeTab === 'IN_TRANSIT' ? (
+                    tx.deliveryMethod === 'SHELTER_PICKUP' ? (
                       <Button
                         variant="gold"
                         size="sm"
-                        className="font-black text-xs shadow-xs flex items-center gap-1"
-                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
-                      >
-                        <span>📍 Live Tracking Driver Toko ➔</span>
-                      </Button>
-                      <a
-                        href={`/driver-manifest/${tx.code}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-3 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white hover:!text-white focus:!text-white active:!text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0 cursor-pointer"
-                      >
-                        <span className="!text-white font-extrabold">📲 Surat Jalan Driver ➔</span>
-                      </a>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="font-black text-xs shadow-xs"
+                        className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                         onClick={() => handleDirectPickupCompleteAtStore(tx)}
                       >
-                        ✓ Selesai ➔
+                        ✓ Verifikasi Serah Terima Langsung Toko ➔
                       </Button>
-                    </div>
+                    ) : tx.deliveryMethod === 'PROVIDER_DIRECT' ? (
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-black text-xs shadow-xs flex items-center gap-1 text-slate-950"
+                          onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                        >
+                          <span>📍 Live Tracking Driver Toko ➔</span>
+                        </Button>
+                        <a
+                          href={`/driver-manifest/${tx.code}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white hover:!text-white focus:!text-white active:!text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                        >
+                          <span className="!text-white font-extrabold">📲 Surat Jalan Driver ➔</span>
+                        </a>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="font-black text-xs shadow-xs"
+                          onClick={() => handleDirectPickupCompleteAtStore(tx)}
+                        >
+                          ✓ Selesai ➔
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-black text-xs shadow-xs flex items-center gap-1 text-slate-950"
+                          onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                        >
+                          <span>🛵 Status Live Tracking Kurir Komunitas ➔</span>
+                        </Button>
+                      </div>
+                    )
                   ) : (
-                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
+                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                      >
+                        <span>📋 Audit Log & Timeline ➔</span>
+                      </Button>
                       <Button
                         variant="gold"
                         size="sm"
-                        className="font-black text-xs shadow-xs flex items-center gap-1"
-                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                        className="font-extrabold text-xs shadow-xs text-slate-950"
+                        onClick={() => setDetailModal({ isOpen: true, claim: tx })}
                       >
-                        <span>🛵 Status Live Tracking Kurir Komunitas ➔</span>
+                        Detail Serah Terima ➔
                       </Button>
                     </div>
-                  )
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
-                      onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
-                    >
-                      <span>📋 Audit Log & Timeline ➔</span>
-                    </Button>
-                    <Button
-                      variant="gold"
-                      size="sm"
-                      className="font-extrabold text-xs shadow-xs"
-                      onClick={() => setDetailModal({ isOpen: true, claim: tx })}
-                    >
-                      Detail Serah Terima ➔
-                    </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           });
@@ -1017,6 +1108,54 @@ export default function ProviderClaimsPage() {
                 </div>
               </div>
 
+              {/* Interactive Photo Upload / Capture Section (Point 5 & 7) */}
+              <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                <label className="font-extrabold text-slate-900 block text-xs">
+                  📸 Ambil / Upload Foto Bukti Serah Terima Fisik Makanan (Wajib):
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="w-20 h-20 bg-slate-200 rounded-xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center shrink-0">
+                    {proofPhoto ? (
+                      <img src={proofPhoto} alt="Bukti Handover" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl text-slate-400">📷</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => setProofPhoto(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-[#1B3A5C] file:text-white hover:file:bg-[#142C47]"
+                    />
+                    <div className="flex gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setProofPhoto('https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60')}
+                        className="px-2 py-0.5 bg-blue-100 text-blue-900 font-bold text-[10px] rounded hover:bg-blue-200 cursor-pointer"
+                      >
+                        ⚡ Foto Demo Dapur
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60')}
+                        className="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-bold text-[10px] rounded hover:bg-emerald-200 cursor-pointer"
+                      >
+                        ⚡ Foto Demo Kurir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <label className="flex items-start gap-2 pt-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1025,7 +1164,7 @@ export default function ProviderClaimsPage() {
                   className="mt-0.5 w-4 h-4 text-[#1B3A5C] rounded border-slate-300 focus:ring-[#D4A843]"
                 />
                 <span className="text-xs font-bold text-slate-800 leading-snug">
-                  Saya mengonfirmasi bahwa makanan diserahkan ke kurir dalam keadaan segar, higienis, dan sesuai kuantitas porsi.
+                  Saya mengonfirmasi bahwa makanan diserahkan ke kurir/penerima dalam keadaan segar, wadah steril, dan sesuai kuantitas porsi.
                 </span>
               </label>
             </div>
@@ -1034,8 +1173,8 @@ export default function ProviderClaimsPage() {
               <Button variant="outline" size="sm" onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}>
                 Batal
               </Button>
-              <Button variant="gold" size="sm" className="font-extrabold" onClick={() => handleVerifyCodeAtStore(confirmModal.code)}>
-                Konfirmasi Handover ➔
+              <Button variant="gold" size="sm" className="font-extrabold text-slate-950 shadow-md" onClick={() => handleVerifyCodeAtStore(confirmModal.code)}>
+                Konfirmasi Handover Selesai ➔
               </Button>
             </div>
           </div>
@@ -1091,61 +1230,25 @@ export default function ProviderClaimsPage() {
         </Modal>
       )}
 
-      {/* Modal Tiket QR Resmi Terbit & Surat Jalan Kasir (Point 3) */}
+      {/* Modal Tiket QR Resmi Terbit & Surat Jalan Kasir (Point 3 & 12) */}
       {issuedTicketModal.isOpen && issuedTicketModal.claim && (
         <Modal
           isOpen={issuedTicketModal.isOpen}
           onClose={() => setIssuedTicketModal({ isOpen: false, claim: null })}
-          title={`Tiket QR Resmi Terbit: ${issuedTicketModal.claim.code}`}
+          title={`Tiket QR Resmi & Manifest: ${issuedTicketModal.claim.code}`}
           size="md"
         >
           <div className="space-y-4 text-xs text-slate-700 text-center">
-            <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-300 space-y-1">
-              <span className="text-[10px] font-black text-emerald-900 uppercase tracking-widest block">
-                PEMBAYARAN TERVERIFIKASI LUNAS
-              </span>
-              <h4 className="text-lg font-black text-emerald-950">
-                Tiket QR Siap Diambil di Meja Kasir
-              </h4>
-              <p className="text-xs text-emerald-800 font-medium">
-                Resi #{issuedTicketModal.claim.code} telah aktif dan dipindahkan ke antrean Penyelamatan & Handover Makanan.
-              </p>
-            </div>
-
-            {/* Big QR Barcode Display */}
-            <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm max-w-xs mx-auto space-y-2">
-              <div className="w-48 h-48 mx-auto bg-slate-900 p-2 rounded-xl border border-slate-300 flex items-center justify-center">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                    `REPLATE-TICKET-${issuedTicketModal.claim.code}`
-                  )}`}
-                  alt="QR Barcode Resi"
-                  className="w-full h-full object-contain bg-white p-1 rounded-lg"
-                />
-              </div>
-              <span className="font-mono font-black text-sm text-[#1B3A5C] block">
-                {issuedTicketModal.claim.code}
-              </span>
-            </div>
-
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-left space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-semibold">Nama Pembeli:</span>
-                <strong className="text-slate-900">{issuedTicketModal.claim.userName}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-semibold">Menu Makanan:</span>
-                <strong className="text-slate-900">{issuedTicketModal.claim.foodName}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-semibold">Kuantitas:</span>
-                <strong className="text-emerald-700 font-black">{issuedTicketModal.claim.quantity}</strong>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-slate-200">
-                <span className="text-slate-500 font-semibold">Status Pembayaran:</span>
-                <strong className="text-emerald-700 font-black">LUNAS (QRIS / Transfer)</strong>
-              </div>
-            </div>
+            {/* Standardized Replate QR Generator Component */}
+            <QRGenerator
+              value={issuedTicketModal.claim.code}
+              codeTitle={`REPLATE TIKET: ${issuedTicketModal.claim.code}`}
+              codeSubtitle="Tunjukkan QR Code ini kepada Petugas Kasir / Driver saat serah terima"
+              foodName={issuedTicketModal.claim.foodName}
+              portions={issuedTicketModal.claim.quantity}
+              recipientName={issuedTicketModal.claim.userName}
+              expiryTime="Hari ini 22:00 WIB"
+            />
 
             <div className="space-y-2 pt-2">
               <a
@@ -1156,7 +1259,7 @@ export default function ProviderClaimsPage() {
                 rel="noreferrer"
                 className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
-                <span>Kirim Link Tiket QR via WhatsApp ke Pembeli ➔</span>
+                <span>💬 Kirim Link Tiket QR via WhatsApp ke Pembeli ➔</span>
               </a>
 
               <Button
@@ -1363,19 +1466,30 @@ export default function ProviderClaimsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-extrabold text-slate-900 block">Kategori Kendala / Insiden:</label>
+              <label className="font-extrabold text-slate-900 block">Kategori Kendala Operasional Toko / Dapur (Role Provider):</label>
               <select
                 value={incidentModal.issueType}
                 onChange={(e) => setIncidentModal({ ...incidentModal, issueType: e.target.value })}
                 className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs text-[#1B3A5C] focus:ring-2 focus:ring-[#D4A843]"
               >
-                <option value="PACKAGING_DAMAGED">📦 Kemasan Rusak / Segel Terbuka / Makanan Tumpah di Jalan</option>
-                <option value="DRIVER_BREAKDOWN">🛵 Kendala Armada Driver (Mogok / Ban Bocor / Kecelakaan Ringan)</option>
-                <option value="SAFETY_TIMEOUT">⏱️ Waktu Antar Melebihi 2.5 Jam (Beresiko Melewati Ambang Suhu BPOM)</option>
-                <option value="RECIPIENT_UNREACHABLE">📍 Penerima Tidak Berada di Tempat / Alamat Panti Tidak Ditemukan</option>
-                <option value="PORTION_MISMATCH">🔢 Ketidakcocokan Jumlah Porsi / Menu Tertukar</option>
-                <option value="OTHER">⚠️ Kendala Teknis / Operasional Lainnya</option>
+                <option value="PACKAGING_DAMAGED">📦 1. Kemasan Rusak / Wadah Bocor Saat Penyiapan di Dapur</option>
+                <option value="PORTION_MISMATCH">🔢 2. Porsi Surplus Tidak Cukup / Menu Tertukar di Dapur</option>
+                <option value="PREPARATION_DELAY">⏱️ 3. Dapur Butuh Tambahan Waktu Penyiapan (Reschedule Window)</option>
+                <option value="PROVIDER_DIRECT_BREAKDOWN">🚚 4. Kendala Armada Driver Toko (Khusus Pengantaran Internal)</option>
+                <option value="DRIVER_NO_SHOW">⌛ 5. Driver Relawan Belum Tiba Menjemput di Toko &gt;45 Menit</option>
+                <option value="VEHICLE_SPEC_MISMATCH">❄️ 6. Driver Relawan Tidak Membawa Box Cooler / Sesuai Ketentuan SOP</option>
+                <option value="LARGE_CAPACITY_OVERLOAD">📦 7. Porsi Donasi Terlalu Besar untuk Motor (Butuh Bantuan Mobil)</option>
+                <option value="OTHER">⚠️ 8. Kendala Operasional Toko Lainnya</option>
               </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-slate-900 block">Lokasi Terakhir / Titik Temu Driver Saat Ini:</label>
+              <input
+                type="text"
+                placeholder="Contoh: Jl. Raya Gubeng Depan RS Siloam / Titik Koordinat GPS"
+                className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#D4A843]"
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -1390,13 +1504,24 @@ export default function ProviderClaimsPage() {
               />
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-medium space-y-1">
-              <span className="font-extrabold block">🛡️ Kebijakan Proteksi & Jaminan Replate:</span>
-              <ul className="list-disc list-inside space-y-0.5 text-[10px]">
-                <li>Jika kurir mengalami kendala di jalan, sistem mengalokasikan <strong>Kurir Backup Terdekat</strong>.</li>
-                <li>Dana Rescue Sale dilindungi <strong>100% Refund Guarantee</strong> jika makanan tidak layak konsumsi.</li>
-                <li>Untuk donasi panti, sistem mengaktifkan suplai makanan darurat dari mitra provider terdekat.</li>
-              </ul>
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
+              <span className="font-extrabold text-[#1B3A5C] text-[11px] block">
+                🏛️ Alur Tindak Lanjut Otomatis dari SuperAdmin Replate:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-slate-700">
+                <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
+                  <strong>⚡ Jalur Donasi Pengganti:</strong> Sistem Smart Matching mencarikan resto terdekat untuk memback-up porsi.
+                </div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
+                  <strong>🔄 Re-alokasi Driver Estafet:</strong> Dispatcher otomatis mengalihkan tugas jemput ke kurir relawan terdekat lain.
+                </div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
+                  <strong>⏱️ Perpanjangan Jendela Jemput:</strong> Waktu penjemputan di outlet diperpanjang 30-60 menit.
+                </div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
+                  <strong>📄 Berita Acara BAP Digital:</strong> Dokumen audit resmi diterbitkan agar reputasi toko tetap terjaga 100%.
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
@@ -1408,7 +1533,7 @@ export default function ProviderClaimsPage() {
               >
                 Batal
               </Button>
-              <Button type="submit" variant="gold" size="sm" className="font-black text-slate-950 bg-red-600 hover:bg-red-700 text-white shadow-md">
+              <Button type="submit" variant="danger" size="sm" className="font-black text-white bg-red-600 hover:bg-red-700 shadow-md">
                 Kirim Laporan Eskalasi & SOS ➔
               </Button>
             </div>

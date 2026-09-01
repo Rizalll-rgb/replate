@@ -699,6 +699,32 @@ export default function WorkspaceExplorePage() {
       {/* Food Grid / Panti Grid Content */}
       {activeTab !== 'PANTI_NEEDS' ? (
         <div className="space-y-6">
+          {/* Provider Seller Centre Banner Notice */}
+          {(session?.user?.role?.toUpperCase().includes('PROVIDER') || false) && (
+            <div className="p-4 bg-amber-50/90 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-[#1B3A5C] text-[#D4A843] text-[10px] font-black uppercase tracking-wider">
+                    Mode Katalog Toko (Seller Centre)
+                  </span>
+                  <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">
+                    ✓ Status Manajemen Aktif
+                  </span>
+                </div>
+                <p className="text-slate-700 font-medium">
+                  Sebagai <strong>Food Provider</strong>, Anda memantau ketersediaan produk surplus toko Anda sendiri di tab ini (tanpa tombol klaim mandiri). Buka tab <strong>Permintaan Panti</strong> untuk menyanggupi permohonan donasi dari panti asuhan.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/provider/my-listings')}
+                className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] font-black text-xs rounded-xl shadow-xs shrink-0 transition-all cursor-pointer"
+              >
+                + Kelola di Daftar Makanan ➔
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <input
@@ -733,25 +759,29 @@ export default function WorkspaceExplorePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFoods.map((item) => (
-              <FoodCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                providerName={item.providerName}
-                category={item.category}
-                quantity={item.quantity}
-                discountPrice={item.discountPrice}
-                originalPrice={item.originalPrice}
-                isFree={item.isFree}
-                pickupTime={item.pickupTime}
-                distance={item.distance}
-                imageUrl={item.imageUrl}
-                onDetail={() => handleOpenFoodDetail(item)}
-                onClaim={() => handleBuyNow(item)}
-                onAddToCart={() => handleClaimFood(item)}
-              />
-            ))}
+            {filteredFoods.map((item) => {
+              const isProvider = session?.user?.role?.toUpperCase().includes('PROVIDER');
+              return (
+                <FoodCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  providerName={item.providerName}
+                  category={item.category}
+                  quantity={item.quantity}
+                  discountPrice={item.discountPrice}
+                  originalPrice={item.originalPrice}
+                  isFree={item.isFree}
+                  pickupTime={item.pickupTime}
+                  distance={item.distance}
+                  imageUrl={item.imageUrl}
+                  onDetail={() => handleOpenFoodDetail(item)}
+                  onManage={isProvider ? () => router.push('/dashboard/provider/my-listings') : undefined}
+                  onClaim={!isProvider ? () => handleBuyNow(item) : undefined}
+                  onAddToCart={!isProvider ? () => handleClaimFood(item) : undefined}
+                />
+              );
+            })}
           </div>
         </div>
       ) : (

@@ -165,6 +165,40 @@ export default function ProviderOverviewPage() {
         { label: 'Standar Higienitas BPOM & Halal', score: 14, max: 15, desc: 'Higienis & Halal' },
       ],
     },
+    {
+      id: 'PNT-SBY-004',
+      pantiName: 'Panti Asuhan Balita Kasih Bunda',
+      shelterType: 'Panti Asuhan Bayi & Balita',
+      needTitle: '40 Kotak Susu Formula Balita & Biskuit Nutrisi Bayi',
+      distance: '1.8 km (Kertajaya Indah, Gubeng)',
+      matchScore: 35,
+      urgency: 'URGENT NUTRISI BALITA',
+      cutoffTime: '19:00 WIB',
+      contactPerson: 'Suster Yohana',
+      contactPhone: '081399887766',
+      address: 'Jl. Kertajaya Indah No. 56, Gubeng, Surabaya',
+      preferredDelivery: 'RESCUE_COURIER',
+      deliveryLabel: '🛵 Diantar Food Rescue Courier (Motor Box Cooler Steril Khusus)',
+      deliveryDesc: 'Wajib kurir dengan thermal box dingin untuk produk susu steril & biskuit bayi.',
+      beneficiariesCount: 20,
+      legalStatus: 'Terverifikasi Dinsos Jatim',
+      legalPermit: 'DINSOS-SBY/2024/0411',
+      notes: 'Khusus membutuhkan susu formula balita 1-3 tahun dan biskuit bubur bayi. Bukan makanan pedas/lauk berat.',
+      imageUrl: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600&auto=format&fit=crop&q=60',
+      lat: -7.2790,
+      lng: 112.7610,
+      reasons: [
+        'Radius 1.8 km dari outlet Gubeng',
+        'Kebutuhan SPESIFIK: Susu Formula Balita & Makanan Lembut Bayi',
+        'Perlu validasi ketat kecocokan kategori gizi',
+      ],
+      breakdown: [
+        { label: 'Proksimitas Geofencing GPS', score: 35, max: 35, desc: 'Radius 1.8 km dari toko' },
+        { label: 'Kesesuaian Kategori Pangan', score: 5, max: 30, desc: 'Kategori susu formula khusus balita' },
+        { label: 'Urgensi Waktu Konsumsi', score: 18, max: 20, desc: 'Batas penjemputan 19:00 WIB' },
+        { label: 'Standar Higienitas BPOM & Halal', score: 15, max: 15, desc: 'Steril & Segel Pabrik' },
+      ],
+    },
   ];
 
   useEffect(() => {
@@ -334,7 +368,8 @@ export default function ProviderOverviewPage() {
       id: 'SRP-102',
     };
 
-    const ticketCode = `FB-DON-${Math.floor(10000 + Math.random() * 90000)}`;
+    const currentYear = new Date().getFullYear();
+    const ticketCode = `RPL-REQ-${currentYear}-${Math.floor(10000 + Math.random() * 90000)}`;
 
     const newClaim = {
       id: ticketCode,
@@ -355,6 +390,7 @@ export default function ProviderOverviewPage() {
       courierName: allocateModal.panti.preferredDelivery === 'RESCUE_COURIER' ? 'Budi Santoso (Relawan ID #RC-881)' : 'Pengurus Panti (Ambil Mandiri)',
       courierOrg: allocateModal.panti.preferredDelivery === 'RESCUE_COURIER' ? 'Food Bank Surabaya Logistik' : 'Armada Panti Asuhan',
       courierPhone: allocateModal.panti.preferredDelivery === 'RESCUE_COURIER' ? '0812-9876-5432' : allocateModal.panti.contactPhone,
+      courierVehicle: allocateModal.portions > 40 ? 'Mobil Box Pendingin (Kapasitas >40 Porsi)' : 'Motor Box Cooler Steril',
       shelterName: allocateModal.panti.pantiName,
       contactPhone: allocateModal.panti.contactPhone,
       claimedAt: new Date().toISOString(),
@@ -780,34 +816,114 @@ export default function ProviderOverviewPage() {
                 </p>
               </div>
 
-              {/* Dynamic Smart Matching Compatibility Analyzer (Point 4) */}
-              <div className="p-3.5 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-emerald-950 text-xs flex items-center gap-1.5">
-                    <span>✨ Analitik Smart Matching Algoritma AI:</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 bg-emerald-600 text-white font-black text-[11px] rounded-md shadow-xs">
-                    {allocateModal.panti.matchScore}% Sangat Cocok
-                  </span>
-                </div>
+              {/* Dynamic Smart Matching Compatibility Analyzer (Point 4 & 10) */}
+              {(() => {
+                const targetNeedQty = parseInt(allocateModal.panti.targetQuantity || '45', 10) || 45;
+                const ratioPct = Math.min(100, Math.round((allocateModal.portions / targetNeedQty) * 100));
+                const selectedProd = availableProducts.find(p => p.id === allocateModal.selectedFoodId);
+                const pantiNeedText = (allocateModal.panti.needTitle + ' ' + (allocateModal.panti.notes || '') + ' ' + (allocateModal.panti.shelterType || '')).toLowerCase();
+                const prodName = (selectedProd?.foodName || '').toLowerCase();
+                const prodCategory = selectedProd?.category || 'MEALS';
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-medium text-slate-700">
-                  <div className="p-2 bg-white/90 rounded-xl border border-emerald-100 space-y-0.5">
-                    <span className="text-slate-400 text-[10px] block">Kesesuaian Gizi:</span>
-                    <strong className="text-emerald-900 font-bold block">✓ 100% Protein Sehat</strong>
+                // Semantic flags
+                const isPantiMilk = pantiNeedText.includes('susu') || pantiNeedText.includes('dairy') || pantiNeedText.includes('formula') || pantiNeedText.includes('bayi') || pantiNeedText.includes('balita');
+                const isPantiBakery = pantiNeedText.includes('roti') || pantiNeedText.includes('bakery') || pantiNeedText.includes('gandum') || pantiNeedText.includes('kue');
+                const isPantiMeals = pantiNeedText.includes('nasi') || pantiNeedText.includes('lauk') || pantiNeedText.includes('prasmanan') || pantiNeedText.includes('makan malam') || pantiNeedText.includes('siap santap');
+
+                const isProdMilk = prodName.includes('susu') || prodCategory === 'DAIRY';
+                const isProdBakery = prodCategory === 'BAKERY' || prodName.includes('roti') || prodName.includes('kue');
+                const isProdMeals = prodCategory === 'MEALS' || prodName.includes('nasi') || prodName.includes('ayam') || prodName.includes('bakso') || prodName.includes('goreng');
+
+                let categoryScore = 30;
+                let nutritionLabel = '100% Protein & Lauk Sehat';
+                let isMismatch = false;
+                let mismatchReason = '';
+
+                if (isPantiMilk) {
+                  if (isProdMilk) {
+                    categoryScore = 30;
+                    nutritionLabel = '✓ 100% Kalsium & Susu Steril';
+                  } else if (isProdBakery) {
+                    categoryScore = 18;
+                    nutritionLabel = '⚠️ Snack Karbohidrat (Bukan Susu)';
+                  } else {
+                    categoryScore = 5;
+                    nutritionLabel = '❌ Tidak Sesuai (Makanan Berat ≠ Susu Bayi)';
+                    isMismatch = true;
+                    mismatchReason = 'Panti asuhan ini membutuhkan asupan Susu Formula Balita & Nutrisi Bayi. Menu surplus yang Anda pilih (Makanan Berat / Berbumbu) tidak dapat dikonsumsi oleh balita.';
+                  }
+                } else if (isPantiBakery) {
+                  if (isProdBakery) {
+                    categoryScore = 30;
+                    nutritionLabel = '✓ 100% Karbohidrat & Serat Gandum';
+                  } else {
+                    categoryScore = 15;
+                    nutritionLabel = '⚠️ Beda Kategori (Permintaan Roti)';
+                  }
+                } else if (isPantiMeals) {
+                  if (isProdMeals) {
+                    categoryScore = 30;
+                    nutritionLabel = '✓ 100% Protein & Lauk Seimbang';
+                  } else if (isProdBakery) {
+                    categoryScore = 18;
+                    nutritionLabel = '⚠️ Snack Roti (Bukan Lauk Pauk)';
+                  } else {
+                    categoryScore = 20;
+                    nutritionLabel = '✓ Makanan Siap Santap';
+                  }
+                }
+
+                const fulfillmentWeight = Math.round((ratioPct / 100) * 15);
+                const calculatedScore = isMismatch
+                  ? Math.min(40, 20 + fulfillmentWeight)
+                  : Math.min(99, Math.round(50 + categoryScore + fulfillmentWeight));
+
+                return (
+                  <div className={`p-4 rounded-2xl border space-y-2.5 shadow-xs transition-all ${
+                    isMismatch
+                      ? 'bg-gradient-to-r from-red-50 via-rose-50 to-amber-50 border-red-200'
+                      : 'bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/50 border-emerald-200/80'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <span className={`font-extrabold text-xs flex items-center gap-1.5 ${isMismatch ? 'text-red-950' : 'text-emerald-950'}`}>
+                        <span>✨ Analitik Smart Matching Algoritma AI (Dinamis):</span>
+                      </span>
+                      <span className={`px-2.5 py-0.5 font-black text-[11px] rounded-md shadow-xs ${
+                        isMismatch
+                          ? 'bg-red-600 text-white'
+                          : 'bg-emerald-700 text-amber-200'
+                      }`}>
+                        {calculatedScore}% {isMismatch ? '⚠️ Kategori Tidak Cocok' : 'Sangat Cocok'}
+                      </span>
+                    </div>
+
+                    {isMismatch && (
+                      <div className="p-3 bg-red-100/90 text-red-900 border border-red-200 rounded-xl text-[11px] font-medium leading-relaxed">
+                        <strong>⚠️ Peringatan Ketidakcocokan Kebutuhan:</strong> {mismatchReason}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-medium text-slate-700">
+                      <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
+                        <span className="text-slate-400 text-[10px] block font-bold">Kesesuaian Kategori & Gizi:</span>
+                        <strong className={`font-extrabold block text-xs ${isMismatch ? 'text-red-700' : 'text-emerald-900'}`}>
+                          {nutritionLabel}
+                        </strong>
+                      </div>
+                      <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
+                        <span className="text-slate-400 text-[10px] block font-bold">Ketahanan Suhu BPOM:</span>
+                        <strong className="text-emerald-900 font-extrabold block text-xs">✓ Aman &lt; 3.5 Jam (Panas &gt;60°C)</strong>
+                      </div>
+                      <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
+                        <span className="text-slate-400 text-[10px] block font-bold">Rasio Pemenuhan:</span>
+                        <strong className="text-blue-900 font-extrabold block text-xs">
+                          {allocateModal.portions} Porsi ({ratioPct}% Terpenuhi)
+                        </strong>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-2 bg-white/90 rounded-xl border border-emerald-100 space-y-0.5">
-                    <span className="text-slate-400 text-[10px] block">Ketahanan Suhu:</span>
-                    <strong className="text-emerald-900 font-bold block">✓ Aman &lt; 3.5 Jam</strong>
-                  </div>
-                  <div className="p-2 bg-white/90 rounded-xl border border-emerald-100 space-y-0.5">
-                    <span className="text-slate-400 text-[10px] block">Rasio Pemenuhan:</span>
-                    <strong className="text-blue-900 font-bold block">
-                      {allocateModal.portions} Porsi ({Math.min(100, Math.round((allocateModal.portions / 45) * 100))}% Terpenuhi)
-                    </strong>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* PRODUCT SELECTOR SECTION (Point 3) */}
               <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -878,11 +994,16 @@ export default function ProviderOverviewPage() {
                 />
               </div>
 
-              {/* LOCKED DELIVERY METHOD PRESCRIBED BY SHELTER (Point 4) */}
-              <div className="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200 space-y-1 text-xs">
-                <span className="font-extrabold text-[#1B3A5C] uppercase tracking-wider text-[10px] block">
-                  🚚 Metode Pengiriman (Ditentukan Oleh Panti Pemohon):
-                </span>
+              {/* LOCKED DELIVERY METHOD & VEHICLE FLEET MATCHING (Point 4 & Poin Armada) */}
+              <div className="p-3.5 bg-blue-50/90 rounded-2xl border border-blue-200 space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[#1B3A5C] uppercase tracking-wider text-[10px] block">
+                    🚚 Metode Pengiriman & Ketentuan Armada:
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-blue-700 text-white font-black text-[9px] uppercase">
+                    {allocateModal.portions > 40 ? '📦 Wajib Mobil Box / Van' : '🛵 Motor Box Cooler Steril'}
+                  </span>
+                </div>
                 <p className="font-black text-slate-900 text-xs">
                   {allocateModal.panti.deliveryLabel}
                 </p>
@@ -891,21 +1012,49 @@ export default function ProviderOverviewPage() {
                 </p>
               </div>
 
-              {/* BPOM Hygiene Checkbox */}
-              <label className="flex items-start gap-2.5 p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 cursor-pointer text-emerald-900">
-                <input
-                  type="checkbox"
-                  checked={allocateModal.hygieneChecked}
-                  onChange={(e) => setAllocateModal({ ...allocateModal, hygieneChecked: e.target.checked })}
-                  className="w-4 h-4 mt-0.5 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer"
-                />
-                <div className="space-y-0.5">
-                  <span className="font-extrabold block text-xs">Konfirmasi SOP Keamanan Pangan BPOM RI</span>
-                  <span className="text-[11px] block text-emerald-800 leading-relaxed font-medium">
-                    Saya mengonfirmasi makanan surplus dalam kondisi higienis, siap santap &lt; 4 jam, dikemas wadah steril, dan lulus 8-Checklist Integritas Replate.
-                  </span>
+              {/* Interactive 8-Poin BPOM Checklist SOP (Point 11) */}
+              <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200/90 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="font-black text-emerald-950 text-xs block">
+                      🛡️ Checklist Kepatuhan 8-Poin SOP Higienitas BPOM RI & WHO
+                    </span>
+                    <span className="text-[10px] text-emerald-800 font-medium block">
+                      Wajib memenuhi seluruh standar baku kelayakan pangan sebelum tiket donasi diterbitkan:
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAllocateModal(prev => ({ ...prev, hygieneChecked: true }))}
+                    className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] rounded-lg cursor-pointer transition-colors"
+                  >
+                    ✓ Verifikasi Semua
+                  </button>
                 </div>
-              </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-800 pt-1">
+                  {[
+                    '1. Batas Masak < 4 Jam Selesai Olah',
+                    '2. Suhu Panas >60°C / Dingin <4°C',
+                    '3. Wadah Steril & Tersegel Rapat',
+                    '4. Uji Organoleptik (Warna Normal)',
+                    '5. Bebas Bau Asam / Fermentasi Liar',
+                    '6. Pelabelan Alergen Transparan',
+                    '7. Dapur Mitra Berizin NIB / Sanitasi',
+                    '8. Batas Waktu Konsumsi Tertera di Resi',
+                  ].map((rule, idx) => (
+                    <label key={idx} className="flex items-center gap-2 p-2 bg-white/90 rounded-xl border border-emerald-100 cursor-pointer hover:bg-emerald-100/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={allocateModal.hygieneChecked}
+                        onChange={(e) => setAllocateModal({ ...allocateModal, hygieneChecked: e.target.checked })}
+                        className="w-3.5 h-3.5 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer"
+                      />
+                      <span className="font-bold text-[10.5px] text-emerald-950">{rule}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
               <Button
@@ -925,7 +1074,13 @@ export default function ProviderOverviewPage() {
               >
                 Batal
               </Button>
-              <Button type="submit" variant="gold" size="sm" className="font-black text-slate-950 shadow-md">
+              <Button
+                type="submit"
+                variant="gold"
+                size="sm"
+                disabled={!allocateModal.hygieneChecked}
+                className="font-black text-slate-950 shadow-md disabled:opacity-50"
+              >
                 Terbitkan QR Surat Jalan & Selesaikan Donasi ➔
               </Button>
             </div>

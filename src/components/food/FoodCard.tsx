@@ -29,6 +29,7 @@ export interface FoodCardProps {
   onAddToCart?: (id: string) => void;
   onDetail?: (id: string) => void;
   onManage?: (id: string) => void;
+  customActionLabel?: string;
 }
 
 export const FoodCard: React.FC<FoodCardProps> = (props) => {
@@ -38,6 +39,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
     onAddToCart,
     onDetail,
     onManage,
+    customActionLabel,
   } = props;
 
   const title = props.title || props.foodName || 'Makanan Surplus';

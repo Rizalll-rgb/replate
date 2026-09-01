@@ -1,47 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 
-interface BottomNavProps {
-  user?: {
-    role?: string | null;
-  } | null;
+export interface MobileBottomNavProps {
+  userRole?: string;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
+export function MobileBottomNav({ userRole = 'PROVIDER' }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const [cartCount, setCartCount] = useState<number>(0);
-  const [role, setRole] = useState<string>('CONSUMER');
 
-  useEffect(() => {
-    try {
-      // Sync active cart item count from localStorage
-      const savedCart = localStorage.getItem('replate_tas_klaim');
-      if (savedCart) {
-        const items = JSON.parse(savedCart);
-        setCartCount(Array.isArray(items) ? items.length : 0);
-      }
-
-      // Sync role from onboarding profile or session
-      const profile = localStorage.getItem('replate_onboarding_profile');
-      if (profile) {
-        const parsed = JSON.parse(profile);
-        if (parsed.role) setRole(parsed.role);
-      } else if (propUser?.role || session?.user?.role) {
-        setRole(propUser?.role || session?.user?.role || 'CONSUMER');
-      }
-    } catch (_) {}
-  }, [propUser, session, pathname]);
-
-  // Define role-specific navigation tabs (SuperApp Mobile Style)
-  const getNavItems = () => {
+  const getNavItems = (role: string) => {
     const upper = String(role || '').toUpperCase();
 
-    if (upper.includes('PROVIDER') || upper.includes('FOOD_PROVIDER')) {
+    if (upper.includes('PROVIDER')) {
       return [
         {
           href: '/dashboard/provider',
@@ -64,7 +37,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
         {
           href: '/dashboard/provider/claims',
           label: 'Kasir & Klaim',
-          badge: 'Aktif',
+          badge: true,
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -107,10 +80,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
         },
         {
           href: '/dashboard/explore',
-          label: 'Donasi Rp0',
+          label: 'Cari Donasi',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           ),
         },
@@ -144,7 +117,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
       ];
     }
 
-    if (upper.includes('RESCUE') || upper.includes('VOLUNTEER')) {
+    if (upper.includes('VOLUNTEER') || upper.includes('RESCUE')) {
       return [
         {
           href: '/dashboard/rescue-partner',
@@ -157,8 +130,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
         },
         {
           href: '/dashboard/rescue-partner/requests',
-          label: 'Pool Tugas',
-          badge: 'Baru',
+          label: 'Tugas Jemput',
+          badge: true,
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -195,7 +168,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
       ];
     }
 
-    // Default: FOOD_CONSUMER & Public Logged-in
+    // Default / Consumer
     return [
       {
         href: '/dashboard/consumer',
@@ -218,7 +191,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
       {
         href: '/dashboard/cart',
         label: 'Tas Klaim',
-        badge: cartCount > 0 ? String(cartCount) : undefined,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -239,46 +211,43 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
         label: 'Tiket QR',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
           </svg>
         ),
       },
     ];
   };
 
-  const navItems = getNavItems();
+  const navItems = getNavItems(userRole);
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1 py-1.5 shadow-2xl safe-area-pb">
-      <nav className="flex items-center justify-around">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-2xl px-2 py-1.5 safe-area-pb">
+      <div className="flex items-center justify-around">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href) && item.href !== '/dashboard/explore');
+          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
           return (
             <Link
-              key={item.label}
+              key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl transition-all relative min-w-[54px] ${
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all relative ${
                 isActive
                   ? 'text-[#1B3A5C] font-black'
-                  : 'text-slate-500 hover:text-[#1B3A5C] font-medium'
+                  : 'text-slate-400 hover:text-slate-600 font-bold'
               }`}
             >
-              <div className="relative">
+              <div className={`relative p-1 rounded-xl transition-all ${isActive ? 'bg-amber-100/70 text-[#1B3A5C]' : ''}`}>
                 {item.icon}
                 {item.badge && (
-                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.2 rounded-full ring-2 ring-white animate-pulse">
-                    {item.badge}
-                  </span>
+                  <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
                 )}
               </div>
-              <span className={`text-[10px] mt-1 tracking-tight ${isActive ? 'font-black text-[#1B3A5C]' : 'text-slate-600'}`}>{item.label}</span>
-              {isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D4A843] mt-0.5" />
-              )}
+              <span className={`text-[10px] tracking-tight mt-0.5 ${isActive ? 'text-[#1B3A5C] font-black' : 'text-slate-500'}`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
-      </nav>
+      </div>
     </div>
   );
-};
+}
