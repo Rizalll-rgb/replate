@@ -805,7 +805,7 @@ export default function ProviderClaimsPage() {
                       <Button
                         variant="gold"
                         size="sm"
-                        className="font-extrabold text-xs shadow-md text-slate-950 bg-emerald-500 hover:bg-emerald-600 text-white"
+                        className="font-extrabold text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
                         onClick={() => openConfirmModal(tx)}
                       >
                         ✓ Konfirmasi Handover (Kurir di Kasir) ➔
