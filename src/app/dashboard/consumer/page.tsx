@@ -12,33 +12,9 @@ import Link from 'next/link';
 
 export default function ConsumerBrowsePage() {
   const router = useRouter();
-  
+
   const handleQuickClaim = (item: any) => {
-    try {
-      const existingCart = JSON.parse(localStorage.getItem('replate_cart') || '[]');
-      const isAlreadyInCart = existingCart.some((cartItem: any) => cartItem.id === item.id);
-      
-      if (!isAlreadyInCart) {
-        existingCart.push({
-          id: item.id,
-          foodName: item.title,
-          providerName: item.provider,
-          price: item.price,
-          originalPrice: item.originalPrice,
-          quantity: 1,
-          maxQuantity: 5,
-          imageUrl: item.imageUrl,
-          pickupTime: item.pickupTime,
-          isFree: false
-        });
-        localStorage.setItem('replate_cart', JSON.stringify(existingCart));
-      }
-      
-      router.push('/dashboard/cart');
-    } catch (e) {
-      console.error(e);
-      router.push('/dashboard/cart');
-    }
+    router.push(`/dashboard/checkout/${item.id}`);
   };
 
   const [foods, setFoods] = useState<any[]>([]);
@@ -57,7 +33,7 @@ export default function ConsumerBrowsePage() {
     try {
       const radius = localStorage.getItem('replate_admin_sync_radius');
       if (radius) setSyncRadius(parseInt(radius));
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   // Modal Verification Form State
@@ -66,11 +42,7 @@ export default function ConsumerBrowsePage() {
   const [proofPhotoUrl, setProofPhotoUrl] = useState<string | null>(null);
   const [proofType, setProofType] = useState('SKTM');
 
-  // Mismatch Alert Modal
-  const [mismatchModal, setMismatchModal] = useState<{ isOpen: boolean; foodName: string }>({
-    isOpen: false,
-    foodName: '',
-  });
+
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -122,14 +94,14 @@ export default function ConsumerBrowsePage() {
         if (parsed.entityName || parsed.contactPerson) setConsumerName(parsed.entityName || parsed.contactPerson);
         if (parsed.address) setConsumerAddress(parsed.address);
       }
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       const savedStatus = localStorage.getItem('replate_consumer_verification_status');
       if (savedStatus) {
         setConsumerStatus(savedStatus as any);
       }
-    } catch (_) {}
+    } catch (_) { }
 
     fetch('/api/surplus')
       .then((res) => res.json())
@@ -140,19 +112,13 @@ export default function ConsumerBrowsePage() {
           setFoods(data.data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleClaim = async (id: string) => {
     const targetFood = foods.find((f) => f.id === id);
 
-    if (targetFood && (targetFood.price === 0 || targetFood.distributionType === 'FREE') && consumerStatus !== 'BENEFICIARY_VERIFIED') {
-      setMismatchModal({
-        isOpen: true,
-        foodName: targetFood.foodName || targetFood.title || 'Donasi Makanan Gratis',
-      });
-      return;
-    }
+
 
     if (consumerStatus === 'BENEFICIARY_VERIFIED' && dailyQuotaLeft <= 0 && (targetFood?.price === 0 || targetFood?.distributionType === 'FREE')) {
       setToastState({
@@ -192,7 +158,7 @@ export default function ConsumerBrowsePage() {
           };
           const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
           localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
-        } catch (_) {}
+        } catch (_) { }
 
         setToastState({
           isOpen: true,
@@ -228,7 +194,7 @@ export default function ConsumerBrowsePage() {
     try {
       localStorage.setItem('replate_consumer_verification_status', 'PENDING_VERIFICATION');
       localStorage.setItem('replate_consumer_verification_proof', proofNumberInput);
-    } catch (_) {}
+    } catch (_) { }
 
     setIsVerificationModalOpen(false);
     setToastState({
@@ -277,25 +243,7 @@ export default function ConsumerBrowsePage() {
           </div>
         </div>
 
-        {consumerStatus === 'BENEFICIARY_VERIFIED' && (
-          <div className="p-4 bg-[#142C47] rounded-2xl border border-[#2C5A8F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-[#D4A843]">Nomor Registrasi SKTM / KIS:</span>
-                <span className="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-600">
-                  {sktmNumber}
-                </span>
-              </div>
-              <p className="text-slate-300 font-medium">
-                Hak Akses: Bebas klaim donasi makanan Rp 0 (Maks. 2 Porsi/Hari) dan Rescue Sale diskon murah.
-              </p>
-            </div>
-            <div className="text-right sm:text-right shrink-0">
-              <span className="text-[11px] text-slate-400 block">Sisa Kuota Gratis Hari Ini:</span>
-              <strong className="text-base font-black text-emerald-400">{dailyQuotaLeft} Porsi Tersisa</strong>
-            </div>
-          </div>
-        )}
+
       </div>
 
       <section className="space-y-4">
@@ -349,10 +297,10 @@ export default function ConsumerBrowsePage() {
                   <span className="text-xs font-black text-[#1B3A5C] block">Rp {item.price.toLocaleString('id-ID')}</span>
                   <span className="text-[10px] text-slate-400 line-through">Rp {item.originalPrice.toLocaleString('id-ID')}</span>
                 </div>
-                <Button 
+                <Button
                   onClick={() => handleQuickClaim(item)}
-                  variant="gold" 
-                  size="sm" 
+                  variant="gold"
+                  size="sm"
                   className="font-black text-[11px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap cursor-pointer"
                 >
                   Klaim Cepat ➔
@@ -393,37 +341,7 @@ export default function ConsumerBrowsePage() {
         />
       )}
 
-      {/* Modal Mismatch Alert */}
-      <Modal
-        isOpen={mismatchModal.isOpen}
-        onClose={() => setMismatchModal({ isOpen: false, foodName: '' })}
-        title="Verifikasi Hak Akses Donasi Makanan Rp 0"
-        size="md"
-      >
-        <div className="space-y-4 text-xs text-slate-700">
-          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-            <span className="font-extrabold text-amber-900 text-sm block">
-              Makanan Bebas Biaya Khusus Panti Asuhan & Warga Rentan SKTM
-            </span>
-            <p className="text-amber-800 leading-relaxed font-medium">
-              Makanan <strong>&quot;{mismatchModal.foodName}&quot;</strong> dialokasikan khusus untuk yayasan panti asuhan atau masyarakat kurang mampu terverifikasi SKTM.
-            </p>
-          </div>
-          <div className="space-y-2 pt-2">
-            <Button
-              variant="primary"
-              size="md"
-              className="w-full font-extrabold text-xs"
-              onClick={() => {
-                setMismatchModal({ isOpen: false, foodName: '' });
-                router.push('/explore');
-              }}
-            >
-              Pilih Makanan Rescue Sale (Diskon Murah) ➔
-            </Button>
-          </div>
-        </div>
-      </Modal>
+
 
       {/* Toast Alert */}
       <Toast
