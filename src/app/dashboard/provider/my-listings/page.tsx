@@ -124,7 +124,22 @@ export default function MyListingsPage() {
           },
         ];
 
-        const normalizedCombined = [...localItems, ...itemsList].map((item) => ({
+        // Deduplicate by ID: local items take priority over API items
+        const combined = [...localItems, ...itemsList];
+        const deduped = Array.from(
+          combined.reduce((map, item) => {
+            if (!map.has(item.id)) map.set(item.id, item);
+            return map;
+          }, new Map<string, any>()).values()
+        );
+
+        // Only use fallback if we have zero items (both local and API empty)
+        const hasLocalOrApi = deduped.length > 0;
+        // Remove fallback items that already exist locally
+        const localIds = new Set(localItems.map((i: any) => i.id));
+        const safeFallback = hasLocalOrApi ? [] : fallback.filter((f) => !localIds.has(f.id));
+
+        const normalizedCombined = [...deduped, ...safeFallback].map((item: any) => ({
           ...item,
           category: item.category || item.foodCategory || 'MEALS',
           providerName: item.providerName || (session?.user?.name) || 'Warung Bakso Pak Kumis',

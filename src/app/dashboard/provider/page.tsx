@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRGenerator } from '@/components/qr/QRGenerator';
 import { useSession } from 'next-auth/react';
 
 export default function ProviderOverviewPage() {
@@ -60,6 +60,9 @@ export default function ProviderOverviewPage() {
     message: '',
     type: 'success',
   });
+
+  // Smart Matching Priority Preference Filter (Poin 1 & 13)
+  const [matchingPriorityFilter, setMatchingPriorityFilter] = useState<'OVERALL' | 'DISTANCE' | 'URGENCY' | 'CAPACITY'>('OVERALL');
 
   // Dynamic Daily Matched Panti List with Realistic Surabaya Geofencing
   const matchedPantiList = [
@@ -488,7 +491,7 @@ export default function ProviderOverviewPage() {
 
       {/* SMART MATCHING 2.0: REKOMENDASI ALOKASI DONASI CERDAS KE PANTI TERDEKAT */}
       <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
@@ -503,13 +506,45 @@ export default function ProviderOverviewPage() {
               Rekomendasi Penyaluran Donasi Cerdas Hari Ini
             </h3>
           </div>
-          <span className="text-xs font-bold text-slate-500 font-mono">
-            Radius Geofencing: &lt; 2.5 KM Surabaya
-          </span>
+          
+          {/* Dynamic AI Ranking Priority Filter Buttons */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] text-slate-500 font-bold mr-1">Urutkan:</span>
+            {[
+              { key: 'OVERALL', label: '🎯 Skor Tertinggi' },
+              { key: 'DISTANCE', label: '📍 Radius Terdekat' },
+              { key: 'URGENCY', label: '⚡ Paling Darurat' },
+              { key: 'CAPACITY', label: '📦 Porsi Terbesar' },
+            ].map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={() => setMatchingPriorityFilter(filter.key as any)}
+                className={`px-3 py-1 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  matchingPriorityFilter === filter.key
+                    ? 'bg-[#1B3A5C] text-[#D4A843] shadow-xs'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {matchedPantiList.map((panti) => (
+          {[...matchedPantiList].sort((a, b) => {
+            if (matchingPriorityFilter === 'DISTANCE') {
+              return parseFloat(a.distance) - parseFloat(b.distance);
+            }
+            if (matchingPriorityFilter === 'URGENCY') {
+              return a.cutoffTime.localeCompare(b.cutoffTime);
+            }
+            if (matchingPriorityFilter === 'CAPACITY') {
+              return b.beneficiariesCount - a.beneficiariesCount;
+            }
+            return b.matchScore - a.matchScore;
+          }).map((panti) => (
             <div
               key={panti.id}
               className="p-5 bg-gradient-to-br from-white to-blue-50/40 rounded-3xl border-2 border-blue-200 shadow-xs flex flex-col justify-between space-y-4"
@@ -973,7 +1008,7 @@ export default function ProviderOverviewPage() {
                 )}
               </div>
 
-              {/* Portions Allocation Input */}
+              {/* Portions Allocation Input with Split-Batch Stock Calculation */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="font-extrabold text-slate-800 block text-xs">
@@ -992,6 +1027,22 @@ export default function ProviderOverviewPage() {
                   className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-sm text-[#1B3A5C] focus:ring-2 focus:ring-[#D4A843]"
                   required
                 />
+                {/* Split-batch remaining stock indicator */}
+                {(() => {
+                  const selProd = availableProducts.find((p) => p.id === allocateModal.selectedFoodId);
+                  const totalStk = selProd ? Number(selProd.remainingQuantity || selProd.quantity || 30) : 30;
+                  const remainAfter = Math.max(0, totalStk - allocateModal.portions);
+                  return (
+                    <div className="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-[11px] flex justify-between items-center">
+                      <span className="text-slate-600 font-medium">
+                        Stok Tersedia: <strong>{totalStk} Porsi</strong> | Sisa Setelah Donasi:
+                      </span>
+                      <span className="font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
+                        {remainAfter} Porsi (Tersimpan di Katalog)
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* LOCKED DELIVERY METHOD & VEHICLE FLEET MATCHING (Point 4 & Poin Armada) */}
@@ -1089,7 +1140,7 @@ export default function ProviderOverviewPage() {
       </Modal>
       )}
 
-      {/* MODAL SUCCESS ISSUED QR RESI & DIRECT INTEGRATION TO CLAIMS MODULE (Point 5) */}
+      {/* MODAL SUCCESS ISSUED QR RESI — Unified QR Pass Design */}
       <Modal
         isOpen={issuedTicketModal.isOpen}
         onClose={() => setIssuedTicketModal({ isOpen: false, ticketData: null })}
@@ -1110,36 +1161,22 @@ export default function ProviderOverviewPage() {
               </p>
             </div>
 
-            {/* Big High-Contrast Digital QR Ticket */}
-            <div className="p-5 bg-white border-2 border-dashed border-[#1B3A5C] rounded-2xl space-y-3 shadow-inner inline-block w-full">
-              <span className="text-[11px] font-black text-[#1B3A5C] uppercase tracking-wider block">
-                KODE RESI MANIFEST DONASI
-              </span>
-              <div className="font-mono text-2xl font-black text-[#D4A843] tracking-widest bg-slate-950 py-2 px-4 rounded-xl">
-                {issuedTicketModal.ticketData.code}
-              </div>
-
-              {/* QR Box Visual */}
-              <div className="flex justify-center p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                <QRCodeSVG
-                  value={JSON.stringify({
-                    ticket: issuedTicketModal.ticketData.code,
-                    food: issuedTicketModal.ticketData.foodName,
-                    panti: issuedTicketModal.ticketData.shelterName,
-                    status: issuedTicketModal.ticketData.status,
-                    time: issuedTicketModal.ticketData.time,
-                  })}
-                  size={160}
-                  level="H"
-                  includeMargin={true}
-                  className="rounded-xl shadow-xs"
-                />
-              </div>
-
-              <p className="text-[11px] text-slate-500 font-medium">
-                Tunjukkan kode QR ini ke kurir relawan atau petugas panti saat serah terima di kasir.
-              </p>
-            </div>
+            {/* Unified QR Pass Component */}
+            <QRGenerator
+              value={issuedTicketModal.ticketData.code}
+              codeTitle="SURAT JALAN DONASI REPLATE"
+              codeSubtitle="Tunjukkan QR ini ke kurir relawan atau petugas panti saat serah terima"
+              foodName={issuedTicketModal.ticketData.foodName}
+              portions={issuedTicketModal.ticketData.quantity}
+              recipientName={issuedTicketModal.ticketData.shelterName}
+              picPanti={issuedTicketModal.ticketData.recipientPerson}
+              providerName={providerName}
+              courierName={issuedTicketModal.ticketData.courierName}
+              courierVehicle={issuedTicketModal.ticketData.courierVehicle}
+              courierPhone={issuedTicketModal.ticketData.courierPhone}
+              deliveryMethod={issuedTicketModal.ticketData.deliveryMethod}
+              expiryTime={issuedTicketModal.ticketData.time}
+            />
 
             <div className="space-y-2">
               <Button

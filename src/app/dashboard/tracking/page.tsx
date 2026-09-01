@@ -126,8 +126,26 @@ export default function WorkspaceLiveTrackingPage() {
     },
   ];
 
+  // Start with clean state - no active tracking shown initially
+  // User must search for a resi code or select from list
   useEffect(() => {
-    setActiveTracking(defaultManifests[0]);
+    // Check for active claims that have tracking data
+    try {
+      const claims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+      const activeClaim = claims.find((c: any) =>
+        c.status === 'IN_TRANSIT_TO_SHELTER' || c.status === 'DRIVER_ASSIGNED_OTW_STORE'
+      );
+      if (activeClaim) {
+        // Auto-load if there's an active in-transit claim
+        const matchedManifest = defaultManifests.find(
+          (m) => m.trackingCode === activeClaim.claimCode || m.trackingCode === activeClaim.code
+        );
+        if (matchedManifest) {
+          setActiveTracking(matchedManifest);
+        }
+      }
+      // Otherwise: stay clean, no active tracking displayed
+    } catch (_) {}
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {

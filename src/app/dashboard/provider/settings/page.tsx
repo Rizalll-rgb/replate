@@ -1851,21 +1851,55 @@ export default function ProviderSettingsPage() {
               </div>
             </div>
 
-            <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <span className="font-extrabold text-[#1B3A5C] block">Donasi Infaq Otomatis Hasil Penjualan Rescue Sale:</span>
-                <span className="text-slate-600 font-medium">Potongan {autoInfaqPercent} langsung disalurkan ke panti asuhan terdaftar.</span>
+            <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <span className="font-extrabold text-[#1B3A5C] block">Alokasi Auto-Infaq Kemanusiaan:</span>
+                  <span className="text-slate-600 font-medium">Potongan {autoInfaqPercent} dari setiap transaksi Rescue Sale otomatis dialokasikan ke Kas Dana Kemanusiaan Replate.</span>
+                </div>
+                <select
+                  className="rounded-xl border border-amber-300 text-xs px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                  value={autoInfaqPercent}
+                  onChange={(e) => setAutoInfaqPercent(e.target.value)}
+                >
+                  <option value="0% (Tanpa Donasi Infaq)">0% (Tanpa Donasi Infaq)</option>
+                  <option value="2.5% (Zakat Pangan)">2.5% (Zakat Pangan)</option>
+                  <option value="5% (Donasi Otomatis ke Panti)">5% (Donasi Otomatis ke Panti)</option>
+                  <option value="7.5% (Donasi Diperluas)">7.5% (Donasi Diperluas)</option>
+                  <option value="10% (Program Kemanusiaan Pro)">10% (Program Kemanusiaan Pro)</option>
+                </select>
               </div>
-              <select
-                className="rounded-xl border border-amber-300 text-xs px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-                value={autoInfaqPercent}
-                onChange={(e) => setAutoInfaqPercent(e.target.value)}
-              >
-                <option value="0% (Tanpa Donasi Infaq)">0% (Tanpa Donasi Infaq)</option>
-                <option value="2.5% (Zakat Pangan)">2.5% (Zakat Pangan)</option>
-                <option value="5% (Donasi Otomatis ke Panti)">5% (Donasi Otomatis ke Panti)</option>
-                <option value="10% (Program Kemanusiaan Pro)">10% (Program Kemanusiaan Pro)</option>
-              </select>
+
+              {/* Transparent Calculator Simulation */}
+              {(() => {
+                const percentMatch = autoInfaqPercent.match(/(\d+\.?\d*)%/);
+                const pct = percentMatch ? parseFloat(percentMatch[1]) / 100 : 0.05;
+                const samplePrice = 5000;
+                const infaqAmount = Math.round(samplePrice * pct);
+                const netRevenue = samplePrice - infaqAmount;
+                return pct > 0 ? (
+                  <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1.5 text-[11px]">
+                    <span className="font-black text-[#1B3A5C] text-xs block">💡 Simulasi Alokasi Per Porsi (Harga Contoh: Rp {samplePrice.toLocaleString('id-ID')})</span>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 bg-amber-50 rounded-lg border border-amber-200">
+                        <span className="text-[10px] text-slate-500 block">Auto-Infaq ({(pct * 100)}%)</span>
+                        <strong className="text-amber-800 font-black">Rp {infaqAmount.toLocaleString('id-ID')}</strong>
+                      </div>
+                      <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <span className="text-[10px] text-slate-500 block">Pendapatan Bersih Toko</span>
+                        <strong className="text-emerald-800 font-black">Rp {netRevenue.toLocaleString('id-ID')}</strong>
+                      </div>
+                      <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                        <span className="text-[10px] text-slate-500 block">Est. Akumulasi / 100 Porsi</span>
+                        <strong className="text-blue-800 font-black">Rp {(infaqAmount * 100).toLocaleString('id-ID')}</strong>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-snug pt-1">
+                      *Dana infaq otomatis digunakan untuk: <strong className="text-slate-700">boks steril food-grade</strong>, <strong className="text-slate-700">subsidi bensin kurir relawan panti asuhan</strong>, dan <strong className="text-slate-700">program nutrisi anak panti</strong>.
+                    </p>
+                  </div>
+                ) : null;
+              })()}
             </div>
           </CardBody>
         </Card>

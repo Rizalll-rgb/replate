@@ -1335,24 +1335,47 @@ export default function DashboardProfilePage() {
             {/* Document Uploads for SuperAdmin Approval */}
             <div className="space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
               <span className="font-extrabold text-[#1B3A5C] text-[11px] block">
-                📑 Upload Dokumen Verifikasi Driver (Wajib Diaudit SuperAdmin):
+                📑 Upload Dokumen Verifikasi Driver (Wajib 4 Dokumen — Diaudit SuperAdmin):
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1 text-center">
-                  <span className="text-[10px] font-bold text-slate-600 block">1. Foto KTP Driver</span>
-                  <span className="text-[9px] text-emerald-700 font-black block">✓ KTP_Driver.jpg</span>
-                  <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded block">Tersimpan</span>
-                </div>
-                <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1 text-center">
-                  <span className="text-[10px] font-bold text-slate-600 block">2. Foto SIM C/A Aktif</span>
-                  <span className="text-[9px] text-emerald-700 font-black block">✓ SIM_Driver.jpg</span>
-                  <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded block">Tersimpan</span>
-                </div>
-                <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1 text-center">
-                  <span className="text-[10px] font-bold text-slate-600 block">3. Foto Box Kendaraan</span>
-                  <span className="text-[9px] text-emerald-700 font-black block">✓ Armada_Steril.jpg</span>
-                  <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded block">Tersimpan</span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  { label: '1. Foto KTP Driver', key: 'ktp' },
+                  { label: '2. Foto SIM C/A Aktif', key: 'sim' },
+                  { label: '3. Foto STNK Kendaraan Aktif', key: 'stnk' },
+                  { label: '4. Foto Boks Cooler / Bagasi Armada', key: 'armada' },
+                ].map((doc) => {
+                  const storageKey = `replate_fleet_doc_${doc.key}`;
+                  const hasFile = typeof window !== 'undefined' && !!localStorage.getItem(storageKey);
+                  return (
+                    <div key={doc.key} className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1.5 text-center">
+                      <span className="text-[10px] font-bold text-slate-600 block">{doc.label}</span>
+                      {hasFile ? (
+                        <>
+                          <span className="text-[9px] text-emerald-700 font-black block">✓ {doc.key.toUpperCase()}_Driver.jpg</span>
+                          <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded block border border-emerald-200">Tersimpan</span>
+                        </>
+                      ) : (
+                        <label className="cursor-pointer block">
+                          <span className="text-[9px] text-amber-700 font-bold block">📤 Belum Diunggah</span>
+                          <span className="text-[8px] bg-amber-50 text-amber-600 px-2 py-1 rounded-lg inline-block mt-1 font-bold border border-amber-200 hover:bg-amber-100 transition-colors">Pilih File Dokumen</span>
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                localStorage.setItem(storageKey, file.name);
+                                // Force re-render
+                                setNewDriver({ ...newDriver });
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <p className="text-[10px] text-slate-500 leading-relaxed font-medium pt-1">
                 🛡️ Dokumen driver akan otomatis masuk ke antrean verifikasi <strong>SuperAdmin Replate</strong>. Setelah diapprove, armada ini langsung dapat dipilih pada penugasan pengantaran langsung.

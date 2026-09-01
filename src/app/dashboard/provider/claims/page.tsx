@@ -775,9 +775,42 @@ export default function ProviderClaimsPage() {
                       <span>💳 Inspect Struk Bayar & Verifikasi Lunas ➔</span>
                     </Button>
                   ) : activeTab === 'PENDING_PICKUP' ? (
-                    <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs text-slate-950" onClick={() => openConfirmModal(tx)}>
-                      Konfirmasi Handover ➔
-                    </Button>
+                    tx.status === 'AWAITING_RESCUE_PICKUP' ? (
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <span className="px-3 py-2 bg-amber-100 text-amber-900 font-extrabold text-xs rounded-xl border border-amber-300 flex items-center gap-1.5 shadow-2xs">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                          <span>⏳ Menunggu Kurir Tiba di Toko</span>
+                        </span>
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300"
+                          title="Simulasikan kurir tiba di outlet untuk mengaktifkan tombol handover"
+                          onClick={() => {
+                            const updated = pendingClaims.map((c) =>
+                              c.code === tx.code ? { ...c, status: 'DRIVER_ARRIVED_AT_STORE' } : c
+                            );
+                            setPendingClaims(updated);
+                            setToastState({
+                              isOpen: true,
+                              message: `Kurir relawan "${tx.courierName}" telah tiba di outlet! Tombol handover siap digunakan.`,
+                              type: 'success',
+                            });
+                          }}
+                        >
+                          <span>🛵 Kurir Tiba di Toko ➔</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        className="font-extrabold text-xs shadow-md text-slate-950 bg-emerald-500 hover:bg-emerald-600 text-white"
+                        onClick={() => openConfirmModal(tx)}
+                      >
+                        ✓ Konfirmasi Handover (Kurir di Kasir) ➔
+                      </Button>
+                    )
                   ) : activeTab === 'IN_TRANSIT' ? (
                     tx.deliveryMethod === 'SHELTER_PICKUP' ? (
                       <Button
