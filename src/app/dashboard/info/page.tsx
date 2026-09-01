@@ -1,9 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+
+interface KnowledgeItem {
+  id: string;
+  category: 'LATAR_BELAKANG' | 'KALKULATOR' | 'CARA_KERJA' | 'BPOM' | 'FAQ';
+  categoryLabel: string;
+  categoryBadgeColor: string;
+  title: string;
+  subtitle?: string;
+  content: string;
+  tags: string[];
+  roleTarget?: 'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER';
+}
 
 export default function DashboardInfoHubPage() {
   const { data: session } = useSession();
@@ -12,6 +24,10 @@ export default function DashboardInfoHubPage() {
   const [activeTab, setActiveTab] = useState<'LATAR_BELAKANG' | 'KALKULATOR' | 'CARA_KERJA' | 'BPOM' | 'FAQ'>('LATAR_BELAKANG');
   const [selectedRoleFlow, setSelectedRoleFlow] = useState<'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER'>('PROVIDER');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSearchCategory, setSelectedSearchCategory] = useState<string>('ALL');
 
   // Interactive Live Carbon Simulation State (Bappenas & KLH Standard)
   const [simulatedPortions, setSimulatedPortions] = useState<number>(50);
@@ -140,6 +156,17 @@ export default function DashboardInfoHubPage() {
     },
   };
 
+  const bpomProtocols = [
+    { title: '1. Batas Waktu Masak', desc: 'Makanan olahan matang maksimal berumur 4 jam sejak selesai dimasak.' },
+    { title: '2. Suhu Simpan Higienis', desc: 'Makanan panas disimpan > 60°C, makanan dingin disimpan < 4°C.' },
+    { title: '3. Kemasan Utuh & Tersegel', desc: 'Wadah makanan tertutup rapat, higienis, dan bebas kontaminasi luar.' },
+    { title: '4. Inspeksi Sensorik Visual', desc: 'Warna, tekstur, dan bentuk makanan normal tanpa tanda basi.' },
+    { title: '5. Bebas Bau Asam / Tengik', desc: 'Aroma makanan segar dan tidak terindikasi fermentasi liar.' },
+    { title: '6. Label Alergen & Bahan', desc: 'Informasi bahan dasar (kacang, seafood, susu) dicantumkan jelas.' },
+    { title: '7. Lokasi Bersih Terverifikasi', desc: 'Dapur resto mitra telah diaudit NIB & sertifikasi sanitasi.' },
+    { title: '8. Batas Waktu Konsumsi', desc: 'Makanan harus dikonsumsi dalam batas waktu yang tertera pada resi.' },
+  ];
+
   const faqs = [
     {
       q: 'Apa dasar data ilmiah perhitungan dampak lingkungan di Replate?',
@@ -166,6 +193,347 @@ export default function DashboardInfoHubPage() {
       a: 'Food Provider dan Yayasan dapat membuka menu Laporan Dampak di Dashboard untuk mengunduh Sertifikat Penyelamat Pangan resmi dan mencetak ringkasan CSR 1 halaman yang siap diaudit.',
     },
   ];
+
+  // Comprehensive Knowledge Index for Search
+  const knowledgeBase: KnowledgeItem[] = useMemo(() => [
+    // 1. Latar Belakang & Urgensi
+    {
+      id: 'kb-bg-1',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-red-100 text-red-800 border-red-200',
+      title: '40,79% Limbah Makanan Nasional (KLH 2025)',
+      subtitle: 'Komponen Sampah #1 Terbesar di Indonesia',
+      content: 'Berdasarkan data KLH 2025 dengan total 20,25 juta ton timbulan, sampah makanan mendominasi 40,79%, jauh melampaui sampah plastik sebesar 19,95%.',
+      tags: ['klh 2025', 'sampah makanan', 'limbah', 'plastik', 'urgensi', 'flw', 'statistik'],
+    },
+    {
+      id: 'kb-bg-2',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
+      title: 'Timbulan FLW 23–48 Juta Ton / Tahun (Bappenas RI)',
+      subtitle: 'Setara 115–184 kg/kapita/tahun',
+      content: 'Kajian Bappenas membuktikan kerugian masif sumber daya pangan sepanjang rantai pasok Indonesia yang terbuang sia-sia setiap tahunnya.',
+      tags: ['bappenas', 'timbulan', 'per kapita', 'kajian flw', 'data'],
+    },
+    {
+      id: 'kb-bg-3',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      title: 'Faktor Emisi 4.051,5 kg CO2e / 1 Ton Food Waste Hilir',
+      subtitle: '4,3x Lebih Tinggi dari Food Loss Hulu',
+      content: 'Emisi food waste hilir (restoran, ritel, konsumen) sangat tinggi (4.051,5 kg CO2e/ton) karena mencakup akumulasi energi proses memasak, pendinginan, dan distribusi.',
+      tags: ['emisi', 'co2e', 'gas rumah kaca', 'grk', 'hilir', 'food loss vs waste', 'bappenas'],
+    },
+    {
+      id: 'kb-bg-4',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+      title: 'Potensi Penyelamatan Pangan 61–125 Juta Jiwa',
+      subtitle: 'Pemberantasan Kelaparan & Pemenuhan AKG Nutrisi',
+      content: 'Sebanyak 29%–47% populasi Indonesia dapat dipenuhi kebutuhan energinya (2.100 kkal) jika timbulan FLW berhasil diredistribusi.',
+      tags: ['akg', 'nutrisi', 'zero hunger', 'panti asuhan', 'kelaparan', 'sdg 2'],
+    },
+    {
+      id: 'kb-bg-5',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      title: 'Kehilangan Ekonomi Rp 213–551 Triliun / Tahun',
+      subtitle: 'Setara 4%–5% PDB Indonesia',
+      content: 'Kehilangan ekonomi terbesar terjadi pada tahapan Food Waste hilir sebesar Rp 107–346 Triliun / tahun dengan estimasi nilai pangan ~Rp 12.500/kg.',
+      tags: ['ekonomi', 'pdb', 'kerugian nasional', 'keuangan', 'bappenas'],
+    },
+    {
+      id: 'kb-bg-6',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: 'Mandat Kebijakan Strategi D2 Bappenas RI',
+      subtitle: 'Infrastruktur Digital Platform Redistribusi Pangan',
+      content: 'Strategi D2 mengamanatkan pembuatan platform digital untuk memfasilitasi distribusi pangan berlebih, ugly food, dan sisa makanan secara terstruktur.',
+      tags: ['strategi d2', 'bappenas', 'kebijakan', 'regulasi nasional', 'platform digital'],
+    },
+    {
+      id: 'kb-bg-7',
+      category: 'LATAR_BELAKANG',
+      categoryLabel: 'Latar Belakang & Data',
+      categoryBadgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
+      title: 'Penyelarasan 5 Pilar SDGs (Tujuan Pembangunan Berkelanjutan)',
+      subtitle: 'SDG 2, SDG 9, SDG 11, SDG 12 (Target 12.3), SDG 13',
+      content: 'Replate berkontribusi langsung pada SDG 2 (Zero Hunger), SDG 9 (Inovasi Smart Matching), SDG 11 (Kota Berkelanjutan), SDG 12.3 (Kurangi Food Waste 50%), dan SDG 13 (Aksi Iklim).',
+      tags: ['sdgs', 'target 12.3', 'zero hunger', 'perubahan iklim', 'pbb'],
+    },
+
+    // 2. Kalkulator Dampak
+    {
+      id: 'kb-calc-1',
+      category: 'KALKULATOR',
+      categoryLabel: 'Kalkulator & Formula',
+      categoryBadgeColor: 'bg-cyan-100 text-cyan-900 border-cyan-300',
+      title: 'Konstanta Metodologi: 1 Porsi = 0.4 kg Makanan Siap Santap',
+      subtitle: 'Standar IPCC & Bappenas Wilayah Perkotaan',
+      content: 'Setiap 1 porsi makanan siap santap dihitung setara 0.4 kg pangan. Sehingga 1 kg makanan mewakili ~2.5 porsi nutrisi siap konsumsi.',
+      tags: ['kalkulator', 'formula', 'porsi', '0.4 kg', 'konversi'],
+    },
+    {
+      id: 'kb-calc-2',
+      category: 'KALKULATOR',
+      categoryLabel: 'Kalkulator & Formula',
+      categoryBadgeColor: 'bg-cyan-100 text-cyan-900 border-cyan-300',
+      title: 'Formula Reduksi Emisi GRK (4.0515 kg CO2e / kg Food Waste)',
+      subtitle: 'Perhitungan Terpadu Emisi Metana & Karbon',
+      content: 'Menghitung reduksi gas rumah kaca dari porsi makanan yang diselamatkan agar tidak membusuk di Tempat Pemrosesan Akhir (TPA) menjadi gas metana (CH4).',
+      tags: ['kalkulator', 'co2e', 'metana', 'tpa', 'grk', 'emisi'],
+    },
+    {
+      id: 'kb-calc-3',
+      category: 'KALKULATOR',
+      categoryLabel: 'Kalkulator & Formula',
+      categoryBadgeColor: 'bg-cyan-100 text-cyan-900 border-cyan-300',
+      title: 'Simulasi Energi Nutrisi AKG (336 kkal / porsi)',
+      subtitle: 'Kompensasi Defisit Kalori Harian Masyarakat Rentan',
+      content: 'Menghitung akumulasi kilokalori nutrisi pangan higienis yang disalurkan kepada panti asuhan, balita, dhuafa, dan anak asuh.',
+      tags: ['kalkulator', 'akg', 'kalori', 'gizi', 'nutrisi'],
+    },
+
+    // 3. Cara Kerja (4 Role)
+    {
+      id: 'kb-role-p',
+      category: 'CARA_KERJA',
+      categoryLabel: 'Cara Kerja Role',
+      categoryBadgeColor: 'bg-blue-100 text-blue-900 border-blue-300',
+      roleTarget: 'PROVIDER',
+      title: 'SOP Food Provider (Restoran, Bakery, Katering, Hotel)',
+      subtitle: 'Rescue Sale Diskon s/d 70% atau Donasi Bebas Biaya Rp 0',
+      content: '1. Input menu & lengkapi 8-poin BPOM. 2. Pilih Rescue Sale atau Donasi Rp 0. 3. Verifikasi serah terima via scan QR kasir. 4. Unduh Laporan CSR & Cetak Sertifikat Mitra Berkelanjutan.',
+      tags: ['food provider', 'restoran', 'bakery', 'katering', 'hotel', 'rescue sale', 'csr', 'sertifikat', 'qr kasir'],
+    },
+    {
+      id: 'kb-role-b',
+      category: 'CARA_KERJA',
+      categoryLabel: 'Cara Kerja Role',
+      categoryBadgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      roleTarget: 'BENEFICIARY',
+      title: 'SOP Food Beneficiary (Panti Asuhan, Yayasan, Shelter)',
+      subtitle: 'Smart Matching 2.0 & Penyaluran Nutrisi Gratis',
+      content: '1. Ajukan kebutuhan menu & jam makan. 2. Sistem mencocokkan donatur terdekat via GPS. 3. Pilih Self-Pickup atau diantar kurir relawan. 4. Konfirmasi QR & ulas dampak nutrisi.',
+      tags: ['food beneficiary', 'panti asuhan', 'yayasan', 'shelter', 'smart matching', 'donasi gratis', 'permintaan pangan'],
+    },
+    {
+      id: 'kb-role-c',
+      category: 'CARA_KERJA',
+      categoryLabel: 'Cara Kerja Role',
+      categoryBadgeColor: 'bg-cyan-100 text-cyan-900 border-cyan-300',
+      roleTarget: 'CONSUMER',
+      title: 'SOP Food Consumer (Konsumen Umum, Mahasiswa, Anak Kos)',
+      subtitle: 'Eksplor Pangan Diskon 50%-70% & Pembayaran QRIS',
+      content: '1. Cari makanan terdekat di katalog. 2. Klaim & bayar instan via QRIS Bank Indonesia Rp 0 admin. 3. Tunjukkan QR resi saat ambil di outlet. 4. Beri rating & ulasan rasa.',
+      tags: ['consumer', 'konsumen', 'mahasiswa', 'anak kos', 'qris', 'tas klaim', 'surplus hemat', 'diskon'],
+    },
+    {
+      id: 'kb-role-v',
+      category: 'CARA_KERJA',
+      categoryLabel: 'Cara Kerja Role',
+      categoryBadgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+      roleTarget: 'VOLUNTEER',
+      title: 'SOP Rescue Volunteer (Relawan Logistik & Armada Komunitas)',
+      subtitle: 'Surat Jalan Manifest Digital via WhatsApp & QR Serah Terima',
+      content: '1. Terima penugasan rute terdekat. 2. Akses link Surat Jalan digital via WA tanpa login. 3. Inspeksi wadah tersegel & scan QR toko. 4. Antar steril ke shelter panti asuhan.',
+      tags: ['rescue volunteer', 'kurir relawan', 'garda pangan', 'food bank', 'surat jalan digital', 'manifest wa', 'logistik'],
+    },
+
+    // 4. Regulasi BPOM 8-Poin
+    {
+      id: 'kb-bpom-1',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '1. Batas Waktu Masak & Toleransi Waktu Simpan (< 4 Jam)',
+      subtitle: 'Protokol Higienitas BPOM RI & WHO Poin 1',
+      content: 'Makanan matang olahan siap santap hanya boleh diselamatkan jika berumur maksimal 4 jam sejak selesai dimasak untuk mencegah pertumbuhan mikroba.',
+      tags: ['bpom', 'waktu masak', '4 jam', 'higienitas', 'keamanan pangan', 'sop'],
+    },
+    {
+      id: 'kb-bpom-2',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '2. Suhu Penyimpanan Terkontrol (> 60°C atau < 4°C)',
+      subtitle: 'Pencegahan Zona Bahaya Suhu (Danger Zone)',
+      content: 'Makanan hangat/panas wajib dijaga di atas suhu 60°C, sedangkan makanan dingin, pastry, atau produk susu wajib disimpan di bawah suhu 4°C.',
+      tags: ['bpom', 'suhu', 'danger zone', 'cooler box', 'steril', 'cold chain'],
+    },
+    {
+      id: 'kb-bpom-3',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '3. Kemasan Utuh, Bersih, dan Tersegel Rapat',
+      subtitle: 'Pencegahan Kontaminasi Silang Fisik & Kimia',
+      content: 'Wadah kemasan makanan wajib menggunakan food-grade packaging yang tertutup rapat, bersegel stiker higienitas Replate, dan tidak bocor.',
+      tags: ['bpom', 'kemasan', 'segel', 'food grade', 'kontaminasi silang'],
+    },
+    {
+      id: 'kb-bpom-4',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '4. Inspeksi Sensorik & Uji Organoleptik (Warna, Tekstur, Bentuk)',
+      subtitle: 'Evaluasi Kelayakan Fisik Sebelum Pengunggahan',
+      content: 'Staff mitra wajib memeriksa kondisi visual makanan; tidak boleh ada lendir, perubahan warna tidak wajar, atau tekstur yang lembek/basi.',
+      tags: ['bpom', 'organoleptik', 'sensorik', 'inspeksi visual', 'kelayakan'],
+    },
+    {
+      id: 'kb-bpom-5',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '5. Bebas Bau Asam, Tengik, atau Fermentasi Liar',
+      subtitle: 'Uji Bau Standar Keamanan Makanan Siap Santap',
+      content: 'Aroma makanan wajib berbau khas segar masakan asli, tidak terindikasi pembusukan bakteri asam laktat liar atau oksidasi minyak tengik.',
+      tags: ['bpom', 'aroma', 'bau asam', 'tengik', 'kesegaran'],
+    },
+    {
+      id: 'kb-bpom-6',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '6. Pelabelan Alergen & Komposisi Bahan Pangan',
+      subtitle: 'Transparansi Bahan Kacang, Seafood, Telur, dan Susu',
+      content: 'Mitra wajib menyertakan peringatan alergen utama pada rincian menu untuk melindungi konsumen dan anak asuh yang memiliki sensitivitas diet.',
+      tags: ['bpom', 'alergen', 'seafood', 'kacang', 'susu', 'label bahan'],
+    },
+    {
+      id: 'kb-bpom-7',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '7. Lokasi Bersih & Dapur Terverifikasi NIB / Dinkes',
+      subtitle: 'Audit Sanitasi Higiene Sanitasi Pangan (HSP)',
+      content: 'Gerai penyedia makanan telah diverifikasi memiliki perizinan usaha resmi NIB dan sertifikat laik higiene sanitasi tempat pengolahan pangan.',
+      tags: ['bpom', 'nib', 'dinkes', 'hsp', 'sanitasi dapur', 'verifikasi'],
+    },
+    {
+      id: 'kb-bpom-8',
+      category: 'BPOM',
+      categoryLabel: 'Regulasi BPOM RI',
+      categoryBadgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      title: '8. Batas Waktu Konsumsi (Expiry Timeframe pada Resi)',
+      subtitle: 'Disiplin Waktu Konsumsi Segera',
+      content: 'Setiap paket makanan mencantumkan batas waktu konsumsi yang tegas pada tiket resi klaim agar makanan dinikmati saat kualitas prima.',
+      tags: ['bpom', 'batas konsumsi', 'kedaluwarsa', 'tiket resi', 'waktu'],
+    },
+
+    // 5. FAQ & Bantuan
+    {
+      id: 'kb-faq-1',
+      category: 'FAQ',
+      categoryLabel: 'FAQ & Bantuan',
+      categoryBadgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
+      title: 'Dasar Data Ilmiah Perhitungan Dampak Lingkungan',
+      subtitle: 'Kajian Resmi Bappenas RI (2000–2019) & KLH 2025',
+      content: 'Mengadopsi faktor emisi food waste hilir 4.051,5 kg CO2e/ton (4,0515 kg CO2e/kg) yang mencakup seluruh energi pengolahan dan distribusi hilir.',
+      tags: ['faq', 'ilmiah', 'data bappenas', 'faktor emisi', 'referensi'],
+    },
+    {
+      id: 'kb-faq-2',
+      category: 'FAQ',
+      categoryLabel: 'FAQ & Bantuan',
+      categoryBadgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
+      title: 'Perbedaan Rescue Sale vs Donasi Pangan Bebas Biaya Rp 0',
+      subtitle: 'Model Distribusi Ganda Pangan Surplus',
+      content: 'Rescue Sale: Makanan berbayar murah diskon s/d 70% untuk konsumen umum. Donasi Rp 0: Pangan dialokasikan cuma-cuma khusus panti asuhan, yayasan, dan dhuafa.',
+      tags: ['faq', 'rescue sale', 'donasi rp 0', 'perbedaan', 'gratis'],
+    },
+    {
+      id: 'kb-faq-3',
+      category: 'FAQ',
+      categoryLabel: 'FAQ & Bantuan',
+      categoryBadgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
+      title: 'Surat Jalan Digital Kurir via WhatsApp Tanpa Login',
+      subtitle: 'Kemudahan Ekosistem Relawan Garda Pangan & Food Bank',
+      content: 'Relawan logistik menerima tautan surat jalan manifest digital via WhatsApp, terhubung ke Google Maps dan QR scanner untuk validasi serah terima instan.',
+      tags: ['faq', 'surat jalan', 'whatsapp', 'kurir', 'relawan', 'logistik'],
+    },
+    {
+      id: 'kb-faq-4',
+      category: 'FAQ',
+      categoryLabel: 'FAQ & Bantuan',
+      categoryBadgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
+      title: 'Cara Mengunduh Laporan CSR & Cetak Sertifikat Mitra',
+      subtitle: 'Dokumen Rekapitulasi Audit Keberlanjutan 1 Halaman',
+      content: 'Food Provider dan Yayasan dapat membuka menu Laporan di Dashboard untuk mengunduh Sertifikat Penyelamat Pangan resmi dan ringkasan audit CSR.',
+      tags: ['faq', 'laporan csr', 'sertifikat', 'audit', 'mitra berkelanjutan'],
+    },
+  ], []);
+
+  // Role-Aware Quick Search Keywords
+  const roleRecommendedKeywords = useMemo(() => {
+    const upper = String(userRole || '').toUpperCase();
+    if (upper.includes('PROVIDER')) {
+      return ['SOP Restoran', 'Checklist 8 BPOM', 'Rescue Sale vs Donasi', 'Sertifikat CSR', 'Bappenas D2', 'Emisi CO2'];
+    }
+    if (upper.includes('BENEFICIARY') || upper.includes('YAYASAN')) {
+      return ['Permintaan Pangan Panti', 'Smart Matching GPS', 'Donasi Rp 0', 'AKG Nutrisi', 'BPOM Suhu', 'Zero Hunger'];
+    }
+    if (upper.includes('VOLUNTEER') || upper.includes('RESCUE')) {
+      return ['Surat Jalan WA', 'QR Serah Terima Toko', 'Inspeksi Suhu Kurir', 'Manifest Digital', 'Rute Google Maps'];
+    }
+    if (upper.includes('CONSUMER')) {
+      return ['Rescue Sale Diskon', 'Bayar QRIS', 'Ambil Toko QR Resi', 'Ulasan Rating', 'BPOM Higienitas'];
+    }
+    return ['Regulasi BPOM', 'Kajian Bappenas', 'Audit CSR', 'Strategi D2', 'Emisi CO2', 'Smart Matching'];
+  }, [userRole]);
+
+  // Dynamic Search Filtering
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return knowledgeBase.filter((item) => {
+      const matchCat = selectedSearchCategory === 'ALL' || item.category === selectedSearchCategory;
+      if (!matchCat) return false;
+      const matchText =
+        item.title.toLowerCase().includes(q) ||
+        (item.subtitle && item.subtitle.toLowerCase().includes(q)) ||
+        item.content.toLowerCase().includes(q) ||
+        item.tags.some((t) => t.toLowerCase().includes(q));
+      return matchText;
+    });
+  }, [searchQuery, selectedSearchCategory, knowledgeBase]);
+
+  const highlightText = (text: string, query: string) => {
+    if (!query || !query.trim()) return text;
+    const trimmed = query.trim();
+    const parts = text.split(new RegExp(`(${trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === trimmed.toLowerCase() ? (
+            <mark key={i} className="bg-amber-200 text-[#1B3A5C] px-1 py-0.5 rounded font-black">
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
+
+  const handleJumpToTopic = (item: KnowledgeItem) => {
+    setActiveTab(item.category);
+    if (item.roleTarget) {
+      setSelectedRoleFlow(item.roleTarget);
+    }
+    const el = document.getElementById('dashboard-info-content-container');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const formatRoleLabel = (r: string) => {
     const upper = String(r || '').toUpperCase();
@@ -196,8 +564,195 @@ export default function DashboardInfoHubPage() {
         </span>
       </div>
 
+      {/* Global Search Bar & Role-Context Quick Filter Section */}
+      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={`Cari SOP peran ${formatRoleLabel(userRole)}, standar BPOM, emisi CO2, atau FAQ...`}
+            className="w-full pl-12 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] focus:bg-white transition-all shadow-inner"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+              title="Hapus pencarian"
+            >
+              <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black">✕</span>
+            </button>
+          )}
+        </div>
+
+        {/* Quick Keywords Chips (Role-Aware) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <span>⚡ Rekomendasi {formatRoleLabel(userRole)}:</span>
+          </span>
+          {roleRecommendedKeywords.map((kw, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setSearchQuery(searchQuery === kw ? '' : kw)}
+              className={`px-3 py-1.5 rounded-xl font-extrabold text-[11px] transition-all cursor-pointer shrink-0 border ${
+                searchQuery.toLowerCase() === kw.toLowerCase()
+                  ? 'bg-[#1B3A5C] text-[#D4A843] border-[#1B3A5C] shadow-xs'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+              }`}
+            >
+              {kw}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Live Search Results View (If Search Active) */}
+      {searchQuery.trim().length > 0 && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#1B3A5C] text-white p-4 sm:p-5 rounded-2xl border border-[#2C5A8F] shadow-sm">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                HASIL PENCARIAN INFORMASI & SOP
+              </span>
+              <h3 className="text-base sm:text-lg font-black text-white">
+                Ditemukan{' '}
+                <span className="text-[#D4A843] font-mono px-2 py-0.5 bg-slate-900/80 rounded-md border border-amber-400/30">
+                  {searchResults.length}
+                </span>{' '}
+                materi untuk{' '}
+                <span className="text-amber-300 font-extrabold underline decoration-amber-400 decoration-2 underline-offset-4">
+                  &quot;{searchQuery}&quot;
+                </span>
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Category Filter in Search */}
+              {['ALL', 'LATAR_BELAKANG', 'KALKULATOR', 'CARA_KERJA', 'BPOM', 'FAQ'].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedSearchCategory(cat)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                    selectedSearchCategory === cat
+                      ? 'bg-[#D4A843] text-slate-950 shadow-xs'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {cat === 'ALL'
+                    ? 'Semua'
+                    : cat === 'LATAR_BELAKANG'
+                    ? 'Kajian'
+                    : cat === 'KALKULATOR'
+                    ? 'Kalkulator'
+                    : cat === 'CARA_KERJA'
+                    ? 'SOP Role'
+                    : cat === 'BPOM'
+                    ? 'BPOM'
+                    : 'FAQ'}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedSearchCategory('ALL');
+                }}
+                className="px-3 py-1 bg-red-600/80 hover:bg-red-600 text-white rounded-lg text-[10px] font-black cursor-pointer transition-colors"
+              >
+                Reset ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Results Grid */}
+          {searchResults.length === 0 ? (
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 text-center space-y-3">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-xl">
+                🔍
+              </div>
+              <h4 className="text-sm font-black text-slate-800">Tidak ada materi yang sesuai</h4>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Tidak ditemukan hasil untuk kata kunci &quot;{searchQuery}&quot;. Coba kata kunci lain atau pilih dari rekomendasi topik di atas.
+              </p>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+                className="font-bold text-xs"
+              >
+                Tampilkan Semua Modul ➔
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {searchResults.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${item.categoryBadgeColor}`}>
+                        {item.categoryLabel}
+                      </span>
+                      {item.roleTarget && (
+                        <span className="text-[9px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
+                          Peran: {item.roleTarget}
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="text-sm font-black text-[#1B3A5C] leading-snug">
+                      {highlightText(item.title, searchQuery)}
+                    </h4>
+
+                    {item.subtitle && (
+                      <span className="text-[11px] font-bold text-amber-700 block">
+                        {highlightText(item.subtitle, searchQuery)}
+                      </span>
+                    )}
+
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                      {highlightText(item.content, searchQuery)}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {item.tags.slice(0, 3).map((tag, idx) => (
+                        <span key={idx} className="text-[9px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleJumpToTopic(item)}
+                      className="text-xs font-black text-[#1B3A5C] hover:text-[#D4A843] flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <span>Buka Modul</span>
+                      <span>➔</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 5 Core Information Tabs */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl">
+      <div id="dashboard-info-content-container" className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl scroll-mt-24">
         <button
           type="button"
           onClick={() => setActiveTab('LATAR_BELAKANG')}
@@ -660,16 +1215,7 @@ export default function DashboardInfoHubPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              {[
-                { title: '1. Batas Waktu Masak', desc: 'Makanan olahan matang maksimal berumur 4 jam sejak selesai dimasak.' },
-                { title: '2. Suhu Simpan Higienis', desc: 'Makanan panas disimpan > 60°C, makanan dingin disimpan < 4°C.' },
-                { title: '3. Kemasan Utuh & Tersegel', desc: 'Wadah makanan tertutup rapat, higienis, dan bebas kontaminasi luar.' },
-                { title: '4. Inspeksi Sensorik Visual', desc: 'Warna, tekstur, dan bentuk makanan normal tanpa tanda basi.' },
-                { title: '5. Bebas Bau Asam / Tengik', desc: 'Aroma makanan segar dan tidak terindikasi fermentasi liar.' },
-                { title: '6. Label Alergen & Bahan', desc: 'Informasi bahan dasar (kacang, seafood, susu) dicantumkan jelas.' },
-                { title: '7. Lokasi Bersih Terverifikasi', desc: 'Dapur resto mitra telah diaudit NIB & sertifikasi sanitasi.' },
-                { title: '8. Batas Waktu Konsumsi', desc: 'Makanan harus dikonsumsi dalam batas waktu yang tertera pada resi.' },
-              ].map((item, idx) => (
+              {bpomProtocols.map((item, idx) => (
                 <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
                   <span className="text-xs font-black text-[#1B3A5C] block">{item.title}</span>
                   <p className="text-[11px] text-slate-600 font-medium">{item.desc}</p>

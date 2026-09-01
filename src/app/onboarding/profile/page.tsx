@@ -303,17 +303,17 @@ export default function OnboardingProfilePage() {
               <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
                 4.{' '}
                 {isVolunteer
-                  ? 'Alamat Posko Utama / Basecamp Logistik Komunitas Surabaya:'
+                  ? 'Alamat Posko Utama / Basecamp Logistik Komunitas di Indonesia:'
                   : isConsumer
-                  ? 'Alamat Domisili Pengiriman / Penjemputan Makanan Surabaya:'
-                  : 'Alamat Lengkap Bangunan Operasional Surabaya:'}
+                  ? 'Alamat Domisili Pengiriman / Penjemputan Makanan di Indonesia:'
+                  : 'Alamat Lengkap Bangunan Operasional di Indonesia:'}
               </label>
               <textarea
                 rows={2}
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                placeholder="Contoh: Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat..."
+                placeholder="Contoh: Jl. Sudirman No. 45, Jakarta / Jl. Raya Gubeng No. 88, Surabaya / Jl. Dago No. 12, Bandung..."
                 required
               />
             </div>

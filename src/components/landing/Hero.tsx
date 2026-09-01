@@ -73,7 +73,7 @@ export default function Hero() {
 
             {/* High Contrast Subtitle */}
             <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              Menghubungkan produsen makanan berlebih dengan masyarakat dan lembaga sosial di Surabaya melalui teknologi Smart Matching 2.0, verifikasi higienitas 8-Poin BPOM, dan transparansi logistik real-time.
+              REPLATE adalah ekosistem redistribusi pangan digital yang membantu makanan surplus menemukan tujuan berikutnya—mulai dari masyarakat sekitar yang membutuhkan makanan, komunitas yang siap berbagi, hingga mitra food rescue yang siap menjemput.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-3">

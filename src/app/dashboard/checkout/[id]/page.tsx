@@ -277,7 +277,7 @@ export default function CheckoutPage() {
               <div className="flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="font-extrabold text-slate-800 text-base">{item.title}</h3>
-                  <p className="text-[11px] text-amber-600 font-bold flex items-center gap-1 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md">
+                  <p className="text-[11px] text-amber-600 font-bold inline-flex items-center gap-1 mt-1 bg-amber-50 px-2 py-0.5 rounded-md">
                     ⏰ Ambil: {item.pickupTime}
                   </p>
                 </div>

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
-import { RescueReadinessForm, RescueReadinessChecklist } from './RescueReadinessForm';
+import { RescueReadinessForm, RescueReadinessChecklist, FormValidationSignals } from './RescueReadinessForm';
 
 export interface FoodFormData {
   foodName: string;
@@ -113,17 +113,34 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     setFormData((prev) => ({ ...prev, pickupDeadline: formatLocalDateTime(target) }));
   };
 
-  const [checklistReady, setChecklistReady] = useState<boolean>(true);
+  const [checklistReady, setChecklistReady] = useState<boolean>(false);
   const [checklistData, setChecklistData] = useState<RescueReadinessChecklist>({
-    infoComplete: true,
-    notExpired: true,
-    storageProper: true,
-    packagingIntact: true,
-    noSpoilage: true,
-    photoClear: true,
-    pickupRealistic: true,
-    locationAccurate: true,
+    infoComplete: false,
+    notExpired: false,
+    storageProper: false,
+    packagingIntact: false,
+    noSpoilage: false,
+    photoClear: false,
+    pickupRealistic: false,
+    locationAccurate: false,
   });
+
+  // Derive form validation signals from actual form state for auto-validation checklist
+  const formSignals: FormValidationSignals = useMemo(() => {
+    const deadlineMs = formData.pickupDeadline ? new Date(formData.pickupDeadline).getTime() : 0;
+    return {
+      hasName: !!(formData.foodName && formData.foodName.trim().length > 0),
+      hasCategory: !!(formData.foodCategory && formData.foodCategory.trim().length > 0),
+      hasQuantity: !!(formData.quantity && Number(formData.quantity) > 0),
+      hasWeight: !!(formData.weightPerUnitKg && Number(formData.weightPerUnitKg) > 0),
+      pickupDeadlineMs: deadlineMs || 0,
+      hasStorageCondition: !!(formData.storageCondition && formData.storageCondition.trim().length > 0),
+      hasPackagingType: !!(formData.packagingType && formData.packagingType.trim().length > 0),
+      hasPhoto: !!previewPhoto,
+      hasAddress: !!(useDefaultAddress || (formData.address && formData.address.trim().length > 0)),
+      hasCoordinates: !!(formData.latitude && formData.longitude),
+    };
+  }, [formData, previewPhoto, useDefaultAddress]);
 
   // Custom Select Dropdown CSS Class
   const customSelectClass =
@@ -155,12 +172,29 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!checklistReady) {
-      alert('Mohon lengkapi seluruh kriteria SOP BPOM Rescue Readiness (100%) sebelum publikasi!');
+
+    // Detailed field validation with specific error messages
+    const missingFields: string[] = [];
+    if (!formData.foodName?.trim()) missingFields.push('Nama Makanan');
+    if (!formData.quantity || Number(formData.quantity) <= 0) missingFields.push('Jumlah Porsi');
+    if (!formData.pickupDeadline) missingFields.push('Batas Waktu Penjemputan');
+    if (!formData.weightPerUnitKg || Number(formData.weightPerUnitKg) <= 0) missingFields.push('Berat per Unit');
+
+    if (missingFields.length > 0) {
+      alert(`Mohon lengkapi field berikut:\n• ${missingFields.join('\n• ')}`);
       return;
     }
-    if (!formData.foodName || !formData.quantity || !formData.pickupDeadline) {
-      alert('Mohon isi nama makanan, kuantitas porsi, dan batas waktu penjemputan!');
+
+    // Validate pickup deadline is at least 2 hours from now
+    const deadlineMs = new Date(formData.pickupDeadline!).getTime();
+    const twoHoursFromNow = Date.now() + (2 * 60 * 60 * 1000);
+    if (deadlineMs < twoHoursFromNow) {
+      alert('⚠️ Batas waktu penjemputan harus minimal 2 jam dari sekarang! Silakan atur ulang.');
+      return;
+    }
+
+    if (!checklistReady) {
+      alert('Mohon lengkapi seluruh kriteria SOP BPOM Rescue Readiness (100%) sebelum publikasi! Pastikan Anda telah mengonfirmasi uji sensorik dapur.');
       return;
     }
 
@@ -500,8 +534,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         )}
       </div>
 
-      {/* Hybrid BPOM SOP Readiness Checklist */}
+      {/* Hybrid BPOM SOP Readiness Checklist — Auto-validated from form signals */}
       <RescueReadinessForm
+        formSignals={formSignals}
         onChange={(checkData, isComplete) => {
           setChecklistData(checkData);
           setChecklistReady(isComplete);

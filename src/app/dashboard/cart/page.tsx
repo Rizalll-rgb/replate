@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
-import { Modal } from '@/components/ui/Modal';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -34,21 +33,6 @@ export default function CartPage() {
   // E-commerce selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
-  // Delivery Method & Modals (Ported from public cart)
-  const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'COURIER_DELIVERY'>('SELF_PICKUP');
-  const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<'QRIS' | 'UPLOAD'>('QRIS');
-  const [paymentProof, setPaymentProof] = useState<string | null>(null);
-  const [successReceipt, setSuccessReceipt] = useState<{
-    resiCode: string;
-    foodName: string;
-    provider: string;
-    totalAmount: number;
-    method: string;
-    time: string;
-    status: string;
-  } | null>(null);
-
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
     message: '',
@@ -173,8 +157,7 @@ export default function CartPage() {
 
   const selectedCartItems = cartItems.filter(item => selectedIds.has(item.id));
   const subtotal = selectedCartItems.reduce((acc, item) => acc + (item.isFree ? 0 : item.price * item.quantity), 0);
-  const deliveryFee = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0;
-  const totalAmount = subtotal + deliveryFee;
+  const totalAmount = subtotal;
   const totalHemat = selectedCartItems.reduce((acc, item) => acc + (item.originalPrice - (item.isFree ? 0 : item.price)) * item.quantity, 0);
   const totalItems = selectedCartItems.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -193,104 +176,12 @@ export default function CartPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
-      {successReceipt ? (
-        /* Receipt Success Card Screen */
-        <div className="max-w-2xl mx-auto space-y-6 animate-fade-in text-center py-6">
-          <div className="bg-[#1B3A5C] text-white p-8 sm:p-10 rounded-3xl border-2 border-[#2C5A8F] shadow-2xl space-y-6 text-left">
-            <div className="text-center space-y-2 border-b border-[#2C5A8F] pb-6">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto text-2xl border-2 ${
-                successReceipt.status === 'WAITING_PAYMENT_APPROVAL' 
-                  ? 'bg-amber-500/20 border-amber-400 text-amber-300' 
-                  : 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-              }`}>
-                {successReceipt.status === 'WAITING_PAYMENT_APPROVAL' ? '⏳' : '✓'}
-              </div>
-              <span className={`text-xs font-black uppercase tracking-widest block ${
-                successReceipt.status === 'WAITING_PAYMENT_APPROVAL' ? 'text-amber-400' : 'text-emerald-400'
-              }`}>
-                {successReceipt.status === 'WAITING_PAYMENT_APPROVAL' 
-                  ? 'MENUNGGU PERSETUJUAN TOKO' 
-                  : 'KLAIM MAKANAN SURPLUS BERHASIL'}
-              </span>
-              <h2 className="text-2xl font-black text-white">Resi Transaksi Resmi Replate</h2>
-              <p className="text-xs text-slate-300 font-medium">
-                {successReceipt.status === 'WAITING_PAYMENT_APPROVAL'
-                  ? 'Pembayaran sedang diverifikasi oleh penyedia makanan. Harap cek secara berkala.'
-                  : 'Pesanan telah diverifikasi oleh sistem. Tunjukkan QR Barcode ini saat penjemputan.'}
-              </p>
-            </div>
-
-            {/* QR Barcode Box - Conditionally Hidden if Waiting */}
-            {successReceipt.status !== 'WAITING_PAYMENT_APPROVAL' && (
-              <div className="p-6 bg-white text-slate-900 rounded-2xl text-center space-y-3 shadow-inner">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
-                  KODE RESI KLAIM SURPLUS RESMI
-                </span>
-                <h3 className="font-mono text-2xl font-black text-[#1B3A5C] tracking-wider">
-                  {successReceipt.resiCode}
-                </h3>
-                {/* Simulated Barcode Lines */}
-                <div className="flex justify-center items-center gap-1 h-12 py-1 max-w-xs mx-auto">
-                  <div className="w-1.5 h-full bg-slate-900"></div>
-                  <div className="w-1 h-full bg-slate-900"></div>
-                  <div className="w-3 h-full bg-slate-900"></div>
-                  <div className="w-1.5 h-full bg-slate-900"></div>
-                  <div className="w-2 h-full bg-slate-900"></div>
-                  <div className="w-1 h-full bg-slate-900"></div>
-                  <div className="w-3 h-full bg-slate-900"></div>
-                  <div className="w-1.5 h-full bg-slate-900"></div>
-                  <div className="w-2 h-full bg-slate-900"></div>
-                  <div className="w-1 h-full bg-slate-900"></div>
-                </div>
-                <span className="text-[10px] text-slate-500 font-bold block">
-                  SOP Validasi Higienitas 8-Poin BPOM RI
-                </span>
-              </div>
-            )}
-
-            {/* Details Summary */}
-            <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-2 text-xs font-bold">
-              <div className="flex justify-between border-b border-slate-700 pb-1.5">
-                <span className="text-slate-300">Item Makanan:</span>
-                <span className="text-white text-right max-w-xs truncate">{successReceipt.foodName}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-700 pb-1.5">
-                <span className="text-slate-300">Penyedia / Outlet:</span>
-                <span className="text-amber-300">{successReceipt.provider}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-700 pb-1.5">
-                <span className="text-slate-300">Metode Pengambilan:</span>
-                <span className="text-emerald-300">{successReceipt.method}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-300">Total Biaya:</span>
-                <span className="text-[#D4A843] font-black text-sm">
-                  {successReceipt.totalAmount === 0 ? 'GRATIS (Rp 0)' : `Rp ${successReceipt.totalAmount.toLocaleString('id-ID')}`}
-                </span>
-              </div>
-            </div>
-
-            {/* Direct Actions */}
-            <div className="space-y-3 pt-2">
-              <Link href={`/dashboard/tracking?resi=${successReceipt.resiCode}`}>
-                <button
-                  type="button"
-                  className="w-full py-3.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>📍 Lacak Pesanan Live Tracking ➔</span>
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="border-b border-slate-200 pb-4">
-            <h1 className="text-2xl font-black text-[#1B3A5C]">Tas Klaim & Keranjang</h1>
-            <p className="text-sm text-slate-500 font-medium">
-              Tinjau kembali pilihan donasi pangan dan pesanan surplus Anda sebelum melakukan konfirmasi.
-            </p>
-          </div>
+      <div className="border-b border-slate-200 pb-4">
+        <h1 className="text-2xl font-black text-[#1B3A5C]">Tas Klaim & Keranjang</h1>
+        <p className="text-sm text-slate-500 font-medium">
+          Tinjau kembali pilihan donasi pangan dan pesanan surplus Anda sebelum melakukan konfirmasi.
+        </p>
+      </div>
 
           <Toast 
             isOpen={toastState.isOpen} 
@@ -394,7 +285,7 @@ export default function CartPage() {
                                 <div className="flex justify-between items-start gap-2">
                                   <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">{item.foodName}</h3>
                                 </div>
-                                <p className="text-[11px] text-amber-600 font-bold flex items-center gap-1 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md">
+                                <p className="text-[11px] text-amber-600 font-bold inline-flex items-center gap-1 mt-1 bg-amber-50 px-2 py-0.5 rounded-md">
                                   ⏰ Ambil: {item.pickupTime}
                                 </p>
                               </div>
@@ -462,7 +353,7 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Biaya Pengantaran</span>
-                      <span className="font-bold text-slate-800">Rp {deliveryFee.toLocaleString('id-ID')}</span>
+                      <span className="font-bold text-slate-500 text-xs">Dihitung di checkout</span>
                     </div>
                   </div>
                   
@@ -494,10 +385,6 @@ export default function CartPage() {
               </div>
             </div>
           )}
-        </>
-      )}
-
-
     </div>
   );
 }

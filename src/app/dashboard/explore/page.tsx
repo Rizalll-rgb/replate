@@ -39,7 +39,7 @@ interface FoodItem {
 export default function WorkspaceExplorePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION'>('RESCUE_SALE');
+  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS'>('RESCUE_SALE');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -238,49 +238,127 @@ export default function WorkspaceExplorePage() {
     },
   ];
 
+  // Panti Needs data for the tab
+  const pantiNeeds = [
+    {
+      id: 'PANTI-001',
+      pantiName: 'Panti Asuhan Kasih Ibu Surabaya',
+      contactPerson: 'Ibu Sari Dewi',
+      contactPhone: '0812-3456-7890',
+      address: 'Jl. Raya Gubeng No. 88, Wonokromo, Surabaya',
+      needCategory: 'Nasi & Lauk Pauk',
+      neededPortions: 50,
+      urgency: 'TINGGI',
+      childCount: 45,
+      description: 'Kebutuhan makan malam 45 anak asuh. Kami mengutamakan makanan hangat bergizi seimbang (nasi, sayur, lauk protein).',
+      preferredDelivery: 'RESCUE_COURIER' as const,
+      cutoffTime: '20:00 WIB',
+      lat: -7.2906,
+      lng: 112.7429,
+    },
+    {
+      id: 'PANTI-002',
+      pantiName: 'Yayasan Anak Bangsa Mandiri',
+      contactPerson: 'Bapak Hendra Wijaya',
+      contactPhone: '0813-9876-5432',
+      address: 'Jl. Darmo Permai Selatan No. 12, Surabaya',
+      needCategory: 'Roti & Susu',
+      neededPortions: 30,
+      urgency: 'SEDANG',
+      childCount: 28,
+      description: 'Kebutuhan sarapan pagi besok untuk 28 anak. Roti, susu kotak, atau sereal sangat diharapkan.',
+      preferredDelivery: 'RESCUE_COURIER' as const,
+      cutoffTime: '07:00 WIB',
+      lat: -7.2901,
+      lng: 112.7210,
+    },
+    {
+      id: 'PANTI-003',
+      pantiName: 'Panti Werdha Bhakti Luhur',
+      contactPerson: 'Suster Maria Theresia',
+      contactPhone: '0821-5678-1234',
+      address: 'Jl. Raya Tenggilis Mejoyo No. 33, Surabaya',
+      needCategory: 'Bubur & Makanan Lunak',
+      neededPortions: 25,
+      urgency: 'TINGGI',
+      childCount: 22,
+      description: 'Kebutuhan makan siang lansia 22 penghuni. Diperlukan makanan lunak/bubur hangat yang mudah dicerna.',
+      preferredDelivery: 'RESCUE_COURIER' as const,
+      cutoffTime: '11:30 WIB',
+      lat: -7.3201,
+      lng: 112.7601,
+    },
+  ];
+
+  // Helper: map raw item to FoodItem
+  const mapToFoodItem = (item: any): FoodItem => ({
+    id: item.id || `food-${Math.random()}`,
+    title: item.foodName || item.title || 'Makanan Surplus',
+    description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
+    providerName: item.provider?.organizationName || item.providerName || 'Warung Bakso Pak Kumis',
+    providerPhone: item.provider?.phone || '081234567891',
+    providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
+    originalPrice: item.originalPrice || 25000,
+    discountPrice: item.discountPrice || item.price || 0,
+    quantity: `${item.quantity || item.remainingQuantity || 10} Porsi`,
+    pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+    distance: item.distance || '1.2 km',
+    category: item.category || item.foodCategory || 'MAKANAN_BERAT',
+    isFree: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0,
+    type: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0 ? 'DONATION' : 'RESCUE_SALE',
+    imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+    rating: item.rating || 4.8,
+    storageCondition: item.storageCondition || 'ROOM_TEMP',
+    packagingType: item.packagingType || 'PACKAGED',
+    weightPerUnitKg: item.weightPerUnitKg || 0.4,
+    allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
+    lat: item.lat || item.latitude || -7.2575,
+    lng: item.lng || item.longitude || 112.7521,
+    status: item.status,
+  });
+
   useEffect(() => {
+    // 1. Load local surplus items from localStorage (syncs newly added items)
+    let localItems: any[] = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]')
+        .filter((item: any) => item.status === 'AVAILABLE' || !item.status);
+    } catch (_) {}
+
+    // 2. Fetch API surplus
     fetch('/api/surplus')
       .then((res) => res.json())
       .then((data) => {
-        let items: any[] = [];
+        let apiItems: any[] = [];
         if (data.success && Array.isArray(data.data?.items)) {
-          items = data.data.items;
+          apiItems = data.data.items;
         } else if (data.success && Array.isArray(data.data)) {
-          items = data.data;
+          apiItems = data.data;
         }
 
-        if (items.length > 0) {
-          const mapped: FoodItem[] = items.map((item: any) => ({
-            id: item.id || `food-${Math.random()}`,
-            title: item.foodName || item.title || 'Makanan Surplus',
-            description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
-            providerName: item.provider?.organizationName || item.providerName || 'Warung Bakso Pak Kumis',
-            providerPhone: item.provider?.phone || '081234567891',
-            providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
-            originalPrice: item.originalPrice || 25000,
-            discountPrice: item.discountPrice || item.price || 0,
-            quantity: `${item.quantity || 10} Porsi`,
-            pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
-            distance: item.distance || '1.2 km',
-            category: item.category || 'MAKANAN_BERAT',
-            isFree: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0,
-            type: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0 ? 'DONATION' : 'RESCUE_SALE',
-            imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
-            rating: item.rating || 4.8,
-            storageCondition: item.storageCondition || 'ROOM_TEMP',
-            packagingType: item.packagingType || 'PACKAGED',
-            weightPerUnitKg: item.weightPerUnitKg || 0.4,
-            allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
-            lat: item.lat || -7.2575,
-            lng: item.lng || 112.7521,
-          }));
-          setFoods(mapped);
+        // 3. Merge & deduplicate by ID (local takes priority)
+        const combined = [...localItems, ...apiItems];
+        const deduped = Array.from(
+          combined.reduce((map, item) => {
+            if (!map.has(item.id)) map.set(item.id, item);
+            return map;
+          }, new Map<string, any>()).values()
+        );
+
+        if (deduped.length > 0) {
+          setFoods(deduped.map(mapToFoodItem));
         } else {
+          // Include local items mapped + default foods
           setFoods(defaultFoods);
         }
       })
       .catch(() => {
-        setFoods(defaultFoods);
+        // Offline: use local items + defaults
+        if (localItems.length > 0) {
+          setFoods(localItems.map(mapToFoodItem));
+        } else {
+          setFoods(defaultFoods);
+        }
       });
   }, []);
 
@@ -293,6 +371,7 @@ export default function WorkspaceExplorePage() {
   ];
 
   const filteredFoods = foods.filter((item) => {
+    if (activeTab === 'PANTI_NEEDS') return false; // Panti needs tab shows its own grid
     if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
     if (activeTab === 'DONATION' && !item.isFree) return false;
     if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
@@ -538,18 +617,61 @@ export default function WorkspaceExplorePage() {
           <span>Donasi Pangan (Rp 0)</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => router.push('/dashboard/rescue-partner/requests')}
-          className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-700 hover:text-slate-950 font-bold hover:bg-slate-300/50`}
-        >
-          <span>Permintaan Penjemputan ➔</span>
-        </button>
+        {/* Rescue Partner Action */}
+        {(session?.user?.role?.toUpperCase().includes('RESCUE') || session?.user?.role?.toUpperCase().includes('VOLUNTEER')) && (
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/rescue-partner/requests')}
+            className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-700 hover:text-slate-950 font-bold hover:bg-slate-300/50`}
+          >
+            <span>Permintaan Penjemputan ➔</span>
+          </button>
+        )}
+
+        {/* Panti Needs Tab — visible for providers */}
+        {(session?.user?.role?.toUpperCase().includes('PROVIDER') || !session) && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('PANTI_NEEDS')}
+            className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'PANTI_NEEDS'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-950 font-bold'
+            }`}
+          >
+            <span>Permintaan Panti ({pantiNeeds.length})</span>
+          </button>
+        )}
 
       </div>
 
       {/* Food Grid Content */}
       <div className="space-y-6">
+        {/* Provider Seller Centre Banner Notice */}
+        {(session?.user?.role?.toUpperCase().includes('PROVIDER') || false) && (
+          <div className="p-4 bg-amber-50/90 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-[#1B3A5C] text-[#D4A843] text-[10px] font-black uppercase tracking-wider">
+                  Mode Katalog Toko (Seller Centre)
+                </span>
+                <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">
+                  ✓ Status Manajemen Aktif
+                </span>
+              </div>
+              <p className="text-slate-700 font-medium">
+                Sebagai <strong>Food Provider</strong>, Anda memantau ketersediaan produk surplus toko Anda sendiri di tab ini (tanpa tombol klaim mandiri). Buka tab <strong>Permintaan Panti</strong> untuk menyanggupi permohonan donasi dari panti asuhan.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/provider/my-listings')}
+              className="px-4 py-2.5 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] font-black text-xs rounded-xl shadow-xs shrink-0 transition-all cursor-pointer"
+            >
+              + Kelola di Daftar Makanan ➔
+            </button>
+          </div>
+        )}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <input
@@ -584,27 +706,88 @@ export default function WorkspaceExplorePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFoods.map((item) => (
-              <FoodCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                providerName={item.providerName}
-                category={item.category}
-                quantity={item.quantity}
-                discountPrice={item.discountPrice}
-                originalPrice={item.originalPrice}
-                isFree={item.isFree}
-                pickupTime={item.pickupTime}
-                distance={item.distance}
-                imageUrl={item.imageUrl}
-                onDetail={() => handleOpenFoodDetail(item)}
-                onClaim={() => handleBuyNow(item)}
-                onAddToCart={() => handleClaimFood(item)}
-              />
+            {filteredFoods.map((item) => {
+              const isProvider = session?.user?.role?.toUpperCase().includes('PROVIDER');
+              return (
+                <FoodCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  providerName={item.providerName}
+                  category={item.category}
+                  quantity={item.quantity}
+                  discountPrice={item.discountPrice}
+                  originalPrice={item.originalPrice}
+                  isFree={item.isFree}
+                  pickupTime={item.pickupTime}
+                  distance={item.distance}
+                  imageUrl={item.imageUrl}
+                  onDetail={() => handleOpenFoodDetail(item)}
+                  onManage={isProvider ? () => router.push('/dashboard/provider/my-listings') : undefined}
+                  onClaim={!isProvider ? () => handleBuyNow(item) : undefined}
+                  onAddToCart={!isProvider ? () => handleClaimFood(item) : undefined}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+      {/* Panti Needs Grid — shown when activeTab is PANTI_NEEDS */}
+      {activeTab === 'PANTI_NEEDS' && (
+        <div className="space-y-4">
+          <div className="p-4 bg-blue-50/80 rounded-2xl border border-blue-200 text-xs space-y-1">
+            <span className="font-black text-[#1B3A5C] text-sm">📋 Daftar Permintaan Donasi Panti Asuhan & Yayasan</span>
+            <p className="text-slate-600 font-medium">Berikut adalah permohonan bantuan makanan dari panti asuhan & yayasan sosial di sekitar Anda. Klik &quot;Sanggupi Donasi&quot; untuk mengalokasikan surplus makanan Anda.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pantiNeeds.map((panti) => (
+              <div key={panti.id} className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-black text-sm text-[#1B3A5C]">{panti.pantiName}</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">{panti.address}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                    panti.urgency === 'TINGGI' ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                  }`}>
+                    {panti.urgency === 'TINGGI' ? '🔴 Mendesak' : '🟡 Sedang'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl text-[11px] space-y-1.5 font-medium text-slate-700">
+                  <div className="flex justify-between">
+                    <span>Kebutuhan:</span>
+                    <strong className="text-[#1B3A5C]">{panti.needCategory}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Porsi Dibutuhkan:</span>
+                    <strong className="text-[#1B3A5C]">{panti.neededPortions} Porsi</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Jumlah Penghuni:</span>
+                    <strong>{panti.childCount} Orang</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>PIC:</span>
+                    <strong>{panti.contactPerson}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Batas Waktu:</span>
+                    <strong className="text-red-700">{panti.cutoffTime}</strong>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-snug">{panti.description}</p>
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard/provider')}
+                  className="w-full py-2.5 bg-[#1B3A5C] hover:bg-[#142C47] text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                >
+                  Sanggupi Donasi ➔
+                </button>
+              </div>
             ))}
           </div>
         </div>
+      )}
 
       {/* Food Detail Modal */}
       {selectedFoodForModal && (

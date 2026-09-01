@@ -627,7 +627,7 @@ export default function ExplorePage() {
             <div className="relative max-w-xl">
               <input
                 type="text"
-                placeholder="Cari menu makanan, nama restoran / bakery Surabaya..."
+                placeholder="Cari menu makanan, nama restoran / bakery di seluruh Indonesia..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-4 pr-4 py-3 bg-white border border-slate-300 text-slate-900 rounded-2xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] shadow-xs"

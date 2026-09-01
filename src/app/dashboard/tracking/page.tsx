@@ -44,7 +44,7 @@ export default function WorkspaceLiveTrackingPage() {
   const defaultManifests: TrackingManifest[] = [
     {
       id: 'TRK-001',
-      trackingCode: 'FB-DON-88192',
+      trackingCode: 'RPL-DON-2026-88192',
       foodName: '45 Porsi Nasi Ayam Bakar & Lauk Bersih',
       quantity: '45 Porsi',
       sourceName: 'Warung Bakso Pak Kumis (Genteng)',
@@ -72,7 +72,7 @@ export default function WorkspaceLiveTrackingPage() {
     },
     {
       id: 'TRK-002',
-      trackingCode: 'FB-DIR-88291',
+      trackingCode: 'RPL-DIR-2026-88291',
       foodName: '40 Porsi Rice Bowl Ayam Geprek Steril',
       quantity: '40 Porsi',
       sourceName: 'Dapur Outlet Pak Kumis (Genteng)',
@@ -99,7 +99,7 @@ export default function WorkspaceLiveTrackingPage() {
     },
     {
       id: 'TRK-003',
-      trackingCode: 'FB-SALE-99102',
+      trackingCode: 'RPL-RSC-2026-99102',
       foodName: '3 Porsi Nasi Goreng Buffet Specialty (Rescue Sale)',
       quantity: '3 Porsi',
       sourceName: 'Warung Bakso Pak Kumis (Genteng)',
@@ -126,8 +126,26 @@ export default function WorkspaceLiveTrackingPage() {
     },
   ];
 
+  // Start with clean state - no active tracking shown initially
+  // User must search for a resi code or select from list
   useEffect(() => {
-    setActiveTracking(defaultManifests[0]);
+    // Check for active claims that have tracking data
+    try {
+      const claims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+      const activeClaim = claims.find((c: any) =>
+        c.status === 'IN_TRANSIT_TO_SHELTER' || c.status === 'DRIVER_ASSIGNED_OTW_STORE'
+      );
+      if (activeClaim) {
+        // Auto-load if there's an active in-transit claim
+        const matchedManifest = defaultManifests.find(
+          (m) => m.trackingCode === activeClaim.claimCode || m.trackingCode === activeClaim.code
+        );
+        if (matchedManifest) {
+          setActiveTracking(matchedManifest);
+        }
+      }
+      // Otherwise: stay clean, no active tracking displayed
+    } catch (_) {}
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
