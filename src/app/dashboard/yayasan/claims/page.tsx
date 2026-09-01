@@ -59,6 +59,37 @@ export default function YayasanClaimsPage() {
     ? claimsList
     : claimsList.filter((c) => c.method === methodFilter);
 
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [reqFoodType, setReqFoodType] = useState('');
+  const [reqQuantity, setReqQuantity] = useState('');
+  const [reqNotes, setReqNotes] = useState('');
+
+  const handleCreateRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reqFoodType || !reqQuantity) return;
+
+    const newReq = {
+      id: `REQ-YYS-${Date.now()}`,
+      code: `REQ-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+      foodName: reqFoodType,
+      provider: 'Belum Ada Donatur',
+      address: 'Menunggu 매칭 (Matching)',
+      quantity: `${reqQuantity} Porsi`,
+      method: 'RESCUE_PARTNER',
+      methodLabel: 'Menunggu Bantuan Relawan',
+      status: 'WAITING_DONOR',
+      claimedAt: 'Baru saja',
+      notes: reqNotes,
+    };
+
+    setClaimsList([newReq, ...claimsList]);
+    setRequestModalOpen(false);
+    setReqFoodType('');
+    setReqQuantity('');
+    setReqNotes('');
+    alert('Permintaan Bantuan Pangan berhasil diajukan! Sistem akan mencarikan donatur terdekat.');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -66,31 +97,36 @@ export default function YayasanClaimsPage() {
           <h1 className="text-2xl font-black text-[#1B3A5C]">Permintaan & Klaim Panti</h1>
           <p className="text-xs text-slate-500">Kelola daftar klaim bantuan makanan surplus untuk panti asuhan & lembaga sosial</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant={methodFilter === 'ALL' ? 'primary' : 'outline'}
-            onClick={() => setMethodFilter('ALL')}
-            className="text-xs font-bold"
-          >
-            Semua
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+          <Button variant="gold" size="sm" className="font-black text-xs shadow-md" onClick={() => setRequestModalOpen(true)}>
+            + Ajukan Permintaan Pangan
           </Button>
-          <Button
-            size="sm"
-            variant={methodFilter === 'SELF_PICKUP' ? 'primary' : 'outline'}
-            onClick={() => setMethodFilter('SELF_PICKUP')}
-            className="text-xs font-bold"
-          >
-            🚗 Ambil Sendiri
-          </Button>
-          <Button
-            size="sm"
-            variant={methodFilter === 'RESCUE_PARTNER' ? 'primary' : 'outline'}
-            onClick={() => setMethodFilter('RESCUE_PARTNER')}
-            className="text-xs font-bold"
-          >
-            🤝 Diantar Partner
-          </Button>
+          <div className="flex items-center gap-2 border-l border-slate-300 pl-2">
+            <Button
+              size="sm"
+              variant={methodFilter === 'ALL' ? 'primary' : 'outline'}
+              onClick={() => setMethodFilter('ALL')}
+              className="text-xs font-bold"
+            >
+              Semua
+            </Button>
+            <Button
+              size="sm"
+              variant={methodFilter === 'SELF_PICKUP' ? 'primary' : 'outline'}
+              onClick={() => setMethodFilter('SELF_PICKUP')}
+              className="text-xs font-bold"
+            >
+              🚗 Ambil Sendiri
+            </Button>
+            <Button
+              size="sm"
+              variant={methodFilter === 'RESCUE_PARTNER' ? 'primary' : 'outline'}
+              onClick={() => setMethodFilter('RESCUE_PARTNER')}
+              className="text-xs font-bold"
+            >
+              🤝 Diantar Partner
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -138,13 +174,70 @@ export default function YayasanClaimsPage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <Badge variant={claim.status === 'PICKED_UP' || claim.status === 'COMPLETED' ? 'success' : 'warning'} className="px-3 py-1 text-xs">
-                    {claim.status === 'PICKED_UP' || claim.status === 'COMPLETED' ? 'Selesai Diterima' : 'Menunggu Penjemputan'}
+                  <Badge variant={claim.status === 'WAITING_DONOR' ? 'primary' : claim.status === 'PICKED_UP' || claim.status === 'COMPLETED' ? 'success' : 'warning'} className="px-3 py-1 text-xs">
+                    {claim.status === 'WAITING_DONOR' ? 'Menunggu Donatur' : claim.status === 'PICKED_UP' || claim.status === 'COMPLETED' ? 'Selesai Diterima' : 'Menunggu Penjemputan'}
                   </Badge>
                 </div>
               </CardBody>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Modal Permintaan Pangan */}
+      {requestModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200">
+            <div className="bg-[#1B3A5C] p-4 text-white">
+              <h3 className="font-black text-lg">Buat Permintaan Pangan</h3>
+              <p className="text-xs text-blue-200 font-medium">Ajukan kebutuhan spesifik panti Anda kepada donatur terdekat.</p>
+            </div>
+            <div className="p-5">
+              <form onSubmit={handleCreateRequest} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 block">Kebutuhan Makanan (Jenis/Tipe)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: Nasi Kotak / Sembako / Susu Balita"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
+                    value={reqFoodType}
+                    onChange={(e) => setReqFoodType(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 block">Jumlah Kebutuhan (Porsi/Paket)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="Contoh: 50"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
+                    value={reqQuantity}
+                    onChange={(e) => setReqQuantity(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 block">Catatan Tambahan (Opsional)</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Jelaskan spesifikasi detail jika diperlukan..."
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
+                    value={reqNotes}
+                    onChange={(e) => setReqNotes(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setRequestModalOpen(false)}>
+                    Batal
+                  </Button>
+                  <Button type="submit" variant="gold" size="sm" className="font-black">
+                    Ajukan Permintaan ➔
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

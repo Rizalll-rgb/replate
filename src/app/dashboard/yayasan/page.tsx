@@ -131,13 +131,20 @@ export default function YayasanDashboardPage() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-emerald-200 flex items-center justify-between">
+              <div className="pt-2 border-t border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <span className="text-[10px] text-slate-500 font-medium">Bisa Diantar / Self-Pickup</span>
-                <Link href="/explore">
-                  <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-3 py-1.5 shadow-xs">
-                    Klaim Alokasi Ini ➔
-                  </Button>
-                </Link>
+                <div className="flex gap-2">
+                  <Link href="/dashboard/yayasan/bantuan-pangan">
+                    <Button variant="outline" size="sm" className="font-bold text-[10px] text-emerald-800 border-emerald-300 px-3 py-1.5 shadow-xs bg-emerald-50 hover:bg-emerald-100">
+                      Cetak Bukti Penerimaan 🖨️
+                    </Button>
+                  </Link>
+                  <Link href="/explore">
+                    <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-3 py-1.5 shadow-xs">
+                      Klaim Alokasi ➔
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

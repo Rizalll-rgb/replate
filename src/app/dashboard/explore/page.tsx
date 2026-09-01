@@ -512,8 +512,8 @@ export default function WorkspaceExplorePage() {
         );
       })()}
 
-      {/* 3 Main Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-2xl">
+      {/* Main Navigation Tabs */}
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-3xl">
         <button
           type="button"
           onClick={() => setActiveTab('RESCUE_SALE')}
@@ -536,6 +536,14 @@ export default function WorkspaceExplorePage() {
           }`}
         >
           <span>Donasi Pangan (Rp 0)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => router.push('/dashboard/rescue-partner/requests')}
+          className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-700 hover:text-slate-950 font-bold hover:bg-slate-300/50`}
+        >
+          <span>Permintaan Penjemputan ➔</span>
         </button>
 
       </div>

@@ -137,6 +137,18 @@ export default function DashboardProfilePage() {
     type: 'success' as 'success' | 'error',
   });
 
+  const [profileDocs, setProfileDocs] = useState<{
+    nibDoc?: string;
+    ktpDoc?: string;
+    storePhoto?: string;
+    status?: string;
+  }>({
+    nibDoc: 'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=500&auto=format&fit=crop&q=60',
+    ktpDoc: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+    storePhoto: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60',
+    status: 'VERIFIED',
+  });
+
   useEffect(() => {
     try {
       if (session?.user) {
@@ -163,6 +175,17 @@ export default function DashboardProfilePage() {
       const savedFleet = localStorage.getItem('replate_provider_fleet_list');
       if (savedFleet) {
         setFleetList(JSON.parse(savedFleet));
+      }
+
+      const savedDocs = localStorage.getItem('replate_onboarding_docs');
+      if (savedDocs) {
+        const parsedDocs = JSON.parse(savedDocs);
+        setProfileDocs({
+          nibDoc: parsedDocs.nibDoc || profileDocs.nibDoc,
+          ktpDoc: parsedDocs.ktpDoc || profileDocs.ktpDoc,
+          storePhoto: parsedDocs.storePhoto || profileDocs.storePhoto,
+          status: parsedDocs.status || profileDocs.status,
+        });
       }
     } catch (_) {}
   }, [session]);
@@ -193,6 +216,31 @@ export default function DashboardProfilePage() {
       setToastState({
         isOpen: true,
         message: 'Gagal menyimpan profil.',
+        type: 'error',
+      });
+    }
+  };
+
+  const handleUpdateDoc = (docKey: 'nibDoc' | 'ktpDoc' | 'storePhoto', file: File) => {
+    const url = URL.createObjectURL(file);
+    const updatedDocs = { ...profileDocs, [docKey]: url };
+    setProfileDocs(updatedDocs);
+    
+    try {
+      const savedDocs = localStorage.getItem('replate_onboarding_docs');
+      const parsed = savedDocs ? JSON.parse(savedDocs) : {};
+      const newSaved = { ...parsed, [docKey]: url };
+      localStorage.setItem('replate_onboarding_docs', JSON.stringify(newSaved));
+      
+      setToastState({
+        isOpen: true,
+        message: 'Dokumen legalitas berhasil diperbarui!',
+        type: 'success',
+      });
+    } catch (_) {
+      setToastState({
+        isOpen: true,
+        message: 'Gagal memperbarui dokumen.',
         type: 'error',
       });
     }
@@ -283,6 +331,7 @@ export default function DashboardProfilePage() {
   const roleInfo = getRoleBadge(profileData.role);
   const isProvider = String(profileData.role).toUpperCase().includes('PROVIDER');
   const isVolunteer = String(profileData.role).toUpperCase().includes('VOLUNTEER') || String(profileData.role).toUpperCase().includes('RESCUE');
+  const isBeneficiary = String(profileData.role).toUpperCase().includes('BENEFICIARY') || String(profileData.role).toUpperCase().includes('YAYASAN');
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
@@ -703,7 +752,7 @@ export default function DashboardProfilePage() {
         </div>
       )}
 
-      {/* TAB 4: LEGALITAS & AUDIT BPOM RI */}
+      {/* TAB 4: LEGALITAS & DOKUMEN REPLATE */}
       {activeTab === 'LEGALITAS' && (
         <div className="space-y-6">
           <Card className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-6">
@@ -714,57 +763,157 @@ export default function DashboardProfilePage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-black text-xl text-[#1B3A5C]">
-                    Status Verifikasi BPOM & Legalitas Usaha
+                    Status Verifikasi Dokumen Legalitas
                   </h3>
                   <Badge variant="success" size="sm">
-                    VERIFIED BPOM RI
+                    {profileDocs.status === 'VERIFIED' ? 'VERIFIED' : 'PENDING REVIEW'}
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-500 font-medium">
-                  Informasi mengenai arti lencana &quot;Verified BPOM&quot; dan status audit dapur Anda di Replate.
+                  Informasi mengenai dokumen legalitas organisasi/entitas Anda yang tersimpan di sistem Replate.
                 </p>
               </div>
             </div>
 
-            {/* Explanation Box */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-5 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2 text-emerald-950">
-                <strong className="text-sm font-black text-emerald-900 block">
-                  1. Apa Maksud Badge &quot;Verified BPOM&quot;?
-                </strong>
-                <p className="leading-relaxed font-medium">
-                  Badge ini menandakan bahwa dapur dan sarana pengolahan makanan milik outlet Anda telah terbukti memenuhi <strong>Standar Kelayakan Higienitas 8-Poin BPOM RI & WHO</strong>. Makanan surplus yang Anda unggah bukan sisa piring, melainkan overproduction steril yang aman dan bergizi.
-                </p>
-              </div>
+            {/* Provider Section */}
+            {isProvider && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="p-5 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2 text-emerald-950">
+                    <strong className="text-sm font-black text-emerald-900 block">
+                      1. Apa Maksud Badge "Verified BPOM"?
+                    </strong>
+                    <p className="leading-relaxed font-medium">
+                      Badge ini menandakan bahwa dapur dan sarana pengolahan makanan milik outlet Anda telah terbukti memenuhi <strong>Standar Kelayakan Higienitas 8-Poin BPOM RI & WHO</strong>. Makanan surplus yang Anda unggah bukan sisa piring, melainkan overproduction steril yang aman dan bergizi.
+                    </p>
+                  </div>
 
-              <div className="p-5 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2 text-blue-950">
-                <strong className="text-sm font-black text-[#1B3A5C] block">
-                  2. Bagaimana Cara Mendapatkannya?
-                </strong>
-                <p className="leading-relaxed font-medium">
-                  Diperoleh saat menyelesaikan pendaftaran mitra (Onboarding Step 3) dengan melampirkan <strong>Nomor Induk Berusaha (NIB OSS)</strong>, Sertifikasi Laik Higiene Sanitasi Dapur, serta foto dapur pengolahan pangan yang disetujui SuperAdmin Replate.
-                </p>
-              </div>
-            </div>
+                  <div className="p-5 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2 text-blue-950">
+                    <strong className="text-sm font-black text-[#1B3A5C] block">
+                      2. Bagaimana Cara Mendapatkannya?
+                    </strong>
+                    <p className="leading-relaxed font-medium">
+                      Diperoleh saat menyelesaikan pendaftaran mitra (Onboarding Step 3) dengan melampirkan <strong>Nomor Induk Berusaha (NIB OSS)</strong>, Sertifikasi Laik Higiene Sanitasi Dapur, serta foto dapur pengolahan pangan yang disetujui SuperAdmin Replate.
+                    </p>
+                  </div>
+                </div>
 
-            {/* Document Details Table */}
-            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs">
-              <span className="font-extrabold text-[#1B3A5C] block">Data Dokumen Legalitas Aktif Toko Anda:</span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-slate-400 block text-[10px]">Nomor Induk Berusaha (NIB):</span>
-                  <strong className="font-mono text-slate-800 text-xs">{profileData.nib}</strong>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <span className="font-extrabold text-[#1B3A5C] block">Data Dokumen Legalitas Aktif Toko Anda:</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="text-slate-400 block text-[10px]">Nomor Induk Berusaha (NIB):</span>
+                      <strong className="font-mono text-slate-800 text-xs">{profileData.nib}</strong>
+                    </div>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="text-slate-400 block text-[10px]">Sertifikat Halal BPJPH:</span>
+                      <strong className="font-mono text-slate-800 text-xs">{profileData.halalCertNo}</strong>
+                    </div>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="text-slate-400 block text-[10px]">Audit Higiene Sanitasi:</span>
+                      <strong className="text-emerald-700 text-xs">✓ Lolos Audit Grade A</strong>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-slate-400 block text-[10px]">Sertifikat Halal BPJPH:</span>
-                  <strong className="font-mono text-slate-800 text-xs">{profileData.halalCertNo}</strong>
-                </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-slate-400 block text-[10px]">Audit Higiene Sanitasi:</span>
-                  <strong className="text-emerald-700 text-xs">✓ Lolos Audit Grade A</strong>
+              </>
+            )}
+
+            {/* Non-Provider Section (Yayasan / Volunteer) */}
+            {!isProvider && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Doc 1 */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 flex flex-col">
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase block">Dokumen Utama</span>
+                    <strong className="text-sm font-black text-[#1B3A5C] block min-h-[40px]">
+                      {isBeneficiary ? 'Akta Pendirian Yayasan / Panti' : 'Surat Keterangan Komunitas'}
+                    </strong>
+                    <div className="space-y-2 mt-auto">
+                      <div 
+                        className="w-full h-32 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 cursor-pointer hover:opacity-90 relative group"
+                        onClick={() => setLightboxModal({ isOpen: true, title: 'Dokumen Utama', imageUrl: profileDocs.nibDoc || '' })}
+                      >
+                        <img src={profileDocs.nibDoc} alt="Doc 1" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-white font-bold text-xs">👁️ Lihat Preview</span>
+                        </div>
+                      </div>
+                      <label className="block w-full py-2 text-center bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold text-[10px] rounded-lg cursor-pointer transition-colors shadow-xs">
+                        ✏️ Ubah Dokumen
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleUpdateDoc('nibDoc', e.target.files[0]);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Doc 2 */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 flex flex-col">
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase block">Identitas PJ</span>
+                    <strong className="text-sm font-black text-[#1B3A5C] block min-h-[40px]">
+                      KTP Penanggung Jawab / Koordinator
+                    </strong>
+                    <div className="space-y-2 mt-auto">
+                      <div 
+                        className="w-full h-32 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 cursor-pointer hover:opacity-90 relative group"
+                        onClick={() => setLightboxModal({ isOpen: true, title: 'KTP PJ', imageUrl: profileDocs.ktpDoc || '' })}
+                      >
+                        <img src={profileDocs.ktpDoc} alt="Doc 2" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-white font-bold text-xs">👁️ Lihat Preview</span>
+                        </div>
+                      </div>
+                      <label className="block w-full py-2 text-center bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold text-[10px] rounded-lg cursor-pointer transition-colors shadow-xs">
+                        ✏️ Ubah KTP
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleUpdateDoc('ktpDoc', e.target.files[0]);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Doc 3 */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 flex flex-col">
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase block">Foto Fisik</span>
+                    <strong className="text-sm font-black text-[#1B3A5C] block min-h-[40px]">
+                      {isBeneficiary ? 'Plang Yayasan & Anak Asuh' : 'Posko / Basecamp Komunitas'}
+                    </strong>
+                    <div className="space-y-2 mt-auto">
+                      <div 
+                        className="w-full h-32 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 cursor-pointer hover:opacity-90 relative group"
+                        onClick={() => setLightboxModal({ isOpen: true, title: 'Foto Fisik', imageUrl: profileDocs.storePhoto || '' })}
+                      >
+                        <img src={profileDocs.storePhoto} alt="Doc 3" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-white font-bold text-xs">👁️ Lihat Preview</span>
+                        </div>
+                      </div>
+                      <label className="block w-full py-2 text-center bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold text-[10px] rounded-lg cursor-pointer transition-colors shadow-xs">
+                        ✏️ Ubah Foto Fisik
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleUpdateDoc('storePhoto', e.target.files[0]);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </Card>
         </div>
       )}
