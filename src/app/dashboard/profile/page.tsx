@@ -292,6 +292,7 @@ export default function DashboardProfilePage() {
 
   const roleInfo = getRoleBadge(profileData.role);
   const isProvider = String(profileData.role).toUpperCase().includes('PROVIDER');
+  const isVolunteer = String(profileData.role).toUpperCase().includes('VOLUNTEER') || String(profileData.role).toUpperCase().includes('RESCUE');
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
@@ -327,31 +328,31 @@ export default function DashboardProfilePage() {
         </button>
 
         {isProvider && (
-          <>
-            <button
-              type="button"
-              onClick={() => setActiveTab('OUTLET')}
-              className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
-                activeTab === 'OUTLET'
-                  ? 'bg-[#1B3A5C] text-white shadow-md'
-                  : 'text-slate-700 hover:text-slate-900 font-bold'
-              }`}
-            >
-              🏬 Operasional Toko, Radius & QRIS
-            </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('OUTLET')}
+            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+              activeTab === 'OUTLET'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-900 font-bold'
+            }`}
+          >
+            🏬 Operasional Toko, Radius & QRIS
+          </button>
+        )}
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('FLEET')}
-              className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
-                activeTab === 'FLEET'
-                  ? 'bg-[#1B3A5C] text-white shadow-md'
-                  : 'text-slate-700 hover:text-slate-900 font-bold'
-              }`}
-            >
-              🚚 Armada Driver Toko ({fleetList.length})
-            </button>
-          </>
+        {(isProvider || isVolunteer) && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('FLEET')}
+            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+              activeTab === 'FLEET'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-900 font-bold'
+            }`}
+          >
+            {`🚚 Armada Driver ${isProvider ? 'Toko' : 'Relawan'} (${fleetList.length})`}
+          </button>
         )}
 
         <button
@@ -1078,16 +1079,16 @@ export default function DashboardProfilePage() {
         </div>
       )}
 
-      {/* TAB 3: ARMADA DRIVER TOKO (MULTI-FLEET & VERIFIKASI DOKUMEN DRIVER) */}
-      {activeTab === 'FLEET' && isProvider && (
+      {/* TAB 3: ARMADA DRIVER (MULTI-FLEET & VERIFIKASI DOKUMEN DRIVER) */}
+      {activeTab === 'FLEET' && (isProvider || isVolunteer) && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <div>
               <h3 className="font-black text-lg text-[#1B3A5C]">
-                🚚 Manajemen Armada Driver Internal Outlet Anda
+                {`🚚 Manajemen Armada Driver ${isProvider ? 'Internal Outlet Anda' : 'Relawan Komunitas Anda'}`}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Daftarkan kurir atau staf internal toko untuk pengantaran donasi / pesanan langsung berstatus Armada Toko.
+                {isProvider ? 'Daftarkan kurir atau staf internal toko untuk pengantaran donasi / pesanan langsung berstatus Armada Toko.' : 'Daftarkan driver relawan di komunitas Anda untuk misi penyelamatan pangan / donasi surplus.'}
               </p>
             </div>
 
@@ -1097,7 +1098,7 @@ export default function DashboardProfilePage() {
               className="font-black text-slate-950 text-xs shadow-xs"
               onClick={() => setAddDriverModal(true)}
             >
-              + Tambah Driver Toko Baru
+              {`+ Tambah Driver ${isProvider ? 'Toko' : 'Relawan'} Baru`}
             </Button>
           </div>
 

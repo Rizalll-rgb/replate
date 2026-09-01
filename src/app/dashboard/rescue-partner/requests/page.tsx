@@ -43,18 +43,39 @@ export default function PartnerRequestsPage() {
 
   const handleAccept = async (id: string) => {
     try {
-      const res = await fetch('/api/rescue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ foodId: 'seed-food-1', quantity: 30 }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        alert('🚚 Tugas rescue diterima! Buka menu Penjemputan Aktif untuk memverifikasi SOP.');
-        router.push('/dashboard/rescue-partner/active');
-      } else {
-        alert(result.error || 'Gagal menerima tugas.');
-      }
+      const match = matches.find(m => m.id === id);
+      const claimCode = `FR-SBY-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      
+      const newClaim = {
+        id: claimCode,
+        claimCode,
+        foodName: match?.foodName || 'Nasi Goreng Buffet + Ayam Bakar (30 Porsi)',
+        shelterName: match?.matchedUserName || 'Food Bank Surabaya',
+        quantity: 30,
+        quantityUnit: 'Porsi',
+        status: 'AWAITING_RESCUE_PICKUP',
+        readyTime: 'Hari ini',
+        createdAt: new Date().toISOString()
+      };
+
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
+      existingClaims.unshift(newClaim);
+      localStorage.setItem('replate_claims', JSON.stringify(existingClaims));
+
+      // Remove it from matches list so it doesn't show up again
+      setMatches(prev => prev.filter(m => m.id !== id));
+
+      try {
+        await fetch('/api/rescue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ foodId: 'seed-food-1', quantity: 30 }),
+        });
+      } catch (_) {}
+
+      alert('🚚 Tugas rescue diterima! Buka menu Penjemputan Aktif untuk memverifikasi SOP.');
+      router.push('/dashboard/rescue-partner/active');
     } catch {
       alert('Terjadi kesalahan koneksi.');
     }

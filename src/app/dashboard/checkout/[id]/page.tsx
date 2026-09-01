@@ -31,7 +31,7 @@ export default function CheckoutPage() {
   const itemId = params?.id as string;
   const [item, setItem] = useState<FoodItem | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'COURIER_DELIVERY'>('SELF_PICKUP');
+  const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'COURIER_DELIVERY' | 'COMMUNITY_DELIVERY'>('SELF_PICKUP');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
@@ -77,22 +77,68 @@ export default function CheckoutPage() {
             imageUrl: found.imageUrl || found.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
           });
         } else {
-          // Check cart/local storage as fallback just in case it was a mock
-          const cart = JSON.parse(localStorage.getItem('replate_cart') || '[]');
-          const cartItem = cart.find((c: any) => c.id === itemId);
-          if (cartItem) {
+          // Check local storage for directly clicked items
+          const tempCheckoutStr = localStorage.getItem('replate_checkout_item');
+          let tempCheckoutItem = null;
+          try { if (tempCheckoutStr) tempCheckoutItem = JSON.parse(tempCheckoutStr); } catch (e) {}
+
+          if (tempCheckoutItem && tempCheckoutItem.id === itemId) {
             setItem({
-              id: cartItem.id,
-              title: cartItem.foodName || 'Makanan Surplus',
-              providerName: cartItem.providerName || 'Mitra Replate',
-              originalPrice: cartItem.originalPrice || 25000,
-              price: cartItem.price || 0,
-              quantity: `Porsi`,
-              pickupTime: cartItem.pickupTime || 'Hari ini 19:00 WIB',
-              category: 'MAKANAN_BERAT',
-              isFree: cartItem.isFree || false,
-              imageUrl: cartItem.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+              id: tempCheckoutItem.id,
+              title: tempCheckoutItem.title || tempCheckoutItem.foodName || 'Makanan Surplus',
+              providerName: tempCheckoutItem.providerName || 'Mitra Replate',
+              originalPrice: tempCheckoutItem.originalPrice || 25000,
+              price: tempCheckoutItem.discountPrice !== undefined ? tempCheckoutItem.discountPrice : (tempCheckoutItem.price || 0),
+              quantity: tempCheckoutItem.quantity || '1 Porsi',
+              pickupTime: tempCheckoutItem.pickupTime || 'Hari ini',
+              category: tempCheckoutItem.category || 'MAKANAN_BERAT',
+              isFree: tempCheckoutItem.isFree || false,
+              imageUrl: tempCheckoutItem.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
             });
+          } else {
+            // Hardcoded mock fallback for explore pages
+            const defaultFoods = [
+              { id: 'FOD-001', title: 'Nasi Paket Ayam Bakar Madu', providerName: 'Warung Bakso Pak Kumis', originalPrice: 28000, discountPrice: 12000, quantity: '15 Porsi', pickupTime: '19:30 - 21:30 WIB', isFree: false, imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60' },
+              { id: 'FOD-002', title: 'Roti Croissant & Choco Pastry', providerName: 'Rotiboy Bakery Surabaya', originalPrice: 18000, discountPrice: 6000, quantity: '25 Porsi', pickupTime: '20:00 - 22:00 WIB', isFree: false, imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60' },
+              { id: 'FOD-003', title: 'Prasmanan Nasi Goreng & Ayam Goreng', providerName: 'Hotel Majapahit Surabaya', originalPrice: 45000, discountPrice: 0, quantity: '30 Porsi', pickupTime: '20:30 - 22:00 WIB', isFree: true, imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=60' },
+              { id: 'FOD-004', title: 'Sop Buntut & Daging Kuah Steril', providerName: 'Dapur Katering Bu Rudy', originalPrice: 35000, discountPrice: 15000, quantity: '12 Porsi', pickupTime: '19:00 - 21:00 WIB', isFree: false, imageUrl: 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=500&auto=format&fit=crop&q=60' },
+              { id: 'FOD-005', title: 'Paket Roti Tawar Gandum & Donat Susu', providerName: 'Bakery Plaza Surabaya', originalPrice: 22000, discountPrice: 0, quantity: '20 Porsi', pickupTime: '20:30 - 21:45 WIB', isFree: true, imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60' },
+              { id: 'smart-cns-1', title: 'Nasi Paket Ayam Bakar Specialty', providerName: 'Warung Bakso Pak Kumis', originalPrice: 25000, discountPrice: 10000, quantity: '1 Porsi', pickupTime: '19:00 - 21:30 WIB', isFree: false, imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60' },
+              { id: 'smart-cns-2', title: 'Roti Croissant & Pastry Steril', providerName: 'Rotiboy Bakery Surabaya', originalPrice: 18000, discountPrice: 6000, quantity: '1 Porsi', pickupTime: '20:00 - 22:00 WIB', isFree: false, imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60' }
+            ];
+            const mockItem = defaultFoods.find(f => f.id === itemId);
+            if (mockItem) {
+              setItem({
+                id: mockItem.id,
+                title: mockItem.title,
+                providerName: mockItem.providerName,
+                originalPrice: mockItem.originalPrice,
+                price: mockItem.discountPrice,
+                quantity: mockItem.quantity,
+                pickupTime: mockItem.pickupTime,
+                category: 'MAKANAN_BERAT',
+                isFree: mockItem.isFree,
+                imageUrl: mockItem.imageUrl,
+              });
+            } else {
+              // Check cart/local storage as fallback
+              const cart = JSON.parse(localStorage.getItem('replate_cart') || '[]');
+              const cartItem = cart.find((c: any) => c.id === itemId);
+              if (cartItem) {
+                setItem({
+                  id: cartItem.id,
+                  title: cartItem.foodName || 'Makanan Surplus',
+                  providerName: cartItem.providerName || 'Mitra Replate',
+                  originalPrice: cartItem.originalPrice || 25000,
+                  price: cartItem.price || 0,
+                  quantity: `Porsi`,
+                  pickupTime: cartItem.pickupTime || 'Hari ini 19:00 WIB',
+                  category: 'MAKANAN_BERAT',
+                  isFree: cartItem.isFree || false,
+                  imageUrl: cartItem.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+                });
+              }
+            }
           }
         }
         setIsLoaded(true);
@@ -104,6 +150,10 @@ export default function CheckoutPage() {
 
   const handleCheckout = () => {
     if (!item) return;
+    if (deliveryMethod === 'COMMUNITY_DELIVERY' && quantity < 20) {
+      setToastState({ isOpen: true, message: 'Diantar komunitas memerlukan minimal 20 porsi.', type: 'error' });
+      return;
+    }
     setIsCheckingOut(true);
 
     setTimeout(() => {
@@ -165,6 +215,7 @@ export default function CheckoutPage() {
     );
   }
 
+  const maxStock = parseInt(String(item.quantity).replace(/\D/g, '')) || 5;
   const subtotal = item.isFree ? 0 : item.price * quantity;
   const deliveryFee = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0;
   const totalAmount = subtotal + deliveryFee;
@@ -253,13 +304,20 @@ export default function CheckoutPage() {
                     </button>
                     <span className="font-bold text-xs w-6 text-center text-[#1B3A5C]">{quantity}</span>
                     <button 
-                      onClick={() => setQuantity(q => q + 1)}
+                      onClick={() => setQuantity(q => Math.min(maxStock, q + 1))}
+                      disabled={quantity >= maxStock}
                       className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 transition-colors"
+                      title={`Maksimal stok: ${maxStock}`}
                     >
                       +
                     </button>
                   </div>
                 </div>
+                {quantity >= maxStock && (
+                  <div className="text-[10px] text-red-500 font-bold text-right mt-1">
+                    Stok maksimum ({maxStock}) tercapai
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -273,12 +331,12 @@ export default function CheckoutPage() {
             >
               <div>
                 <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                  {deliveryMethod === 'SELF_PICKUP' ? '🏬 Ambil Mandiri (Self-Pickup)' : '🛵 Diantar Kurir'}
+                  {deliveryMethod === 'SELF_PICKUP' ? '🏬 Ambil Mandiri (Self-Pickup)' : deliveryMethod === 'COURIER_DELIVERY' ? '🛵 Diantar Driver Provider' : '🤝 Diantar Komunitas'}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   {deliveryMethod === 'SELF_PICKUP' 
                     ? 'Bebas ongkir (Rp 0). Ambil di gerai.' 
-                    : 'Oleh armada relawan Replate. (+Rp 5.000)'}
+                    : deliveryMethod === 'COURIER_DELIVERY' ? 'Oleh driver provider. (+Rp 5.000)' : 'Diverifikasi komunitas. Min. 20 porsi.'}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -295,28 +353,30 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-sm text-sm">
-            <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider">Metode Pembayaran</h4>
-            <div 
-              className="flex items-center justify-between cursor-pointer group"
-              onClick={() => setIsPaymentModalOpen(true)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
-                  $
-                </div>
-                <div>
-                  <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                    {paymentMethod === 'QRIS' ? 'QRIS' : `Transfer Bank ${paymentMethod}`}
+          {totalAmount > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-sm text-sm">
+              <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider">Metode Pembayaran</h4>
+              <div 
+                className="flex items-center justify-between cursor-pointer group"
+                onClick={() => setIsPaymentModalOpen(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                    $
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    {paymentMethod === 'QRIS' ? 'Scan dari aplikasi apa saja' : 'Virtual Account otomatis dicek'}
+                  <div>
+                    <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
+                      {paymentMethod === 'QRIS' ? 'QRIS' : 'Bayar di Tempat (COD)'}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {paymentMethod === 'QRIS' ? 'Scan dari aplikasi apa saja' : 'Bayar tunai saat pesanan tiba'}
+                    </div>
                   </div>
                 </div>
+                <span className="text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
               </div>
-              <span className="text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
             </div>
-          </div>
+          )}
         </div>
         
         <div className="lg:col-span-1 space-y-4">
@@ -353,7 +413,7 @@ export default function CheckoutPage() {
               onClick={handleCheckout}
               disabled={isCheckingOut}
             >
-              {isCheckingOut ? 'Memproses...' : 'Selesaikan & Lanjut Bayar ➔'}
+              {isCheckingOut ? 'Memproses...' : (totalAmount > 0 ? 'Selesaikan & Lanjut Bayar ➔' : 'Selesaikan Pesanan ➔')}
             </Button>
           </div>
         </div>
@@ -412,11 +472,44 @@ export default function CheckoutPage() {
               />
               <div className="space-y-1 w-full">
                 <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">🛵 Diantar Kurir</span>
+                  <span className="font-extrabold text-slate-900 text-sm">🛵 Diantar Driver Provider</span>
                   <span className="font-bold text-slate-900 text-sm">Rp 5.000</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Pesanan akan diantarkan oleh kurir komunitas relawan Replate.
+                  Pesanan akan diantarkan oleh driver dari pihak penyedia (provider).
+                </p>
+              </div>
+            </label>
+
+            <label
+              className={`p-4 rounded-2xl border-2 flex items-start gap-4 cursor-pointer transition-all ${
+                deliveryMethod === 'COMMUNITY_DELIVERY'
+                  ? 'bg-amber-50/50 border-[#D4A843] shadow-sm'
+                  : quantity < 20
+                  ? 'bg-slate-50 border-slate-200 opacity-50'
+                  : 'bg-white border-slate-200 hover:border-amber-200'
+              }`}
+            >
+              <input
+                type="radio"
+                name="deliveryMethodModal"
+                checked={deliveryMethod === 'COMMUNITY_DELIVERY'}
+                disabled={quantity < 20}
+                onChange={() => {
+                  if (quantity >= 20) {
+                    setDeliveryMethod('COMMUNITY_DELIVERY');
+                    setIsDeliveryModalOpen(false);
+                  }
+                }}
+                className="mt-0.5 w-4 h-4 text-[#1B3A5C]"
+              />
+              <div className="space-y-1 w-full">
+                <div className="flex justify-between w-full">
+                  <span className="font-extrabold text-slate-900 text-sm">🤝 Diantar Komunitas {quantity < 20 && <span className="text-red-500 text-[10px] ml-1">(Min. 20 porsi)</span>}</span>
+                  <span className="font-bold text-slate-900 text-sm">Rp 0</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Harus diverifikasi oleh komunitas terlebih dahulu apakah bersedia mengantar. Minimal jumlah orderan 20 porsi.
                 </p>
               </div>
             </label>
@@ -429,7 +522,7 @@ export default function CheckoutPage() {
           <h3 className="font-black text-lg text-slate-800 border-b border-slate-100 pb-3">Pilih Metode Pembayaran</h3>
           
           <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-            {['QRIS', 'BCA', 'MANDIRI', 'BNI', 'BRI'].map((method) => (
+            {['QRIS', 'COD'].map((method) => (
               <label
                 key={method}
                 className={`p-4 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all ${
@@ -450,10 +543,10 @@ export default function CheckoutPage() {
                 />
                 <div className="flex-1">
                   <span className="font-extrabold text-slate-900 text-sm">
-                    {method === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : `Transfer Bank ${method}`}
+                    {method === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : 'Bayar di Tempat (COD)'}
                   </span>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {method === 'QRIS' ? 'Otomatis dicek. Gratis biaya admin.' : 'Virtual Account. Dicek otomatis.'}
+                    {method === 'QRIS' ? 'Otomatis dicek. Gratis biaya admin.' : 'Bayar tunai saat pesanan tiba.'}
                   </p>
                 </div>
                 {method === 'QRIS' && (
