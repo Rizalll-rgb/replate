@@ -36,55 +36,14 @@ interface FoodItem {
   status?: string;
 }
 
-interface PantiNeed {
-  id: string;
-  pantiName: string;
-  shelterType: string;
-  requestedItem: string;
-  foodCategoryNeeded: string;
-  targetQuantity: string;
-  fulfilledQuantity: string;
-  beneficiariesCount: number;
-  urgency: 'HIGH' | 'MEDIUM';
-  location: string;
-  address: string;
-  contactPerson: string;
-  contactPhone: string;
-  deadline: string;
-  imageUrl: string;
-  legalStatus: string;
-  legalPermit: string;
-  notes: string;
-  preferredDelivery: 'RESCUE_COURIER' | 'PROVIDER_DIRECT' | 'SHELTER_PICKUP';
-  lat: number;
-  lng: number;
-}
-
 export default function WorkspaceExplorePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS'>('RESCUE_SALE');
+  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION'>('RESCUE_SALE');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterPantiLocation, setFilterPantiLocation] = useState<string>('ALL');
-  const [filterPantiUrgency, setFilterPantiUrgency] = useState<string>('ALL');
 
   const [selectedFoodForModal, setSelectedFoodForModal] = useState<any | null>(null);
-  const [selectedShelterProfile, setSelectedShelterProfile] = useState<PantiNeed | null>(null);
-
-  const [fulfillModal, setFulfillModal] = useState<{
-    isOpen: boolean;
-    need: PantiNeed | null;
-    portions: string;
-    deliveryMethod: string;
-    hygieneChecked: boolean;
-  }>({
-    isOpen: false,
-    need: null,
-    portions: '25',
-    deliveryMethod: 'RESCUE_COURIER',
-    hygieneChecked: true,
-  });
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -203,77 +162,6 @@ export default function WorkspaceExplorePage() {
   }, []);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
-  const [pantiNeeds, setPantiNeeds] = useState<PantiNeed[]>([
-    {
-      id: 'REQ-DON-001',
-      pantiName: 'Panti Asuhan Kasih Ibu Surabaya',
-      shelterType: 'Panti Asuhan Anak Yatim',
-      requestedItem: 'Nasi Kotak / Paket Lauk Pauk Bergizi',
-      foodCategoryNeeded: 'Makanan Olahan (Meals)',
-      targetQuantity: '50 Porsi',
-      fulfilledQuantity: '30 Porsi',
-      beneficiariesCount: 45,
-      urgency: 'HIGH',
-      location: 'Surabaya Timur (Gubeng)',
-      address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
-      contactPerson: 'Ibu Hajjah Maryam',
-      contactPhone: '081298765432',
-      deadline: 'Hari ini sebelum 20:00 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60',
-      legalStatus: 'Terverifikasi Dinsos Jatim',
-      legalPermit: 'DINSOS-SBY/2023/8912',
-      notes: 'Membutuhkan 40-50 porsi nasi lauk pauk bergizi untuk makan malam anak-anak panti.',
-      preferredDelivery: 'RESCUE_COURIER',
-      lat: -7.2754,
-      lng: 112.7541,
-    },
-    {
-      id: 'REQ-DON-002',
-      pantiName: 'Panti Werdha Lansia Sejahtera',
-      shelterType: 'Panti Werdha (Lansia)',
-      requestedItem: 'Roti Gandum, Susu Steril & Buah Potong',
-      foodCategoryNeeded: 'Roti, Buah & Susu (Bakery & Dairy)',
-      targetQuantity: '35 Porsi',
-      fulfilledQuantity: '15 Porsi',
-      beneficiariesCount: 30,
-      urgency: 'MEDIUM',
-      location: 'Surabaya Selatan (Wonokromo)',
-      address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
-      contactPerson: 'Bapak Hartono',
-      contactPhone: '081345678901',
-      deadline: 'Besok pagi 08:30 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=600&auto=format&fit=crop&q=60',
-      legalStatus: 'Terverifikasi Kemenkumham',
-      legalPermit: 'DINSOS-SBY/2022/4102',
-      notes: 'Membutuhkan roti tekstur lembut, buah potong segar, atau susu UHT untuk lansia.',
-      preferredDelivery: 'SHELTER_PICKUP',
-      lat: -7.3012,
-      lng: 112.7389,
-    },
-    {
-      id: 'REQ-DON-003',
-      pantiName: 'Shelter Dhuafa & Anak Jalanan Mandiri',
-      shelterType: 'Shelter & Rumah Singgah',
-      requestedItem: 'Surplus Makanan Katering / Prasmanan Bersih',
-      foodCategoryNeeded: 'Makanan Olahan (Meals)',
-      targetQuantity: '60 Porsi',
-      fulfilledQuantity: '10 Porsi',
-      beneficiariesCount: 25,
-      urgency: 'HIGH',
-      location: 'Surabaya Pusat (Genteng)',
-      address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
-      contactPerson: 'Mas Dedi Relawan',
-      contactPhone: '081567890123',
-      deadline: 'Hari ini sebelum 21:30 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&auto=format&fit=crop&q=60',
-      legalStatus: 'Terverifikasi Pemkot Surabaya',
-      legalPermit: 'DINSOS-SBY/2024/1109',
-      notes: 'Membutuhkan porsi makanan surplus siap santap untuk pembagian malam relawan.',
-      preferredDelivery: 'PROVIDER_DIRECT',
-      lat: -7.2623,
-      lng: 112.7391,
-    },
-  ]);
 
   const defaultFoods: FoodItem[] = [
     {
@@ -415,14 +303,6 @@ export default function WorkspaceExplorePage() {
     return true;
   });
 
-  const filteredPantiNeeds = useMemo(() => {
-    return pantiNeeds.filter((need) => {
-      const matchLoc = filterPantiLocation === 'ALL' || need.location.includes(filterPantiLocation);
-      const matchUrg = filterPantiUrgency === 'ALL' || need.urgency === filterPantiUrgency;
-      return matchLoc && matchUrg;
-    });
-  }, [pantiNeeds, filterPantiLocation, filterPantiUrgency]);
-
   const handleClaimFood = (item: FoodItem) => {
     try {
       const existingCart = JSON.parse(localStorage.getItem('replate_cart') || '[]');
@@ -457,33 +337,8 @@ export default function WorkspaceExplorePage() {
   };
 
   const handleBuyNow = (item: FoodItem) => {
+    localStorage.setItem('replate_checkout_item', JSON.stringify(item));
     router.push(`/dashboard/checkout/${item.id}`);
-  };
-
-  const handleConfirmFulfill = () => {
-    if (!fulfillModal.need) return;
-    const portionsNum = parseInt(fulfillModal.portions) || 0;
-    if (portionsNum <= 0) return;
-
-    setPantiNeeds((prev) =>
-      prev.map((n) => {
-        if (n.id === fulfillModal.need?.id) {
-          const currentFulfilled = parseInt(n.fulfilledQuantity.replace(/\D/g, '')) || 0;
-          return {
-            ...n,
-            fulfilledQuantity: `${currentFulfilled + portionsNum} Porsi`,
-          };
-        }
-        return n;
-      })
-    );
-
-    setFulfillModal({ isOpen: false, need: null, portions: '25', deliveryMethod: 'RESCUE_COURIER', hygieneChecked: true });
-    setToastState({
-      isOpen: true,
-      message: `Terima kasih! Anda berhasil menyanggupi donasi ${portionsNum} porsi untuk ${fulfillModal.need.pantiName}.`,
-      type: 'success',
-    });
   };
 
   const handleOpenFoodDetail = (item: FoodItem) => {
@@ -683,22 +538,10 @@ export default function WorkspaceExplorePage() {
           <span>Donasi Pangan (Rp 0)</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('PANTI_NEEDS')}
-          className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            activeTab === 'PANTI_NEEDS'
-              ? 'bg-[#1B3A5C] text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-950 font-bold'
-          }`}
-        >
-          <span>Permintaan Panti ({pantiNeeds.length})</span>
-        </button>
       </div>
 
-      {/* Food Grid / Panti Grid Content */}
-      {activeTab !== 'PANTI_NEEDS' ? (
-        <div className="space-y-6">
+      {/* Food Grid Content */}
+      <div className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <input
@@ -754,65 +597,6 @@ export default function WorkspaceExplorePage() {
             ))}
           </div>
         </div>
-      ) : (
-        /* Tab Permintaan Panti */
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPantiNeeds.map((need) => (
-              <div
-                key={need.id}
-                className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between"
-              >
-                <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                  <img src={need.imageUrl} alt={need.pantiName} className="w-full h-full object-cover" />
-                  <div className="absolute top-3 left-3 flex gap-1.5">
-                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-red-500 text-white">
-                      {need.urgency === 'HIGH' ? 'URGENT HARI INI' : 'MEMBUTUHKAN'}
-                    </span>
-                    <span className="text-[10px] bg-slate-950/80 text-emerald-300 font-bold px-2 py-1 rounded-lg">
-                      ✓ {need.legalStatus}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-mono font-bold text-slate-400 block">{need.id}</span>
-                    <h4 className="font-black text-base text-[#1B3A5C]">{need.pantiName}</h4>
-                    <p className="text-xs font-bold text-emerald-800">{need.requestedItem}</p>
-                    <p className="text-[11px] text-slate-500">Penerima: {need.beneficiariesCount} Jiwa • {need.location}</p>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedShelterProfile(need)}
-                      className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <span>Lihat Profil Detail & Titik Peta GPS ➔</span>
-                    </button>
-                  </div>
-
-                  <Button
-                    variant="gold"
-                    size="sm"
-                    onClick={() =>
-                      setFulfillModal({
-                        isOpen: true,
-                        need,
-                        portions: '25',
-                        deliveryMethod: need.preferredDelivery,
-                        hygieneChecked: true,
-                      })
-                    }
-                    className="w-full font-black text-xs text-slate-950 py-2.5 shadow-xs"
-                  >
-                    Sanggupi Bantuan Panti ➔
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Food Detail Modal */}
       {selectedFoodForModal && (
@@ -831,123 +615,7 @@ export default function WorkspaceExplorePage() {
         />
       )}
 
-      {/* Modal Detail Profil Lembaga & Titik Lokasi Peta GPS */}
-      <Modal
-        isOpen={!!selectedShelterProfile}
-        onClose={() => setSelectedShelterProfile(null)}
-        title={selectedShelterProfile ? `Profil Lembaga & Lokasi: ${selectedShelterProfile.pantiName}` : 'Profil Lembaga'}
-        size="lg"
-      >
-        {selectedShelterProfile && (
-          <div className="space-y-4 text-xs">
-            <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-300 shadow-xs">
-              <img
-                src={selectedShelterProfile.imageUrl}
-                alt={selectedShelterProfile.pantiName}
-                className="w-full h-full object-cover opacity-90"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent flex items-end p-4 text-white">
-                <div>
-                  <Badge variant="gold" size="sm" className="mb-1">
-                    {selectedShelterProfile.shelterType}
-                  </Badge>
-                  <h3 className="text-xl font-black text-white">{selectedShelterProfile.pantiName}</h3>
-                  <p className="text-xs text-slate-200">{selectedShelterProfile.address}</p>
-                </div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div>
-                <span className="text-slate-500 font-semibold block">Pengurus / Perwakilan:</span>
-                <span className="font-extrabold text-[#1B3A5C]">{selectedShelterProfile.contactPerson}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-semibold block">Kontak WhatsApp:</span>
-                <span className="font-bold text-slate-800">{selectedShelterProfile.contactPhone}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-semibold block">Kapasitas Jiwa Penerima:</span>
-                <span className="font-bold text-slate-800">{selectedShelterProfile.beneficiariesCount} Jiwa</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-semibold block">Identitas Verifikasi Dinsos:</span>
-                <span className="font-mono font-bold text-slate-800">{selectedShelterProfile.legalPermit}</span>
-              </div>
-            </div>
-
-            {/* Embed Google Maps GPS */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS Surabaya</h4>
-                <span className="text-[10px] font-mono font-bold text-slate-500">
-                  GPS: {selectedShelterProfile.lat}, {selectedShelterProfile.lng}
-                </span>
-              </div>
-
-              <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
-                <iframe
-                  title="Shelter Location Map"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  src={`https://maps.google.com/maps?q=${selectedShelterProfile.lat},${selectedShelterProfile.lng}&z=15&output=embed`}
-                  className="w-full h-full filter saturate-150"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>
-                Tutup Profil
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Modal Sanggupi Permintaan Panti */}
-      <Modal
-        isOpen={fulfillModal.isOpen}
-        onClose={() => setFulfillModal({ isOpen: false, need: null, portions: '25', deliveryMethod: 'RESCUE_COURIER', hygieneChecked: true })}
-        title={`Alur Sanggupi Donasi: ${fulfillModal.need?.pantiName || 'Panti Asuhan'}`}
-        size="lg"
-      >
-        {fulfillModal.need && (
-          <div className="space-y-4 text-xs text-slate-700">
-            <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1">
-              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
-                PENERIMA BANTUAN TARGET
-              </span>
-              <h4 className="text-lg font-black text-white">{fulfillModal.need.pantiName}</h4>
-              <p className="text-xs text-slate-200">
-                Kebutuhan: <strong>{fulfillModal.need.foodCategoryNeeded}</strong> • Batas Waktu: {fulfillModal.need.deadline}
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="font-extrabold text-slate-800 block">Jumlah Porsi Yang Siap Anda Donasikan:</label>
-              <input
-                type="number"
-                min="1"
-                value={fulfillModal.portions}
-                onChange={(e) => setFulfillModal({ ...fulfillModal, portions: e.target.value })}
-                className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-sm text-[#1B3A5C]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
-              <Button variant="outline" size="sm" onClick={() => setFulfillModal({ isOpen: false, need: null, portions: '25', deliveryMethod: 'RESCUE_COURIER', hygieneChecked: true })}>
-                Batal
-              </Button>
-              <Button variant="gold" size="sm" onClick={handleConfirmFulfill} className="font-black text-slate-950 shadow-md">
-                Konfirmasi & Selesaikan Donasi ➔
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* Toast */}
       <Toast

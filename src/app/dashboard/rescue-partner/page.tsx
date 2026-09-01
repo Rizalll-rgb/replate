@@ -38,9 +38,9 @@ export default function PartnerOverviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/dashboard/rescue-partner/settings">
+          <Link href="/dashboard/profile">
             <Button variant="outline" size="md" className="font-extrabold text-xs">
-              Kelola Driver Relawan
+              Profil & Kelola Driver
             </Button>
           </Link>
           <Link href="/dashboard/rescue-partner/requests">

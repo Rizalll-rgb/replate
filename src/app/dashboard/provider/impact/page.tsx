@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ImpactDashboard } from '@/components/impact/ImpactDashboard';
 import { ImpactChart } from '@/components/impact/ImpactChart';
@@ -10,7 +10,7 @@ import { formatCertificateData } from '@/lib/pdf';
 import { FOOD_WASTE_CO2_FACTOR } from '@/lib/impact';
 import { useSession } from 'next-auth/react';
 
-export default function ProviderImpactPage() {
+function ProviderImpactContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   
@@ -171,5 +171,13 @@ export default function ProviderImpactPage() {
       {/* Tab 3: Isolated Certificate */}
       {activeTab === 'CERTIFICATE' && <CertificatePreview data={certData} />}
     </div>
+  );
+}
+
+export default function ProviderImpactPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500 font-bold">Memuat Laporan Dampak...</div>}>
+      <ProviderImpactContent />
+    </Suspense>
   );
 }
