@@ -109,7 +109,7 @@ export default function YayasanDashboardPage() {
             <CardBody className="p-0 space-y-0.5 sm:space-y-1">
               <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 block truncate">{item.label}</span>
               <strong className="text-base sm:text-xl font-black text-[#1B3A5C] font-mono block">{item.value}</strong>
-              <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold block flex items-center gap-1">
+              <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold flex items-center gap-1">
                 <CheckIcon size={10} className="text-emerald-600" />
                 Dinsos
               </span>
