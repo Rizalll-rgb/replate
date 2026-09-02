@@ -231,13 +231,18 @@ export default function CheckoutCartPage() {
               onClick={() => setIsDeliveryModalOpen(true)}
             >
               <div>
-                <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                  {deliveryMethod === 'SELF_PICKUP' ? '🏬 Ambil Mandiri (Self-Pickup)' : '🛵 Diantar Kurir'}
+                <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors flex items-center gap-1.5">
+                  <span>{deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Kurir Relawan Replate'}</span>
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   {deliveryMethod === 'SELF_PICKUP' 
-                    ? 'Bebas ongkir (Rp 0). Ambil di gerai.' 
-                    : 'Oleh armada relawan Replate. (+Rp 5.000)'}
+                    ? 'Bebas ongkir (Rp 0). Ambil langsung di gerai penyedia makanan.' 
+                    : 'Pengantaran aman oleh armada relawan logistik Replate. (+Rp 5.000)'}
+                </div>
+                <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 mt-2 inline-block">
+                  {deliveryMethod === 'SELF_PICKUP'
+                    ? `Jadwal Pengambilan di Toko: ${items[0]?.pickupTime || 'Hari ini 20:30 WIB'}`
+                    : `Estimasi Pengantaran Tiba di Lokasi: ${items[0]?.pickupTime || 'Hari ini 20:30 WIB'}`}
                 </div>
               </div>
               <div className="flex items-center gap-3">

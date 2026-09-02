@@ -7,6 +7,7 @@ import { Toast } from '@/components/ui/Toast';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { ClockIcon, MapPinIcon } from '@/components/ui/Icon';
 
 interface CartItem {
   id: string;
@@ -21,6 +22,7 @@ interface CartItem {
   imageUrl?: string;
   pickupTime?: string;
   isFree?: boolean;
+  deliveryMethod?: string;
 }
 
 export default function CartPage() {
@@ -284,7 +286,8 @@ export default function CartPage() {
                             onChange={() => toggleProviderSelection(providerName)}
                           />
                           <span className="font-black text-slate-800 flex items-center gap-2">
-                            🏪 {providerName}
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>{providerName}</span>
                           </span>
                         </label>
                       </div>
@@ -319,8 +322,17 @@ export default function CartPage() {
                                 <div className="flex justify-between items-start gap-2">
                                   <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">{item.foodName}</h3>
                                 </div>
-                                <p className="text-[11px] text-amber-600 font-bold inline-flex items-center gap-1 mt-1 bg-amber-50 px-2 py-0.5 rounded-md">
-                                  ⏰ Ambil: {item.pickupTime}
+                                <p className="text-[11px] text-amber-800 font-bold inline-flex items-center gap-1.5 mt-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                  <ClockIcon size={12} className="text-amber-600 shrink-0" />
+                                  <span>
+                                    {isBeneficiary ? (
+                                      item.deliveryMethod === 'COURIER_DELIVERY' || item.deliveryMethod === 'RESCUE_PARTNER'
+                                        ? `Estimasi Diantar: ${item.pickupTime || 'Hari ini 20:30 WIB'}`
+                                        : `Jam Ambil di Toko: ${item.pickupTime || 'Hari ini 20:30 WIB'}`
+                                    ) : (
+                                      `Waktu Ambil: ${item.pickupTime || 'Hari ini 20:30 WIB'}`
+                                    )}
+                                  </span>
                                 </p>
                               </div>
                               

@@ -1039,7 +1039,7 @@ export default function WorkspaceExplorePage() {
               </span>
               <button
                 type="button"
-                onClick={() => router.push('/dashboard/yayasan/claims')}
+                onClick={() => router.push('/dashboard/yayasan/claims?openRequest=true')}
                 className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer shrink-0"
               >
                 + Ajukan Permintaan Pangan

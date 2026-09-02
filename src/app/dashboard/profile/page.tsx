@@ -1439,8 +1439,12 @@ export default function DashboardProfilePage() {
     status: 'VERIFIED',
   });
 
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+
   useEffect(() => {
     try {
+      const savedAvatar = localStorage.getItem('replate_user_avatar');
+      if (savedAvatar) setProfileAvatar(savedAvatar);
       if (session?.user) {
         setProfileData((prev) => ({
           ...prev,
@@ -1702,10 +1706,92 @@ export default function DashboardProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-6">
             <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs text-center space-y-4">
-              <Avatar name={profileData.name} size="xl" className="mx-auto border-4 border-[#1B3A5C]" />
+              <div className="relative inline-block mx-auto">
+                {profileAvatar ? (
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#1B3A5C] mx-auto shadow-md">
+                    <img src={profileAvatar} alt={profileData.name} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <Avatar name={profileData.name} size="xl" className="mx-auto border-4 border-[#1B3A5C]" />
+                )}
+                <label className="absolute bottom-0 right-0 p-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white rounded-full cursor-pointer shadow-md transition-colors">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const base64 = reader.result as string;
+                          setProfileAvatar(base64);
+                          localStorage.setItem('replate_user_avatar', base64);
+                          setToastState({
+                            isOpen: true,
+                            message: 'Foto profil berhasil diperbarui!',
+                            type: 'success',
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
               <div>
                 <h3 className="font-extrabold text-base text-[#1B3A5C]">{profileData.name}</h3>
                 <p className="text-xs text-slate-500 font-mono">{profileData.email}</p>
+              </div>
+
+              <div className="flex items-center justify-center gap-2">
+                <label className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs transition-colors inline-block">
+                  Upload Foto Profil
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const base64 = reader.result as string;
+                          setProfileAvatar(base64);
+                          localStorage.setItem('replate_user_avatar', base64);
+                          setToastState({
+                            isOpen: true,
+                            message: 'Foto profil berhasil diperbarui!',
+                            type: 'success',
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+                {profileAvatar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileAvatar(null);
+                      localStorage.removeItem('replate_user_avatar');
+                      setToastState({
+                        isOpen: true,
+                        message: 'Foto profil dikembalikan ke inisial.',
+                        type: 'success',
+                      });
+                    }}
+                    className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                  >
+                    Hapus
+                  </button>
+                )}
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-left space-y-2 text-xs">
