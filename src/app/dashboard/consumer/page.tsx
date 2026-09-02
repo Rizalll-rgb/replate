@@ -7,14 +7,22 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function ConsumerBrowsePage() {
   const router = useRouter();
 
+  const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({
+    isOpen: false,
+    message: '',
+    submessage: '',
+  });
+
   const handleQuickClaim = (item: any) => {
-    router.push(`/dashboard/checkout/${item.id}`);
+    setActionLoader({ isOpen: true, message: 'Mempersiapkan Checkout...', submessage: `Mengalokasikan "${item.title || item.foodName}"` });
+    setTimeout(() => router.push(`/dashboard/checkout/${item.id}`), 600);
   };
 
   const [foods, setFoods] = useState<any[]>([]);
@@ -206,6 +214,11 @@ export default function ConsumerBrowsePage() {
 
   return (
     <div className="space-y-5 sm:space-y-8 max-w-6xl mx-auto pb-12">
+      <SuperAppLoader
+        isOpen={actionLoader.isOpen}
+        message={actionLoader.message}
+        submessage={actionLoader.submessage}
+      />
       {/* Sleek Modern Header Card (Seragam Antar Modul & Role) */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">

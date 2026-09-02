@@ -10,6 +10,7 @@ import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
 
 interface FleetVehicle {
@@ -1427,6 +1428,16 @@ export default function DashboardProfilePage() {
     type: 'success' as 'success' | 'error',
   });
 
+  const [actionLoader, setActionLoader] = useState<{
+    isOpen: boolean;
+    message: string;
+    submessage?: string;
+  }>({
+    isOpen: false,
+    message: '',
+    submessage: '',
+  });
+
   const [profileDocs, setProfileDocs] = useState<{
     nibDoc?: string;
     ktpDoc?: string;
@@ -1486,58 +1497,78 @@ export default function DashboardProfilePage() {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const existing = JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}');
-      const updated = {
-        ...existing,
-        name: profileData.name,
-        entityName: profileData.entityName,
-        phone: profileData.phone,
-        address: profileData.address,
-        pickupHours: profileData.pickupHours,
-        maxRadiusKm: profileData.maxRadiusKm,
-        defaultPackaging: profileData.defaultPackaging,
-        qrisBank: profileData.qrisBank,
-        qrisAccountNo: profileData.qrisAccountNo,
-      };
-      localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
-      setToastState({
-        isOpen: true,
-        message: 'Seluruh konfigurasi profil, operasional outlet, dan rekening berhasil disimpan!',
-        type: 'success',
-      });
-    } catch (_) {
-      setToastState({
-        isOpen: true,
-        message: 'Gagal menyimpan profil.',
-        type: 'error',
-      });
-    }
+    setActionLoader({
+      isOpen: true,
+      message: 'Menyimpan Profil & Konfigurasi...',
+      submessage: 'Menyinkronkan data profil outlet dan rekening',
+    });
+
+    setTimeout(() => {
+      try {
+        const existing = JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}');
+        const updated = {
+          ...existing,
+          name: profileData.name,
+          entityName: profileData.entityName,
+          phone: profileData.phone,
+          address: profileData.address,
+          pickupHours: profileData.pickupHours,
+          maxRadiusKm: profileData.maxRadiusKm,
+          defaultPackaging: profileData.defaultPackaging,
+          qrisBank: profileData.qrisBank,
+          qrisAccountNo: profileData.qrisAccountNo,
+        };
+        localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
+        setActionLoader({ isOpen: false, message: '' });
+        setToastState({
+          isOpen: true,
+          message: 'Seluruh konfigurasi profil, operasional outlet, dan rekening berhasil disimpan!',
+          type: 'success',
+        });
+      } catch (_) {
+        setActionLoader({ isOpen: false, message: '' });
+        setToastState({
+          isOpen: true,
+          message: 'Gagal menyimpan profil.',
+          type: 'error',
+        });
+      }
+    }, 800);
   };
 
   const handleUpdateDoc = (docKey: 'nibDoc' | 'ktpDoc' | 'storePhoto', file: File) => {
-    const url = URL.createObjectURL(file);
-    const updatedDocs = { ...profileDocs, [docKey]: url };
-    setProfileDocs(updatedDocs);
-    
-    try {
-      const savedDocs = localStorage.getItem('replate_onboarding_docs');
-      const parsed = savedDocs ? JSON.parse(savedDocs) : {};
-      const newSaved = { ...parsed, [docKey]: url };
-      localStorage.setItem('replate_onboarding_docs', JSON.stringify(newSaved));
+    setActionLoader({
+      isOpen: true,
+      message: 'Mengunggah Dokumen Legalitas...',
+      submessage: 'Memproses enkripsi dokumen resmi',
+    });
+
+    setTimeout(() => {
+      const url = URL.createObjectURL(file);
+      const updatedDocs = { ...profileDocs, [docKey]: url };
+      setProfileDocs(updatedDocs);
       
-      setToastState({
-        isOpen: true,
-        message: 'Dokumen legalitas berhasil diperbarui!',
-        type: 'success',
-      });
-    } catch (_) {
-      setToastState({
-        isOpen: true,
-        message: 'Gagal memperbarui dokumen.',
-        type: 'error',
-      });
-    }
+      try {
+        const savedDocs = localStorage.getItem('replate_onboarding_docs');
+        const parsed = savedDocs ? JSON.parse(savedDocs) : {};
+        const newSaved = { ...parsed, [docKey]: url };
+        localStorage.setItem('replate_onboarding_docs', JSON.stringify(newSaved));
+        
+        setActionLoader({ isOpen: false, message: '' });
+        setToastState({
+          isOpen: true,
+          message: 'Dokumen legalitas berhasil diperbarui!',
+          type: 'success',
+        });
+      } catch (_) {
+        setActionLoader({ isOpen: false, message: '' });
+        setToastState({
+          isOpen: true,
+          message: 'Gagal memperbarui dokumen.',
+          type: 'error',
+        });
+      }
+    }, 800);
   };
 
   const handleAddDriverSubmit = (e: React.FormEvent) => {
@@ -1629,6 +1660,12 @@ export default function DashboardProfilePage() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
+      <SuperAppLoader
+        isOpen={actionLoader.isOpen}
+        message={actionLoader.message}
+        submessage={actionLoader.submessage}
+      />
+
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
         <div>
@@ -1641,8 +1678,9 @@ export default function DashboardProfilePage() {
           </p>
         </div>
 
-        <span className={`text-xs font-black px-3.5 py-1.5 rounded-full border shadow-xs ${roleInfo.bg}`}>
-          ✓ {roleInfo.label}
+        <span className={`text-xs font-black px-3.5 py-1.5 rounded-full border shadow-xs flex items-center gap-1.5 ${roleInfo.bg}`}>
+          <CheckIcon size={12} />
+          <span>{roleInfo.label}</span>
         </span>
       </div>
 

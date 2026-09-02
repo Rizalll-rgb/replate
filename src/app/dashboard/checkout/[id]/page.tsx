@@ -6,7 +6,31 @@ import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { useSession } from 'next-auth/react';
 import { Modal } from '@/components/ui/Modal';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
+import { QRGenerator } from '@/components/qr/QRGenerator';
 import Image from 'next/image';
+import {
+  MapPinIcon,
+  TruckIcon,
+  CreditCardIcon,
+  CheckIcon,
+  PackageIcon,
+  TicketIcon,
+  ShieldCheckIcon,
+  QrCodeIcon,
+  ClockIcon,
+} from '@/components/ui/Icon';
+
+// Inline ChevronRight (Poin 8: no emoji)
+const ChevronRight = () => (
+  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
+// Poin 6: Standardized resi generator
+const genResiCode = (role: 'YYS' | 'CNS') =>
+  `RPL-${role}-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
 interface FoodItem {
   id: string;
@@ -34,10 +58,20 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState<'SELF_PICKUP' | 'COURIER_DELIVERY' | 'COMMUNITY_DELIVERY'>('SELF_PICKUP');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [isBeneficiaryRole, setIsBeneficiaryRole] = useState(false);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>('QRIS');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  
+
+  // Poin 7: QRIS flow states
+  const [qrisModal, setQrisModal] = useState(false);
+  const [uploadProofModal, setUploadProofModal] = useState<{ isOpen: boolean; resiCode: string; totalAmt: number }>({ isOpen: false, resiCode: '', totalAmt: 0 });
+  const [proofImageName, setProofImageName] = useState('');
+  const [successModal, setSuccessModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
+
+  // Poin 4: SuperAppLoader
+  const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({ isOpen: false, message: '' });
+
   const [address, setAddress] = useState('RT 02 RW 03 Dusun 02 Blok Cibogo Kidul Desa Panonganlor Kecamatan Sedong Kabupaten Cirebon 45189 KAB. CIREBON - SEDONG, JAWA BARAT, ID 45189');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [tempAddress, setTempAddress] = useState(address);
@@ -48,7 +82,39 @@ export default function CheckoutPage() {
     type: 'success',
   });
 
+  // QRIS setup from provider profile (Poin 4)
+  const [providerQris, setProviderQris] = useState<{
+    merchantName: string;
+    bank: string;
+    accountNo: string;
+    nmid: string;
+    imageUrl: string;
+  }>({
+    merchantName: 'Warung Bakso Pak Kumis Surabaya',
+    bank: 'Bank Mandiri / BCA',
+    accountNo: '141-00-9812401-2',
+    nmid: 'ID1020304050607',
+    imageUrl: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=500&auto=format&fit=crop&q=80',
+  });
+
   useEffect(() => {
+    try {
+      const savedPhoto = localStorage.getItem('replate_provider_qris_photo');
+      const savedConfig = localStorage.getItem('replate_provider_qris_config');
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        setProviderQris((prev) => ({
+          merchantName: parsed.merchantName || prev.merchantName,
+          bank: parsed.bank || prev.bank,
+          accountNo: parsed.accountNo || prev.accountNo,
+          nmid: parsed.nmid || prev.nmid,
+          imageUrl: savedPhoto || parsed.imageUrl || prev.imageUrl,
+        }));
+      } else if (savedPhoto) {
+        setProviderQris((prev) => ({ ...prev, imageUrl: savedPhoto }));
+      }
+    } catch (_) {}
+
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
@@ -60,6 +126,8 @@ export default function CheckoutPage() {
           setAddress(formatted);
           setTempAddress(formatted);
         }
+        const r = String(parsed.role || '').toUpperCase();
+        if (r.includes('YAYASAN') || r.includes('BENEFICIARY')) setIsBeneficiaryRole(true);
       }
     } catch (_) {}
 
@@ -81,7 +149,7 @@ export default function CheckoutPage() {
             id: found.id,
             title: found.foodName || found.title || 'Makanan Surplus',
             foodName: found.foodName || found.title,
-            providerName: found.provider?.organizationName || found.providerName || 'Mitra Replate',
+            providerName: found.provider?.organizationName || found.providerName || 'Provider Replate',
             originalPrice: found.originalPrice || 25000,
             price: found.discountPrice || found.price || 0,
             quantity: `${found.quantity || 10} Porsi`,
@@ -100,7 +168,7 @@ export default function CheckoutPage() {
             setItem({
               id: tempCheckoutItem.id,
               title: tempCheckoutItem.title || tempCheckoutItem.foodName || 'Makanan Surplus',
-              providerName: tempCheckoutItem.providerName || 'Mitra Replate',
+              providerName: tempCheckoutItem.providerName || 'Provider Replate',
               originalPrice: tempCheckoutItem.originalPrice || 25000,
               price: tempCheckoutItem.discountPrice !== undefined ? tempCheckoutItem.discountPrice : (tempCheckoutItem.price || 0),
               quantity: tempCheckoutItem.quantity || '1 Porsi',
@@ -142,7 +210,7 @@ export default function CheckoutPage() {
                 setItem({
                   id: cartItem.id,
                   title: cartItem.foodName || 'Makanan Surplus',
-                  providerName: cartItem.providerName || 'Mitra Replate',
+                  providerName: cartItem.providerName || 'Provider Replate',
                   originalPrice: cartItem.originalPrice || 25000,
                   price: cartItem.price || 0,
                   quantity: `Porsi`,
@@ -162,69 +230,93 @@ export default function CheckoutPage() {
       });
   }, [itemId]);
 
+  // Poin 6 & 7: Standardized resi + QRIS flow
+  const isFreeItem = item?.isFree ?? false;
+
+  const buildClaim = (resiCode: string, status: string, proofUrl?: string) => ({
+    id: resiCode,
+    code: resiCode,
+    foodName: `${item?.title} (${quantity}x)`,
+    providerName: item?.providerName,
+    provider: item?.providerName,
+    totalAmount: isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0),
+    deliveryMethod,
+    method: deliveryMethod,
+    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : deliveryMethod === 'COURIER_DELIVERY' ? 'Diantar Armada Toko' : 'Dikirim Kurir Relawan Komunitas',
+    paymentMethod,
+    address,
+    status,
+    paymentProof: proofUrl || null,
+    createdAt: new Date().toISOString(),
+    pickupTime: item?.pickupTime,
+    items: [{ ...item, quantity }],
+    hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
+  });
+
+  const persistClaim = (claim: any) => {
+    const ex = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
+    localStorage.setItem('replate_active_claims', JSON.stringify([claim, ...ex]));
+    const exYys = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+    localStorage.setItem('replate_claims', JSON.stringify([claim, ...exYys]));
+  };
+
   const handleCheckout = () => {
     if (!item) return;
     if (deliveryMethod === 'COMMUNITY_DELIVERY' && quantity < 20) {
       setToastState({ isOpen: true, message: 'Diantar komunitas memerlukan minimal 20 porsi.', type: 'error' });
       return;
     }
-    setIsCheckingOut(true);
+    // Poin 7: If QRIS & paid — show QRIS modal first
+    if (paymentMethod === 'QRIS' && !isFreeItem) {
+      setQrisModal(true);
+      return;
+    }
+    processDirectCheckout();
+  };
 
+  const processDirectCheckout = () => {
+    setIsCheckingOut(true);
+    setActionLoader({ isOpen: true, message: 'Memproses Pesanan...', submessage: 'Menerbitkan tiket klaim' });
     setTimeout(() => {
       try {
-        const isFree = item.isFree;
-        const totalAmount = isFree ? 0 : (item.price * quantity) + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
-        
-        const resiCode = isFree
-          ? `CLM-YYS-2026-${Math.floor(1000 + Math.random() * 9000)}`
-          : `CLM-CNS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-
-        const newClaimStatus = (totalAmount === 0 || isFree) ? 'AWAITING_VERIFICATION' : 'AWAITING_PAYMENT';
-
-        const newClaim = {
-          id: resiCode,
-          foodName: `${item.title} (${quantity}x)`,
-          providerName: item.providerName,
-          totalAmount,
-          deliveryMethod,
-          paymentMethod,
-          address,
-          status: newClaimStatus,
-          paymentProof: null,
-          createdAt: new Date().toISOString(),
-          pickupTime: item.pickupTime,
-          items: [{ ...item, quantity }]
-        };
-        
-        const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
-        localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
-
-        // Sync to replate_claims
-        const existingYys = JSON.parse(localStorage.getItem('replate_claims') || '[]');
-        localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingYys]));
-        
-        let isBeneficiaryRole = false;
-        try {
-          const profile = localStorage.getItem('replate_onboarding_profile');
-          if (profile) {
-            const parsed = JSON.parse(profile);
-            const r = String(parsed.role || '').toUpperCase();
-            if (r.includes('BENEFICIARY') || r.includes('YAYASAN')) isBeneficiaryRole = true;
-          }
-        } catch (_) {}
-
-        if (isBeneficiaryRole) {
-          router.push('/dashboard/yayasan/claims');
-        } else {
-          router.push('/dashboard/consumer/my-claims');
-        }
-      } catch (err) {
-        setToastState({
-          isOpen: true,
-          message: 'Gagal memproses pesanan.',
-          type: 'error',
-        });
+        const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
+        const status = isFreeItem ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
+        const newClaim = buildClaim(resiCode, status);
+        persistClaim(newClaim);
         setIsCheckingOut(false);
+        setActionLoader({ isOpen: false, message: '' });
+        setSuccessModal({ isOpen: true, claim: newClaim });
+      } catch (err) {
+        setToastState({ isOpen: true, message: 'Gagal memproses pesanan.', type: 'error' });
+        setIsCheckingOut(false);
+        setActionLoader({ isOpen: false, message: '' });
+      }
+    }, 1200);
+  };
+
+  const handleQrisConfirmed = () => {
+    const resiCode = genResiCode('CNS');
+    const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
+    setQrisModal(false);
+    setUploadProofModal({ isOpen: true, resiCode, totalAmt });
+  };
+
+  const handleUploadProof = () => {
+    if (!proofImageName) {
+      setToastState({ isOpen: true, message: 'Harap pilih file bukti pembayaran.', type: 'error' });
+      return;
+    }
+    setActionLoader({ isOpen: true, message: 'Mengirim Bukti Pembayaran...', submessage: 'Menunggu verifikasi provider' });
+    setTimeout(() => {
+      try {
+        const newClaim = buildClaim(uploadProofModal.resiCode, 'WAITING_PAYMENT_APPROVAL', proofImageName);
+        persistClaim(newClaim);
+        setUploadProofModal({ isOpen: false, resiCode: '', totalAmt: 0 });
+        setActionLoader({ isOpen: false, message: '' });
+        setSuccessModal({ isOpen: true, claim: newClaim });
+      } catch (err) {
+        setActionLoader({ isOpen: false, message: '' });
+        setToastState({ isOpen: true, message: 'Gagal mengunggah bukti.', type: 'error' });
       }
     }, 1000);
   };
@@ -253,6 +345,7 @@ export default function CheckoutPage() {
 
   return (
     <>
+      <SuperAppLoader isOpen={actionLoader.isOpen} message={actionLoader.message} submessage={actionLoader.submessage} />
       <div className="space-y-6 max-w-4xl mx-auto pb-12">
         <div className="border-b border-slate-200 pb-4">
         <h1 className="text-2xl font-black text-[#1B3A5C]">Checkout Beli Langsung</h1>
@@ -272,7 +365,8 @@ export default function CheckoutPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white border-t-[3px] border-t-emerald-500 rounded-b-3xl border-x border-b border-slate-200 p-5 space-y-4 shadow-sm text-sm">
             <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider flex items-center gap-2">
-              📍 Alamat Pengiriman
+              <MapPinIcon size={14} className="text-emerald-600" />
+              Alamat Pengiriman
             </h4>
             <div className="flex items-start justify-between cursor-pointer group" onClick={() => {
               setTempAddress(address);
@@ -286,13 +380,14 @@ export default function CheckoutPage() {
                   {address}
                 </p>
               </div>
-              <span className="text-slate-400 mt-2 group-hover:translate-x-1 transition-transform">➔</span>
+              <span className="text-slate-400 mt-2 group-hover:translate-x-1 transition-transform"><ChevronRight /></span>
             </div>
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50 border-b border-slate-200">
-              <span className="font-black text-slate-800">🏪 {item.providerName}</span>
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+              <ShieldCheckIcon size={14} className="text-slate-500" />
+              <span className="font-black text-slate-800">{item.providerName}</span>
             </div>
             
             <div className="p-4 flex gap-4">
@@ -308,8 +403,9 @@ export default function CheckoutPage() {
               <div className="flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="font-extrabold text-slate-800 text-base">{item.title}</h3>
-                  <p className="text-[11px] text-amber-600 font-bold inline-flex items-center gap-1 mt-1 bg-amber-50 px-2 py-0.5 rounded-md">
-                    ⏰ Ambil: {item.pickupTime}
+                  <p className="text-[11px] text-amber-600 font-bold inline-flex items-center gap-1 mt-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                    <ClockIcon size={11} className="text-amber-600" />
+                    {deliveryMethod === 'SELF_PICKUP' ? 'Jadwal Ambil di Toko:' : 'Estimasi Tiba:'} {item.pickupTime}
                   </p>
                 </div>
                 
@@ -387,7 +483,7 @@ export default function CheckoutPage() {
                 <span className="font-bold text-slate-900">
                   {deliveryMethod === 'SELF_PICKUP' ? 'Rp 0' : 'Rp 5.000'}
                 </span>
-                <span className="text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
+                <span className="text-slate-400 group-hover:translate-x-1 transition-transform"><ChevronRight /></span>
               </div>
             </div>
             
@@ -405,19 +501,19 @@ export default function CheckoutPage() {
                 onClick={() => setIsPaymentModalOpen(true)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
-                    $
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <QrCodeIcon size={16} className="text-emerald-600" />
                   </div>
                   <div>
                     <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                      {paymentMethod === 'QRIS' ? 'QRIS' : 'Bayar di Tempat (COD)'}
+                      {paymentMethod === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : 'Bayar di Tempat (COD)'}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      {paymentMethod === 'QRIS' ? 'Scan dari aplikasi apa saja' : 'Bayar tunai saat pesanan tiba'}
+                      {paymentMethod === 'QRIS' ? 'Scan QR dari aplikasi apapun. Gratis admin.' : 'Bayar tunai saat pesanan tiba'}
                     </div>
                   </div>
                 </div>
-                <span className="text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
+                <span className="text-slate-400 group-hover:translate-x-1 transition-transform"><ChevronRight /></span>
               </div>
             </div>
           )}
@@ -451,13 +547,13 @@ export default function CheckoutPage() {
               </div>
             </div>
             
-            <Button 
-              variant="gold" 
+            <Button
+              variant="gold"
               className="w-full font-black py-3 text-sm shadow-md text-slate-950"
               onClick={handleCheckout}
               disabled={isCheckingOut}
             >
-              {isCheckingOut ? 'Memproses...' : (totalAmount > 0 ? 'Selesaikan & Lanjut Bayar ➔' : 'Selesaikan Pesanan ➔')}
+              {isCheckingOut ? 'Memproses...' : (paymentMethod === 'QRIS' && !isFreeItem ? 'Lanjut Bayar QRIS' : 'Selesaikan Pesanan')}
             </Button>
           </div>
         </div>
@@ -492,7 +588,7 @@ export default function CheckoutPage() {
                   <span className="font-bold text-slate-900 text-sm">Rp 0</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Bebas ongkir. Anda harus mengambil pesanan secara mandiri di gerai mitra.
+                  Bebas ongkir. Anda harus mengambil pesanan secara mandiri di gerai provider.
                 </p>
               </div>
             </label>
@@ -594,9 +690,7 @@ export default function CheckoutPage() {
                   </p>
                 </div>
                 {method === 'QRIS' && (
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
-                    $
-                  </div>
+                  <QrCodeIcon size={18} className="text-emerald-600 shrink-0" />
                 )}
               </label>
             ))}
@@ -632,6 +726,103 @@ export default function CheckoutPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* POIN 7: MODAL QRIS */}
+      <Modal isOpen={qrisModal} onClose={() => setQrisModal(false)} title="Scan & Bayar QRIS">
+        <div className="space-y-4 text-xs text-center">
+          <div className="p-4 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl border border-blue-200 space-y-3">
+            <div className="flex items-center justify-center gap-2 text-[#1B3A5C]">
+              <QrCodeIcon size={16} />
+              <span className="font-black text-sm">QRIS Pembayaran — {item?.providerName}</span>
+            </div>
+            {/* Real Uploaded Barcode QRIS dari Setup Profil Provider (Poin 4) */}
+            <div className="flex justify-center py-2">
+              <div className="bg-white p-4 rounded-2xl shadow-md border-2 border-slate-300 max-w-[280px] w-full text-center space-y-2.5">
+                {/* QRIS Official Header */}
+                <div className="border-b border-slate-200 pb-2">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="font-black text-sm tracking-widest text-[#1B3A5C]">QRIS</span>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase">National Standard</span>
+                  </div>
+                  <p className="text-[9.5px] text-slate-400 font-mono mt-0.5">NMID: {providerQris.nmid}</p>
+                </div>
+
+                {/* Uploaded QRIS Image from Provider Profile */}
+                <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-1 flex items-center justify-center">
+                  <img
+                    src={providerQris.imageUrl}
+                    alt="Barcode QRIS Toko"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                <div className="border-t border-slate-200 pt-1.5 space-y-0.5">
+                  <h5 className="font-black text-xs text-[#1B3A5C] truncate">{providerQris.merchantName || item?.providerName}</h5>
+                  <p className="text-[10px] text-slate-500 font-medium">{providerQris.bank} • {providerQris.accountNo}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 bg-white rounded-xl border border-slate-200 text-left space-y-1.5">
+              <div className="flex justify-between"><span className="text-slate-500">Nama Merchant:</span><strong className="text-slate-800">{providerQris.merchantName || item?.providerName}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-500">Jumlah Bayar:</span><strong className="text-[#1B3A5C] font-black text-sm">Rp {totalAmount.toLocaleString('id-ID')}</strong></div>
+            </div>
+            <p className="text-[11px] text-slate-500">Scan barcode QRIS toko di atas menggunakan GoPay, OVO, DANA, ShopeePay, atau m-Banking manapun. Setelah berhasil bayar, klik <strong>Sudah Bayar, Upload Bukti</strong>.</p>
+          </div>
+          <div className="flex gap-2.5">
+            <Button variant="outline" size="sm" className="flex-1 font-bold text-xs cursor-pointer" onClick={() => setQrisModal(false)}>Batal</Button>
+            <Button variant="gold" size="sm" leftIcon={<CheckIcon size={12} className="text-slate-950" />} className="flex-1 font-black text-xs text-slate-950 cursor-pointer" onClick={handleQrisConfirmed}>Sudah Bayar, Upload Bukti</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* POIN 7: UPLOAD BUKTI */}
+      <Modal isOpen={uploadProofModal.isOpen} onClose={() => setUploadProofModal(p => ({ ...p, isOpen: false }))} title="Upload Bukti Pembayaran QRIS">
+        <div className="space-y-4 text-xs">
+          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 font-medium text-[11px] flex items-start gap-2">
+            <ShieldCheckIcon size={14} className="text-amber-600 shrink-0 mt-0.5" />
+            <span>Upload screenshot atau foto struk QRIS. Pesanan diproses setelah provider memverifikasi.</span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs font-bold text-slate-700 block">Nomor Resi: <span className="font-mono text-[#1B3A5C]">{uploadProofModal.resiCode}</span></span>
+            <span className="text-xs font-bold text-slate-700 block">Total Dibayar: <span className="font-black text-[#1B3A5C]">Rp {uploadProofModal.totalAmt.toLocaleString('id-ID')}</span></span>
+          </div>
+          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/30 transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-100 flex items-center justify-center shrink-0">
+              <PackageIcon size={18} className="text-slate-500 group-hover:text-emerald-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              {proofImageName ? <p className="font-bold text-emerald-700 truncate">{proofImageName}</p> : <p className="font-medium text-slate-500">Klik untuk pilih file bukti bayar</p>}
+              <p className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, atau PDF · Maks. 5MB</p>
+            </div>
+            <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setProofImageName(e.target.files[0].name); }} />
+          </label>
+          <div className="flex gap-2.5">
+            <Button variant="outline" size="sm" className="flex-1 font-bold text-xs cursor-pointer" onClick={() => setUploadProofModal(p => ({ ...p, isOpen: false }))}>Kembali</Button>
+            <Button variant="gold" size="sm" leftIcon={<CheckIcon size={12} className="text-slate-950" />} className="flex-1 font-black text-xs text-slate-950 cursor-pointer" onClick={handleUploadProof}>Kirim Bukti Pembayaran</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* SUCCESS MODAL (Poin 3/7) */}
+      <Modal isOpen={successModal.isOpen} onClose={() => setSuccessModal({ isOpen: false, claim: null })} title="Pesanan Berhasil!" size="md">
+        {successModal.claim && (
+          <div className="space-y-4 text-xs">
+            <div className="p-5 bg-gradient-to-br from-emerald-50 to-emerald-100/60 rounded-2xl border border-emerald-200 text-center space-y-2">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto shadow-md"><CheckIcon size={28} className="text-white" /></div>
+              <h3 className="font-black text-base text-emerald-900">{successModal.claim.status === 'WAITING_PAYMENT_APPROVAL' ? 'Bukti Dikirim! Menunggu Verifikasi' : 'Pesanan Dikonfirmasi!'}</h3>
+              <p className="text-[11px] text-emerald-800 font-medium">{successModal.claim.status === 'WAITING_PAYMENT_APPROVAL' ? 'Pembayaran QRIS Anda sedang diverifikasi provider. Tiket QR aktif setelah disetujui.' : 'Pesanan Anda berhasil dikonfirmasi.'}</p>
+            </div>
+            <div className="p-3.5 bg-[#1B3A5C] rounded-2xl text-center">
+              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block mb-1">Nomor Resi Klaim</span>
+              <span className="font-mono font-black text-lg text-white block">{successModal.claim.code}</span>
+            </div>
+            <div className="flex gap-2.5">
+              <Button variant="outline" size="sm" className="flex-1 font-bold text-xs cursor-pointer" onClick={() => setSuccessModal({ isOpen: false, claim: null })}>Tutup</Button>
+              <Button variant="gold" size="sm" leftIcon={<TicketIcon size={12} className="text-slate-950" />} className="flex-1 font-black text-xs text-slate-950 cursor-pointer" onClick={() => { setSuccessModal({ isOpen: false, claim: null }); router.push(isBeneficiaryRole ? '/dashboard/yayasan/claims' : '/dashboard/consumer/my-claims'); }}>Lihat Klaim Saya</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </>
   );

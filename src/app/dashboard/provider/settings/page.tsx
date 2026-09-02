@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import {
@@ -314,6 +315,16 @@ export default function ProviderSettingsPage() {
     type: 'success',
   });
 
+  const [actionLoader, setActionLoader] = useState<{
+    isOpen: boolean;
+    message: string;
+    submessage?: string;
+  }>({
+    isOpen: false,
+    message: '',
+    submessage: '',
+  });
+
   const handleDetectGPS = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -341,63 +352,72 @@ export default function ProviderSettingsPage() {
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const existing = JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}');
-      const updated = {
-        ...existing,
-        entityName: orgName,
-        name: orgName,
-        phone,
-        email,
-        address,
-        district,
-        nib,
-        businessCategory,
-        pickupHours,
-        halalCertNo,
-        defaultPackaging,
-        latitude: lat,
-        longitude: lng,
-        role: 'FOOD_PROVIDER',
-      };
-      localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
-
-      const outletSettings = {
-        orgName,
-        phone,
-        email,
-        address,
-        district,
-        nib,
-        businessCategory,
-        pickupHours,
-        halalCertNo,
-        defaultPackaging,
-        latitude: lat,
-        longitude: lng,
-        qrisMerchantName,
-        qrisBank,
-        qrisAccountNo,
-        qrisNmid,
-        qrisImageUrl,
-      };
-      localStorage.setItem('replate_outlet_settings', JSON.stringify(outletSettings));
-
-      const qrisConfig = {
-        merchantName: qrisMerchantName,
-        bank: qrisBank,
-        accountNo: qrisAccountNo,
-        nmid: qrisNmid,
-        imageUrl: qrisImageUrl,
-      };
-      localStorage.setItem('replate_provider_qris_config', JSON.stringify(qrisConfig));
-    } catch (_) {}
-
-    setToastState({
+    setActionLoader({
       isOpen: true,
-      message: 'Seluruh pengaturan outlet, data usaha, dan QRIS Merchant berhasil disimpan permanen secara realtime!',
-      type: 'success',
+      message: 'Menyimpan Pengaturan Outlet...',
+      submessage: 'Memperbarui profil, data rekening, dan konfigurasi armada',
     });
+
+    setTimeout(() => {
+      try {
+        const existing = JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}');
+        const updated = {
+          ...existing,
+          entityName: orgName,
+          name: orgName,
+          phone,
+          email,
+          address,
+          district,
+          nib,
+          businessCategory,
+          pickupHours,
+          halalCertNo,
+          defaultPackaging,
+          latitude: lat,
+          longitude: lng,
+          role: 'FOOD_PROVIDER',
+        };
+        localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
+
+        const outletSettings = {
+          orgName,
+          phone,
+          email,
+          address,
+          district,
+          nib,
+          businessCategory,
+          pickupHours,
+          halalCertNo,
+          defaultPackaging,
+          latitude: lat,
+          longitude: lng,
+          qrisMerchantName,
+          qrisBank,
+          qrisAccountNo,
+          qrisNmid,
+          qrisImageUrl,
+        };
+        localStorage.setItem('replate_outlet_settings', JSON.stringify(outletSettings));
+
+        const qrisConfig = {
+          merchantName: qrisMerchantName,
+          bank: qrisBank,
+          accountNo: qrisAccountNo,
+          nmid: qrisNmid,
+          imageUrl: qrisImageUrl,
+        };
+        localStorage.setItem('replate_provider_qris_config', JSON.stringify(qrisConfig));
+      } catch (_) {}
+
+      setActionLoader({ isOpen: false, message: '' });
+      setToastState({
+        isOpen: true,
+        message: 'Seluruh pengaturan outlet, data usaha, dan QRIS Merchant berhasil disimpan permanen secara realtime!',
+        type: 'success',
+      });
+    }, 800);
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -449,6 +469,11 @@ export default function ProviderSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      <SuperAppLoader
+        isOpen={actionLoader.isOpen}
+        message={actionLoader.message}
+        submessage={actionLoader.submessage}
+      />
       {/* Sleek Modern Header Card (Compact & Ergonomic - Seragam Antar Modul) */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">

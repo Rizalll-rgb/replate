@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PackageIcon } from '@/components/ui/Icon';
 import { SuccessModal } from '@/components/ui/SuccessModal';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { Toast } from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -77,6 +78,11 @@ export default function AddSurplusPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <SuperAppLoader
+        isOpen={isLoading}
+        message="Memvalidasi & Mempublikasikan Surplus Pangan..."
+        submessage="Menyinkronkan standar audit BPOM dan notifikasi real-time"
+      />
       {/* Sleek Modern Header Card (Compact & Ergonomic - Seragam Antar Modul) */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">

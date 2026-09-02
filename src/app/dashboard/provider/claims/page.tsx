@@ -366,6 +366,16 @@ export default function ProviderClaimsPage() {
   const [selectedStoreDriver, setSelectedStoreDriver] = useState<string>('Driver A: Mas Doni (Plat L 4582 ABC)');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
+  // Dedicated Driver Plotting Modal State (Poin 4 - Sinkronisasi Langsung ke Role Beneficiary)
+  const [plotDriverModal, setPlotDriverModal] = useState<{
+    isOpen: boolean;
+    claim: any | null;
+  }>({
+    isOpen: false,
+    claim: null,
+  });
+  const [selectedPlotDriverId, setSelectedPlotDriverId] = useState<string>('drv-1');
+
   // Native & Live Camera Capture Refs for Physical Handover (Point 4)
   const nativeCameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -422,11 +432,103 @@ export default function ProviderClaimsPage() {
     };
   }, []);
 
-  // List of Registered Store Fleet Drivers
+  // List of Registered Store Fleet Drivers with Full Details (Poin 4 - Sinkronisasi Driver Toko)
   const storeDriversList = [
-    { id: 'drv-1', name: 'Driver A: Mas Doni', vehicle: 'Motor Box Steril (Plat L 4582 ABC)', phone: '0812-3456-7890' },
-    { id: 'drv-2', name: 'Driver B: Mas Agus', vehicle: 'Mobil Blind Van Pendingin (Plat L 1234 XYZ)', phone: '0813-9876-5432' },
+    {
+      id: 'drv-1',
+      name: 'Driver A: Mas Doni',
+      role: 'Driver Internal Toko',
+      vehicle: 'Motor Box Steril (Plat L 4582 ABC)',
+      phone: '0812-3456-7890',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+      rating: '4.8',
+      trips: '89 Pengiriman',
+    },
+    {
+      id: 'drv-2',
+      name: 'Driver B: Mas Agus',
+      role: 'Driver Internal Toko',
+      vehicle: 'Mobil Blind Van Pendingin (Plat L 1234 XYZ)',
+      phone: '0813-9876-5432',
+      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+      rating: '4.9',
+      trips: '142 Pengiriman',
+    },
+    {
+      id: 'drv-3',
+      name: 'Driver C: Pak Sugiono',
+      role: 'Driver Internal Toko',
+      vehicle: 'Motor Box Delivery Toko (Plat L 3319 AB)',
+      phone: '0811-2233-4455',
+      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80',
+      rating: '5.0',
+      trips: '210 Pengiriman',
+    },
   ];
+
+  // Direct Driver Plotting Action from Provider Workspace (Poin 4)
+  const handleAssignDriver = (claimCode: string, driverId: string) => {
+    const matched = storeDriversList.find((d) => d.id === driverId) || storeDriversList[0];
+    const cleanCode = claimCode.trim().toUpperCase();
+
+    const driverPayload = {
+      name: matched.name,
+      phone: matched.phone,
+      vehicle: matched.vehicle,
+      photo: matched.photo,
+      rating: matched.rating,
+      completedTrips: matched.trips,
+      status: matched.role,
+      assignedBy: 'Kasir Toko (Workspace Provider)',
+      assignedAt: 'Hari ini, baru saja',
+    };
+
+    try {
+      const plottingMap = JSON.parse(localStorage.getItem('replate_driver_plotting') || '{}');
+      plottingMap[cleanCode] = driverPayload;
+      localStorage.setItem('replate_driver_plotting', JSON.stringify(plottingMap));
+
+      // Update local state in pending & in transit
+      setPendingClaims((prev) =>
+        prev.map((c) =>
+          c.code.toUpperCase() === cleanCode
+            ? { ...c, courierName: matched.name, courierPhone: matched.phone, courierVehicle: matched.vehicle, driverInfo: driverPayload }
+            : c
+        )
+      );
+      setInTransitClaims((prev) =>
+        prev.map((c) =>
+          c.code.toUpperCase() === cleanCode
+            ? { ...c, courierName: matched.name, courierPhone: matched.phone, courierVehicle: matched.vehicle, driverInfo: driverPayload }
+            : c
+        )
+      );
+
+      // Also update replate_claims and replate_active_claims
+      const savedClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+      const updatedClaims = savedClaims.map((c: any) =>
+        (c.claimCode === cleanCode || c.id === cleanCode || c.code === cleanCode)
+          ? { ...c, courierName: matched.name, courierPhone: matched.phone, courierVehicle: matched.vehicle, driverInfo: driverPayload }
+          : c
+      );
+      localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
+
+      const savedActive = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
+      const updatedActive = savedActive.map((c: any) =>
+        (c.id === cleanCode || c.code === cleanCode || c.claimCode === cleanCode)
+          ? { ...c, courierName: matched.name, courierPhone: matched.phone, courierVehicle: matched.vehicle, driverInfo: driverPayload }
+          : c
+      );
+      localStorage.setItem('replate_active_claims', JSON.stringify(updatedActive));
+    } catch (_) {}
+
+    setPlotDriverModal({ isOpen: false, claim: null });
+    setToastState({
+      isOpen: true,
+      message: `Driver "${matched.name}" Berhasil Di-Plotting Untuk Resi ${cleanCode}! Pop-up Lacak Penerima Otomatis Tersinkron.`,
+      type: 'success',
+    });
+  };
 
   // Scan QR Code Verification at Store -> Updates Status to IN_TRANSIT (OTW) & Auto Closes Modal
   const handleVerifyCodeAtStore = async (code: string) => {
@@ -441,16 +543,33 @@ export default function ProviderClaimsPage() {
     setTimeout(() => {
       setActionLoader({ isOpen: false, message: '' });
 
+      const matchedStoreDriver = storeDriversList.find(d => selectedStoreDriver.includes(d.name)) || storeDriversList[0];
+      const isStoreDelivery = confirmModal.deliveryMethod === 'PROVIDER_DIRECT';
+
+      const driverPayload = {
+        name: isStoreDelivery ? matchedStoreDriver.name : (courierNameInput || 'Budi Santoso (Relawan ID #RC-881)'),
+        phone: isStoreDelivery ? matchedStoreDriver.phone : '0812-9876-5432',
+        vehicle: isStoreDelivery ? matchedStoreDriver.vehicle : 'Motor Box Cooler Steril',
+        photo: isStoreDelivery ? matchedStoreDriver.photo : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+        rating: isStoreDelivery ? matchedStoreDriver.rating : '4.9',
+        completedTrips: isStoreDelivery ? matchedStoreDriver.trips : '312 Pengiriman',
+        status: isStoreDelivery ? 'Driver Internal Toko' : 'Relawan Logistik Terverifikasi',
+        assignedBy: 'Kasir Toko (Workspace Provider)',
+        assignedAt: 'Hari ini, baru saja',
+      };
+
       const target = pendingClaims.find((c) => c.code.toUpperCase() === cleanCode) || {
         code: cleanCode,
         foodName: 'Surplus Makanan Steril',
         userName: 'Penerima Bantuan / Kurir Relawan',
         quantity: 'Porsi Terverifikasi',
         status: 'IN_TRANSIT',
-        deliveryMethod: 'RESCUE_COURIER',
-        courierName: courierNameInput || 'Budi Santoso (Relawan ID #RC-881)',
-        courierOrg: 'Replate Rescue Fleet',
-        courierPhone: '0812-9876-5432',
+        deliveryMethod: confirmModal.deliveryMethod || 'RESCUE_COURIER',
+        courierName: driverPayload.name,
+        courierOrg: isStoreDelivery ? 'Armada Internal Toko' : 'Replate Rescue Fleet',
+        courierPhone: driverPayload.phone,
+        courierVehicle: driverPayload.vehicle,
+        driverInfo: driverPayload,
         address: 'Kota Surabaya',
         time: 'OTW Pengiriman',
       };
@@ -459,19 +578,39 @@ export default function ProviderClaimsPage() {
       const newInTransitItem = {
         ...target,
         status: 'IN_TRANSIT',
+        courierName: driverPayload.name,
+        courierPhone: driverPayload.phone,
+        courierVehicle: driverPayload.vehicle,
+        driverInfo: driverPayload,
         time: 'OTW Dalam Pengiriman',
       };
       setInTransitClaims((prev) => Array.from(new Map([...prev, newInTransitItem].map(i => [i.code, i])).values()));
 
       try {
+        // Sync plotting map
+        const plottingMap = JSON.parse(localStorage.getItem('replate_driver_plotting') || '{}');
+        plottingMap[cleanCode] = driverPayload;
+        localStorage.setItem('replate_driver_plotting', JSON.stringify(plottingMap));
+
         const savedClaimsStr = localStorage.getItem('replate_claims');
         const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
         const updatedClaims = existingClaims.map((c: any) =>
-          (c.claimCode === cleanCode || c.id === cleanCode)
-            ? { ...c, status: 'IN_TRANSIT' }
+          (c.claimCode === cleanCode || c.id === cleanCode || c.code === cleanCode)
+            ? { ...c, status: 'IN_TRANSIT', courierName: driverPayload.name, courierPhone: driverPayload.phone, courierVehicle: driverPayload.vehicle, driverInfo: driverPayload }
             : c
         );
         localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
+
+        const savedActiveStr = localStorage.getItem('replate_active_claims');
+        if (savedActiveStr) {
+          const activeClaims = JSON.parse(savedActiveStr);
+          const updatedActive = activeClaims.map((c: any) =>
+            (c.id === cleanCode || c.code === cleanCode || c.claimCode === cleanCode)
+              ? { ...c, status: 'IN_TRANSIT', courierName: driverPayload.name, courierPhone: driverPayload.phone, courierVehicle: driverPayload.vehicle, driverInfo: driverPayload }
+              : c
+          );
+          localStorage.setItem('replate_active_claims', JSON.stringify(updatedActive));
+        }
       } catch (_) {}
 
       setConfirmModal({
@@ -889,6 +1028,21 @@ export default function ProviderClaimsPage() {
                       <TicketIcon size={13} className="text-[#1B3A5C]" />
                       <span>Tiket QR</span>
                     </Button>
+
+                    {tx.deliveryMethod === 'PROVIDER_DIRECT' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-black text-xs border-blue-300 text-blue-900 bg-blue-50/80 hover:bg-blue-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                        onClick={() => {
+                          setPlotDriverModal({ isOpen: true, claim: tx });
+                          setSelectedPlotDriverId(storeDriversList[0].id);
+                        }}
+                      >
+                        <TruckIcon size={13} className="text-blue-700" />
+                        <span>Plot Driver Toko</span>
+                      </Button>
+                    )}
 
                     {activeTab === 'IN_TRANSIT' && tx.deliveryMethod === 'PROVIDER_DIRECT' && (
                       <>
@@ -1858,6 +2012,89 @@ export default function ProviderClaimsPage() {
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+      {/* MODAL PLOTTING DRIVER ARMADA TOKO (Poin 4 - Sinkronisasi ke Modul Beneficiary) */}
+      {plotDriverModal.isOpen && plotDriverModal.claim && (
+        <Modal
+          isOpen={plotDriverModal.isOpen}
+          onClose={() => setPlotDriverModal({ isOpen: false, claim: null })}
+          title={`Plotting Penugasan Driver Toko: ${plotDriverModal.claim.code}`}
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-200 space-y-1">
+              <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider block">
+                PENUGASAN ARMADA PENGANTARAN TOKO
+              </span>
+              <h4 className="text-sm font-black text-[#1B3A5C]">
+                {plotDriverModal.claim.foodName} ({plotDriverModal.claim.quantity})
+              </h4>
+              <p className="text-[11px] text-slate-600 font-medium">
+                Tujuan: <strong>{plotDriverModal.claim.userName}</strong> • {plotDriverModal.claim.address || 'Kota Surabaya'}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-extrabold text-slate-900 block">Pilih Driver Internal Toko yang Ditugaskan:</label>
+              <div className="space-y-2">
+                {storeDriversList.map((drv) => (
+                  <div
+                    key={drv.id}
+                    onClick={() => setSelectedPlotDriverId(drv.id)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      selectedPlotDriverId === drv.id
+                        ? 'bg-blue-50/80 border-[#1B3A5C] ring-2 ring-[#1B3A5C]/20 shadow-xs'
+                        : 'bg-white border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
+                        <img src={drv.photo} alt={drv.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0">
+                        <h5 className="font-black text-xs text-[#1B3A5C] flex items-center gap-1.5">
+                          <span>{drv.name}</span>
+                          <span className="text-[9px] font-bold text-amber-700">★ {drv.rating}</span>
+                        </h5>
+                        <p className="text-[11px] text-slate-700 font-bold">{drv.vehicle}</p>
+                        <p className="text-[10px] text-slate-500 font-mono">WA: {drv.phone} • {drv.trips}</p>
+                      </div>
+                    </div>
+
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                      selectedPlotDriverId === drv.id ? 'border-[#1B3A5C] bg-[#1B3A5C]' : 'border-slate-300'
+                    }`}>
+                      {selectedPlotDriverId === drv.id && <CheckIcon size={12} className="text-white" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-[10.5px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              Data plotting driver ini akan <strong>otomatis tersinkronisasi secara real-time</strong> ke pop-up pelacakan pengiriman di akun panti/beneficiary.
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPlotDriverModal({ isOpen: false, claim: null })}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                leftIcon={<CheckIcon size={13} className="text-slate-950" />}
+                className="font-black text-xs text-slate-950 shadow-xs cursor-pointer"
+                onClick={() => handleAssignDriver(plotDriverModal.claim.code, selectedPlotDriverId)}
+              >
+                Tugaskan Driver & Sinkronkan ➔
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
 

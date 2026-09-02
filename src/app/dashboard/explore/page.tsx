@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
 import { QRGenerator } from '@/components/qr/QRGenerator';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed } from '@/lib/pantiData';
 
 interface FoodItem {
@@ -82,6 +83,16 @@ export default function WorkspaceExplorePage() {
     isOpen: false,
     message: '',
     type: 'success',
+  });
+
+  const [actionLoader, setActionLoader] = useState<{
+    isOpen: boolean;
+    message: string;
+    submessage?: string;
+  }>({
+    isOpen: false,
+    message: '',
+    submessage: '',
   });
   
   const [syncRadius, setSyncRadius] = useState<number | null>(null);
@@ -191,6 +202,17 @@ export default function WorkspaceExplorePage() {
     try {
       const radius = localStorage.getItem('replate_admin_sync_radius');
       if (radius) setSyncRadius(parseInt(radius));
+    } catch (_) {}
+
+    try {
+      const customPantiReqs = localStorage.getItem('replate_panti_requests');
+      if (customPantiReqs) {
+        const parsed = JSON.parse(customPantiReqs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Deduplicate with default SHARED_PANTI_NEEDS
+          setPantiNeeds([...parsed, ...SHARED_PANTI_NEEDS]);
+        }
+      }
     } catch (_) {}
   }, []);
 
@@ -447,8 +469,15 @@ export default function WorkspaceExplorePage() {
   };
 
   const handleBuyNow = (item: FoodItem) => {
-    localStorage.setItem('replate_checkout_item', JSON.stringify(item));
-    router.push(`/dashboard/checkout/${item.id}`);
+    setActionLoader({
+      isOpen: true,
+      message: 'Mempersiapkan Checkout...',
+      submessage: `Mengalokasikan "${item.title}"`,
+    });
+    setTimeout(() => {
+      localStorage.setItem('replate_checkout_item', JSON.stringify(item));
+      router.push(`/dashboard/checkout/${item.id}`);
+    }, 600);
   };
 
   const handleOpenFoodDetail = (item: FoodItem) => {
@@ -581,7 +610,7 @@ export default function WorkspaceExplorePage() {
     }
 
     const currentYear = new Date().getFullYear();
-    const ticketCode = `RPL-REQ-${currentYear}-${Math.floor(10000 + Math.random() * 90000)}`;
+    const ticketCode = `RPL-DON-${currentYear}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const newClaim = {
       id: ticketCode,
@@ -670,6 +699,11 @@ export default function WorkspaceExplorePage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      <SuperAppLoader
+        isOpen={actionLoader.isOpen}
+        message={actionLoader.message}
+        submessage={actionLoader.submessage}
+      />
       {/* Header Info & Featured Promo Hero */}
       {/* Multi-Slide Interactive Promo Hero Carousel (Point 9) */}
       {(() => {

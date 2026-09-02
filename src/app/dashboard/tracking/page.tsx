@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import {
   BikeIcon,
   TruckIcon,
@@ -183,7 +184,7 @@ export default function WorkspaceLiveTrackingPage() {
     } else {
       setToastState({
         isOpen: true,
-        message: `Kode resi "${searchQuery}" tidak ditemukan. Coba kode "FB-DON-88192" atau "FB-DIR-88291".`,
+        message: `Kode resi "${searchQuery}" tidak ditemukan. Coba kode "RPL-DON-2026-88192" atau "RPL-RSC-2026-99102".`,
         type: 'error',
       });
     }
@@ -213,6 +214,7 @@ export default function WorkspaceLiveTrackingPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
+      <SuperAppLoader isOpen={false} message="" />
       {/* Sleek Modern Header Card (Compact & Ergonomic - Seragam Antar Modul) */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">

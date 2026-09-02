@@ -7,6 +7,8 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
+import { QRGenerator } from '@/components/qr/QRGenerator';
 import { 
   CheckIcon, 
   PackageIcon, 
@@ -14,7 +16,9 @@ import {
   MapPinIcon, 
   ClockIcon, 
   ShieldCheckIcon,
-  TruckIcon 
+  TruckIcon,
+  BoltIcon,
+  TicketIcon,
 } from '@/components/ui/Icon';
 
 export default function YayasanDashboardPage() {
@@ -24,6 +28,12 @@ export default function YayasanDashboardPage() {
   const [address, setAddress] = useState('Jl. Raya Gubeng No. 88, Gubeng');
   const [recipientCapacity, setRecipientCapacity] = useState('45 Jiwa');
   const [isFreshAccount, setIsFreshAccount] = useState(false);
+
+  // SuperAppLoader for claim processing (Poin 4)
+  const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({ isOpen: false, message: '' });
+
+  // Success Modal after claim confirmed (Poin 3)
+  const [successModal, setSuccessModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
 
   // Claim Allocation Modal State (Poin 4, 5, 6)
   const [allocationModal, setAllocationModal] = useState<{
@@ -81,6 +91,9 @@ export default function YayasanDashboardPage() {
     },
   ];
 
+  const [totalPortionsReceived, setTotalPortionsReceived] = useState(185);
+  const [activeRequestsCount, setActiveRequestsCount] = useState(2);
+
   useEffect(() => {
     try {
       const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
@@ -100,14 +113,48 @@ export default function YayasanDashboardPage() {
           }
         }
       }
+
+      // Hitung dinamis total porsi dari riwayat selesai (Poin 2 & 3)
+      if (isFresh) {
+        setTotalPortionsReceived(0);
+        setActiveRequestsCount(0);
+      } else {
+        let basePortions = 185; // default 4 riwayat demo (50 + 30 + 45 + 60)
+        try {
+          const rawClaims = localStorage.getItem('replate_claims');
+          if (rawClaims) {
+            const parsedClaims = JSON.parse(rawClaims);
+            if (Array.isArray(parsedClaims)) {
+              parsedClaims.forEach((c: any) => {
+                if (c.status === 'COMPLETED') {
+                  const qty = parseInt(String(c.quantity || '').replace(/\D/g, '')) || 0;
+                  basePortions += qty;
+                }
+              });
+            }
+          }
+        } catch (_) {}
+        setTotalPortionsReceived(basePortions);
+
+        // Hitung permintaan aktif
+        try {
+          const rawReqs = localStorage.getItem('replate_panti_requests');
+          if (rawReqs) {
+            const parsedReqs = JSON.parse(rawReqs);
+            if (Array.isArray(parsedReqs)) {
+              setActiveRequestsCount(parsedReqs.length + 2); // 2 demo + user created
+            }
+          }
+        } catch (_) {}
+      }
     } catch (_) {}
   }, []);
 
   const stats = [
-    { label: 'Total Bantuan Diterima', value: isFreshAccount ? '0 Porsi' : '185 Porsi', color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Anak Yatim / Penerima', value: isFreshAccount ? recipientCapacity : '45 Jiwa', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Total Emisi CO2 Dicegah', value: isFreshAccount ? '0.0 kg' : '92.5 kg', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Permintaan Bantuan Aktif', value: isFreshAccount ? '0 Permintaan' : '2 Permintaan', color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Total Bantuan Diterima', value: isFreshAccount ? '0 Porsi' : `${totalPortionsReceived} Porsi`, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Anak Yatim / Penerima', value: recipientCapacity, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Emisi CO2 Dicegah', value: isFreshAccount ? '0.0 kg' : `${(totalPortionsReceived * 0.5).toFixed(1)} kg`, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Permintaan Bantuan Aktif', value: isFreshAccount ? '0 Permintaan' : `${activeRequestsCount} Permintaan`, color: 'text-purple-600', bg: 'bg-purple-50' },
   ];
 
   const handleOpenClaimModal = (supplier: any) => {
@@ -124,12 +171,14 @@ export default function YayasanDashboardPage() {
   const handleConfirmClaim = () => {
     if (!allocationModal.supplier) return;
     setIsProcessingClaim(true);
+    setActionLoader({ isOpen: true, message: 'Memproses Klaim Alokasi...', submessage: 'Menerbitkan tiket QR serah terima' });
 
     setTimeout(() => {
       try {
         const now = new Date();
         const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} WIB`;
-        const resiCode = `FB-YYS-${Math.floor(1000 + Math.random() * 9000)}`;
+        // Poin 6: Standardized resi code
+        const resiCode = `RPL-YYS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
         const isCommunity = allocationModal.deliveryMethod === 'RESCUE_PARTNER';
         const isProviderDirect = allocationModal.deliveryMethod === 'PROVIDER_DELIVERY';
@@ -153,10 +202,12 @@ export default function YayasanDashboardPage() {
           vehicle: 'Motor Box Delivery (L 3319 AB)',
           photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
           status: 'Driver Internal Toko',
-        } : null; // Poin 6: Kurir komunitas masih di pool siaga, belum ada driver terpasang
+          rating: '4.8',
+          completedTrips: '89 Pengiriman',
+        } : null;
 
         const newClaim = {
-          id: `CLM-YYS-${Date.now()}`,
+          id: `${resiCode}-${Date.now()}`,
           code: resiCode,
           foodName: allocationModal.supplier.offer,
           provider: allocationModal.supplier.storeName,
@@ -164,6 +215,7 @@ export default function YayasanDashboardPage() {
           address: allocationModal.supplier.address,
           quantity: `${allocationModal.portions} Porsi`,
           method: allocationModal.deliveryMethod,
+          deliveryMethod: allocationModal.deliveryMethod,
           methodLabel,
           status: claimStatus,
           pickupTime: allocationModal.supplier.readyTime,
@@ -173,47 +225,127 @@ export default function YayasanDashboardPage() {
           picContact: contactPerson,
           specialInstructions: allocationModal.specialInstructions,
           totalAmount: 0,
-          qrPayload: `REPLATE-YYS-${resiCode}-VERIFIED`,
+          qrPayload: `REPLATE-YYS-${resiCode}`,
           hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
           driverInfo,
+          courierName: isProviderDirect ? 'Pak Sugiono (Driver Armada Toko)' : isCommunity ? 'Budi Santoso (Relawan ID #RC-881)' : undefined,
+          courierVehicle: isProviderDirect ? 'Motor Box Delivery (L 3319 AB)' : isCommunity ? 'Motor Box Cooler Steril (L 8912 RC)' : undefined,
+          courierPhone: isProviderDirect ? '081298765432' : isCommunity ? '081298765432' : undefined,
+          providerPhone: '081398765432',
+          providerPic: 'Bpk. Bambang (Manager Toko)',
         };
 
         const existingClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
         localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingClaims]));
-
         const existingActive = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
         localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingActive]));
 
         setIsProcessingClaim(false);
+        setActionLoader({ isOpen: false, message: '' });
         setAllocationModal((prev) => ({ ...prev, isOpen: false }));
 
-        setToastState({
-          isOpen: true,
-          message: `Berhasil mengklaim alokasi donasi pangan dari ${allocationModal.supplier.storeName}! Tiket QR serah terima telah diterbitkan.`,
-          type: 'success',
-        });
-
-        // Redirect directly to claims page
-        router.push('/dashboard/yayasan/claims');
+        // Poin 3: Show success modal instead of direct redirect
+        setSuccessModal({ isOpen: true, claim: newClaim });
       } catch (err) {
         setIsProcessingClaim(false);
-        setToastState({
-          isOpen: true,
-          message: 'Terjadi kendala saat memproses klaim alokasi.',
-          type: 'error',
-        });
+        setActionLoader({ isOpen: false, message: '' });
+        setToastState({ isOpen: true, message: 'Terjadi kendala saat memproses klaim alokasi.', type: 'error' });
       }
-    }, 1000);
+    }, 1200);
   };
+
 
   return (
     <div className="space-y-5 sm:space-y-8 max-w-6xl mx-auto pb-12">
+      <SuperAppLoader isOpen={actionLoader.isOpen} message={actionLoader.message} submessage={actionLoader.submessage} />
       <Toast 
         isOpen={toastState.isOpen}
         message={toastState.message}
         type={toastState.type}
         onClose={() => setToastState((prev) => ({ ...prev, isOpen: false }))}
       />
+
+      {/* SUCCESS MODAL AFTER CLAIM ALLOCATION (Poin 3) */}
+      <Modal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, claim: null })}
+        title="Klaim Alokasi Berhasil Dikonfirmasi!"
+        size="md"
+      >
+        {successModal.claim && (
+          <div className="space-y-4 text-xs">
+            {/* Success Header */}
+            <div className="p-5 bg-gradient-to-br from-emerald-50 to-emerald-100/60 rounded-2xl border border-emerald-200 text-center space-y-2">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto shadow-md">
+                <CheckIcon size={28} className="text-white" />
+              </div>
+              <h3 className="font-black text-base text-emerald-900">Tiket QR Serah Terima Diterbitkan!</h3>
+              <p className="text-[11px] text-emerald-800 font-medium">Klaim alokasi donasi pangan telah dikonfirmasi. Simpan resi di bawah ini.</p>
+            </div>
+
+            {/* Resi Code Prominent */}
+            <div className="p-3.5 bg-[#1B3A5C] rounded-2xl text-center">
+              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block mb-1">Nomor Resi Klaim</span>
+              <span className="font-mono font-black text-lg text-white block">{successModal.claim.code}</span>
+            </div>
+
+            {/* QR Preview */}
+            <div className="flex justify-center py-2">
+              <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 inline-block">
+                <QRGenerator
+                  value={`REPLATE-YYS-${successModal.claim.code}`}
+                  foodName={successModal.claim.foodName}
+                  portions={successModal.claim.quantity}
+                  providerName={successModal.claim.provider || successModal.claim.providerName}
+                  deliveryMethod={successModal.claim.method}
+                  recipientName={pantiName}
+                />
+              </div>
+            </div>
+
+            {/* Claim Details */}
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-[11px]">
+              {[
+                { label: 'Menu Donasi', value: successModal.claim.foodName },
+                { label: 'Jumlah Porsi', value: successModal.claim.quantity },
+                { label: 'Penyedia Donatur', value: successModal.claim.provider },
+                { label: 'Metode Penyaluran', value: successModal.claim.methodLabel },
+                { label: 'Status Awal', value: successModal.claim.status === 'WAITING_RESCUE_POOL' ? 'Siaga di Pool Relawan' : successModal.claim.status === 'READY_FOR_PICKUP' ? 'Siap Diambil di Gerai' : 'Driver Internal Toko' },
+              ].map((row) => (
+                <div key={row.label} className="flex justify-between">
+                  <span className="text-slate-500 font-medium">{row.label}:</span>
+                  <strong className="text-slate-800 font-bold text-right max-w-[200px] truncate">{row.value}</strong>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2.5 pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 font-bold text-xs cursor-pointer"
+                onClick={() => setSuccessModal({ isOpen: false, claim: null })}
+              >
+                Tutup
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                leftIcon={<TicketIcon size={13} className="text-slate-950" />}
+                className="flex-1 font-black text-xs text-slate-950 shadow-xs cursor-pointer"
+                onClick={() => {
+                  setSuccessModal({ isOpen: false, claim: null });
+                  router.push('/dashboard/yayasan/claims');
+                }}
+              >
+                Lihat Semua Klaim
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
 
       {/* Sleek Modern Header Card (Seragam Antar Modul & Role) */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
@@ -509,6 +641,68 @@ export default function YayasanDashboardPage() {
               >
                 {isProcessingClaim ? 'Menerbitkan Tiket QR...' : 'Konfirmasi & Ambil Alokasi ➔'}
               </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Sukses Klaim Alokasi dengan QR Tiket Handover (Poin 3 & 6) */}
+      <Modal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, claim: null })}
+        title="Alokasi Berhasil Diklaim!"
+        size="md"
+      >
+        {successModal.claim && (
+          <div className="space-y-4 text-xs">
+            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-1.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-sm">
+                <CheckIcon size={24} />
+              </div>
+              <h4 className="font-black text-sm text-emerald-950">Tiket Serah Terima Berhasil Terbit</h4>
+              <p className="text-[11px] text-emerald-800">
+                Alokasi donasi telah berhasil dikonfirmasi untuk <strong>{pantiName}</strong>.
+              </p>
+            </div>
+
+            <div className="flex justify-center">
+              <div className="w-full max-w-sm">
+                <QRGenerator
+                  value={successModal.claim.code}
+                  codeTitle="TIKET QR SERAH TERIMA BANTUAN"
+                  codeSubtitle="Pindai kode ini saat serah terima makanan"
+                  foodName={successModal.claim.foodName}
+                  portions={successModal.claim.quantity}
+                  providerName={successModal.claim.providerName}
+                  deliveryMethod={successModal.claim.method}
+                  recipientName={pantiName}
+                  picPanti={contactPerson}
+                  courierName={successModal.claim.courierName}
+                  courierVehicle={successModal.claim.courierVehicle}
+                  courierPhone={successModal.claim.courierPhone}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 pt-2 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 font-bold text-xs cursor-pointer"
+                onClick={() => setSuccessModal({ isOpen: false, claim: null })}
+              >
+                Tutup
+              </Button>
+              <Link href="/dashboard/yayasan/claims" className="flex-1">
+                <Button
+                  variant="gold"
+                  size="sm"
+                  leftIcon={<TicketIcon size={13} className="text-slate-950" />}
+                  className="w-full font-black text-xs text-slate-950 shadow-xs cursor-pointer"
+                >
+                  Buka Modul Klaim ➔
+                </Button>
+              </Link>
             </div>
           </div>
         )}
