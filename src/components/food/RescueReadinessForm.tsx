@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardBody } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { CheckIcon, ShieldCheckIcon } from '../ui/Icon';
 
 export interface RescueReadinessChecklist {
   infoComplete: boolean;
@@ -43,8 +44,8 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
   const [manualSpoilageConfirm, setManualSpoilageConfirm] = useState<boolean>(false);
   const [showSensoryGuide, setShowSensoryGuide] = useState<boolean>(false);
 
-  // Derive checklist from form signals + manual spoilage confirmation
-  const deriveChecklist = useCallback((): RescueReadinessChecklist => {
+  // Memoize checklist derived from individual primitive values of formSignals + manualSpoilageConfirm
+  const checklist = useMemo<RescueReadinessChecklist>(() => {
     if (!formSignals) {
       // Fallback: all false until form signals are provided
       return {
@@ -80,20 +81,38 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
       // 8. Lokasi Akurat: Alamat dan koordinat terisi
       locationAccurate: !!(formSignals.hasAddress && formSignals.hasCoordinates),
     };
-  }, [formSignals, manualSpoilageConfirm]);
+  }, [
+    formSignals?.hasName,
+    formSignals?.hasCategory,
+    formSignals?.hasQuantity,
+    formSignals?.hasWeight,
+    formSignals?.pickupDeadlineMs,
+    formSignals?.hasStorageCondition,
+    formSignals?.hasPackagingType,
+    formSignals?.hasPhoto,
+    formSignals?.hasAddress,
+    formSignals?.hasCoordinates,
+    manualSpoilageConfirm,
+  ]);
 
-  const [checklist, setChecklist] = useState<RescueReadinessChecklist>(deriveChecklist());
+  // Keep ref of onChange to avoid effect re-triggers when parent creates inline function
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  // Re-derive checklist whenever form signals or manual confirmation changes
+  const prevSerializedRef = useRef<string>('');
+
   useEffect(() => {
-    const derived = deriveChecklist();
-    setChecklist(derived);
-    const count = Object.values(derived).filter(Boolean).length;
-    onChange(derived, count === 8);
-  }, [formSignals, manualSpoilageConfirm, deriveChecklist, onChange]);
+    const serialized = JSON.stringify(checklist);
+    if (serialized !== prevSerializedRef.current) {
+      prevSerializedRef.current = serialized;
+      const count = Object.values(checklist).filter(Boolean).length;
+      onChangeRef.current(checklist, count === 8);
+    }
+  }, [checklist]);
 
   const totalChecked = Object.values(checklist).filter(Boolean).length;
   const is100Percent = totalChecked === 8;
+  const isFullyReady = is100Percent;
   const scorePercent = Math.round((totalChecked / 8) * 100);
 
   const items = [
@@ -101,56 +120,48 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
       key: 'infoComplete',
       label: 'Informasi Lengkap',
       desc: 'Nama makanan, jenis, jumlah, dan berat terisi jelas',
-      autoIcon: '📋',
       isAuto: true,
     },
     {
       key: 'notExpired',
       label: 'Makanan Belum Expired',
       desc: 'Tanggal produksi & kadaluarsa masih sangat valid',
-      autoIcon: '📅',
       isAuto: true,
     },
     {
       key: 'storageProper',
       label: 'Kondisi Penyimpanan Sesuai',
       desc: 'Suhu ruangan/dingin/beku terjaga dengan benar',
-      autoIcon: '🌡️',
       isAuto: true,
     },
     {
       key: 'packagingIntact',
       label: 'Kemasan Utuh & Bersih',
       desc: 'Kemasan tidak rusak, bocor, atau terbuka',
-      autoIcon: '📦',
       isAuto: true,
     },
     {
       key: 'noSpoilage',
       label: 'Bebas Tanda Kerusakan',
       desc: 'Tidak berbau aneh, tidak berubah warna, bebas jamur',
-      autoIcon: '🔬',
       isAuto: false, // Manual confirmation required
     },
     {
       key: 'photoClear',
       label: 'Foto Jelas & Terkini',
       desc: 'Minimal 1 foto kondisi riil makanan yang diunggah',
-      autoIcon: '📸',
       isAuto: true,
     },
     {
       key: 'pickupRealistic',
       label: 'Batas Pickup Realistis',
       desc: 'Waktu penjemputan minimal 2 jam dari sekarang',
-      autoIcon: '⏰',
       isAuto: true,
     },
     {
       key: 'locationAccurate',
       label: 'Lokasi & Alamat Akurat',
       desc: 'Alamat dan koordinat titik penjemputan sudah pas',
-      autoIcon: '📍',
       isAuto: true,
     },
   ];
@@ -161,21 +172,37 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
         <div>
           <CardTitle className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
             <svg className="w-5 h-5 text-[#1B3A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span>SOP Rescue Readiness Checklist</span>
+            <span>8-Poin Standar Kelayakan Pangan BPOM</span>
           </CardTitle>
-          <CardDescription className="text-xs text-slate-500 font-medium">
-            Standar Keamanan Pangan BPOM & WHO (Wajib 100% Terpenuhi)
+          <CardDescription className="text-xs">
+            Checklist kepatuhan higienitas pangan otomatis & manual sesuai standar BPOM RI
           </CardDescription>
         </div>
-        <Badge variant={is100Percent ? 'success' : 'warning'} size="md">
-          {scorePercent}% {is100Percent ? 'Siap' : 'Belum Lengkap'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={isFullyReady ? 'success' : 'warning'}
+            className="text-xs font-mono font-bold"
+          >
+            {scorePercent}% Siap
+          </Badge>
+        </div>
       </CardHeader>
 
       <CardBody className="space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Progress bar */}
+        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 rounded-full ${
+              isFullyReady ? 'bg-emerald-500' : 'bg-amber-500'
+            }`}
+            style={{ width: `${scorePercent}%` }}
+          />
+        </div>
+
+        {/* Checklist items */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {items.map((item) => {
             const isChecked = checklist[item.key as keyof RescueReadinessChecklist];
             const isManualItem = !item.isAuto;
@@ -199,23 +226,23 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
                     ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
                     : 'bg-slate-200 text-slate-400 border border-slate-300'
                 }`}>
-                  {isChecked ? '✓' : '○'}
+                  {isChecked ? <CheckIcon size={11} /> : '○'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-800 block">{item.autoIcon} {item.label}</span>
+                    <span className="text-xs font-bold text-slate-800 block">{item.label}</span>
                     {item.isAuto && (
                       <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
                         isChecked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
                       }`}>
-                        {isChecked ? 'Auto ✓' : 'Menunggu Input'}
+                        {isChecked ? 'Auto Valid' : 'Menunggu Input'}
                       </span>
                     )}
                     {!item.isAuto && (
                       <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
                         isChecked ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                       }`}>
-                        {isChecked ? 'Dikonfirmasi ✓' : 'Perlu Konfirmasi'}
+                        {isChecked ? 'Dikonfirmasi' : 'Perlu Konfirmasi'}
                       </span>
                     )}
                   </div>
@@ -237,22 +264,25 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
 
                       {showSensoryGuide && (
                         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1.5 text-[10px] text-blue-900">
-                          <span className="font-black text-[11px] text-blue-950 block">🧪 Panduan Uji Sensorik Cepat (Standar BPOM RI)</span>
+                          <span className="font-black text-[11px] text-blue-950 flex items-center gap-1">
+                            <ShieldCheckIcon size={13} className="text-blue-900 shrink-0" />
+                            <span>Panduan Uji Sensorik Cepat (Standar BPOM RI)</span>
+                          </span>
                           <div className="space-y-1">
                             <div className="flex items-start gap-1.5">
-                              <span>👃</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                               <span><strong>Uji Aroma:</strong> Bebas bau asam, tengik, basi, atau bau amis tidak wajar.</span>
                             </div>
                             <div className="flex items-start gap-1.5">
-                              <span>👁️</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                               <span><strong>Uji Tekstur & Visual:</strong> Tidak berlendir, tidak berubah warna gelap/kehijauan, bebas bintik jamur.</span>
                             </div>
                             <div className="flex items-start gap-1.5">
-                              <span>🌡️</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                               <span><strong>Uji Suhu:</strong> Makanan panas terjaga &gt;60°C, makanan dingin terjaga &lt;4°C (zona bahaya 4-60°C dihindari).</span>
                             </div>
                             <div className="flex items-start gap-1.5">
-                              <span>🧤</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1"></span>
                               <span><strong>Uji Fisik:</strong> Kemasan tidak kembung, segel tidak rusak, tidak ada benda asing di dalam wadah.</span>
                             </div>
                           </div>
@@ -318,7 +348,7 @@ export const RescueReadinessForm: React.FC<RescueReadinessFormProps> = ({ onChan
             <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>✅ Semua 8 syarat SOP BPOM & WHO terpenuhi 100%! Makanan siap dipublikasikan ke platform Replate.</span>
+            <span>Semua 8 syarat SOP BPOM & WHO terpenuhi 100%! Makanan siap dipublikasikan ke platform Replate.</span>
           </div>
         )}
       </CardBody>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { QRScanner } from '@/components/qr/QRScanner';
@@ -9,7 +9,24 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useRouter } from 'next/navigation';
+import {
+  CameraIcon,
+  GalleryIcon,
+  SearchIcon,
+  CheckIcon,
+  ClockIcon,
+  TruckIcon,
+  BikeIcon,
+  PackageIcon,
+  CreditCardIcon,
+  TicketIcon,
+  ChatIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  AlertTriangleIcon,
+} from '@/components/ui/Icon';
 
 export default function ProviderClaimsPage() {
   const router = useRouter();
@@ -21,6 +38,12 @@ export default function ProviderClaimsPage() {
     isOpen: false,
     message: '',
     type: 'success',
+  });
+
+  const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({
+    isOpen: false,
+    message: '',
+    submessage: '',
   });
 
   const [paymentInspectModal, setPaymentInspectModal] = useState<{ isOpen: boolean; claim: any | null }>({
@@ -343,6 +366,62 @@ export default function ProviderClaimsPage() {
   const [selectedStoreDriver, setSelectedStoreDriver] = useState<string>('Driver A: Mas Doni (Plat L 4582 ABC)');
   const [conditionChecked, setConditionChecked] = useState<boolean>(true);
 
+  // Native & Live Camera Capture Refs for Physical Handover (Point 4)
+  const nativeCameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement | null>(null);
+  const handoverVideoRef = useRef<HTMLVideoElement | null>(null);
+  const handoverStreamRef = useRef<MediaStream | null>(null);
+  const [isLiveCameraViewOpen, setIsLiveCameraViewOpen] = useState<boolean>(false);
+
+  const startLiveWebcam = async () => {
+    setIsLiveCameraViewOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      handoverStreamRef.current = stream;
+      if (handoverVideoRef.current) {
+        handoverVideoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.warn('Fallback to native camera file input:', err);
+      setIsLiveCameraViewOpen(false);
+      nativeCameraInputRef.current?.click();
+    }
+  };
+
+  const captureLiveSnapshot = () => {
+    if (!handoverVideoRef.current) return;
+    const video = handoverVideoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      setProofPhoto(dataUrl);
+      stopLiveWebcam();
+    }
+  };
+
+  const stopLiveWebcam = () => {
+    if (handoverStreamRef.current) {
+      handoverStreamRef.current.getTracks().forEach((t) => t.stop());
+      handoverStreamRef.current = null;
+    }
+    setIsLiveCameraViewOpen(false);
+  };
+
+  // Clean up webcam stream on unmount
+  useEffect(() => {
+    return () => {
+      if (handoverStreamRef.current) {
+        handoverStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
+
   // List of Registered Store Fleet Drivers
   const storeDriversList = [
     { id: 'drv-1', name: 'Driver A: Mas Doni', vehicle: 'Motor Box Steril (Plat L 4582 ABC)', phone: '0812-3456-7890' },
@@ -353,54 +432,64 @@ export default function ProviderClaimsPage() {
   const handleVerifyCodeAtStore = async (code: string) => {
     const cleanCode = code.trim().toUpperCase();
 
-    const target = pendingClaims.find((c) => c.code.toUpperCase() === cleanCode) || {
-      code: cleanCode,
-      foodName: 'Surplus Makanan Steril',
-      userName: 'Penerima Bantuan / Kurir Relawan',
-      quantity: 'Porsi Terverifikasi',
-      status: 'IN_TRANSIT',
-      deliveryMethod: 'RESCUE_COURIER',
-      courierName: courierNameInput || 'Budi Santoso (Relawan ID #RC-881)',
-      courierOrg: 'Replate Rescue Fleet',
-      courierPhone: '0812-9876-5432',
-      address: 'Kota Surabaya',
-      time: 'OTW Pengiriman',
-    };
-
-    setPendingClaims((prev) => prev.filter((c) => c.code.toUpperCase() !== cleanCode));
-    const newInTransitItem = {
-      ...target,
-      status: 'IN_TRANSIT',
-      time: 'OTW Dalam Pengiriman',
-    };
-    setInTransitClaims((prev) => Array.from(new Map([...prev, newInTransitItem].map(i => [i.code, i])).values()));
-
-    try {
-      const savedClaimsStr = localStorage.getItem('replate_claims');
-      const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
-      const updatedClaims = existingClaims.map((c: any) =>
-        (c.claimCode === cleanCode || c.id === cleanCode)
-          ? { ...c, status: 'IN_TRANSIT' }
-          : c
-      );
-      localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
-    } catch (_) {}
-
-    setConfirmModal({
-      isOpen: false,
-      code: '',
-      foodName: '',
-      userName: '',
-      quantity: '',
-    });
-
-    setToastState({
+    setActionLoader({
       isOpen: true,
-      message: `🚚 QR Code "${cleanCode}" Valid! Paket Makanan Dihandover Ke Kurir. Status Diperbarui Menjadi IN_TRANSIT (OTW).`,
-      type: 'success',
+      message: `Memvalidasi Resi ${cleanCode}...`,
+      submessage: 'Sinkronisasi status kasir & aktivasi live tracking kurir',
     });
-    setShowScanner(false);
-    setManualCodeInput('');
+
+    setTimeout(() => {
+      setActionLoader({ isOpen: false, message: '' });
+
+      const target = pendingClaims.find((c) => c.code.toUpperCase() === cleanCode) || {
+        code: cleanCode,
+        foodName: 'Surplus Makanan Steril',
+        userName: 'Penerima Bantuan / Kurir Relawan',
+        quantity: 'Porsi Terverifikasi',
+        status: 'IN_TRANSIT',
+        deliveryMethod: 'RESCUE_COURIER',
+        courierName: courierNameInput || 'Budi Santoso (Relawan ID #RC-881)',
+        courierOrg: 'Replate Rescue Fleet',
+        courierPhone: '0812-9876-5432',
+        address: 'Kota Surabaya',
+        time: 'OTW Pengiriman',
+      };
+
+      setPendingClaims((prev) => prev.filter((c) => c.code.toUpperCase() !== cleanCode));
+      const newInTransitItem = {
+        ...target,
+        status: 'IN_TRANSIT',
+        time: 'OTW Dalam Pengiriman',
+      };
+      setInTransitClaims((prev) => Array.from(new Map([...prev, newInTransitItem].map(i => [i.code, i])).values()));
+
+      try {
+        const savedClaimsStr = localStorage.getItem('replate_claims');
+        const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
+        const updatedClaims = existingClaims.map((c: any) =>
+          (c.claimCode === cleanCode || c.id === cleanCode)
+            ? { ...c, status: 'IN_TRANSIT' }
+            : c
+        );
+        localStorage.setItem('replate_claims', JSON.stringify(updatedClaims));
+      } catch (_) {}
+
+      setConfirmModal({
+        isOpen: false,
+        code: '',
+        foodName: '',
+        userName: '',
+        quantity: '',
+      });
+
+      setToastState({
+        isOpen: true,
+        message: `QR Code "${cleanCode}" Valid! Paket Makanan Dihandover Ke Kurir. Status Diperbarui Menjadi IN_TRANSIT (OTW).`,
+        type: 'success',
+      });
+      setShowScanner(false);
+      setManualCodeInput('');
+    }, 550);
   };
 
   // Direct Pickup Verification at Store for Ambil Mandiri
@@ -429,7 +518,7 @@ export default function ProviderClaimsPage() {
 
     setToastState({
       isOpen: true,
-      message: `✓ Pengambilan Mandiri "${cleanCode}" Terverifikasi Selesai di Toko! Status Permanen COMPLETED.`,
+      message: `Pengambilan Mandiri "${cleanCode}" Terverifikasi Selesai di Toko! Status Permanen COMPLETED.`,
       type: 'success',
     });
   };
@@ -495,52 +584,55 @@ export default function ProviderClaimsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
-      {/* High Contrast Banner */}
-      <div className="bg-[#1B3A5C] rounded-2xl p-6 text-white shadow-lg border border-[#2C5A8F] space-y-2">
-        <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-[10px] font-black uppercase tracking-wider rounded-md inline-block shadow-xs">
-          Pusat Penyelamatan & Integrasi Logistik QR
-        </span>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">Klaim & Penyelamatan Makanan Toko Saya</h1>
-        <p className="text-xs text-slate-100 leading-relaxed max-w-2xl font-medium">
-          Verifikasi pembayaran booking transfer/QRIS, pindai QR tiket serah terima makanan, dan pantau penyaluran real-time ke panti asuhan & penerima manfaat.
-        </p>
-      </div>
-
-      {/* Action Control Panel for Camera Scan QR & Manual Code Input */}
-      <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800 text-white space-y-4 shadow-md">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
-              Penjemputan Makanan di Toko Anda
-            </span>
-            <h3 className="text-sm font-extrabold text-white">Scan QR Toko Saat Handover Makanan Ke Kurir</h3>
+      {/* Sleek Modern Header Card (Compact & Ergonomic) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 bg-[#1B3A5C]/10 text-[#1B3A5C] text-[9.5px] font-black uppercase tracking-wider rounded-md">
+                Pusat Integrasi Logistik QR
+              </span>
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Kasir Siaga</span>
+              </span>
+            </div>
+            <h1 className="text-base sm:text-xl font-black text-[#1B3A5C] tracking-tight">
+              Klaim & Penyelamatan Makanan Toko
+            </h1>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              Verifikasi transfer, scan QR kurir relawan, dan serah terima paket makanan.
+            </p>
           </div>
 
           <Button
-            variant={showScanner ? 'outline' : 'gold'}
-            size="md"
-            className="font-black shadow-md flex items-center gap-2 shrink-0 text-slate-900 px-5"
+            variant="gold"
+            size="sm"
+            leftIcon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              </svg>
+            }
+            className="font-black text-xs text-slate-950 shadow-xs py-2 px-3.5 rounded-xl cursor-pointer shrink-0 self-start sm:self-auto"
             onClick={() => setShowScanner(!showScanner)}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-            </svg>
-            <span>{showScanner ? 'Tutup Pindai Kamera' : 'Buka Kamera Pindai QR Toko'}</span>
+            {showScanner ? 'Tutup Kamera QR' : 'Buka Kamera Pindai QR'}
           </Button>
         </div>
 
-        {/* Manual Code Input & Quick Resi Tracker Bar (Point 10) */}
-        <div className="flex flex-col sm:flex-row items-center gap-2 border-t border-slate-800 pt-3">
+        {/* Quick Resi Code Input & Action Bar */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 pt-3 border-t border-slate-100">
           <Input
-            placeholder="Ketik / Tempel Kode Resi (Contoh: FB-DON-88192 / FB-SALE-99102)..."
+            placeholder="Ketik / tempel kode resi (Contoh: FB-DON-88192)..."
             value={manualCodeInput}
             onChange={(e) => setManualCodeInput(e.target.value)}
-            className="text-xs bg-slate-800 text-white border-slate-700 placeholder-slate-400 flex-1"
+            className="text-xs bg-slate-50 text-slate-900 border-slate-200 placeholder-slate-400 flex-1 w-full"
           />
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto shrink-0">
             <Button
               variant="outline"
-              size="md"
+              size="sm"
+              leftIcon={<SearchIcon size={13} className="text-[#1B3A5C]" />}
               disabled={!manualCodeInput.trim()}
               onClick={() => {
                 const found = [...pendingClaims, ...inTransitClaims, ...completedClaims, ...paymentClaims].find(
@@ -549,7 +641,6 @@ export default function ProviderClaimsPage() {
                 if (found) {
                   setLiveTrackingModal({ isOpen: true, claim: found });
                 } else {
-                  // Fallback generate preview tracking for any valid format
                   setLiveTrackingModal({
                     isOpen: true,
                     claim: {
@@ -567,83 +658,90 @@ export default function ProviderClaimsPage() {
                   });
                 }
               }}
-              className="font-extrabold text-xs text-white border-slate-600 hover:bg-slate-800 flex-1 sm:flex-initial"
+              className="flex-1 sm:flex-initial font-bold text-xs py-2 px-3 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
             >
-              🔍 Lacak Status Resi ➔
+              Lacak
             </Button>
             <Button
               variant="gold"
-              size="md"
+              size="sm"
+              leftIcon={<CheckIcon size={13} className="text-slate-950" />}
               disabled={!manualCodeInput.trim()}
               onClick={() => handleVerifyCodeAtStore(manualCodeInput)}
-              className="font-black text-xs shadow-md text-slate-950 flex-1 sm:flex-initial"
+              className="flex-1 sm:flex-initial font-black text-xs text-slate-950 shadow-xs py-2 px-3.5 rounded-xl cursor-pointer"
             >
-              Konfirmasi Handover ➔
+              Verifikasi Resi
             </Button>
           </div>
         </div>
       </div>
 
       {showScanner && (
-        <Card className="p-6 border-[#D4A843] bg-white shadow-md">
+        <Card className="p-4 sm:p-6 border-[#D4A843] bg-white shadow-md">
           <QRScanner onScanSuccess={handleVerifyCodeAtStore} />
         </Card>
       )}
 
-      {/* Tabs Filter (Poin 3: Separate Payment Verification vs Handover Claims) */}
-      <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold flex-wrap">
+      {/* Dynamic Tabs Navigation Bar (Modern Segmented Pill Container with Descriptive Direction) */}
+      <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 flex items-center gap-1 overflow-x-auto no-scrollbar shadow-2xs">
         <button
           onClick={() => setActiveTab('PAYMENT_VERIFY')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+          className={`flex-1 min-w-[125px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'PAYMENT_VERIFY'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              : 'text-slate-600 hover:text-slate-900 bg-white/50'
           }`}
         >
-          <span>💳 Verifikasi Pembayaran Rescue Sale</span>
-          <span className="px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-md">
+          <CreditCardIcon size={14} className={activeTab === 'PAYMENT_VERIFY' ? 'text-[#D4A843]' : 'text-slate-500'} />
+          <span className="text-xs">Verifikasi Bayar</span>
+          <span className="px-1.5 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-md">
             {paymentClaims.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('PENDING_PICKUP')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+          className={`flex-1 min-w-[130px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'PENDING_PICKUP'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              : 'text-slate-600 hover:text-slate-900 bg-white/50'
           }`}
+          title="Kurir relawan sedang menuju outlet toko Anda untuk mengambil paket makanan"
         >
-          <span>📦 Penyelamatan & Handover Makanan</span>
-          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-black rounded-md">
+          <PackageIcon size={14} className={activeTab === 'PENDING_PICKUP' ? 'text-[#D4A843]' : 'text-slate-500'} />
+          <span className="text-xs font-bold">Siap Handover</span>
+          <span className="px-1.5 py-0.5 bg-blue-500 text-white text-[10px] font-black rounded-md">
             {pickupClaims.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('IN_TRANSIT')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+          className={`flex-1 min-w-[130px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'IN_TRANSIT'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              : 'text-slate-600 hover:text-slate-900 bg-white/50'
           }`}
+          title="Handover kasir selesai, kurir sedang membawa paket OTW ke panti/konsumen"
         >
-          <span>🚚 Dalam Pengantaran OTW</span>
-          <span className="px-2 py-0.5 bg-purple-500 text-white text-[10px] font-black rounded-md">
+          <TruckIcon size={14} className={activeTab === 'IN_TRANSIT' ? 'text-[#D4A843]' : 'text-slate-500'} />
+          <span className="text-xs font-bold">Pengantaran</span>
+          <span className="px-1.5 py-0.5 bg-purple-500 text-white text-[10px] font-black rounded-md">
             {inTransitClaims.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('COMPLETED')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all flex items-center gap-2 ${
+          className={`flex-1 min-w-[100px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'COMPLETED'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              : 'text-slate-600 hover:text-slate-900 bg-white/50'
           }`}
         >
-          <span>✓ Riwayat Klaim Selesai</span>
-          <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-md">
+          <CheckIcon size={14} className={activeTab === 'COMPLETED' ? 'text-emerald-400' : 'text-slate-500'} />
+          <span className="text-xs">Selesai</span>
+          <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-md">
             {completedClaims.length}
           </span>
         </button>
@@ -651,7 +749,7 @@ export default function ProviderClaimsPage() {
 
       {/* Transaction List */}
       <Card className="bg-white border-slate-200 shadow-xs">
-        <CardBody className="p-4 space-y-3 text-xs">
+        <CardBody className="p-3 sm:p-4 space-y-3 text-xs">
           {(() => {
             const currentList =
               activeTab === 'PAYMENT_VERIFY'
@@ -665,8 +763,8 @@ export default function ProviderClaimsPage() {
             if (currentList.length === 0) {
               return (
                 <div className="text-center py-10 space-y-2">
-                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-xl">
-                    📭
+                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-400">
+                    <PackageIcon size={24} className="text-slate-400" />
                   </div>
                   <p className="text-sm font-bold text-slate-700">Belum Ada Transaksi di Tab Ini</p>
                   <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
@@ -676,115 +774,176 @@ export default function ProviderClaimsPage() {
               );
             }
 
-            return currentList.map((tx, idx) => {
-              const displayQty = tx.quantity
-                ? (String(tx.quantity).includes('Porsi') || String(tx.quantity).includes('Pcs') || String(tx.quantity).includes('Box')
-                    ? String(tx.quantity)
-                    : `${tx.quantity} Porsi`)
-                : '1 Porsi';
+            return (
+              <div className="space-y-3">
+                {/* Mobile Stepper / Swipe Indicator (Hanya tampil jika ada lebih dari 1 kartu) */}
+                {currentList.length > 1 && (
+                  <div className="sm:hidden flex items-center justify-between text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                    <span className="flex items-center gap-1.5 text-slate-700">
+                      <PackageIcon size={13} className="text-[#1B3A5C]" />
+                      <span>{currentList.length} Transaksi di Tab Ini</span>
+                    </span>
+                    <span className="font-black flex items-center gap-1 bg-amber-100/90 text-amber-950 px-2 py-0.5 rounded-lg text-[10.5px]">
+                      <span>Geser Kartu</span>
+                      <span>⇄</span>
+                    </span>
+                  </div>
+                )}
 
-              return (
-                <div
-                  key={`${tx.code}-${idx}`}
-                  className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-100/60 transition-colors"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-[#1B3A5C] text-sm">{tx.foodName}</span>
-                      <Badge variant={activeTab === 'COMPLETED' ? 'success' : activeTab === 'IN_TRANSIT' ? 'warning' : 'primary'} size="sm">
-                        {displayQty}
-                      </Badge>
-                    </div>
-                    <p className="text-slate-600 font-medium">Penerima / Pembeli: <strong>{tx.userName}</strong> ({tx.recipientType || 'Penerima'})</p>
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
-                      <span>
-                        Kode Resi: <strong className="font-mono text-[#1B3A5C] font-black">{tx.code}</strong>
-                      </span>
-                      <span>•</span>
-                      <span>
-                        Metode: <strong className="text-[#1B3A5C] font-bold">{tx.deliveryMethod === 'SHELTER_PICKUP' ? '🏢 Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🛵 Kurir Relawan'}</strong>
-                      </span>
-                      {tx.deliveryMethod === 'RESCUE_COURIER' && (
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-900 border border-purple-200 rounded font-black text-[10px]">
-                          {tx.status === 'AWAITING_RESCUE_PICKUP'
-                            ? '⏳ Menunggu Driver Relawan di Pool Siaga'
-                            : '🚚 Driver Relawan OTW Menuju Toko'}
-                        </span>
-                      )}
-                    </div>
+                {/* Cards Container: Single card width on mobile with smooth swipe, vertical stack on desktop */}
+                <div className="flex sm:flex-col gap-4 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory no-scrollbar pb-2 sm:pb-0">
+                  {currentList.map((tx, idx) => {
+                    const displayQty = tx.quantity
+                      ? (String(tx.quantity).includes('Porsi') || String(tx.quantity).includes('Pcs') || String(tx.quantity).includes('Box')
+                          ? String(tx.quantity)
+                          : `${tx.quantity} Porsi`)
+                      : '1 Porsi';
 
-                    {/* Dedicated Volunteer Courier Profile Info Box (Point 5) */}
-                    {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status !== 'AWAITING_RESCUE_PICKUP' && (
-                      <div className="p-3 bg-purple-50/90 rounded-xl border border-purple-200 mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={tx.courierAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
-                            alt={tx.courierName || 'Kurir Relawan'}
-                            className="w-11 h-11 rounded-full object-cover border-2 border-purple-600 shadow-xs shrink-0"
-                          />
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <strong className="text-purple-950 font-extrabold text-xs">
-                                {tx.courierName || 'Budi Santoso'}
-                              </strong>
-                              <span className="text-[9px] bg-purple-200 text-purple-900 font-black px-1.5 py-0.5 rounded">
-                                Relawan ID #{tx.courierId || 'RC-881'}
-                              </span>
-                              <span className="text-[9px] bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.5 rounded">
-                                ⏱️ ETA: ~12 Menit
-                              </span>
+                    return (
+                      <div
+                        key={`${tx.code}-${idx}`}
+                        className="w-full min-w-full sm:min-w-0 snap-center shrink-0 sm:shrink p-3 sm:p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:border-[#1B3A5C]/40 transition-all space-y-2"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                              <span className="font-extrabold text-[#1B3A5C] text-sm truncate">{tx.foodName}</span>
+                              <Badge variant={activeTab === 'COMPLETED' ? 'success' : activeTab === 'IN_TRANSIT' ? 'warning' : 'primary'} size="sm">
+                                {displayQty}
+                              </Badge>
                             </div>
-                            <p className="text-[11px] text-purple-900 font-medium">
-                              Armada: <strong>{tx.courierVehicle || 'Motor Box Cooler Steril (Plat L 8912 RC)'}</strong> • {tx.courierOrg || 'Komunitas Food Bank Surabaya'}
-                            </p>
+                            {activeTab === 'PENDING_PICKUP' && (
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
+                                <BikeIcon size={11} /> Kurir Menuju Toko
+                              </span>
+                            )}
+                            {activeTab === 'IN_TRANSIT' && (
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
+                                <TruckIcon size={11} /> OTW ke Panti/Penerima
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
+                            <span className="font-mono font-bold text-[#1B3A5C]">{tx.code}</span>
+                            <span>•</span>
+                            <span className="text-slate-700 font-semibold">{tx.userName}</span>
+                            <span>•</span>
+                            <span>{tx.deliveryMethod === 'SHELTER_PICKUP' ? 'Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? 'Diantar Toko' : 'Kurir Relawan'}</span>
+                            {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status === 'AWAITING_RESCUE_PICKUP' && (
+                              <span className="px-1.5 py-0.2 bg-purple-100 text-purple-900 rounded text-[9.5px] font-bold">
+                                Menunggu Driver
+                              </span>
+                            )}
                           </div>
                         </div>
 
+                        {/* Compact Volunteer Courier Strip */}
+                        {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status !== 'AWAITING_RESCUE_PICKUP' && (
+                          <div className="p-2 bg-purple-50/90 rounded-xl border border-purple-200 flex items-center justify-between gap-2 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img
+                                src={tx.courierAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
+                                alt={tx.courierName || 'Kurir Relawan'}
+                                className="w-7 h-7 rounded-full object-cover border border-purple-500 shadow-2xs shrink-0"
+                              />
+                              <div className="min-w-0 leading-tight">
+                                <div className="flex items-center gap-1.5">
+                                  <strong className="text-purple-950 font-bold text-xs truncate">
+                                    {tx.courierName || 'Budi Santoso'}
+                                  </strong>
+                                  <span className="text-[9px] bg-purple-200 text-purple-900 font-bold px-1 rounded shrink-0">
+                                    #{tx.courierId || 'RC-881'}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-purple-800 truncate block">
+                                  {tx.courierVehicle || 'Motor Box Cooler'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <a
+                              href={`https://wa.me/${(tx.courierPhone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(
+                                `Halo Mas ${tx.courierName || 'Driver Relawan'}, saya dari Toko mengonfirmasi donasi resi ${tx.code} siap diserahterimakan.`
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-2xs transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                            >
+                              <ChatIcon size={12} />
+                              <span>Chat WA</span>
+                            </a>
+                          </div>
+                        )}
+
+                {/* ACTION FOOTER BAR: Clean side-by-side layout (Secondary on Left, Primary on Right) */}
+                <div className="flex items-center justify-between gap-2 w-full pt-2.5 mt-1 border-t border-slate-200/80 shrink-0">
+                  {/* Left Side: Contextual Secondary Actions (Tiket QR, Surat Jalan, Audit Log) */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-bold text-xs border-slate-300 hover:bg-slate-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                      onClick={() => setIssuedTicketModal({ isOpen: true, claim: tx })}
+                    >
+                      <TicketIcon size={13} className="text-[#1B3A5C]" />
+                      <span>Tiket QR</span>
+                    </Button>
+
+                    {activeTab === 'IN_TRANSIT' && tx.deliveryMethod === 'PROVIDER_DIRECT' && (
+                      <>
                         <a
-                          href={`https://wa.me/${(tx.courierPhone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(
-                            `Halo Mas ${tx.courierName || 'Driver Relawan'}, saya dari Toko mengonfirmasi donasi resi ${tx.code} siap diserahterimakan.`
-                          )}`}
+                          href={`/driver-manifest/${tx.code}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs transition-colors shrink-0 flex items-center justify-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                          className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <span>💬 Chat WA Driver</span>
+                          <TicketIcon size={13} />
+                          <span>Surat Jalan</span>
                         </a>
-                      </div>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="font-bold text-xs shadow-2xs flex items-center justify-center gap-1 py-1.5 px-3 rounded-xl cursor-pointer"
+                          onClick={() => handleDirectPickupCompleteAtStore(tx)}
+                        >
+                          <CheckIcon size={13} />
+                          <span>Selesai</span>
+                        </Button>
+                      </>
+                    )}
+
+                    {activeTab === 'COMPLETED' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                      >
+                        <ClockIcon size={13} />
+                        <span>Audit Log</span>
+                      </Button>
                     )}
                   </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Buka & Unduh Tiket QR Button (Point 3 & 12) */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="font-bold text-xs border-slate-300 hover:bg-slate-100 flex items-center gap-1"
-                    onClick={() => setIssuedTicketModal({ isOpen: true, claim: tx })}
-                  >
-                    <span>🎟️ Tiket QR</span>
-                  </Button>
-
-                  {activeTab === 'PAYMENT_VERIFY' ? (
-                    <Button
-                      variant="gold"
-                      size="sm"
-                      className="font-extrabold text-xs shadow-xs flex items-center gap-1.5"
-                      onClick={() => setPaymentInspectModal({ isOpen: true, claim: tx })}
-                    >
-                      <span>💳 Inspect Struk Bayar & Verifikasi Lunas ➔</span>
-                    </Button>
-                  ) : activeTab === 'PENDING_PICKUP' ? (
-                    tx.status === 'AWAITING_RESCUE_PICKUP' ? (
-                      <div className="flex flex-col sm:flex-row items-center gap-2">
-                        <span className="px-3 py-2 bg-amber-100 text-amber-900 font-extrabold text-xs rounded-xl border border-amber-300 flex items-center gap-1.5 shadow-2xs">
-                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                          <span>⏳ Menunggu Kurir Tiba di Toko</span>
-                        </span>
+                  {/* Right Side: Primary CTA (Compact, self-sized pill button with icon & text side-by-side) */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {activeTab === 'PAYMENT_VERIFY' ? (
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        className="font-black text-xs shadow-xs flex items-center justify-center gap-1.5 py-2 px-3.5 text-slate-950 rounded-xl cursor-pointer"
+                        onClick={() => setPaymentInspectModal({ isOpen: true, claim: tx })}
+                      >
+                        <CreditCardIcon size={14} />
+                        <span>Inspect Struk ➔</span>
+                      </Button>
+                    ) : activeTab === 'PENDING_PICKUP' ? (
+                      tx.status === 'AWAITING_RESCUE_PICKUP' ? (
                         <Button
-                          variant="gold"
+                          variant="secondary"
                           size="sm"
-                          className="font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300"
+                          className="font-black text-xs bg-amber-400 hover:bg-amber-500 !text-slate-950 hover:!text-black border border-amber-500 shadow-xs flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl cursor-pointer"
                           title="Simulasikan kurir tiba di outlet untuk mengaktifkan tombol handover"
                           onClick={() => {
                             const updated = pendingClaims.map((c) =>
@@ -793,98 +952,67 @@ export default function ProviderClaimsPage() {
                             setPendingClaims(updated);
                             setToastState({
                               isOpen: true,
-                              message: `Kurir relawan "${tx.courierName}" telah tiba di outlet! Tombol handover siap digunakan.`,
+                              message: `Kurir relawan "${tx.courierName || 'Komunitas'}" telah tiba di outlet! Tombol handover siap digunakan.`,
                               type: 'success',
                             });
                           }}
                         >
-                          <span>🛵 Kurir Tiba di Toko ➔</span>
+                          <BikeIcon size={14} />
+                          <span>Kurir Tiba di Toko ➔</span>
                         </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="gold"
-                        size="sm"
-                        className="font-extrabold text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={() => openConfirmModal(tx)}
-                      >
-                        ✓ Konfirmasi Handover (Kurir di Kasir) ➔
-                      </Button>
-                    )
-                  ) : activeTab === 'IN_TRANSIT' ? (
-                    tx.deliveryMethod === 'SHELTER_PICKUP' ? (
-                      <Button
-                        variant="gold"
-                        size="sm"
-                        className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                        onClick={() => handleDirectPickupCompleteAtStore(tx)}
-                      >
-                        ✓ Verifikasi Serah Terima Langsung Toko ➔
-                      </Button>
-                    ) : tx.deliveryMethod === 'PROVIDER_DIRECT' ? (
-                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                      ) : (
                         <Button
                           variant="gold"
                           size="sm"
-                          className="font-black text-xs shadow-xs flex items-center gap-1 text-slate-950"
-                          onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                          leftIcon={<CheckIcon size={14} />}
+                          className="font-black text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3.5 rounded-xl cursor-pointer"
+                          onClick={() => openConfirmModal(tx)}
                         >
-                          <span>📍 Live Tracking Driver Toko ➔</span>
+                          Konfirmasi Kasir
                         </Button>
-                        <a
-                          href={`/driver-manifest/${tx.code}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] !text-white hover:!text-white focus:!text-white active:!text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1 shrink-0 cursor-pointer"
-                        >
-                          <span className="!text-white font-extrabold">📲 Surat Jalan Driver ➔</span>
-                        </a>
+                      )
+                    ) : activeTab === 'IN_TRANSIT' ? (
+                      tx.deliveryMethod === 'SHELTER_PICKUP' ? (
                         <Button
-                          variant="primary"
+                          variant="gold"
                           size="sm"
-                          className="font-black text-xs shadow-xs"
+                          leftIcon={<CheckIcon size={14} />}
+                          className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md py-2 px-3.5 rounded-xl cursor-pointer"
                           onClick={() => handleDirectPickupCompleteAtStore(tx)}
                         >
-                          ✓ Selesai ➔
+                          Verifikasi Toko
                         </Button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                      ) : (
                         <Button
                           variant="gold"
                           size="sm"
-                          className="font-black text-xs shadow-xs flex items-center gap-1 text-slate-950"
+                          className="font-black text-xs shadow-xs flex items-center justify-center gap-1.5 py-2 px-3.5 text-slate-950 rounded-xl cursor-pointer"
                           onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
                         >
-                          <span>🛵 Status Live Tracking Kurir Komunitas ➔</span>
+                          <MapPinIcon size={14} />
+                          <span>Live Tracking ➔</span>
                         </Button>
-                      </div>
-                    )
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
-                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
-                      >
-                        <span>📋 Audit Log & Timeline ➔</span>
-                      </Button>
+                      )
+                    ) : (
                       <Button
                         variant="gold"
                         size="sm"
-                        className="font-extrabold text-xs shadow-xs text-slate-950"
+                        leftIcon={<CheckIcon size={14} />}
+                        className="font-black text-xs shadow-xs text-slate-950 py-2 px-3.5 rounded-xl cursor-pointer"
                         onClick={() => setDetailModal({ isOpen: true, claim: tx })}
                       >
-                        Detail Serah Terima ➔
+                        Detail Resi
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             );
-          });
-        })()}
+          })}
+        </div>
+      </div>
+    );
+  })()}
         </CardBody>
       </Card>
 
@@ -900,7 +1028,10 @@ export default function ProviderClaimsPage() {
             <div className="space-y-4 text-xs text-slate-800">
               <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-emerald-900 font-black text-sm block">✓ STATUS: VERIFIED & SELESAI (COMPLETED)</span>
+                  <span className="text-emerald-900 font-black text-sm flex items-center gap-1">
+                    <CheckIcon size={14} />
+                    STATUS: VERIFIED & SELESAI (COMPLETED)
+                  </span>
                   <span className="font-mono font-bold text-xs bg-emerald-700 text-white px-2.5 py-0.5 rounded-md">
                     {detailModal.claim.code}
                   </span>
@@ -918,10 +1049,10 @@ export default function ProviderClaimsPage() {
                   </span>
                   <Badge variant="gold">
                     {detailModal.claim.deliveryMethod === 'RESCUE_COURIER'
-                      ? '🛵 KURIR RELAWAN KOMUNITAS'
+                      ? 'KURIR RELAWAN KOMUNITAS'
                       : detailModal.claim.deliveryMethod === 'SHELTER_PICKUP'
-                      ? '🏢 PENGAMBILAN MANDIRI'
-                      : '🚚 DIANTAR ARMADA TOKO'}
+                      ? 'PENGAMBILAN MANDIRI'
+                      : 'DIANTAR ARMADA TOKO'}
                   </Badge>
                 </div>
 
@@ -1054,16 +1185,23 @@ export default function ProviderClaimsPage() {
                 </h4>
                 <span className="px-2.5 py-0.5 bg-[#1B3A5C] text-white text-[10px] font-black rounded-md uppercase tracking-wider">
                   {confirmModal.deliveryMethod === 'RESCUE_COURIER'
-                    ? '🛵 KURIR RELAWAN'
+                    ? 'KURIR RELAWAN'
                     : confirmModal.deliveryMethod === 'SHELTER_PICKUP'
-                    ? '🏬 AMBIL MANDIRI'
-                    : '🚚 ARMADA TOKO'}
+                    ? 'AMBIL MANDIRI'
+                    : 'ARMADA TOKO'}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <div className="relative h-36 bg-slate-800 rounded-xl overflow-hidden border border-slate-300">
-                  {proofPhoto && <img src={proofPhoto} alt="Foto Handover" className="w-full h-full object-cover" />}
+                  {proofPhoto ? (
+                    <img src={proofPhoto} alt="Foto Handover" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1">
+                      <CameraIcon size={28} />
+                      <span className="text-[10px] font-bold">Belum Ada Foto Terlampir</span>
+                    </div>
+                  )}
                   <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded-md font-mono">
                     BUKTI HANDOVER TOKO
                   </span>
@@ -1134,59 +1272,172 @@ export default function ProviderClaimsPage() {
                         rel="noreferrer"
                         className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
                       >
-                        <span>💬 Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
+                        <ChatIcon size={14} />
+                        <span>Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
                       </a>
                     </>
                   )}
                 </div>
               </div>
 
-              {/* Interactive Photo Upload / Capture Section (Point 5 & 7) */}
-              <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                <label className="font-extrabold text-slate-900 block text-xs">
-                  📸 Ambil / Upload Foto Bukti Serah Terima Fisik Makanan (Wajib):
-                </label>
-                <div className="flex items-center gap-3">
-                  <div className="w-20 h-20 bg-slate-200 rounded-xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center shrink-0">
-                    {proofPhoto ? (
-                      <img src={proofPhoto} alt="Bukti Handover" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-2xl text-slate-400">📷</span>
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-1.5">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setProofPhoto(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-[#1B3A5C] file:text-white hover:file:bg-[#142C47]"
-                    />
-                    <div className="flex gap-1.5 flex-wrap">
-                      <button
+              {/* Interactive Dual Photo Capture & Upload Section (Point 4) */}
+              <div className="space-y-2.5 p-3.5 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                    <CameraIcon size={15} className="text-[#1B3A5C]" />
+                    <span>Bukti Foto Serah Terima Fisik Makanan (Wajib):</span>
+                  </label>
+                  {proofPhoto && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                      <CheckIcon size={11} />
+                      Foto Terpasang
+                    </span>
+                  )}
+                </div>
+
+                {/* Hidden File Inputs for Native Camera & Gallery */}
+                <input
+                  ref={nativeCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => setProofPhoto(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+
+                <input
+                  ref={galleryFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => setProofPhoto(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+
+                {/* Live In-App Camera Viewfinder if active */}
+                {isLiveCameraViewOpen ? (
+                  <div className="space-y-2 rounded-xl overflow-hidden border border-slate-300 bg-black p-2">
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-900">
+                      <video
+                        ref={handoverVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                        Kamera Aktif
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
                         type="button"
-                        onClick={() => setProofPhoto('https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60')}
-                        className="px-2 py-0.5 bg-blue-100 text-blue-900 font-bold text-[10px] rounded hover:bg-blue-200 cursor-pointer"
+                        variant="gold"
+                        size="sm"
+                        className="flex-1 font-black text-slate-950 text-xs shadow-md flex items-center justify-center gap-1.5"
+                        onClick={captureLiveSnapshot}
                       >
-                        ⚡ Foto Demo Dapur
-                      </button>
-                      <button
+                        <CameraIcon size={14} />
+                        <span>Jepret Foto Sekarang</span>
+                      </Button>
+                      <Button
                         type="button"
-                        onClick={() => setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60')}
-                        className="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-bold text-[10px] rounded hover:bg-emerald-200 cursor-pointer"
+                        variant="outline"
+                        size="sm"
+                        className="text-white border-slate-600 hover:bg-slate-800 text-xs"
+                        onClick={stopLiveWebcam}
                       >
-                        ⚡ Foto Demo Kurir
-                      </button>
+                        Batal
+                      </Button>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    {/* Thumbnail or Placeholder */}
+                    <div className="w-full sm:w-24 h-24 bg-slate-200 rounded-xl overflow-hidden border-2 border-dashed border-slate-300 flex items-center justify-center shrink-0 relative">
+                      {proofPhoto ? (
+                        <>
+                          <img src={proofPhoto} alt="Bukti Handover" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setProofPhoto(null)}
+                            className="absolute top-1 right-1 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs cursor-pointer"
+                            title="Hapus foto"
+                          >
+                            Hapus
+                          </button>
+                        </>
+                      ) : (
+                        <div className="text-center p-2 text-slate-400 space-y-1">
+                          <CameraIcon size={24} className="mx-auto text-slate-400" />
+                          <span className="text-[9px] font-bold block">Belum ada foto</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Dual Action: Live Camera vs Gallery Selection */}
+                    <div className="flex-1 space-y-2 w-full">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                              nativeCameraInputRef.current?.click();
+                            } else {
+                              startLiveWebcam();
+                            }
+                          }}
+                          className="px-3 py-2 bg-[#1B3A5C] hover:bg-[#142C47] text-white font-extrabold text-[11px] rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                        >
+                          <CameraIcon size={14} className="text-[#D4A843]" />
+                          <span>Ambil Foto Kamera</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => galleryFileInputRef.current?.click()}
+                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-800 font-extrabold text-[11px] rounded-xl border border-slate-300 flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                        >
+                          <GalleryIcon size={14} className="text-slate-600" />
+                          <span>Pilih dari Galeri</span>
+                        </button>
+                      </div>
+
+                      {/* Demo Quick Presets */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] text-slate-400 font-bold">Preset Cepat:</span>
+                        <button
+                          type="button"
+                          onClick={() => setProofPhoto('https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60')}
+                          className="px-2 py-0.5 bg-blue-100 text-blue-900 font-bold text-[9.5px] rounded hover:bg-blue-200 cursor-pointer"
+                        >
+                          Foto Dapur
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60')}
+                          className="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-bold text-[9.5px] rounded hover:bg-emerald-200 cursor-pointer"
+                        >
+                          Foto Kurir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <label className="flex items-start gap-2 pt-2 cursor-pointer">
@@ -1202,12 +1453,29 @@ export default function ProviderClaimsPage() {
               </label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200">
-              <Button variant="outline" size="sm" onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}>
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  stopLiveWebcam();
+                  setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                }}
+              >
                 Batal
               </Button>
-              <Button variant="gold" size="sm" className="font-extrabold text-slate-950 shadow-md" onClick={() => handleVerifyCodeAtStore(confirmModal.code)}>
-                Konfirmasi Handover Selesai ➔
+              <Button
+                variant="gold"
+                size="sm"
+                className="w-full sm:w-auto font-extrabold text-slate-950 shadow-md flex items-center justify-center gap-1.5"
+                onClick={() => {
+                  stopLiveWebcam();
+                  handleVerifyCodeAtStore(confirmModal.code);
+                }}
+              >
+                <CheckIcon size={14} />
+                <span>Konfirmasi Handover Selesai ➔</span>
               </Button>
             </div>
           </div>
@@ -1224,8 +1492,9 @@ export default function ProviderClaimsPage() {
         >
           <div className="space-y-4 text-xs text-slate-700">
             <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
-              <span className="font-extrabold text-amber-900 block">
-                💳 Bukti Transfer / Scan QRIS Toko Diunggah Konsumen:
+              <span className="font-extrabold text-amber-900 flex items-center gap-1.5">
+                <CreditCardIcon size={14} className="text-amber-700" />
+                <span>Bukti Transfer / Scan QRIS Toko Diunggah Konsumen:</span>
               </span>
               <p className="text-[11px] text-amber-800 font-medium">
                 Pembeli: <strong>{paymentInspectModal.claim.userName}</strong> • Tagihan: <strong className="font-mono text-slate-900">Rp {(paymentInspectModal.claim.amountPaid || 15000).toLocaleString('id-ID')}</strong> ({paymentInspectModal.claim.quantity})
@@ -1253,10 +1522,11 @@ export default function ProviderClaimsPage() {
               <Button
                 variant="gold"
                 size="sm"
-                className="font-extrabold text-slate-950 shadow-md"
+                className="font-extrabold text-slate-950 shadow-md flex items-center gap-1.5"
                 onClick={() => handleApprovePaymentProof(paymentInspectModal.claim.code)}
               >
-                ✓ Verifikasi Lunas & Aktifkan Tiket QR ➔
+                <CheckIcon size={14} />
+                <span>Verifikasi Lunas & Terbitkan Tiket ➔</span>
               </Button>
             </div>
           </div>
@@ -1292,7 +1562,8 @@ export default function ProviderClaimsPage() {
                 rel="noreferrer"
                 className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
-                <span>💬 Kirim Link Tiket QR via WhatsApp ke Pembeli ➔</span>
+                <ChatIcon size={14} />
+                <span>Kirim Link Tiket QR via WhatsApp ke Pembeli ➔</span>
               </a>
 
               <Button
@@ -1320,7 +1591,7 @@ export default function ProviderClaimsPage() {
           size="lg"
         >
           <div className="space-y-5 text-xs text-slate-800">
-            {/* Header Status with High Contrast Typography (Point 7) */}
+            {/* Header Status with High Contrast Typography */}
             <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-[#142C47] to-[#1B3A5C] text-white rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#2C5A8F]">
               <div className="space-y-1">
                 <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
@@ -1334,18 +1605,30 @@ export default function ProviderClaimsPage() {
                 </p>
               </div>
 
-              <span className="px-3.5 py-1.5 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs self-start sm:self-center">
-                {liveTrackingModal.claim.status === 'COMPLETED'
-                  ? '✓ Tiba & Diserahkan'
-                  : '🛵 Sedang Diantar Kurir'}
+              <span className="px-3.5 py-1.5 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs self-start sm:self-center flex items-center gap-1.5">
+                {liveTrackingModal.claim.status === 'COMPLETED' ? (
+                  <>
+                    <CheckIcon size={14} />
+                    <span>Tiba & Diserahkan</span>
+                  </>
+                ) : (
+                  <>
+                    <BikeIcon size={14} />
+                    <span>Sedang Diantar Kurir</span>
+                  </>
+                )}
               </span>
             </div>
 
-            {/* Courier / Driver Profile & Contact (Point 8: Adaptable for Store Fleet vs Volunteer) */}
+            {/* Courier / Driver Profile & Contact */}
             <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'}`}>
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black text-xl shadow-xs ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'bg-blue-600' : 'bg-purple-600'}`}>
-                  {liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? '🚚' : '🛵'}
+                  {liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? (
+                    <TruckIcon size={22} />
+                  ) : (
+                    <BikeIcon size={22} />
+                  )}
                 </div>
                 <div>
                   <span className={`text-[10px] font-black uppercase tracking-widest block ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'text-blue-700' : 'text-purple-700'}`}>
@@ -1370,9 +1653,10 @@ export default function ProviderClaimsPage() {
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap"
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap cursor-pointer"
               >
-                <span>💬 Hubungi Driver (WhatsApp)</span>
+                <ChatIcon size={14} />
+                <span>Hubungi Driver (WhatsApp)</span>
               </a>
             </div>
 
@@ -1395,8 +1679,9 @@ export default function ProviderClaimsPage() {
 
             {/* Checkpoint Timeline */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <span className="font-extrabold text-[#1B3A5C] text-xs uppercase tracking-wider block">
-                📋 Timeline Status Logistik Terverifikasi
+              <span className="font-extrabold text-[#1B3A5C] text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <ClockIcon size={14} className="text-[#1B3A5C]" />
+                <span>Timeline Status Logistik Terverifikasi</span>
               </span>
 
               <div className="space-y-3 pl-2 border-l-2 border-slate-300 text-xs">
@@ -1436,7 +1721,7 @@ export default function ProviderClaimsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="font-extrabold text-xs text-red-600 border-red-200 hover:bg-red-50 flex items-center gap-1"
+                className="font-extrabold text-xs text-red-600 border-red-200 hover:bg-red-50 flex items-center justify-center gap-1.5"
                 onClick={() => {
                   const target = liveTrackingModal.claim;
                   setLiveTrackingModal({ isOpen: false, claim: null });
@@ -1449,7 +1734,8 @@ export default function ProviderClaimsPage() {
                   });
                 }}
               >
-                <span>⚠️ Laporkan Kendala / Insiden Pengantaran ➔</span>
+                <AlertTriangleIcon size={14} />
+                <span>Laporkan Kendala / Insiden Pengantaran ➔</span>
               </Button>
 
               <Button
@@ -1470,7 +1756,7 @@ export default function ProviderClaimsPage() {
         <Modal
           isOpen={incidentModal.isOpen}
           onClose={() => setIncidentModal({ isOpen: false, claim: null, issueType: 'PACKAGING_DAMAGED', description: '', photoProof: null })}
-          title={`🚨 Pusat Pelaporan Kendala & Mediasi: ${incidentModal.claim.code}`}
+          title={`Pusat Pelaporan Kendala & Mediasi: ${incidentModal.claim.code}`}
           size="lg"
         >
           <form
@@ -1505,14 +1791,14 @@ export default function ProviderClaimsPage() {
                 onChange={(e) => setIncidentModal({ ...incidentModal, issueType: e.target.value })}
                 className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs text-[#1B3A5C] focus:ring-2 focus:ring-[#D4A843]"
               >
-                <option value="PACKAGING_DAMAGED">📦 1. Kemasan Rusak / Wadah Bocor Saat Penyiapan di Dapur</option>
-                <option value="PORTION_MISMATCH">🔢 2. Porsi Surplus Tidak Cukup / Menu Tertukar di Dapur</option>
-                <option value="PREPARATION_DELAY">⏱️ 3. Dapur Butuh Tambahan Waktu Penyiapan (Reschedule Window)</option>
-                <option value="PROVIDER_DIRECT_BREAKDOWN">🚚 4. Kendala Armada Driver Toko (Khusus Pengantaran Internal)</option>
-                <option value="DRIVER_NO_SHOW">⌛ 5. Driver Relawan Belum Tiba Menjemput di Toko &gt;45 Menit</option>
-                <option value="VEHICLE_SPEC_MISMATCH">❄️ 6. Driver Relawan Tidak Membawa Box Cooler / Sesuai Ketentuan SOP</option>
-                <option value="LARGE_CAPACITY_OVERLOAD">📦 7. Porsi Donasi Terlalu Besar untuk Motor (Butuh Bantuan Mobil)</option>
-                <option value="OTHER">⚠️ 8. Kendala Operasional Toko Lainnya</option>
+                <option value="PACKAGING_DAMAGED">1. Kemasan Rusak / Wadah Bocor Saat Penyiapan di Dapur</option>
+                <option value="PORTION_MISMATCH">2. Porsi Surplus Tidak Cukup / Menu Tertukar di Dapur</option>
+                <option value="PREPARATION_DELAY">3. Dapur Butuh Tambahan Waktu Penyiapan (Reschedule Window)</option>
+                <option value="PROVIDER_DIRECT_BREAKDOWN">4. Kendala Armada Driver Toko (Khusus Pengantaran Internal)</option>
+                <option value="DRIVER_NO_SHOW">5. Driver Relawan Belum Tiba Menjemput di Toko &gt;45 Menit</option>
+                <option value="VEHICLE_SPEC_MISMATCH">6. Driver Relawan Tidak Membawa Box Cooler / Sesuai Ketentuan SOP</option>
+                <option value="LARGE_CAPACITY_OVERLOAD">7. Porsi Donasi Terlalu Besar untuk Motor (Butuh Bantuan Mobil)</option>
+                <option value="OTHER">8. Kendala Operasional Toko Lainnya</option>
               </select>
             </div>
 
@@ -1538,21 +1824,22 @@ export default function ProviderClaimsPage() {
             </div>
 
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
-              <span className="font-extrabold text-[#1B3A5C] text-[11px] block">
-                🏛️ Alur Tindak Lanjut Otomatis dari SuperAdmin Replate:
+              <span className="font-extrabold text-[#1B3A5C] text-[11px] flex items-center gap-1.5">
+                <ShieldCheckIcon size={14} className="text-[#1B3A5C]" />
+                <span>Alur Tindak Lanjut Otomatis dari SuperAdmin Replate:</span>
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-slate-700">
                 <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
-                  <strong>⚡ Jalur Donasi Pengganti:</strong> Sistem Smart Matching mencarikan resto terdekat untuk memback-up porsi.
+                  <strong>Jalur Donasi Pengganti:</strong> Sistem Smart Matching mencarikan resto terdekat untuk memback-up porsi.
                 </div>
                 <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
-                  <strong>🔄 Re-alokasi Driver Estafet:</strong> Dispatcher otomatis mengalihkan tugas jemput ke kurir relawan terdekat lain.
+                  <strong>Re-alokasi Driver Estafet:</strong> Dispatcher otomatis mengalihkan tugas jemput ke kurir relawan terdekat lain.
                 </div>
                 <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
-                  <strong>⏱️ Perpanjangan Jendela Jemput:</strong> Waktu penjemputan di outlet diperpanjang 30-60 menit.
+                  <strong>Perpanjangan Jendela Jemput:</strong> Waktu penjemputan di outlet diperpanjang 30-60 menit.
                 </div>
                 <div className="p-2 bg-white rounded-lg border border-slate-200 font-medium">
-                  <strong>📄 Berita Acara BAP Digital:</strong> Dokumen audit resmi diterbitkan agar reputasi toko tetap terjaga 100%.
+                  <strong>Berita Acara BAP Digital:</strong> Dokumen audit resmi diterbitkan agar reputasi toko tetap terjaga 100%.
                 </div>
               </div>
             </div>
@@ -1579,6 +1866,13 @@ export default function ProviderClaimsPage() {
         message={toastState.message}
         type={toastState.type}
         onClose={() => setToastState((prev) => ({ ...prev, isOpen: false }))}
+      />
+
+      {/* Authentic Super-App Action Loading Modal */}
+      <SuperAppLoader
+        isOpen={actionLoader.isOpen}
+        message={actionLoader.message}
+        submessage={actionLoader.submessage}
       />
     </div>
   );

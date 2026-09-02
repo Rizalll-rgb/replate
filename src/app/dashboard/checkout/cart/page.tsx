@@ -28,6 +28,20 @@ export default function CheckoutCartPage() {
   });
 
   useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.address) {
+          const formatted = parsed.entityName 
+            ? `${parsed.entityName} — ${parsed.address}`
+            : parsed.address;
+          setAddress(formatted);
+          setTempAddress(formatted);
+        }
+      }
+    } catch (_) {}
+
     const pending = localStorage.getItem('replate_checkout_pending');
     if (pending) {
       try {
@@ -63,21 +77,31 @@ export default function CheckoutCartPage() {
 
         const newClaim = {
           id: resiCode,
+          code: resiCode,
           foodName: items.map(i => `${i.foodName || i.title} (${i.quantity}x)`).join(', '),
           providerName: items[0]?.providerName || 'Mitra Replate',
+          provider: items[0]?.providerName || 'Mitra Replate',
           totalAmount,
+          quantity: `${items.reduce((acc, i) => acc + i.quantity, 0)} Porsi`,
           deliveryMethod,
+          method: deliveryMethod,
+          methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Sendiri (Self-Pickup)' : 'Diantar Kurir Relawan',
           paymentMethod,
           address,
           status: newClaimStatus,
           paymentProof: null,
           createdAt: new Date().toISOString(),
+          claimedAt: 'Hari ini',
           pickupTime: items[0]?.pickupTime || 'Hari ini 21:00 WIB',
           items: items
         };
         
         const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
         localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
+
+        // Also sync to replate_claims for yayasan view
+        const existingYysClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+        localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingYysClaims]));
         
         // Clear pending checkout
         localStorage.removeItem('replate_checkout_pending');
@@ -89,8 +113,22 @@ export default function CheckoutCartPage() {
         localStorage.setItem('replate_cart', JSON.stringify(remainingCart));
         localStorage.setItem('replate_tas_klaim', JSON.stringify(remainingCart));
         
-        // Navigate directly to my-claims where they upload proof
-        router.push('/dashboard/consumer/my-claims');
+        // Check user role
+        let isBeneficiaryRole = false;
+        try {
+          const profile = localStorage.getItem('replate_onboarding_profile');
+          if (profile) {
+            const parsed = JSON.parse(profile);
+            const r = String(parsed.role || '').toUpperCase();
+            if (r.includes('BENEFICIARY') || r.includes('YAYASAN')) isBeneficiaryRole = true;
+          }
+        } catch (_) {}
+
+        if (isBeneficiaryRole) {
+          router.push('/dashboard/yayasan/claims');
+        } else {
+          router.push('/dashboard/consumer/my-claims');
+        }
       } catch (err) {
         setToastState({
           isOpen: true,
@@ -99,7 +137,7 @@ export default function CheckoutCartPage() {
         });
         setIsCheckingOut(false);
       }
-    }, 1000);
+    }, 1200);
   };
 
   if (!isLoaded) {

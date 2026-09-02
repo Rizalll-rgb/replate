@@ -6,6 +6,21 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
+import {
+  BikeIcon,
+  TruckIcon,
+  MapPinIcon,
+  MapIcon,
+  ChatIcon,
+  PhoneIcon,
+  CheckIcon,
+  ClockIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+  PackageIcon,
+  CreditCardIcon,
+} from '@/components/ui/Icon';
+import Link from 'next/link';
 
 interface TrackingManifest {
   id: string;
@@ -34,6 +49,7 @@ export default function WorkspaceLiveTrackingPage() {
   const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTracking, setActiveTracking] = useState<TrackingManifest | null>(null);
+  const [showTimelineHistory, setShowTimelineHistory] = useState(false);
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -197,16 +213,39 @@ export default function WorkspaceLiveTrackingPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      {/* Header Info */}
-      <div className="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
-            SISTEM LOGISTIK & PELACAKAN PANGAN REAL-TIME
-          </span>
-          <h1 className="text-2xl font-black text-[#1B3A5C]">Pelacakan & Live Tracking Pengantaran</h1>
-          <p className="text-xs text-slate-500 font-medium">
-            Pantau posisi kurir relawan, armada driver toko, monitoring suhu makanan, dan status serah terima di Kota Surabaya.
-          </p>
+      {/* Sleek Modern Header Card (Compact & Ergonomic - Seragam Antar Modul) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 bg-[#1B3A5C]/10 text-[#1B3A5C] text-[9.5px] font-black uppercase tracking-wider rounded-md">
+                Logistik & Pelacakan Live
+              </span>
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>GPS & Suhu Steril Aktif</span>
+              </span>
+            </div>
+            <h1 className="text-base sm:text-xl font-black text-[#1B3A5C] tracking-tight">
+              Pelacakan & Live Tracking Pengantaran
+            </h1>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              Pantau posisi kurir relawan, armada driver toko, monitoring suhu makanan, dan serah terima Kota Surabaya.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <Link href="/dashboard/provider/claims">
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<CreditCardIcon size={14} className="text-[#1B3A5C]" />}
+                className="font-bold text-xs py-2 px-3.5 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Meja Kasir
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -244,85 +283,16 @@ export default function WorkspaceLiveTrackingPage() {
       </div>
 
       {activeTracking && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left 2 Cols: Stepper, Status, & Google Maps */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Live Status Hero Card */}
-            <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl border border-[#2C5A8F] shadow-lg space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2C5A8F] pb-3">
-                <div>
-                  <span className="text-[10px] font-mono font-black text-[#D4A843] uppercase tracking-wider block">
-                    KODE RESI MANIFEST: {activeTracking.trackingCode}
-                  </span>
-                  <h3 className="text-xl font-black text-white">{activeTracking.foodName}</h3>
-                </div>
-                <span className="px-3 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs self-start">
-                  {activeTracking.statusText}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
-                  <span className="text-slate-400 block font-medium">Estimasi Waktu Tiba:</span>
-                  <strong className="text-amber-300 font-mono text-sm">{activeTracking.estimatedArrival}</strong>
-                </div>
-                <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
-                  <span className="text-slate-400 block font-medium">Monitoring Suhu Makanan:</span>
-                  <strong className="text-emerald-400 font-mono text-sm">{activeTracking.temperatureC}°C (Higienis BPOM)</strong>
-                </div>
-                <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
-                  <span className="text-slate-400 block font-medium">Metode Logistik:</span>
-                  <strong className="text-slate-200">
-                    {activeTracking.deliveryType === 'RESCUE_COURIER'
-                      ? 'Kurir Komunitas'
-                      : activeTracking.deliveryType === 'PROVIDER_DIRECT'
-                      ? 'Armada Toko'
-                      : 'Ambil Mandiri'}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Stepper Timeline Graphic */}
-            <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
-              <h4 className="font-black text-sm text-[#1B3A5C]">Timeline Alur Pengantaran & Serah Terima:</h4>
-              <div className="relative pl-6 space-y-6 border-l-2 border-[#1B3A5C]/20 text-xs">
-                {activeTracking.history.map((step, idx) => (
-                  <div key={idx} className="relative">
-                    <span
-                      className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full font-black text-[11px] flex items-center justify-center border-2 ${
-                        step.done
-                          ? 'bg-emerald-500 border-emerald-400 text-slate-950'
-                          : 'bg-slate-200 border-slate-300 text-slate-500'
-                      }`}
-                    >
-                      {step.done ? '✓' : idx + 1}
-                    </span>
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-black text-xs ${step.done ? 'text-[#1B3A5C]' : 'text-slate-500'}`}>
-                          {step.title}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold">{step.time}</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 font-medium leading-relaxed">{step.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Interactive GPS Map Preview */}
-            <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-black text-sm text-[#1B3A5C]">Peta GPS Rute Pengantaran Surabaya</h4>
-                <span className="text-[11px] font-mono font-bold text-slate-500">
-                  Koordinat: {activeTracking.lat}, {activeTracking.lng}
-                </span>
-              </div>
-              <div className="relative w-full h-56 rounded-2xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+        <>
+          {/* ======================================================== */}
+          {/* MOBILE SUPER-APP LAYOUT (Screens < lg)                   */}
+          {/* ======================================================== */}
+          <div className="space-y-4 lg:hidden">
+            {/* 1. Top GPS Live Map (Gojek / Grab Style) */}
+            <div className="rounded-3xl border border-slate-200 overflow-hidden bg-slate-900 shadow-sm relative">
+              <div className="relative w-full h-56 bg-slate-800">
                 <iframe
-                  title="Live GPS Map"
+                  title="Live Mobile GPS Map"
                   width="100%"
                   height="100%"
                   frameBorder="0"
@@ -330,89 +300,352 @@ export default function WorkspaceLiveTrackingPage() {
                   src={`https://maps.google.com/maps?q=${activeTracking.lat},${activeTracking.lng}&z=15&output=embed`}
                   className="w-full h-full filter saturate-150"
                 />
-                <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-xl text-[10px] font-black shadow-md uppercase tracking-wider">
-                  Titik Armada: {activeTracking.destinationName}
+                <div className="absolute top-3 left-3 bg-[#1B3A5C]/95 backdrop-blur-xs text-white px-3 py-1 rounded-xl text-[10px] font-black shadow-md uppercase tracking-wider flex items-center gap-1.5 border border-[#2C5A8F]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Posisi Armada Live: {activeTracking.driverVehicle.split('(')[0]}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* 2. Floating Super-App Status & Driver Card */}
+            <div className="p-4 sm:p-5 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4 text-xs">
+              {/* Status Header */}
+              <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-mono font-black text-[#1B3A5C] bg-slate-100 px-2 py-0.5 rounded">
+                    {activeTracking.trackingCode}
+                  </span>
+                  <h3 className="text-base font-black text-[#1B3A5C] leading-snug">{activeTracking.foodName}</h3>
+                </div>
+                <span className="px-2.5 py-1 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-lg shadow-xs shrink-0 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                  <span>{activeTracking.currentStep >= 5 ? 'Selesai' : 'OTW'}</span>
+                </span>
+              </div>
+
+              {/* Status Banner */}
+              <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200/80 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ClockIcon size={16} className="text-blue-700 shrink-0" />
+                  <div>
+                    <span className="text-[10px] text-blue-800 font-bold block">{activeTracking.statusText}</span>
+                    <strong className="text-xs text-[#1B3A5C]">{activeTracking.estimatedArrival}</strong>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">
+                  {activeTracking.temperatureC}°C BPOM
+                </span>
+              </div>
+
+              {/* Driver Contact & Identity Row */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#1B3A5C] text-white flex items-center justify-center shrink-0">
+                      {activeTracking.deliveryType === 'PROVIDER_DIRECT' ? (
+                        <TruckIcon size={18} />
+                      ) : (
+                        <BikeIcon size={18} />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-xs text-slate-900">{activeTracking.driverName}</h4>
+                      <p className="text-[10px] text-slate-500 font-medium">{activeTracking.driverVehicle}</p>
+                    </div>
+                  </div>
+                  <span className="text-[9.5px] font-black uppercase text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md">
+                    {activeTracking.deliveryType === 'RESCUE_COURIER' ? 'Kurir Relawan' : 'Armada Toko'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <a
+                    href={`https://wa.me/${activeTracking.driverPhone.replace(/\D/g, '')}?text=Halo%20${encodeURIComponent(activeTracking.driverName)},%20koordinasi%20pengantaran%20${activeTracking.trackingCode}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] rounded-xl flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                  >
+                    <ChatIcon size={14} />
+                    <span>WhatsApp</span>
+                  </a>
+
+                  <a
+                    href={`tel:${activeTracking.driverPhone.replace(/\D/g, '')}`}
+                    className="py-2 px-3 bg-white hover:bg-slate-100 text-slate-800 font-black text-[11px] rounded-xl border border-slate-300 flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                  >
+                    <PhoneIcon size={14} />
+                    <span>Telepon</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Route Summary */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1 shrink-0"></span>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Penjemputan:</span>
+                    <strong className="text-xs text-[#1B3A5C] block truncate">{activeTracking.sourceName}</strong>
+                    <p className="text-[10px] text-slate-500 truncate">{activeTracking.sourceAddress}</p>
+                  </div>
+                </div>
+
+                <div className="border-l-2 border-dashed border-slate-300 ml-1 h-3"></div>
+
+                <div className="flex items-start gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 shrink-0"></span>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Tujuan:</span>
+                    <strong className="text-xs text-emerald-900 block truncate">{activeTracking.destinationName}</strong>
+                    <p className="text-[10px] text-slate-500 truncate">{activeTracking.destinationAddress}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Collapsible Timeline Stepper */}
+              <div className="border-t border-slate-100 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowTimelineHistory(!showTimelineHistory)}
+                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[11px] rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <ClockIcon size={13} />
+                  <span>{showTimelineHistory ? 'Sembunyikan Rincian Timeline' : `Lihat ${activeTracking.history.length} Checkpoint Perjalanan`}</span>
+                  <span className="text-[9px]">{showTimelineHistory ? '▲' : '▼'}</span>
+                </button>
+
+                {showTimelineHistory && (
+                  <div className="mt-3 relative pl-6 space-y-4 border-l-2 border-[#1B3A5C]/20 text-xs">
+                    {activeTracking.history.map((step, idx) => (
+                      <div key={idx} className="relative">
+                        <span
+                          className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full font-black text-[10px] flex items-center justify-center border-2 ${
+                            step.done
+                              ? 'bg-emerald-500 border-emerald-400 text-slate-950'
+                              : 'bg-slate-200 border-slate-300 text-slate-500'
+                          }`}
+                        >
+                          {step.done ? <CheckIcon size={11} /> : idx + 1}
+                        </span>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`font-black text-xs ${step.done ? 'text-[#1B3A5C]' : 'text-slate-500'}`}>
+                              {step.title}
+                            </span>
+                            <span className="text-[9.5px] font-mono text-slate-400 font-bold">{step.time}</span>
+                          </div>
+                          <p className="text-[10.5px] text-slate-600 leading-relaxed">{step.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Simulation Control Button */}
+              <div className="p-3 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-2 text-xs">
+                <span className="text-[9.5px] font-black text-amber-400 uppercase tracking-wider block">
+                  KONTROL SIMULASI PENGANTARAN
+                </span>
+                <Button
+                  variant="gold"
+                  size="sm"
+                  onClick={handleDriverUpdateStep}
+                  disabled={activeTracking.currentStep >= 5}
+                  className="w-full font-black text-slate-950 text-xs py-2.5 shadow-md flex items-center justify-center gap-1"
+                >
+                  <CheckIcon size={14} />
+                  <span>
+                    {activeTracking.currentStep >= 5
+                      ? 'Pengantaran Selesai 100%'
+                      : `Update Step ke-${activeTracking.currentStep + 1} ➔`}
+                  </span>
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Right 1 Col: Driver Contact, Surat Jalan Action & QR Pass */}
-          <div className="space-y-6">
-            {/* Driver Identity Card */}
-            <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4 text-xs">
-              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
-                IDENTITAS DRIVER & ARMADA
-              </span>
-              <div>
-                <h4 className="font-black text-base text-[#1B3A5C]">{activeTracking.driverName}</h4>
-                <span className="text-slate-500 font-medium block">{activeTracking.driverOrg}</span>
+          {/* ======================================================== */}
+          {/* DESKTOP LAYOUT (Screens >= lg)                           */}
+          {/* ======================================================== */}
+          <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+            {/* Left 2 Cols: Stepper, Status, & Google Maps */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Live Status Hero Card */}
+              <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl border border-[#2C5A8F] shadow-lg space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2C5A8F] pb-3">
+                  <div>
+                    <span className="text-[10px] font-mono font-black text-[#D4A843] uppercase tracking-wider block">
+                      KODE RESI MANIFEST: {activeTracking.trackingCode}
+                    </span>
+                    <h3 className="text-xl font-black text-white">{activeTracking.foodName}</h3>
+                  </div>
+                  <span className="px-3 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs self-start flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    <span>{activeTracking.statusText}</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
+                    <span className="text-slate-400 block font-medium">Estimasi Waktu Tiba:</span>
+                    <strong className="text-amber-300 font-mono text-sm">{activeTracking.estimatedArrival}</strong>
+                  </div>
+                  <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
+                    <span className="text-slate-400 block font-medium">Monitoring Suhu Makanan:</span>
+                    <strong className="text-emerald-400 font-mono text-sm">{activeTracking.temperatureC}°C (Higienis BPOM)</strong>
+                  </div>
+                  <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800">
+                    <span className="text-slate-400 block font-medium">Metode Logistik:</span>
+                    <strong className="text-slate-200">
+                      {activeTracking.deliveryType === 'RESCUE_COURIER'
+                        ? 'Kurir Komunitas'
+                        : activeTracking.deliveryType === 'PROVIDER_DIRECT'
+                        ? 'Armada Toko'
+                        : 'Ambil Mandiri'}
+                    </strong>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-                <div>
-                  <span className="text-slate-500 block font-medium">Kendaraan:</span>
-                  <span className="font-bold text-slate-800">{activeTracking.driverVehicle}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block font-medium">No. Telepon / WA:</span>
-                  <span className="font-mono font-bold text-slate-800">{activeTracking.driverPhone}</span>
+              {/* Stepper Timeline Graphic */}
+              <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <h4 className="font-black text-sm text-[#1B3A5C] flex items-center gap-1.5">
+                  <ClockIcon size={16} />
+                  <span>Timeline Alur Pengantaran & Serah Terima:</span>
+                </h4>
+                <div className="relative pl-6 space-y-6 border-l-2 border-[#1B3A5C]/20 text-xs">
+                  {activeTracking.history.map((step, idx) => (
+                    <div key={idx} className="relative">
+                      <span
+                        className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full font-black text-[11px] flex items-center justify-center border-2 ${
+                          step.done
+                            ? 'bg-emerald-500 border-emerald-400 text-slate-950'
+                            : 'bg-slate-200 border-slate-300 text-slate-500'
+                        }`}
+                      >
+                        {step.done ? <CheckIcon size={12} /> : idx + 1}
+                      </span>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-black text-xs ${step.done ? 'text-[#1B3A5C]' : 'text-slate-500'}`}>
+                            {step.title}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400 font-bold">{step.time}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <a
-                href={`https://wa.me/${activeTracking.driverPhone.replace(/\D/g, '')}?text=Halo%20${encodeURIComponent(activeTracking.driverName)},%20saya%20ingin%20koordinasi%20pengantaran%20makanan%20${activeTracking.trackingCode}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
-              >
-                <span>Hubungi Driver via WhatsApp ➔</span>
-              </a>
+              {/* Interactive GPS Map Preview */}
+              <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-sm text-[#1B3A5C] flex items-center gap-1.5">
+                    <MapIcon size={16} />
+                    <span>Peta GPS Rute Pengantaran Surabaya</span>
+                  </h4>
+                  <span className="text-[11px] font-mono font-bold text-slate-500">
+                    Koordinat: {activeTracking.lat}, {activeTracking.lng}
+                  </span>
+                </div>
+                <div className="relative w-full h-56 rounded-2xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+                  <iframe
+                    title="Live GPS Map"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    scrolling="no"
+                    src={`https://maps.google.com/maps?q=${activeTracking.lat},${activeTracking.lng}&z=15&output=embed`}
+                    className="w-full h-full filter saturate-150"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-xl text-[10px] font-black shadow-md uppercase tracking-wider">
+                    Titik Armada: {activeTracking.destinationName}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Location Route Breakdown */}
-            <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-3 text-xs">
-              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
-                RUTE TITIK PENJEMPUTAN & TUJUAN
-              </span>
-
-              <div className="space-y-3">
-                <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100">
-                  <span className="text-[10px] font-black text-[#1B3A5C] block uppercase">DARI (OUTLET PENYEDIA):</span>
-                  <strong className="text-[#1B3A5C] block text-xs mt-0.5">{activeTracking.sourceName}</strong>
-                  <p className="text-[11px] text-slate-600 mt-0.5">{activeTracking.sourceAddress}</p>
+            {/* Right 1 Col: Driver Contact, Surat Jalan Action & QR Pass */}
+            <div className="space-y-6">
+              {/* Driver Identity Card */}
+              <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4 text-xs">
+                <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                  IDENTITAS DRIVER & ARMADA
+                </span>
+                <div>
+                  <h4 className="font-black text-base text-[#1B3A5C]">{activeTracking.driverName}</h4>
+                  <span className="text-slate-500 font-medium block">{activeTracking.driverOrg}</span>
                 </div>
 
-                <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100">
-                  <span className="text-[10px] font-black text-emerald-900 block uppercase">MENUJU (PENERIMA):</span>
-                  <strong className="text-emerald-900 block text-xs mt-0.5">{activeTracking.destinationName}</strong>
-                  <p className="text-[11px] text-slate-600 mt-0.5">{activeTracking.destinationAddress}</p>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                  <div>
+                    <span className="text-slate-500 block font-medium">Kendaraan:</span>
+                    <span className="font-bold text-slate-800">{activeTracking.driverVehicle}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block font-medium">No. Telepon / WA:</span>
+                    <span className="font-mono font-bold text-slate-800">{activeTracking.driverPhone}</span>
+                  </div>
+                </div>
+
+                <a
+                  href={`https://wa.me/${activeTracking.driverPhone.replace(/\D/g, '')}?text=Halo%20${encodeURIComponent(activeTracking.driverName)},%20saya%20ingin%20koordinasi%20pengantaran%20makanan%20${activeTracking.trackingCode}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
+                >
+                  <ChatIcon size={14} />
+                  <span>Hubungi Driver via WhatsApp ➔</span>
+                </a>
+              </div>
+
+              {/* Location Route Breakdown */}
+              <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-3 text-xs">
+                <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                  RUTE TITIK PENJEMPUTAN & TUJUAN
+                </span>
+
+                <div className="space-y-3">
+                  <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100">
+                    <span className="text-[10px] font-black text-[#1B3A5C] block uppercase">DARI (OUTLET PENYEDIA):</span>
+                    <strong className="text-[#1B3A5C] block text-xs mt-0.5">{activeTracking.sourceName}</strong>
+                    <p className="text-[11px] text-slate-600 mt-0.5">{activeTracking.sourceAddress}</p>
+                  </div>
+
+                  <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100">
+                    <span className="text-[10px] font-black text-emerald-900 block uppercase">MENUJU (PENERIMA):</span>
+                    <strong className="text-emerald-900 block text-xs mt-0.5">{activeTracking.destinationName}</strong>
+                    <p className="text-[11px] text-slate-600 mt-0.5">{activeTracking.destinationAddress}</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Quick Action for Driver / Cashier Testing */}
-            <div className="p-5 bg-slate-900 text-white rounded-3xl border border-slate-800 space-y-3 text-xs">
-              <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">
-                KONTROL SIMULASI DRIVER / KASIR
-              </span>
-              <p className="text-slate-300 leading-relaxed font-medium">
-                Gunakan tombol berikut untuk mensimulasikan perubahan status step pengantaran secara instan:
-              </p>
-              <Button
-                variant="gold"
-                size="md"
-                onClick={handleDriverUpdateStep}
-                disabled={activeTracking.currentStep >= 5}
-                className="w-full font-black text-slate-950 text-xs py-3 shadow-md"
-              >
-                {activeTracking.currentStep >= 5
-                  ? 'Pengantaran Telah Selesai 100%'
-                  : `Update Step ke-${activeTracking.currentStep + 1} ➔`}
-              </Button>
+              {/* Quick Action for Driver / Cashier Testing */}
+              <div className="p-5 bg-slate-900 text-white rounded-3xl border border-slate-800 space-y-3 text-xs">
+                <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">
+                  KONTROL SIMULASI DRIVER / KASIR
+                </span>
+                <p className="text-slate-300 leading-relaxed font-medium">
+                  Gunakan tombol berikut untuk mensimulasikan perubahan status step pengantaran secara instan:
+                </p>
+                <Button
+                  variant="gold"
+                  size="md"
+                  onClick={handleDriverUpdateStep}
+                  disabled={activeTracking.currentStep >= 5}
+                  className="w-full font-black text-slate-950 text-xs py-3 shadow-md"
+                >
+                  {activeTracking.currentStep >= 5
+                    ? 'Pengantaran Telah Selesai 100%'
+                    : `Update Step ke-${activeTracking.currentStep + 1} ➔`}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Toast Alert */}

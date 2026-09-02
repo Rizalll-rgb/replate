@@ -13,6 +13,7 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
+import { CheckIcon } from '@/components/ui/Icon';
 
 interface FoodItem {
   id: string;
@@ -205,6 +206,38 @@ export default function ExplorePage() {
       }
     } catch (_) {}
 
+    let localItems: any[] = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]')
+        .filter((item: any) => item.status === 'AVAILABLE' || !item.status);
+    } catch (_) {}
+
+    const mapToFoodItem = (item: any): FoodItem => ({
+      id: item.id || `food-${Math.random()}`,
+      title: item.foodName || item.title || 'Makanan Surplus',
+      description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
+      providerName: item.provider?.organizationName || item.provider?.name || item.providerName || item.storeName || 'Warung Bakso Pak Kumis',
+      providerPhone: item.provider?.phone || '081234567891',
+      providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
+      originalPrice: Number(item.originalPrice || 25000),
+      discountPrice: item.discountPrice !== undefined ? Number(item.discountPrice) : (item.pricingScheme === 'RESCUE_SALE' ? Number(item.price || 5000) : 0),
+      quantity: typeof item.quantity === 'number' ? `${item.quantity} ${item.quantityUnit || 'Porsi'}` : item.quantity || '10 Porsi',
+      pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+      distance: item.distance || '1.2 km',
+      category: item.foodCategory || item.category || 'MAKANAN_BERAT',
+      isFree: item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.price === 0,
+      type: (item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.price === 0) ? 'DONATION' : 'RESCUE_SALE',
+      imageUrl: item.imageUrl || item.photos?.[0] || item.photo || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+      rating: item.rating || 4.8,
+      storageCondition: item.storageCondition || 'ROOM_TEMP',
+      packagingType: item.packagingType || 'PACKAGED',
+      weightPerUnitKg: Number(item.weightPerUnitKg || 0.4),
+      allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
+      lat: item.lat || item.latitude || -7.2575,
+      lng: item.lng || item.longitude || 112.7521,
+      status: item.status || 'AVAILABLE',
+    });
+
     fetch('/api/surplus')
       .then((res) => res.json())
       .then((data) => {
@@ -215,38 +248,30 @@ export default function ExplorePage() {
           items = data.data;
         }
 
-        if (items.length > 0) {
-          const mapped: FoodItem[] = items.map((item: any) => ({
-            id: item.id || `food-${Math.random()}`,
-            title: item.foodName || item.title || 'Makanan Surplus',
-            description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
-            providerName: item.provider?.organizationName || item.providerName || 'Warung Bakso Pak Kumis',
-            providerPhone: item.provider?.phone || '081234567891',
-            providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
-            originalPrice: item.originalPrice || 25000,
-            discountPrice: item.discountPrice || item.price || 0,
-            quantity: `${item.quantity || 10} Porsi`,
-            pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
-            distance: item.distance || '1.2 km',
-            category: item.category || 'MAKANAN_BERAT',
-            isFree: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0,
-            type: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0 ? 'DONATION' : 'RESCUE_SALE',
-            imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
-            rating: item.rating || 4.8,
-            storageCondition: item.storageCondition || 'ROOM_TEMP',
-            packagingType: item.packagingType || 'PACKAGED',
-            weightPerUnitKg: item.weightPerUnitKg || 0.4,
-            allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
-            lat: item.lat || -7.2575,
-            lng: item.lng || 112.7521,
-          }));
-          setFoods(mapped);
+        const combined = [...localItems, ...items];
+        const deduped = Array.from(
+          combined.reduce((map, item) => {
+            if (!map.has(item.id)) map.set(item.id, item);
+            return map;
+          }, new Map<string, any>()).values()
+        );
+
+        if (deduped.length > 0) {
+          const mappedCombined = deduped.map(mapToFoodItem);
+          const defaultUnadded = defaultFoods.filter((df) => !mappedCombined.some((m) => m.id === df.id));
+          setFoods([...mappedCombined, ...defaultUnadded]);
         } else {
           setFoods(defaultFoods);
         }
       })
       .catch(() => {
-        setFoods(defaultFoods);
+        if (localItems.length > 0) {
+          const mappedLocal = localItems.map(mapToFoodItem);
+          const defaultUnadded = defaultFoods.filter((df) => !mappedLocal.some((m) => m.id === df.id));
+          setFoods([...mappedLocal, ...defaultUnadded]);
+        } else {
+          setFoods(defaultFoods);
+        }
       });
   }, [session]);
 
@@ -765,8 +790,9 @@ export default function ExplorePage() {
                       }`}>
                         {need.urgency === 'HIGH' ? 'URGENT HARI INI' : 'BUTUH BESOK'}
                       </span>
-                      <span className="text-[10px] bg-slate-950/80 text-emerald-300 font-black px-2.5 py-1 rounded-lg backdrop-blur-xs">
-                        ✓ {need.legalStatus}
+                      <span className="text-[10px] bg-slate-950/80 text-emerald-300 font-black px-2.5 py-1 rounded-lg backdrop-blur-xs flex items-center gap-1">
+                        <CheckIcon size={10} />
+                        <span>{need.legalStatus}</span>
                       </span>
                     </div>
                     <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
@@ -1013,8 +1039,9 @@ export default function ExplorePage() {
                     96% MATCH SCORE (HIGHLY RECOMMENDED)
                   </span>
                 </div>
-                <span className="px-2.5 py-1 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-md">
-                  ✓ VERIFIKASI COCOK
+                <span className="px-2.5 py-1 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-md flex items-center gap-1">
+                  <CheckIcon size={10} />
+                  <span>VERIFIKASI COCOK</span>
                 </span>
               </div>
 

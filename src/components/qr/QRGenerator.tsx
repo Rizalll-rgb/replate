@@ -216,6 +216,16 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
               <strong className="text-slate-900 truncate max-w-[170px]">{picPanti}</strong>
             </div>
           )}
+          {deliveryMethod === 'RESCUE_COURIER' && !courierName && (
+            <div className="border-t border-slate-200 pt-2 mt-1">
+              <div className="p-2 bg-amber-50 rounded-xl border border-amber-300 text-amber-900 text-center space-y-0.5">
+                <span className="font-black text-[10.5px] block text-amber-950">⏳ Menunggu Driver Mengambil di Pool Siaga</span>
+                <p className="text-[9.5px] text-amber-800 font-medium">
+                  Transaksi berada di Pool Siaga Relawan Komunitas. Informasi pengemudi & plat kendaraan akan otomatis muncul saat ada driver kurir komunitas yang mengambil pesanan ini.
+                </p>
+              </div>
+            </div>
+          )}
           {courierName && (
             <div className="flex justify-between border-t border-slate-200 pt-1.5 mt-1">
               <span className="text-slate-500">Kurir Ditugaskan:</span>
@@ -236,8 +246,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
           )}
           {deliveryMethod && (
             <div className="flex justify-between">
-              <span className="text-slate-500">Metode:</span>
-              <strong className="text-slate-900">{deliveryMethod === 'RESCUE_COURIER' ? '🛵 Kurir Relawan' : deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Armada Toko' : '🏬 Ambil Mandiri'}</strong>
+              <span className="text-slate-500">Metode Penjemputan:</span>
+              <strong className="text-slate-900">{deliveryMethod === 'RESCUE_COURIER' ? '🛵 Kurir Komunitas (Pool Siaga)' : deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Armada Toko' : '🏬 Ambil Mandiri'}</strong>
             </div>
           )}
           {expiryTime && (

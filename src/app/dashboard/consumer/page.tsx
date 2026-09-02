@@ -205,76 +205,80 @@ export default function ConsumerBrowsePage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-12">
-      {/* Consumer Verification Banner */}
-      <div className="bg-[#1B3A5C] text-white p-6 rounded-3xl shadow-lg border border-[#2C5A8F] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2C5A8F]/60 pb-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-widest block">
-                STATUS HAK AKSES PANGAN KONSUMEN
+    <div className="space-y-5 sm:space-y-8 max-w-6xl mx-auto pb-12">
+      {/* Sleek Modern Header Card (Seragam Antar Modul & Role) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="px-2 py-0.5 bg-[#1B3A5C]/10 text-[#1B3A5C] text-[9.5px] font-black uppercase tracking-wider rounded-md">
+                Dashboard Food Consumer
               </span>
               {consumerStatus === 'BENEFICIARY_VERIFIED' ? (
-                <span className="px-3 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-md shadow-xs">
-                  ✓ TERVERIFIKASI PENERIMA BANTUAN (DONASI Rp 0)
+                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Penerima Bantuan (Donasi Rp 0)</span>
                 </span>
               ) : consumerStatus === 'PENDING_VERIFICATION' ? (
-                <span className="px-3 py-0.5 bg-amber-400 text-slate-950 font-black text-[10px] rounded-md shadow-xs">
-                  MENUNGGU AUDIT DINSOS
+                <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  <span>Menunggu Verifikasi Dinsos</span>
                 </span>
               ) : (
-                <span className="px-3 py-0.5 bg-blue-400 text-slate-950 font-black text-[10px] rounded-md shadow-xs">
-                  KONSUMEN REGULER (RESCUE SALE DISKON)
+                <span className="text-[9px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span>Konsumen Reguler (Rescue Sale)</span>
                 </span>
               )}
             </div>
-            <h2 className="text-xl font-black text-white">Selamat Datang, {consumerName}</h2>
-            <p className="text-xs text-slate-200 font-medium">
-              Alamat: <strong>{consumerAddress}</strong> • ID Pengguna: <span className="font-mono text-[#D4A843]">CNS-SBY-2026</span>
+            <h1 className="text-base sm:text-xl font-black text-[#1B3A5C] tracking-tight">
+              Selamat Datang, {consumerName}
+            </h1>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              Alamat: <strong>{consumerAddress}</strong> · ID: <span className="font-mono text-[#D4A843]">CNS-2026</span>
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard/cart">
-              <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md">
-                Buka Tas Klaim ➔
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <Link href="/dashboard/explore">
+              <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-xs py-2 px-3.5 rounded-xl cursor-pointer">
+                Eksplor Makanan
               </Button>
             </Link>
           </div>
         </div>
-
-
       </div>
 
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <section className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 block mb-1">
-              SMART MATCHING ENGINE 2.0 (UNTUK KONSUMEN)
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-500 block mb-0.5">
+              SMART MATCHING ENGINE 2.0 (KONSUMEN)
             </span>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <h3 className="text-xl font-black text-[#1B3A5C]">
-                Rekomendasi Paling Cocok Berdasarkan Lokasi & Preferensi Anda
+              <h3 className="text-base sm:text-xl font-black text-[#1B3A5C]">
+                Rekomendasi Paling Cocok
               </h3>
               {syncRadius && (
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-black rounded-md">
-                  Radius Tersinkronisasi Admin: &lt; {syncRadius} km
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-black rounded-md self-start sm:self-auto">
+                  Radius: &lt; {syncRadius} km
                 </span>
               )}
             </div>
           </div>
-          <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+          <span className="text-[10px] sm:text-xs font-bold text-slate-500 whitespace-nowrap">
             Radius &lt; {syncRadius || 1.5} km
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Horizontal Peek Carousel on mobile, 2-column grid on desktop */}
+        <div className="flex md:grid md:grid-cols-2 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-2">
           {smartMatchedItems.map((item) => (
             <div
               key={item.id}
-              className="p-5 bg-gradient-to-br from-white to-amber-50/40 rounded-3xl border-2 border-amber-300/80 shadow-xs flex flex-col sm:flex-row items-center gap-4 justify-between"
+              className="w-[85vw] max-w-[340px] md:w-auto shrink-0 snap-start p-4 sm:p-5 bg-gradient-to-br from-white to-amber-50/40 rounded-2xl sm:rounded-3xl border-2 border-amber-300/80 shadow-xs flex flex-col justify-between space-y-3"
             >
-              <div className="flex items-center gap-3.5 w-full sm:w-auto">
+              <div className="flex items-center gap-3 w-full">
                 <img
                   src={item.imageUrl}
                   alt={item.title}

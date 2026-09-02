@@ -49,6 +49,20 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.address) {
+          const formatted = parsed.entityName 
+            ? `${parsed.entityName} — ${parsed.address}`
+            : parsed.address;
+          setAddress(formatted);
+          setTempAddress(formatted);
+        }
+      }
+    } catch (_) {}
+
     // Fetch item details
     fetch('/api/surplus')
       .then((res) => res.json())
@@ -184,9 +198,26 @@ export default function CheckoutPage() {
         
         const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
         localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
+
+        // Sync to replate_claims
+        const existingYys = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+        localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingYys]));
         
-        // Navigate directly to my-claims where they upload proof
-        router.push('/dashboard/consumer/my-claims');
+        let isBeneficiaryRole = false;
+        try {
+          const profile = localStorage.getItem('replate_onboarding_profile');
+          if (profile) {
+            const parsed = JSON.parse(profile);
+            const r = String(parsed.role || '').toUpperCase();
+            if (r.includes('BENEFICIARY') || r.includes('YAYASAN')) isBeneficiaryRole = true;
+          }
+        } catch (_) {}
+
+        if (isBeneficiaryRole) {
+          router.push('/dashboard/yayasan/claims');
+        } else {
+          router.push('/dashboard/consumer/my-claims');
+        }
       } catch (err) {
         setToastState({
           isOpen: true,

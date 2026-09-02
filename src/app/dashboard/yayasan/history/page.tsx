@@ -70,15 +70,17 @@ export default function YayasanHistoryPage() {
         <CardBody className="p-0">
           {historyData.length === 0 ? (
             <div className="text-center py-12 p-6 space-y-3">
-              <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-xl text-slate-500">
-                📜
+              <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-500">
+                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
               </div>
               <h4 className="font-extrabold text-sm text-[#1B3A5C]">Belum Ada Riwayat Penyaluran Selesai</h4>
               <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
                 Bantuan makanan yang telah berhasil diterima dan diverifikasi sesuai SOP BPOM akan tercatat otomatis di tabel ini.
               </p>
-              <Link href="/explore" className="inline-block pt-2">
-                <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs">
+              <Link href="/dashboard/explore" className="inline-block pt-2">
+                <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs cursor-pointer">
                   Mulai Ajukan Bantuan Makanan ➔
                 </Button>
               </Link>
