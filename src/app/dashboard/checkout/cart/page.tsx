@@ -347,7 +347,7 @@ export default function CheckoutCartPage() {
               />
               <div className="space-y-1 w-full">
                 <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">🏬 Ambil Mandiri (Self-Pickup)</span>
+                  <span className="font-extrabold text-slate-900 text-sm">Ambil Mandiri (Self-Pickup)</span>
                   <span className="font-bold text-slate-900 text-sm">Rp 0</span>
                 </div>
                 <p className="text-xs text-slate-500">
@@ -375,7 +375,7 @@ export default function CheckoutCartPage() {
               />
               <div className="space-y-1 w-full">
                 <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">🛵 Diantar Kurir</span>
+                  <span className="font-extrabold text-slate-900 text-sm">Diantar Kurir Relawan Replate</span>
                   <span className="font-bold text-slate-900 text-sm">Rp 5.000</span>
                 </div>
                 <p className="text-xs text-slate-500">

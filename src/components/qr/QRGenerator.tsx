@@ -247,7 +247,13 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
           {deliveryMethod && (
             <div className="flex justify-between">
               <span className="text-slate-500">Metode Penjemputan:</span>
-              <strong className="text-slate-900">{deliveryMethod === 'RESCUE_COURIER' ? '🛵 Kurir Komunitas (Pool Siaga)' : deliveryMethod === 'PROVIDER_DIRECT' ? '🚚 Armada Toko' : '🏬 Ambil Mandiri'}</strong>
+              <strong className="text-slate-900">
+                {deliveryMethod === 'RESCUE_COURIER' || deliveryMethod === 'RESCUE_PARTNER' 
+                  ? 'Kurir Komunitas (Pool Siaga)' 
+                  : deliveryMethod === 'PROVIDER_DIRECT' || deliveryMethod === 'COURIER_DELIVERY' 
+                    ? 'Armada Driver Toko' 
+                    : 'Ambil Mandiri (Self-Pickup)'}
+              </strong>
             </div>
           )}
           {expiryTime && (

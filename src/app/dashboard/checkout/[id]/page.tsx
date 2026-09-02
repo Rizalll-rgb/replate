@@ -362,12 +362,25 @@ export default function CheckoutPage() {
             >
               <div>
                 <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                  {deliveryMethod === 'SELF_PICKUP' ? '🏬 Ambil Mandiri (Self-Pickup)' : deliveryMethod === 'COURIER_DELIVERY' ? '🛵 Diantar Driver Provider' : '🤝 Diantar Komunitas'}
+                  {deliveryMethod === 'SELF_PICKUP' 
+                    ? 'Ambil Mandiri (Self-Pickup)' 
+                    : deliveryMethod === 'COURIER_DELIVERY' 
+                      ? 'Diantar Armada Toko (Driver Provider)' 
+                      : 'Diantar Kurir Relawan Komunitas'}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   {deliveryMethod === 'SELF_PICKUP' 
-                    ? 'Bebas ongkir (Rp 0). Ambil di gerai.' 
-                    : deliveryMethod === 'COURIER_DELIVERY' ? 'Oleh driver provider. (+Rp 5.000)' : 'Diverifikasi komunitas. Min. 20 porsi.'}
+                    ? 'Bebas ongkir (Rp 0). Ambil langsung di gerai penyedia.' 
+                    : deliveryMethod === 'COURIER_DELIVERY' 
+                      ? 'Diantar oleh armada/driver internal penyedia toko (+Rp 5.000).' 
+                      : 'Diantar oleh relawan logistik Food Rescue Komunitas (Rp 0).'}
+                </div>
+                <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 mt-2 inline-block">
+                  {deliveryMethod === 'SELF_PICKUP'
+                    ? `Jadwal Pengambilan di Toko: ${item?.pickupTime || 'Hari ini 20:30 WIB'}`
+                    : deliveryMethod === 'COURIER_DELIVERY'
+                      ? `Estimasi Pengantaran Armada Toko: ${item?.pickupTime || 'Hari ini 20:30 WIB'}`
+                      : `Estimasi Pengantaran Kurir Relawan Tiba: ${item?.pickupTime || 'Hari ini 20:30 WIB'}`}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -475,7 +488,7 @@ export default function CheckoutPage() {
               />
               <div className="space-y-1 w-full">
                 <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">🏬 Ambil Mandiri (Self-Pickup)</span>
+                  <span className="font-extrabold text-slate-900 text-sm">Ambil Mandiri (Self-Pickup)</span>
                   <span className="font-bold text-slate-900 text-sm">Rp 0</span>
                 </div>
                 <p className="text-xs text-slate-500">
@@ -503,7 +516,7 @@ export default function CheckoutPage() {
               />
               <div className="space-y-1 w-full">
                 <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">🛵 Diantar Driver Provider</span>
+                  <span className="font-extrabold text-slate-900 text-sm">Diantar Armada Toko (Driver Provider)</span>
                   <span className="font-bold text-slate-900 text-sm">Rp 5.000</span>
                 </div>
                 <p className="text-xs text-slate-500">
@@ -536,7 +549,7 @@ export default function CheckoutPage() {
               />
               <div className="space-y-1 w-full">
                 <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">🤝 Diantar Komunitas {quantity < 20 && <span className="text-red-500 text-[10px] ml-1">(Min. 20 porsi)</span>}</span>
+                  <span className="font-extrabold text-slate-900 text-sm">Diantar Kurir Relawan Komunitas {quantity < 20 && <span className="text-red-500 text-[10px] ml-1">(Min. 20 porsi)</span>}</span>
                   <span className="font-bold text-slate-900 text-sm">Rp 0</span>
                 </div>
                 <p className="text-xs text-slate-500">

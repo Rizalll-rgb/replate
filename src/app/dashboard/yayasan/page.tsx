@@ -25,19 +25,21 @@ export default function YayasanDashboardPage() {
   const [recipientCapacity, setRecipientCapacity] = useState('45 Jiwa');
   const [isFreshAccount, setIsFreshAccount] = useState(false);
 
-  // Claim Allocation Modal State (Poin 4)
+  // Claim Allocation Modal State (Poin 4, 5, 6)
   const [allocationModal, setAllocationModal] = useState<{
     isOpen: boolean;
     supplier: any | null;
     portions: number;
-    deliveryMethod: 'SELF_PICKUP' | 'RESCUE_PARTNER';
-    notes: string;
+    deliveryMethod: 'SELF_PICKUP' | 'RESCUE_PARTNER' | 'PROVIDER_DELIVERY';
+    deliveryTime: string;
+    specialInstructions: string;
   }>({
     isOpen: false,
     supplier: null,
     portions: 40,
     deliveryMethod: 'RESCUE_PARTNER',
-    notes: '',
+    deliveryTime: '20:30 WIB',
+    specialInstructions: '',
   });
 
   const [isProcessingClaim, setIsProcessingClaim] = useState(false);
@@ -63,6 +65,7 @@ export default function YayasanDashboardPage() {
       readyTime: 'Siap Ambil Pukul 20:30 WIB',
       address: 'Jl. Kusuma Bangsa No. 42, Surabaya',
       foodType: 'Makanan Berat Bergizi',
+      hasStoreDriver: true,
     },
     {
       id: 'SM-ROTIBOY',
@@ -74,6 +77,7 @@ export default function YayasanDashboardPage() {
       readyTime: 'Siap Ambil Pukul 21:00 WIB',
       address: 'Grand City Mall Lt. LG, Surabaya',
       foodType: 'Roti & Kue Pastry',
+      hasStoreDriver: false,
     },
   ];
 
@@ -112,7 +116,8 @@ export default function YayasanDashboardPage() {
       supplier,
       portions: supplier.portions || 40,
       deliveryMethod: 'RESCUE_PARTNER',
-      notes: '',
+      deliveryTime: '20:30 WIB',
+      specialInstructions: '',
     });
   };
 
@@ -122,7 +127,34 @@ export default function YayasanDashboardPage() {
 
     setTimeout(() => {
       try {
+        const now = new Date();
+        const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} WIB`;
         const resiCode = `FB-YYS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        const isCommunity = allocationModal.deliveryMethod === 'RESCUE_PARTNER';
+        const isProviderDirect = allocationModal.deliveryMethod === 'PROVIDER_DELIVERY';
+        const isPickup = allocationModal.deliveryMethod === 'SELF_PICKUP';
+
+        const claimStatus = isPickup 
+          ? 'READY_FOR_PICKUP' 
+          : isCommunity 
+            ? 'WAITING_RESCUE_POOL' 
+            : 'IN_TRANSIT';
+
+        const methodLabel = isPickup 
+          ? 'Ambil Sendiri (Self-Pickup)' 
+          : isCommunity 
+            ? 'Dikirim Kurir Komunitas (Pool Siaga)' 
+            : 'Dikirim Kurir Toko (Driver Internal)';
+
+        const driverInfo = isProviderDirect ? {
+          name: 'Pak Sugiono (Driver Armada Toko)',
+          phone: '081298765432',
+          vehicle: 'Motor Box Delivery (L 3319 AB)',
+          photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+          status: 'Driver Internal Toko',
+        } : null; // Poin 6: Kurir komunitas masih di pool siaga, belum ada driver terpasang
+
         const newClaim = {
           id: `CLM-YYS-${Date.now()}`,
           code: resiCode,
@@ -132,22 +164,18 @@ export default function YayasanDashboardPage() {
           address: allocationModal.supplier.address,
           quantity: `${allocationModal.portions} Porsi`,
           method: allocationModal.deliveryMethod,
-          methodLabel: allocationModal.deliveryMethod === 'SELF_PICKUP' ? 'Ambil Sendiri (Self-Pickup)' : 'Diantar Kurir Relawan',
-          status: allocationModal.deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'IN_TRANSIT',
+          methodLabel,
+          status: claimStatus,
           pickupTime: allocationModal.supplier.readyTime,
-          claimedAt: 'Hari ini, baru saja',
+          claimedAt: `Hari ini, ${timeString}`,
+          createdAtTimestamp: Date.now(),
           destinationAddress: `${pantiName} — ${address}`,
           picContact: contactPerson,
+          specialInstructions: allocationModal.specialInstructions,
           totalAmount: 0,
           qrPayload: `REPLATE-YYS-${resiCode}-VERIFIED`,
           hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
-          driverInfo: allocationModal.deliveryMethod === 'RESCUE_PARTNER' ? {
-            name: 'Mas Fajar Santoso',
-            phone: '081234567890',
-            vehicle: 'Honda Vario 160 (L 4582 ABC)',
-            photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-            status: 'VERIFIED_DRIVER',
-          } : null,
+          driverInfo,
         };
 
         const existingClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
@@ -363,32 +391,16 @@ export default function YayasanDashboardPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Pilihan Metode Penyaluran Makanan
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  Pilihan Metode Penyaluran Makanan (3 Opsi)
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAllocationModal((prev) => ({ ...prev, deliveryMethod: 'RESCUE_PARTNER' }))}
-                    className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      allocationModal.deliveryMethod === 'RESCUE_PARTNER'
-                        ? 'border-[#1B3A5C] bg-[#1B3A5C]/5 text-[#1B3A5C] font-bold ring-1 ring-[#1B3A5C]'
-                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <TruckIcon size={14} className="text-[#1B3A5C]" />
-                      <span className="font-extrabold text-xs">Diantar Kurir</span>
-                    </div>
-                    <span className="text-[10px] text-slate-500 leading-tight">Relawan logistik mengantar ke panti</span>
-                  </button>
-
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setAllocationModal((prev) => ({ ...prev, deliveryMethod: 'SELF_PICKUP' }))}
-                    className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                       allocationModal.deliveryMethod === 'SELF_PICKUP'
-                        ? 'border-[#1B3A5C] bg-[#1B3A5C]/5 text-[#1B3A5C] font-bold ring-1 ring-[#1B3A5C]'
+                        ? 'border-[#1B3A5C] bg-[#1B3A5C]/5 text-[#1B3A5C] font-bold ring-2 ring-[#1B3A5C]'
                         : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                     }`}
                   >
@@ -396,9 +408,57 @@ export default function YayasanDashboardPage() {
                       <PackageIcon size={14} className="text-[#1B3A5C]" />
                       <span className="font-extrabold text-xs">Ambil Sendiri</span>
                     </div>
-                    <span className="text-[10px] text-slate-500 leading-tight">Pengurus panti mengambil ke toko</span>
+                    <span className="text-[10px] text-slate-500 leading-tight">Pengurus panti mengambil langsung ke gerai</span>
+                    <span className="text-[9px] text-emerald-600 font-bold mt-1">Bebas Biaya (Rp 0)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAllocationModal((prev) => ({ ...prev, deliveryMethod: 'RESCUE_PARTNER' }))}
+                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                      allocationModal.deliveryMethod === 'RESCUE_PARTNER'
+                        ? 'border-[#1B3A5C] bg-[#1B3A5C]/5 text-[#1B3A5C] font-bold ring-2 ring-[#1B3A5C]'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <TruckIcon size={14} className="text-[#1B3A5C]" />
+                      <span className="font-extrabold text-xs">Kurir Komunitas</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 leading-tight">Masuk Pool Siaga relawan Food Rescue Replate</span>
+                    <span className="text-[9px] text-amber-700 font-bold mt-1">Pool Relawan Siaga</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAllocationModal((prev) => ({ ...prev, deliveryMethod: 'PROVIDER_DELIVERY' }))}
+                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                      allocationModal.deliveryMethod === 'PROVIDER_DELIVERY'
+                        ? 'border-[#1B3A5C] bg-[#1B3A5C]/5 text-[#1B3A5C] font-bold ring-2 ring-[#1B3A5C]'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <ShieldCheckIcon size={14} className="text-[#1B3A5C]" />
+                      <span className="font-extrabold text-xs">Kurir Toko</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 leading-tight">Diantar armada internal toko donatur (jika ready)</span>
+                    <span className="text-[9px] text-blue-700 font-bold mt-1">Armada Provider</span>
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Catatan Khusus Penanganan Makanan (Opsional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Harap dipisahkan sambal, siap diterima sebelum jam makan malam..."
+                  value={allocationModal.specialInstructions}
+                  onChange={(e) => setAllocationModal((prev) => ({ ...prev, specialInstructions: e.target.value }))}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
+                />
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-[11px]">
@@ -413,6 +473,16 @@ export default function YayasanDashboardPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">PIC Penanggung Jawab:</span>
                   <span className="text-slate-700">{contactPerson}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Status Awal Penyaluran:</span>
+                  <span className="text-amber-800 font-bold">
+                    {allocationModal.deliveryMethod === 'SELF_PICKUP' 
+                      ? 'Siap Diambil di Gerai' 
+                      : allocationModal.deliveryMethod === 'RESCUE_PARTNER'
+                        ? 'Masuk Antrean Pool Siaga Relawan'
+                        : 'Disiapkan Driver Armada Toko'}
+                  </span>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-slate-200 text-xs">
                   <span className="font-bold text-slate-700">Total Biaya:</span>

@@ -33,7 +33,7 @@ export default function YayasanClaimsPage() {
   const [historyPage, setHistoryPage] = useState(1);
   const [requestsPage, setRequestsPage] = useState(1);
 
-  // Profile data for prefilling
+  // Profile data for auto-fill & prefill (Poin 1)
   const [pantiName, setPantiName] = useState('Panti Asuhan Kasih Ibu');
   const [contactPerson, setContactPerson] = useState('Ibu Hajjah Maryam');
   const [pantiPhone, setPantiPhone] = useState('081234567890');
@@ -46,7 +46,7 @@ export default function YayasanClaimsPage() {
   const [reqInstitutionType, setReqInstitutionType] = useState('Panti Asuhan Yatim Piatu');
   const [reqFoodType, setReqFoodType] = useState('Makanan Berat Siap Santap Bergizi');
   const [reqQuantity, setReqQuantity] = useState('45');
-  const [reqUrgency, setReqUrgency] = useState('Mendesak (Hari Ini Sebelum 20:30 WIB)');
+  const [reqUrgency, setReqUrgency] = useState('Mendesak (Darurat Segera)');
   const [reqDeliveryMethod, setReqDeliveryMethod] = useState('Membutuhkan Pengantaran Kurir Relawan');
   const [reqReadyTime, setReqReadyTime] = useState('Hari Ini, Pukul 19:30 - 20:30 WIB');
   const [reqNotes, setReqNotes] = useState('');
@@ -128,10 +128,11 @@ export default function YayasanClaimsPage() {
           address: 'Grand City Mall Lt. LG, Surabaya',
           quantity: '30 Porsi',
           method: 'RESCUE_PARTNER',
-          methodLabel: 'Diantar Kurir Relawan',
+          methodLabel: 'Dikirim Kurir Komunitas (Pool Siaga)',
           status: 'IN_TRANSIT',
           pickupTime: 'Hari ini 20:30 WIB',
           claimedAt: 'Hari ini, 16:30 WIB',
+          createdAtTimestamp: Date.now() - 45 * 60 * 1000,
           qrPayload: 'REPLATE-YYS-FB-YYS-8821-VERIFIED',
           hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
           driverInfo: {
@@ -141,12 +142,6 @@ export default function YayasanClaimsPage() {
             photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
             status: 'Relawan Logistik Terverifikasi',
           },
-          timeline: [
-            { title: 'Klaim Alokasi Dikonfirmasi Donatur', time: '16:30 WIB', done: true },
-            { title: 'Makanan Selesai Dikemas & Lolos BPOM', time: '17:00 WIB', done: true },
-            { title: 'Kurir Relawan Mengambil dari Gerai', time: '17:15 WIB', done: true },
-            { title: 'Dalam Perjalanan Menuju Panti', time: 'Estimasi 17:45 WIB', current: true },
-          ],
         },
         {
           id: 'CLM-YYS-002',
@@ -161,14 +156,10 @@ export default function YayasanClaimsPage() {
           status: 'READY_FOR_PICKUP',
           pickupTime: 'Hari ini 21:00 WIB',
           claimedAt: 'Hari ini, 17:15 WIB',
+          createdAtTimestamp: Date.now() - 30 * 60 * 1000,
           qrPayload: 'REPLATE-YYS-FB-YYS-8822-VERIFIED',
           hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
           driverInfo: null,
-          timeline: [
-            { title: 'Klaim Alokasi Dikonfirmasi Donatur', time: '17:15 WIB', done: true },
-            { title: 'Makanan Siap Diambil di Gerai', time: '21:00 WIB', current: true },
-            { title: 'Handover & Scan QR Barcode di Kasir', time: 'Menunggu', done: false },
-          ],
         },
         {
           id: 'CLM-YYS-003',
@@ -179,25 +170,14 @@ export default function YayasanClaimsPage() {
           address: 'Jl. Raya Kertajaya Indah No. 15, Surabaya',
           quantity: '10 Paket',
           method: 'RESCUE_PARTNER',
-          methodLabel: 'Diantar Kurir Relawan',
-          status: 'IN_TRANSIT',
+          methodLabel: 'Dikirim Kurir Komunitas (Pool Siaga)',
+          status: 'WAITING_RESCUE_POOL',
           pickupTime: 'Hari ini 21:30 WIB',
-          claimedAt: 'Hari ini, 18:00 WIB',
+          claimedAt: 'Hari ini, baru saja',
+          createdAtTimestamp: Date.now() - 10 * 60 * 1000,
           qrPayload: 'REPLATE-YYS-FB-YYS-8823-VERIFIED',
           hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
-          driverInfo: {
-            name: 'Budi Hartono',
-            phone: '081398765432',
-            vehicle: 'Yamaha NMAX (L 3921 XY)',
-            photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-            status: 'Relawan Logistik Terverifikasi',
-          },
-          timeline: [
-            { title: 'Klaim Alokasi Dikonfirmasi Donatur', time: '18:00 WIB', done: true },
-            { title: 'Disiapkan Bagian Logistik Toko', time: '18:30 WIB', done: true },
-            { title: 'Kurir Sedang Membawa Paket', time: '19:00 WIB', current: true },
-            { title: 'Tiba di Lokasi Panti', time: 'Estimasi 19:30 WIB', done: false },
-          ],
+          driverInfo: null, // Poin 6: Masih di pool siaga, belum ada driver
         },
       ];
 
@@ -246,7 +226,7 @@ export default function YayasanClaimsPage() {
           foodType: 'Makanan Berat Siap Santap Bergizi',
           quantity: '45 Porsi',
           institutionType: 'Panti Asuhan Yatim Piatu',
-          urgency: 'Mendesak (Hari Ini)',
+          urgency: 'Mendesak (Darurat Segera)',
           methodPreference: 'Diantar Kurir Relawan',
           readyTime: 'Sebelum Pukul 20:30 WIB',
           status: 'DALAM RADAR DONATUR (SMART MATCHING)',
@@ -281,7 +261,7 @@ export default function YayasanClaimsPage() {
       return m.includes('SELF') || m.includes('PICKUP') || m.includes('AMBIL');
     }
     if (methodFilter === 'RESCUE_PARTNER') {
-      return m.includes('RESCUE') || m.includes('PARTNER') || m.includes('COURIER') || m.includes('ANTAR') || m.includes('RELAVAN');
+      return m.includes('RESCUE') || m.includes('PARTNER') || m.includes('COURIER') || m.includes('ANTAR') || m.includes('RELAVAN') || m.includes('KOMUNITAS');
     }
     return true;
   });
@@ -320,6 +300,53 @@ export default function YayasanClaimsPage() {
       message: 'Permintaan bantuan pangan berhasil dipublikasikan ke radar donatur & Smart Matching 2.0!',
       type: 'success',
     });
+  };
+
+  // Helper function to build dynamic timeline for a claim (Poin 8)
+  const getDynamicTimeline = (claim: any) => {
+    const claimTime = claim.claimedAt?.replace('Hari ini, ', '') || '16:30 WIB';
+    const isPickup = (claim.method || '').includes('SELF') || (claim.methodLabel || '').includes('Ambil');
+    const isWaitingPool = claim.status === 'WAITING_RESCUE_POOL';
+    const isInTransit = claim.status === 'IN_TRANSIT';
+
+    return [
+      {
+        title: 'Klaim Alokasi Dikonfirmasi Donatur',
+        desc: `Pesanan donasi diterima oleh gerai ${claim.provider || claim.providerName}`,
+        time: claimTime,
+        done: true,
+      },
+      {
+        title: 'Makanan Selesai Dikemas & Lolos BPOM',
+        desc: 'Uji visual & suhu simpan 8-checklist higienitas terverifikasi',
+        time: '+15 mnt',
+        done: true,
+      },
+      {
+        title: isPickup 
+          ? 'Kesiapan Handover di Kasir Gerai' 
+          : isWaitingPool 
+            ? 'Siaga di Pool Relawan Replate' 
+            : 'Kurir Relawan Mengambil dari Gerai',
+        desc: isPickup
+          ? 'Makanan siap diambil mandiri oleh PIC panti'
+          : isWaitingPool
+            ? 'Menunggu konfirmasi armada relawan dari pool siaga'
+            : `Diambil oleh ${claim.driverInfo?.name || 'Kurir Relawan'}`,
+        time: isPickup ? 'Siap' : isWaitingPool ? 'Siaga' : '+30 mnt',
+        done: !isWaitingPool,
+        current: isWaitingPool || (isPickup && claim.status === 'READY_FOR_PICKUP'),
+      },
+      {
+        title: isPickup ? 'Serah Terima Selesai di Toko' : 'Dalam Perjalanan Menuju Lokasi Panti',
+        desc: isPickup 
+          ? 'Tunjukkan QR Pass ini ke kasir gerai donatur' 
+          : `Menuju lokasi ${pantiName}`,
+        time: isPickup ? 'Menunggu' : isInTransit ? 'Estimasi Tiba' : 'Menunggu',
+        done: false,
+        current: isInTransit,
+      },
+    ];
   };
 
   return (
@@ -415,7 +442,7 @@ export default function YayasanClaimsPage() {
         </div>
       </div>
 
-      {/* TAB 1: KLAIM AKTIF & TIKET HANDOVER */}
+      {/* TAB 1: KLAIM AKTIF DENGAN DRIVER PROFILE & TIMELINE DI DALAM CARD (Poin 2, 3, 6, 8) */}
       {activeTab === 'ACTIVE' && (
         <div className="space-y-4">
           {/* Method Filter Pills */}
@@ -424,7 +451,7 @@ export default function YayasanClaimsPage() {
             {[
               { id: 'ALL', label: 'Semua Metode' },
               { id: 'SELF_PICKUP', label: 'Ambil Sendiri' },
-              { id: 'RESCUE_PARTNER', label: 'Diantar Kurir Relawan' },
+              { id: 'RESCUE_PARTNER', label: 'Diantar Kurir Komunitas' },
             ].map((f) => (
               <button
                 key={f.id}
@@ -459,81 +486,219 @@ export default function YayasanClaimsPage() {
               </Link>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {paginatedActiveClaims.map((claim) => (
-                <div
-                  key={claim.id}
-                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition-all space-y-3"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-black text-xs text-[#1B3A5C] bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                        {claim.code || claim.id}
+            <div className="space-y-4">
+              {paginatedActiveClaims.map((claim) => {
+                const isWaitingPool = claim.status === 'WAITING_RESCUE_POOL';
+                const isPickup = (claim.method || '').includes('SELF') || (claim.methodLabel || '').includes('Ambil');
+                const isProviderDirect = (claim.method || '').includes('PROVIDER');
+                const timelineSteps = getDynamicTimeline(claim);
+
+                return (
+                  <div
+                    key={claim.id}
+                    className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition-all space-y-4"
+                  >
+                    {/* Header Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-black text-xs text-[#1B3A5C] bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                          {claim.code || claim.id}
+                        </span>
+                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-md ${
+                          claim.status === 'READY_FOR_PICKUP'
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : isWaitingPool
+                              ? 'bg-purple-100 text-purple-900 border border-purple-300 animate-pulse'
+                              : 'bg-blue-100 text-blue-900 border border-blue-300'
+                        }`}>
+                          {claim.status === 'READY_FOR_PICKUP' 
+                            ? 'SIAP DIAMBIL DI GERAI' 
+                            : isWaitingPool 
+                              ? 'MENUNGGU DI POOL RELAWAN' 
+                              : 'SEDANG DIANTAR KURIR'}
+                        </span>
+                      </div>
+
+                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                        <ClockIcon size={12} className="text-slate-400" />
+                        {claim.claimedAt || 'Hari ini'}
                       </span>
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                        claim.status === 'READY_FOR_PICKUP'
-                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                          : 'bg-blue-100 text-blue-900 border border-blue-300'
-                      }`}>
-                        {claim.status === 'READY_FOR_PICKUP' ? 'SIAP DIAMBIL DI GERAI' : 'SEDANG DIANTAR KURIR'}
+                    </div>
+
+                    {/* Food & Provider Overview */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2 space-y-1">
+                        <h4 className="font-black text-sm sm:text-base text-[#1B3A5C]">{claim.foodName}</h4>
+                        <p className="text-xs text-slate-600 font-bold">
+                          Penyedia: <span className="text-slate-900">{claim.provider || claim.providerName}</span>
+                        </p>
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                          <MapPinIcon size={11} className="text-slate-400 shrink-0" />
+                          <span className="truncate">{claim.address}</span>
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 flex flex-col justify-between text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-medium">Kuantitas:</span>
+                          <strong className="text-emerald-700 font-black">{claim.quantity}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-medium">Metode:</span>
+                          <strong className="text-slate-800 font-bold">{claim.methodLabel || 'Diantar Kurir Relawan'}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-medium">Biaya Bantuan:</span>
+                          <strong className="text-emerald-600 font-black">Rp 0 (Donasi)</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* DEDICATED DRIVER PROFILE CARD / POOL STATUS LANGSUNG DI CARD (Poin 2 & Poin 6) */}
+                    {isWaitingPool ? (
+                      <div className="p-3.5 bg-purple-50/80 rounded-2xl border border-purple-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold shrink-0">
+                            <TruckIcon size={18} />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-purple-900 tracking-wider block">
+                              Pool Siaga Relawan Komunitas Replate
+                            </span>
+                            <p className="text-[11px] text-purple-950 font-medium">
+                              Pesanan makanan sedang disiagakan di Pool Tugas Relawan Food Rescue. Driver relawan akan segera menjemput di toko.
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 bg-purple-200 text-purple-950 font-black text-[10px] rounded-lg shrink-0 self-start sm:self-auto">
+                          Status: Menunggu Armada
+                        </span>
+                      </div>
+                    ) : claim.driverInfo ? (
+                      <div className="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#1B3A5C] shrink-0">
+                            <img
+                              src={claim.driverInfo.photo}
+                              alt={claim.driverInfo.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h5 className="font-black text-sm text-[#1B3A5C] truncate">{claim.driverInfo.name}</h5>
+                              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
+                                ✓ Verified
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-700 font-bold">{claim.driverInfo.vehicle}</p>
+                            <p className="text-[10px] text-slate-500 font-mono">No. WA: {claim.driverInfo.phone}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                          <a
+                            href={`https://wa.me/62${claim.driverInfo.phone.replace(/^0/, '')}?text=Halo%20${encodeURIComponent(claim.driverInfo.name)},%20saya%20dari%20${encodeURIComponent(pantiName)}%20mengenai%20pengantaran%20makanan%20${encodeURIComponent(claim.code)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 sm:flex-initial px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs text-center shadow-xs cursor-pointer transition-colors"
+                          >
+                            Chat WhatsApp
+                          </a>
+                          <Link href="/dashboard/tracking" className="flex-1 sm:flex-initial">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs font-bold border-[#1B3A5C] text-[#1B3A5C] hover:bg-[#1B3A5C]/5 cursor-pointer"
+                            >
+                              Live GPS ➔
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    ) : isPickup ? (
+                      <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200 flex items-center justify-between text-xs text-amber-950">
+                        <div className="flex items-center gap-2">
+                          <PackageIcon size={15} className="text-amber-700 shrink-0" />
+                          <span className="font-semibold text-[11px]">
+                            Pengurus panti mengambil langsung ke gerai {claim.provider}. Waktu ambil: {claim.pickupTime}.
+                          </span>
+                        </div>
+                        <span className="font-bold text-amber-800 text-[10px] shrink-0">Scan QR di Kasir</span>
+                      </div>
+                    ) : null}
+
+                    {/* REAL-TIME & DYNAMIC 4-STEP TIMELINE LANGSUNG DI CARD (Poin 3 & Poin 8) */}
+                    <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                          Timeline Penyaluran & Keamanan Pangan (Real-Time)
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                          <ShieldCheckIcon size={11} />
+                          Standar Mutu BPOM RI
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+                        {timelineSteps.map((step, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-2.5 rounded-xl border flex flex-col justify-between transition-all ${
+                              step.current
+                                ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-300 shadow-2xs'
+                                : step.done
+                                  ? 'bg-emerald-50/60 border-emerald-200 text-slate-800'
+                                  : 'bg-white border-slate-200 text-slate-400 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${
+                                step.done 
+                                  ? 'bg-emerald-600 text-white' 
+                                  : step.current 
+                                    ? 'bg-[#D4A843] text-slate-950 animate-pulse' 
+                                    : 'bg-slate-200 text-slate-600'
+                              }`}>
+                                {step.done ? '✓' : idx + 1}
+                              </span>
+                              <span className="text-[9px] font-mono font-bold text-slate-500">{step.time}</span>
+                            </div>
+                            <span className={`font-black text-[11px] leading-tight block ${
+                              step.current ? 'text-[#1B3A5C]' : step.done ? 'text-slate-900' : 'text-slate-500'
+                            }`}>
+                              {step.title}
+                            </span>
+                            <span className="text-[9px] text-slate-500 leading-tight mt-1 block">
+                              {step.desc}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Card Footer Actions & QR Manifest Modal Button (Poin 7) */}
+                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                      <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                        <ShieldCheckIcon size={12} className="text-emerald-600" />
+                        {claim.hygieneStatus || 'Lolos Cek Fisik & Higienitas BPOM RI'}
                       </span>
-                    </div>
 
-                    <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-                      <ClockIcon size={12} className="text-slate-400" />
-                      {claim.claimedAt || 'Hari ini'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2 space-y-1">
-                      <h4 className="font-black text-sm text-[#1B3A5C]">{claim.foodName}</h4>
-                      <p className="text-xs text-slate-600 font-bold">
-                        Penyedia: <span className="text-slate-900">{claim.provider || claim.providerName}</span>
-                      </p>
-                      <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                        <MapPinIcon size={11} className="text-slate-400 shrink-0" />
-                        <span className="truncate">{claim.address}</span>
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 flex flex-col justify-between text-xs space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 font-medium">Kuantitas:</span>
-                        <strong className="text-emerald-700 font-black">{claim.quantity}</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 font-medium">Metode:</span>
-                        <strong className="text-slate-800 font-bold">{claim.methodLabel || 'Diantar Kurir Relawan'}</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500 font-medium">Biaya:</span>
-                        <strong className="text-emerald-600 font-black">Rp 0 (Donasi)</strong>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-black text-xs text-slate-950 py-1.5 px-3.5 rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5"
+                          onClick={() => setSelectedClaimModal(claim)}
+                        >
+                          <PackageIcon size={13} />
+                          <span>Buka Tiket Handover QR</span>
+                        </Button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Actions & QR Modal Trigger */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                    <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                      <ShieldCheckIcon size={12} className="text-emerald-600" />
-                      {claim.hygieneStatus || 'Lolos Cek Fisik & Higienitas BPOM RI'}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="gold"
-                        size="sm"
-                        className="font-black text-xs text-slate-950 py-1.5 px-3.5 rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5"
-                        onClick={() => setSelectedClaimModal(claim)}
-                      >
-                        <PackageIcon size={13} />
-                        <span>Buka Tiket Handover QR</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Pagination Controls (Poin 9) */}
               {activeTotalPages > 1 && (
@@ -749,7 +914,7 @@ export default function YayasanClaimsPage() {
         </div>
       )}
 
-      {/* Modal Tiket Serah Terima Handover & Dedicated Profile Card Kurir (Poin 7 & 8) */}
+      {/* Modal Tiket Serah Terima Handover Ber-Barcode QR Manifest Terstandarisasi (Poin 7) */}
       <Modal
         isOpen={!!selectedClaimModal}
         onClose={() => setSelectedClaimModal(null)}
@@ -766,118 +931,66 @@ export default function YayasanClaimsPage() {
               <div className="flex justify-center py-1">
                 <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 inline-block">
                   <QRGenerator 
-                    value={selectedClaimModal.qrPayload || `REPLATE-YYS-${selectedClaimModal.code || selectedClaimModal.id}`} 
+                    value={`REPLATE-YYS-${selectedClaimModal.code || selectedClaimModal.id}`} 
                     foodName={selectedClaimModal.foodName}
                     portions={selectedClaimModal.quantity}
                     providerName={selectedClaimModal.provider || selectedClaimModal.providerName}
+                    deliveryMethod={selectedClaimModal.method}
+                    recipientName={pantiName}
                   />
                 </div>
               </div>
               <span className="font-mono font-black text-sm text-[#1B3A5C] block">
-                {selectedClaimModal.code || selectedClaimModal.id}
+                {`REPLATE-YYS-${selectedClaimModal.code || selectedClaimModal.id}`}
               </span>
               <p className="text-[11px] text-slate-500 font-medium leading-tight max-w-xs mx-auto">
-                Tunjukkan QR ini kepada kasir toko atau kurir relawan saat makanan surplus diserahkan.
+                Tunjukkan barcode QR resmi ini kepada kasir toko donatur atau driver saat makanan surplus diserahkan.
               </p>
             </div>
 
-            {/* Dedicated Driver Profile Card (Poin 7 & 8) */}
-            {selectedClaimModal.driverInfo ? (
-              <div className="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-[#1B3A5C] uppercase tracking-wider flex items-center gap-1">
-                    <TruckIcon size={12} className="text-[#1B3A5C]" />
-                    <span>Kurir Relawan Pengantar</span>
-                  </span>
-                  <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                    ✓ Terverifikasi SIM/STNK
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#1B3A5C] shrink-0">
-                    <img
-                      src={selectedClaimModal.driverInfo.photo}
-                      alt={selectedClaimModal.driverInfo.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="font-black text-sm text-[#1B3A5C] truncate">{selectedClaimModal.driverInfo.name}</h5>
-                    <p className="text-[11px] text-slate-600 font-bold">{selectedClaimModal.driverInfo.vehicle}</p>
-                    <p className="text-[10px] text-slate-500 font-mono">No. HP: {selectedClaimModal.driverInfo.phone}</p>
-                  </div>
-                  <div className="shrink-0 flex flex-col gap-1.5">
-                    <a
-                      href={`https://wa.me/62${selectedClaimModal.driverInfo.phone.replace(/^0/, '')}?text=Halo%20${encodeURIComponent(selectedClaimModal.driverInfo.name)},%20saya%20dari%20${encodeURIComponent(pantiName)}%20mengenai%20pengantaran%20makanan%20${encodeURIComponent(selectedClaimModal.code)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] text-center shadow-xs cursor-pointer transition-colors"
-                    >
-                      Chat WA Driver
-                    </a>
-                  </div>
-                </div>
+            {/* Detail Information */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex justify-between border-b border-slate-200/80 pb-1.5">
+                <span className="text-slate-500 font-medium">Menu Surplus:</span>
+                <strong className="text-[#1B3A5C] text-right font-bold">{selectedClaimModal.foodName}</strong>
               </div>
-            ) : (
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-medium">
-                <strong>Metode Pengambilan Mandiri:</strong> Pengurus panti diharapkan hadir di gerai toko penyedia sesuai jadwal pengambilan.
+              <div className="flex justify-between border-b border-slate-200/80 pb-1.5">
+                <span className="text-slate-500 font-medium">Jumlah Alokasi:</span>
+                <strong className="text-emerald-700 font-black">{selectedClaimModal.quantity}</strong>
               </div>
-            )}
-
-            {/* 4-Step Delivery Timeline (Poin 7 & 8) */}
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
-                Timeline Penyaluran & Keamanan Pangan
-              </span>
-              <div className="space-y-2">
-                {(selectedClaimModal.timeline || [
-                  { title: 'Klaim Alokasi Dikonfirmasi Donatur', time: '16:30 WIB', done: true },
-                  { title: 'Makanan Selesai Dikemas & Lolos BPOM', time: '17:00 WIB', done: true },
-                  { title: 'Kurir Relawan Mengambil dari Gerai', time: '17:15 WIB', done: true },
-                  { title: 'Dalam Perjalanan Menuju Panti', time: 'Estimasi 17:45 WIB', current: true },
-                ]).map((step: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-2.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
-                      step.done 
-                        ? 'bg-emerald-500 text-white' 
-                        : step.current 
-                          ? 'bg-[#D4A843] text-slate-950 ring-2 ring-amber-300 animate-pulse' 
-                          : 'bg-slate-200 text-slate-500'
-                    }`}>
-                      {step.done ? '✓' : idx + 1}
-                    </div>
-                    <div className="flex-1 flex justify-between items-center text-xs">
-                      <span className={`font-bold ${step.current ? 'text-[#1B3A5C]' : step.done ? 'text-slate-800' : 'text-slate-400'}`}>
-                        {step.title}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-mono">{step.time}</span>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex justify-between border-b border-slate-200/80 pb-1.5">
+                <span className="text-slate-500 font-medium">Penyedia Donatur:</span>
+                <strong className="text-slate-800 font-bold">{selectedClaimModal.provider || selectedClaimModal.providerName}</strong>
+              </div>
+              <div className="flex justify-between border-b border-slate-200/80 pb-1.5">
+                <span className="text-slate-500 font-medium">Metode Penyaluran:</span>
+                <strong className="text-slate-800 font-bold">{selectedClaimModal.methodLabel || 'Diantar Kurir Komunitas'}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Lokasi Pickup:</span>
+                <span className="text-slate-700 font-medium text-right max-w-[200px] truncate">{selectedClaimModal.address}</span>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-              <Link href="/dashboard/tracking" className="flex-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full font-black py-2 text-xs border-[#1B3A5C] text-[#1B3A5C] hover:bg-[#1B3A5C]/5 cursor-pointer"
-                >
-                  Buka Live Tracking GPS ➔
-                </Button>
-              </Link>
-              <Button
-                variant="primary"
-                size="sm"
-                className="flex-1 font-black py-2 text-xs shadow-xs cursor-pointer"
-                onClick={() => setSelectedClaimModal(null)}
-              >
-                Tutup Tiket
-              </Button>
+            {/* Verification Badge */}
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center gap-2.5 text-emerald-900">
+              <ShieldCheckIcon size={18} className="text-emerald-600 shrink-0" />
+              <div className="text-[11px] leading-snug">
+                <strong className="block font-black">Audit Kualitas Higienitas Terjamin</strong>
+                <span className="font-medium text-emerald-800">
+                  Makanan ini telah diverifikasi memenuhi 8-Checklist Kelayakan Konsumsi BPOM RI & Dinsos.
+                </span>
+              </div>
             </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              className="w-full font-black py-2.5 text-xs shadow-xs cursor-pointer"
+              onClick={() => setSelectedClaimModal(null)}
+            >
+              Tutup Tiket
+            </Button>
           </div>
         )}
       </Modal>
@@ -899,47 +1012,27 @@ export default function YayasanClaimsPage() {
               Pengajuan Kebutuhan Pangan {pantiName}
             </h3>
             <p className="text-[11px] text-slate-200 leading-snug">
-              Data akan otomatis disinkronkan ke toko mitra donatur & katering terdekat untuk dicocokkan dengan makanan surplus bernutrisi tinggi.
+              Data otomatis disinkronkan ke toko donatur & katering terdekat untuk dicocokkan dengan makanan surplus bernutrisi tinggi.
             </p>
           </div>
 
+          {/* Readonly Identity Card dari Profil (Poin 1: Data Identitas Terverifikasi) */}
+          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
+            <div>
+              <span className="text-slate-400 block font-medium">Lembaga Pemohon:</span>
+              <strong className="text-[#1B3A5C] font-black">{pantiName}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block font-medium">Legalitas Dinsos RI:</span>
+              <strong className="text-emerald-700 font-black">{dinsosReg}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block font-medium">Kategori Lembaga:</span>
+              <strong className="text-slate-800 font-bold">{reqInstitutionType}</strong>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Nama Lembaga / Panti</label>
-              <input
-                type="text"
-                value={pantiName}
-                onChange={(e) => setPantiName(e.target.value)}
-                required
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Nomor Registrasi / Legalitas Dinsos RI</label>
-              <input
-                type="text"
-                value={dinsosReg}
-                onChange={(e) => setDinsosReg(e.target.value)}
-                required
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Jenis / Kategori Lembaga</label>
-              <select
-                value={reqInstitutionType}
-                onChange={(e) => setReqInstitutionType(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
-              >
-                <option value="Panti Asuhan Yatim Piatu">Panti Asuhan Yatim Piatu</option>
-                <option value="Yayasan Sosial Dhuafa">Yayasan Sosial Dhuafa</option>
-                <option value="Pondok Pesantren / Santri">Pondok Pesantren / Santri</option>
-                <option value="Rumah Singgah / Lansia">Rumah Singgah / Lansia</option>
-              </select>
-            </div>
-
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">Kategori Kebutuhan Makanan</label>
               <select
@@ -968,15 +1061,16 @@ export default function YayasanClaimsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Tingkat Urgensi Bantuan</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Tingkat Urgensi Kebutuhan (Tanpa Jam)</label>
               <select
                 value={reqUrgency}
                 onChange={(e) => setReqUrgency(e.target.value)}
                 className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
               >
-                <option value="Mendesak (Hari Ini Sebelum 20:30 WIB)">Mendesak (Hari Ini Sebelum 20:30 WIB)</option>
-                <option value="Dibutuhkan Besok Pagi/Siang">Dibutuhkan Besok Pagi/Siang</option>
-                <option value="Kebutuhan Rutin Mingguan">Kebutuhan Rutin Mingguan</option>
+                <option value="Mendesak (Darurat Segera)">Mendesak (Darurat Segera)</option>
+                <option value="Tinggi (Prioritas Hari Ini)">Tinggi (Prioritas Hari Ini)</option>
+                <option value="Sedang (Kebutuhan Besok)">Sedang (Kebutuhan Besok)</option>
+                <option value="Rendah (Kebutuhan Rutin Mingguan)">Rendah (Kebutuhan Rutin Mingguan)</option>
               </select>
             </div>
 
@@ -999,24 +1093,14 @@ export default function YayasanClaimsPage() {
                 type="text"
                 value={reqReadyTime}
                 onChange={(e) => setReqReadyTime(e.target.value)}
+                placeholder="Contoh: Hari Ini, Pukul 19:30 - 20:30 WIB"
                 required
                 className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Nama PIC Penanggung Jawab</label>
-              <input
-                type="text"
-                value={contactPerson}
-                onChange={(e) => setContactPerson(e.target.value)}
-                required
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Nomor WhatsApp Aktif PIC</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Nomor WhatsApp Aktif PIC Penanggung Jawab</label>
               <input
                 type="text"
                 value={pantiPhone}
@@ -1028,7 +1112,7 @@ export default function YayasanClaimsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Alamat Lengkap Lokasi Lembaga / Panti</label>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Alamat Lengkap Pengantaran Lembaga</label>
             <input
               type="text"
               value={pantiAddress}
@@ -1044,7 +1128,7 @@ export default function YayasanClaimsPage() {
               rows={2}
               value={reqNotes}
               onChange={(e) => setReqNotes(e.target.value)}
-              placeholder="Contoh: Menghindari makanan pedas atau kacang untuk anak balita, makanan siap saji harap steril..."
+              placeholder="Contoh: Menghindari makanan pedas atau kacang untuk anak balita, makanan siap saji harap higienis..."
               className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
             />
           </div>
