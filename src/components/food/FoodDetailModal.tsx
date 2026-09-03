@@ -92,7 +92,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             onClose();
           }}
         >
-          {isFree ? 'Beli Langsung ➔' : 'Beli Langsung ➔'}
+          {isFree ? 'Beli Langsung ' : 'Beli Langsung '}
         </Button>
       )}
     </div>
@@ -214,7 +214,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             rel="noreferrer"
             className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
           >
-            <span>Hubungi WhatsApp Outlet / Toko (Koordinasi Penjemputan) ➔</span>
+            <span>Hubungi WhatsApp Outlet / Toko (Koordinasi Penjemputan) </span>
           </a>
         </div>
 

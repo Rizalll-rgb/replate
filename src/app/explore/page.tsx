@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
 import { CheckIcon } from '@/components/ui/Icon';
+import { SHARED_PANTI_NEEDS, SharedPantiNeed } from '@/lib/pantiData';
 
 interface FoodItem {
   id: string;
@@ -41,30 +42,7 @@ interface FoodItem {
   status?: string;
 }
 
-interface PantiNeed {
-  id: string;
-  pantiName: string;
-  shelterType: string;
-  requestedItem: string;
-  foodCategoryNeeded: string;
-  targetQuantity: string;
-  fulfilledQuantity: string;
-  beneficiariesCount: number;
-  urgency: 'HIGH' | 'MEDIUM';
-  location: string;
-  address: string;
-  contactPerson: string;
-  contactPhone: string;
-  deadline: string;
-  imageUrl: string;
-  legalStatus: string;
-  legalPermit: string;
-  notes: string;
-  preferredDelivery: 'RESCUE_COURIER' | 'PROVIDER_DIRECT' | 'SHELTER_PICKUP';
-  lat: number;
-  lng: number;
-}
-
+// interface PantiNeed was replaced by SharedPantiNeed
 export default function ExplorePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -82,85 +60,15 @@ export default function ExplorePage() {
   const [selectedFoodForModal, setSelectedFoodForModal] = useState<any | null>(null);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
-  const [pantiNeeds, setPantiNeeds] = useState<PantiNeed[]>([
-    {
-      id: 'REQ-DON-001',
-      pantiName: 'Panti Asuhan Kasih Ibu Surabaya',
-      shelterType: 'Panti Asuhan Anak Yatim',
-      requestedItem: 'Nasi Kotak / Paket Lauk Pauk Bergizi',
-      foodCategoryNeeded: 'Makanan Olahan (Meals)',
-      targetQuantity: '50 Porsi',
-      fulfilledQuantity: '30 Porsi',
-      beneficiariesCount: 45,
-      urgency: 'HIGH',
-      location: 'Surabaya Timur (Gubeng)',
-      address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
-      contactPerson: 'Ibu Hajjah Maryam',
-      contactPhone: '081298765432',
-      deadline: 'Hari ini sebelum 20:00 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60',
-      legalStatus: 'Terverifikasi Dinsos Jatim',
-      legalPermit: 'DINSOS-SBY/2023/8912',
-      notes: 'Membutuhkan 40-50 porsi nasi lauk pauk bergizi untuk makan malam anak-anak panti.',
-      preferredDelivery: 'RESCUE_COURIER',
-      lat: -7.2754,
-      lng: 112.7541,
-    },
-    {
-      id: 'REQ-DON-002',
-      pantiName: 'Panti Werdha Lansia Sejahtera',
-      shelterType: 'Panti Werdha (Lansia)',
-      requestedItem: 'Roti Gandum, Susu Steril & Buah Potong',
-      foodCategoryNeeded: 'Roti, Buah & Susu (Bakery & Dairy)',
-      targetQuantity: '35 Porsi',
-      fulfilledQuantity: '15 Porsi',
-      beneficiariesCount: 30,
-      urgency: 'MEDIUM',
-      location: 'Surabaya Selatan (Wonokromo)',
-      address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
-      contactPerson: 'Bapak Hartono',
-      contactPhone: '081345678901',
-      deadline: 'Besok pagi 08:30 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=600&auto=format&fit=crop&q=60',
-      legalStatus: 'Terverifikasi Kemenkumham',
-      legalPermit: 'DINSOS-SBY/2022/4102',
-      notes: 'Membutuhkan roti tekstur lembut, buah potong segar, atau susu UHT untuk lansia.',
-      preferredDelivery: 'SHELTER_PICKUP',
-      lat: -7.3012,
-      lng: 112.7389,
-    },
-    {
-      id: 'REQ-DON-003',
-      pantiName: 'Shelter Dhuafa & Anak Jalanan Mandiri',
-      shelterType: 'Shelter & Rumah Singgah',
-      requestedItem: 'Surplus Makanan Katering / Prasmanan Bersih',
-      foodCategoryNeeded: 'Makanan Olahan (Meals)',
-      targetQuantity: '60 Porsi',
-      fulfilledQuantity: '10 Porsi',
-      beneficiariesCount: 25,
-      urgency: 'HIGH',
-      location: 'Surabaya Pusat (Genteng)',
-      address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
-      contactPerson: 'Mas Dedi Relawan',
-      contactPhone: '081567890123',
-      deadline: 'Hari ini sebelum 21:30 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&auto=format&fit=crop&q=60',
-      legalStatus: 'Terverifikasi Pemkot Surabaya',
-      legalPermit: 'DINSOS-SBY/2024/1109',
-      notes: 'Membutuhkan porsi makanan surplus siap santap untuk pembagian malam relawan.',
-      preferredDelivery: 'PROVIDER_DIRECT',
-      lat: -7.2623,
-      lng: 112.7391,
-    },
-  ]);
+  const [pantiNeeds, setPantiNeeds] = useState<SharedPantiNeed[]>(SHARED_PANTI_NEEDS);
 
   // Shelter Profile Detail Modal State
-  const [selectedShelterProfile, setSelectedShelterProfile] = useState<PantiNeed | null>(null);
+  const [selectedShelterProfile, setSelectedShelterProfile] = useState<SharedPantiNeed | null>(null);
 
   // Fulfill Modal State
   const [fulfillModal, setFulfillModal] = useState<{
     isOpen: boolean;
-    need: PantiNeed | null;
+    need: SharedPantiNeed | null;
     portions: string;
     deliveryMethod: string;
     hygieneChecked: boolean;
@@ -535,7 +443,7 @@ export default function ExplorePage() {
     });
   };
 
-  const handleSanggupiPanti = (need: PantiNeed) => {
+  const handleSanggupiPanti = (need: SharedPantiNeed) => {
     if (status !== 'authenticated' || !session?.user) {
       setAuthModal({
         isOpen: true,
@@ -859,7 +767,7 @@ export default function ExplorePage() {
                           onClick={() => setSelectedShelterProfile(need)}
                           className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer mt-1"
                         >
-                          <span>Lihat Profil Detail & Titik Peta GPS ➔</span>
+                          <span>Lihat Profil Detail & Titik Peta GPS </span>
                         </button>
                       </div>
                     </div>
@@ -870,7 +778,7 @@ export default function ExplorePage() {
                       onClick={() => handleSanggupiPanti(need)}
                       className="w-full font-black text-xs text-slate-950 py-3 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-2"
                     >
-                      <span>Sanggupi Bantuan Panti ➔</span>
+                      <span>Sanggupi Bantuan Panti </span>
                     </Button>
                   </div>
                 </div>
@@ -951,7 +859,7 @@ export default function ExplorePage() {
               rel="noreferrer"
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
-              <span>Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct) ➔</span>
+              <span>Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct) </span>
             </a>
 
             {/* Embed Google Maps GPS */}
@@ -993,7 +901,7 @@ export default function ExplorePage() {
                   handleSanggupiPanti(target);
                 }}
               >
-                Sanggupi Bantuan Panti Ini ➔
+                Sanggupi Bantuan Panti Ini 
               </Button>
             </div>
           </div>
@@ -1109,7 +1017,7 @@ export default function ExplorePage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" onClick={handleConfirmFulfill} className="font-black text-slate-950 shadow-md">
-                Konfirmasi & Terbitkan Resi Donasi ➔
+                Konfirmasi & Terbitkan Resi Donasi 
               </Button>
             </div>
           </div>
@@ -1140,7 +1048,7 @@ export default function ExplorePage() {
                 size="md"
                 className="w-full font-black text-xs py-3 shadow-md"
               >
-                Masuk ke Akun Saya ➔
+                Masuk ke Akun Saya 
               </Button>
             </Link>
 
@@ -1150,7 +1058,7 @@ export default function ExplorePage() {
                 size="md"
                 className="w-full font-black text-xs text-slate-950 py-3 shadow-md"
               >
-                Daftar Akun Baru Gratis ➔
+                Daftar Akun Baru Gratis 
               </Button>
             </Link>
           </div>
@@ -1194,7 +1102,7 @@ export default function ExplorePage() {
                 setActiveTab('RESCUE_SALE');
               }}
             >
-              Pilih Makanan Rescue Sale (Diskon Murah) ➔
+              Pilih Makanan Rescue Sale (Diskon Murah) 
             </Button>
           </div>
         </div>

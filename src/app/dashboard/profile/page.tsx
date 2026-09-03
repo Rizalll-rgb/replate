@@ -1028,7 +1028,7 @@ export default function DashboardProfilePage() {
     }
 
     const instantCustomItem: LocationDirectoryItem = {
-      name: `📍 ${raw}`,
+      name: ` ${raw}`,
       detail: instantDetail,
       category: instantCategory,
       keywords: [clean],
@@ -1110,7 +1110,7 @@ export default function DashboardProfilePage() {
                 const detail = detailParts.join(', ') || props.type || 'Peta Indonesia';
                 const category = props.city || props.county || props.state || 'Peta Indonesia';
                 apiResults.push({
-                  name: `📍 ${name}`,
+                  name: ` ${name}`,
                   detail,
                   category,
                   keywords: [name.toLowerCase(), clean],
@@ -1131,7 +1131,7 @@ export default function DashboardProfilePage() {
             const detail = parts.slice(1, 4).join(', ') || displayName;
             const category = d.address?.city || d.address?.county || d.address?.state || 'Peta Satelit';
             apiResults.push({
-              name: `📍 ${name}`,
+              name: ` ${name}`,
               detail,
               category,
               keywords: [name.toLowerCase(), clean],
@@ -1171,7 +1171,7 @@ export default function DashboardProfilePage() {
 
   const handleSelectSuggestion = (item: LocationDirectoryItem) => {
     const cleanName = item.name
-      .replace(/^📍\s*/, '')
+      .replace(/^\s*/, '')
       .replace(/^Tambah Lokasi Spesifik:\s*/i, '')
       .trim();
 
@@ -1230,7 +1230,7 @@ export default function DashboardProfilePage() {
     }
 
     if (closestItem) {
-      const cleanName = closestItem.name.replace(/^📍\s*/, '').replace(/^Tambah Lokasi Spesifik:\s*/i, '').trim();
+      const cleanName = closestItem.name.replace(/^\s*/, '').replace(/^Tambah Lokasi Spesifik:\s*/i, '').trim();
       const fullAddress = `${cleanName}, ${closestItem.detail}`;
       const distMatch = closestItem.detail.match(/Kec(?:amatan|\.)\s+([^,]+)/i);
       const cityMatch = closestItem.detail.match(/(?:Kota|Kab(?:upaten|\.)?)\s+([^,]+)/i);
@@ -1685,11 +1685,11 @@ export default function DashboardProfilePage() {
       </div>
 
       {/* 4 Rich Core Tabs */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar p-1.5 bg-slate-200/70 rounded-2xl flex-nowrap w-full">
         <button
           type="button"
           onClick={() => setActiveTab('AKUN')}
-          className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
             activeTab === 'AKUN'
               ? 'bg-[#1B3A5C] text-white shadow-md'
               : 'text-slate-700 hover:text-slate-900 font-bold'
@@ -1702,7 +1702,7 @@ export default function DashboardProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab('OUTLET')}
-            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+            className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
               activeTab === 'OUTLET'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-900 font-bold'
@@ -1716,7 +1716,7 @@ export default function DashboardProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab('FLEET')}
-            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+            className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
               activeTab === 'FLEET'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-900 font-bold'
@@ -1729,7 +1729,7 @@ export default function DashboardProfilePage() {
         <button
           type="button"
           onClick={() => setActiveTab('LEGALITAS')}
-          className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
             activeTab === 'LEGALITAS'
               ? 'bg-[#1B3A5C] text-white shadow-md'
               : 'text-slate-700 hover:text-slate-900 font-bold'
@@ -1835,7 +1835,7 @@ export default function DashboardProfilePage() {
               <div className="pt-3 border-t border-slate-100 text-left space-y-2 text-xs">
                 <div className="flex justify-between text-slate-600">
                   <span>Status Legalitas:</span>
-                  <span className="font-black text-emerald-600">✓ Lolos Audit NIB & BPOM</span>
+                  <span className="font-black text-emerald-600"> Lolos Audit NIB & BPOM</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Wilayah Operasi:</span>
@@ -1854,7 +1854,7 @@ export default function DashboardProfilePage() {
               </p>
               <Link href="/dashboard/info" className="block">
                 <div className="p-2.5 bg-white hover:bg-slate-100 rounded-xl border border-slate-300 text-xs font-bold text-[#1B3A5C] flex items-center justify-between transition-all shadow-xs">
-                  <span>Pusat Informasi & SOP BPOM ➔</span>
+                  <span>Pusat Informasi & SOP BPOM </span>
                 </div>
               </Link>
             </div>
@@ -2008,7 +2008,7 @@ export default function DashboardProfilePage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <label className="font-black text-slate-900 text-sm block">
-                          🗺️ Peta Interaktif GPS Outlet (Cakupan Nasional Indonesia):
+                          ️ Peta Interaktif GPS Outlet (Cakupan Nasional Indonesia):
                         </label>
                         <span className="px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[10px] font-black rounded-md">
                           🇮🇩 Seluruh Nusantara
@@ -2025,7 +2025,7 @@ export default function DashboardProfilePage() {
                         onClick={() => setIsMapModalOpen(true)}
                         className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-[#c49835] text-slate-950 text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
                       >
-                        <span>🖥️ Mode Layar Penuh (Perbesar)</span>
+                        <span>️ Mode Layar Penuh (Perbesar)</span>
                       </button>
 
                       <button
@@ -2047,7 +2047,7 @@ export default function DashboardProfilePage() {
                         }}
                         className="px-3.5 py-1.5 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0"
                       >
-                        <span>📍 Deteksi GPS Saya</span>
+                        <span> Deteksi GPS Saya</span>
                       </button>
                     </div>
                   </div>
@@ -2090,7 +2090,7 @@ export default function DashboardProfilePage() {
                             }}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-black cursor-pointer"
                           >
-                            ✕
+                            
                           </button>
                         )}
                       </div>
@@ -2099,7 +2099,7 @@ export default function DashboardProfilePage() {
                         onClick={() => executeMapSearch(mapSearchQuery)}
                         className="px-4 py-2.5 bg-[#1B3A5C] text-white font-black text-xs rounded-xl hover:bg-[#142C47] transition-all cursor-pointer shrink-0"
                       >
-                        🔍 Cari Lokasi
+                         Cari Lokasi
                       </button>
                     </div>
 
@@ -2107,7 +2107,7 @@ export default function DashboardProfilePage() {
                     {showMapDropdown && mapSuggestions.length > 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border-2 border-[#1B3A5C]/30 rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100">
                         <div className="px-3.5 py-2 bg-[#1B3A5C] text-white flex items-center justify-between text-[10px] font-extrabold rounded-t-xl sticky top-0 z-10 shadow-xs">
-                          <span>📍 PILIH DETAIL ALAMAT / LOKASI TUJUAN:</span>
+                          <span> PILIH DETAIL ALAMAT / LOKASI TUJUAN:</span>
                           <div className="flex items-center gap-2">
                             {isSearchingMap && (
                               <span className="text-[#D4A843] animate-pulse">⏳ Mencari di peta satelit...</span>
@@ -2124,7 +2124,7 @@ export default function DashboardProfilePage() {
                             }}
                             className="w-full text-left p-3 hover:bg-amber-50/90 transition-colors flex items-start gap-2.5 cursor-pointer group"
                           >
-                            <span className="text-base mt-0.5 group-hover:scale-125 transition-transform shrink-0">📍</span>
+                            <span className="text-base mt-0.5 group-hover:scale-125 transition-transform shrink-0"></span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-extrabold text-xs text-[#1B3A5C] group-hover:text-amber-800">
@@ -2142,7 +2142,7 @@ export default function DashboardProfilePage() {
                               </span>
                             </div>
                             <span className="text-xs font-black text-[#D4A843] opacity-0 group-hover:opacity-100 transition-opacity self-center shrink-0">
-                              Pilih ➔
+                              Pilih 
                             </span>
                           </div>
                         ))}
@@ -2182,10 +2182,10 @@ export default function DashboardProfilePage() {
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="flex flex-col items-center -translate-y-4">
                         <div className="px-2.5 py-1 bg-slate-950/90 text-[#D4A843] rounded-lg font-mono text-[10px] font-black shadow-lg whitespace-nowrap mb-1 border border-slate-700">
-                          📍 {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
+                           {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
                         </div>
                         <div className="w-9 h-9 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-sm font-black animate-bounce">
-                          📍
+                          
                         </div>
                         <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
                       </div>
@@ -2194,7 +2194,7 @@ export default function DashboardProfilePage() {
                     {/* Top Left Helper Overlay Badge */}
                     <div className="absolute top-3 left-3 bg-[#1B3A5C]/95 backdrop-blur-xs text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-md flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      <span>🎯 Klik di titik manapun pada peta untuk memindahkan pin outlet</span>
+                      <span> Klik di titik manapun pada peta untuk memindahkan pin outlet</span>
                     </div>
 
                     {/* Bottom Right Zoom & Control Buttons */}
@@ -2209,7 +2209,7 @@ export default function DashboardProfilePage() {
                         className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
                         title="Perbesar (Zoom In)"
                       >
-                        🔍+ Zoom In
+                        + Zoom In
                       </button>
                       <button
                         type="button"
@@ -2221,7 +2221,7 @@ export default function DashboardProfilePage() {
                         className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
                         title="Perkecil (Zoom Out)"
                       >
-                        🔍- Zoom Out
+                        - Zoom Out
                       </button>
                       <button
                         type="button"
@@ -2232,7 +2232,7 @@ export default function DashboardProfilePage() {
                         className="px-2.5 py-1 bg-[#D4A843] hover:bg-[#c49835] text-slate-950 font-black text-xs rounded-lg transition-colors cursor-pointer"
                         title="Layar Penuh"
                       >
-                        🖥️ Fullscreen
+                        ️ Fullscreen
                       </button>
                     </div>
                   </div>
@@ -2241,7 +2241,7 @@ export default function DashboardProfilePage() {
                   <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-0.5">
                       <span className="text-xs font-black text-slate-800 block">
-                        🕹️ Geser Presisi Pin Koordinat (±100m):
+                        ️ Geser Presisi Pin Koordinat (±100m):
                       </span>
                       <span className="text-[11px] text-slate-500 font-medium">
                         Gunakan tombol arah mata angin untuk menyempurnakan lokasi gang/titik presisi:
@@ -2287,7 +2287,7 @@ export default function DashboardProfilePage() {
                         }}
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
                       >
-                        ➡️ Timur
+                        ️ Timur
                       </button>
                     </div>
                   </div>
@@ -2312,13 +2312,13 @@ export default function DashboardProfilePage() {
                   </div>
 
                   <div className="p-3 bg-blue-50/90 rounded-xl border border-blue-200 text-xs text-blue-950 font-medium">
-                    🗺️ <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke panti asuhan & kurir relawan terdekat.
+                    ️ <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke panti asuhan & kurir relawan terdekat.
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-2 border-t border-slate-100">
                   <Button variant="gold" size="sm" type="submit" className="font-black text-xs text-slate-950 shadow-md">
-                    Simpan Perubahan Identitas ➔
+                    Simpan Perubahan Identitas 
                   </Button>
                 </div>
               </form>
@@ -2365,7 +2365,7 @@ export default function DashboardProfilePage() {
                       </span>
                     </div>
                     <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-medium space-y-0.5">
-                      <span className="font-extrabold block">🔒 Ditetapkan Otomatis oleh Sistem Replate Engine 2.0:</span>
+                      <span className="font-extrabold block"> Ditetapkan Otomatis oleh Sistem Replate Engine 2.0:</span>
                       <p className="text-[10.5px] leading-relaxed">
                         Untuk menjaga kualitas makanan hangat &gt;60°C dan dingin &lt;4°C sesuai standar BPOM RI, radius geofencing donasi dikunci otomatis maksimal <strong>5.0 KM</strong> dari outlet Anda.
                       </p>
@@ -2377,12 +2377,12 @@ export default function DashboardProfilePage() {
               {/* Direct QRIS Payment & Settlement Info (Point 18) */}
               <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
                 <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
-                  <span>⚡ Sistem Pembayaran Langsung QRIS Dinamis</span>
+                  <span> Sistem Pembayaran Langsung QRIS Dinamis</span>
                 </h3>
 
                 <div className="space-y-3 text-xs">
                   <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 space-y-1.5 font-medium">
-                    <strong className="block font-black text-emerald-900 text-xs">✓ Tanpa Saldo Mengendap (Direct Settlement)</strong>
+                    <strong className="block font-black text-emerald-900 text-xs"> Tanpa Saldo Mengendap (Direct Settlement)</strong>
                     <p className="text-[11px] leading-relaxed">
                       Platform Replate tidak menggunakan sistem penarikan saldo dompet manual. Setiap pembayaran transaksi Rescue Sale langsung diteruskan seketika ke kasir outlet via QRIS Dinamis Standar Bank Indonesia / pembayaran langsung saat serah terima.
                     </p>
@@ -2397,7 +2397,7 @@ export default function DashboardProfilePage() {
                     />
                     <div className="text-[11px] space-y-0.5">
                       <strong className="text-slate-800 block text-xs">QRIS Standar Bank Indonesia</strong>
-                      <span className="text-emerald-700 font-bold block">✓ Siap menerima pembayaran Rescue Sale</span>
+                      <span className="text-emerald-700 font-bold block"> Siap menerima pembayaran Rescue Sale</span>
                       <span className="text-[10px] text-slate-500 block">NMID: ID102030405060 (Terverifikasi)</span>
                     </div>
                   </div>
@@ -2407,7 +2407,7 @@ export default function DashboardProfilePage() {
 
             <div className="flex justify-end pt-3 border-t border-slate-200">
               <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 shadow-md">
-                Simpan Konfigurasi Operasional Outlet ➔
+                Simpan Konfigurasi Operasional Outlet 
               </Button>
             </div>
           </form>
@@ -2420,7 +2420,7 @@ export default function DashboardProfilePage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <div>
               <h3 className="font-black text-lg text-[#1B3A5C]">
-                {`🚚 Manajemen Armada Driver ${isProvider ? 'Internal Outlet Anda' : 'Relawan Komunitas Anda'}`}
+                {` Manajemen Armada Driver ${isProvider ? 'Internal Outlet Anda' : 'Relawan Komunitas Anda'}`}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
                 {isProvider ? 'Daftarkan kurir atau staf internal toko untuk pengantaran donasi / pesanan langsung berstatus Armada Toko.' : 'Daftarkan driver relawan di komunitas Anda untuk misi penyelamatan pangan / donasi surplus.'}
@@ -2455,7 +2455,7 @@ export default function DashboardProfilePage() {
                   </div>
 
                   <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black rounded-lg uppercase">
-                    {driver.status === 'APPROVED' ? '✓ TERVERIFIKASI' : 'PENDING'}
+                    {driver.status === 'APPROVED' ? ' TERVERIFIKASI' : 'PENDING'}
                   </span>
                 </div>
 
@@ -2468,7 +2468,7 @@ export default function DashboardProfilePage() {
 
                   {driver.isPhoneVerified ? (
                     <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                      ✓ WA Aktif
+                       WA Aktif
                     </span>
                   ) : (
                     <Button
@@ -2487,7 +2487,7 @@ export default function DashboardProfilePage() {
                         });
                       }}
                     >
-                      Kirim OTP WA ➔
+                      Kirim OTP WA 
                     </Button>
                   )}
                 </div>
@@ -2547,7 +2547,7 @@ export default function DashboardProfilePage() {
           <Card className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-6">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-black text-xl">
-                🛡️
+                ️
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -2600,7 +2600,7 @@ export default function DashboardProfilePage() {
                     </div>
                     <div className="p-3 bg-white rounded-xl border border-slate-200">
                       <span className="text-slate-400 block text-[10px]">Audit Higiene Sanitasi:</span>
-                      <strong className="text-emerald-700 text-xs">✓ Lolos Audit Grade A</strong>
+                      <strong className="text-emerald-700 text-xs"> Lolos Audit Grade A</strong>
                     </div>
                   </div>
                 </div>
@@ -2786,7 +2786,7 @@ export default function DashboardProfilePage() {
                       <span className="text-[10px] font-bold text-slate-600 block">{doc.label}</span>
                       {hasFile ? (
                         <>
-                          <span className="text-[9px] text-emerald-700 font-black block">✓ {doc.key.toUpperCase()}_Driver.jpg</span>
+                          <span className="text-[9px] text-emerald-700 font-black block"> {doc.key.toUpperCase()}_Driver.jpg</span>
                           <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded block border border-emerald-200">Tersimpan</span>
                         </>
                       ) : (
@@ -2813,7 +2813,7 @@ export default function DashboardProfilePage() {
                 })}
               </div>
               <p className="text-[10px] text-slate-500 leading-relaxed font-medium pt-1">
-                🛡️ Dokumen driver akan otomatis masuk ke antrean verifikasi <strong>SuperAdmin Replate</strong>. Setelah diapprove, armada ini langsung dapat dipilih pada penugasan pengantaran langsung.
+                ️ Dokumen driver akan otomatis masuk ke antrean verifikasi <strong>SuperAdmin Replate</strong>. Setelah diapprove, armada ini langsung dapat dipilih pada penugasan pengantaran langsung.
               </p>
             </div>
 
@@ -2822,7 +2822,7 @@ export default function DashboardProfilePage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" type="submit" className="font-black text-slate-950">
-                Ajukan Driver & Verifikasi OTP WA ➔
+                Ajukan Driver & Verifikasi OTP WA 
               </Button>
             </div>
           </form>
@@ -2839,7 +2839,7 @@ export default function DashboardProfilePage() {
         >
           <div className="space-y-4 text-center text-xs">
             <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
-              📲
+              
             </div>
 
             <div className="space-y-1">
@@ -2871,7 +2871,7 @@ export default function DashboardProfilePage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" className="font-black" onClick={handleVerifyOtp}>
-                Verifikasi ➔
+                Verifikasi 
               </Button>
             </div>
           </div>
@@ -2906,13 +2906,13 @@ export default function DashboardProfilePage() {
         <Modal
           isOpen={isMapModalOpen}
           onClose={() => setIsMapModalOpen(false)}
-          title="🗺️ Penentuan Titik Koordinat GPS Outlet (Layar Penuh)"
+          title="️ Penentuan Titik Koordinat GPS Outlet (Layar Penuh)"
           size="xl"
         >
           <div className="space-y-3.5 text-xs text-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 bg-slate-900 text-white rounded-xl shadow-md">
               <div>
-                <strong className="text-[#D4A843] text-sm block">📍 Koordinat Terpilih: {profileData.lat || -7.2754}, {profileData.lng || 112.7541}</strong>
+                <strong className="text-[#D4A843] text-sm block"> Koordinat Terpilih: {profileData.lat || -7.2754}, {profileData.lng || 112.7541}</strong>
                 <span className="text-[11px] text-slate-300">Klik di mana saja pada peta luas ini untuk memindahkan pin lokasi outlet Anda.</span>
               </div>
               <div className="flex items-center gap-2">
@@ -2921,17 +2921,17 @@ export default function DashboardProfilePage() {
                   onClick={() => setMapZoom(prev => Math.min(19, prev + 1))}
                   className="px-3 py-1.5 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
                 >
-                  🔍+ Zoom In
+                  + Zoom In
                 </button>
                 <button
                   type="button"
                   onClick={() => setMapZoom(prev => Math.max(12, prev - 1))}
                   className="px-3 py-1.5 bg-white/20 hover:bg-white/40 text-white font-black text-xs rounded-lg transition-colors cursor-pointer"
                 >
-                  🔍- Zoom Out
+                  - Zoom Out
                 </button>
                 <Button variant="gold" size="sm" className="font-black text-slate-950" onClick={() => setIsMapModalOpen(false)}>
-                  ✓ Gunakan Titik Ini
+                   Gunakan Titik Ini
                 </Button>
               </div>
             </div>
@@ -2963,10 +2963,10 @@ export default function DashboardProfilePage() {
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="flex flex-col items-center -translate-y-4">
                   <div className="px-3 py-1 bg-slate-950/95 text-[#D4A843] rounded-lg font-mono text-xs font-black shadow-2xl mb-1 border border-slate-700">
-                    📍 {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
+                     {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-base font-black animate-bounce">
-                    📍
+                    
                   </div>
                   <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
                 </div>
@@ -2978,7 +2978,7 @@ export default function DashboardProfilePage() {
                 Tip: Tekan pada peta untuk langsung menitikkan lokasi outlet Anda secara presisi.
               </span>
               <Button variant="gold" size="md" className="font-black text-slate-950 shadow-md" onClick={() => setIsMapModalOpen(false)}>
-                ✓ Selesai & Simpan Titik Ini
+                 Selesai & Simpan Titik Ini
               </Button>
             </div>
           </div>

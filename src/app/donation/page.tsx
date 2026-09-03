@@ -21,7 +21,7 @@ const demoOrganizations: Organization[] = [
   {
     id: 1,
     name: "Panti Asuhan Kasih Ibu",
-    type: "🏠 Panti",
+    type: " Panti",
     distance: 2.3,
     needs: ["Nasi Box", "Susu", "Roti"],
     progress: 45,
@@ -30,7 +30,7 @@ const demoOrganizations: Organization[] = [
   {
     id: 2,
     name: "Yayasan Peduli Anak",
-    type: "🏢 Yayasan",
+    type: " Yayasan",
     distance: 4.1,
     needs: ["Sayuran Segar", "Lauk Pauk"],
     progress: 20,
@@ -39,7 +39,7 @@ const demoOrganizations: Organization[] = [
   {
     id: 3,
     name: "Komunitas Berbagi Rezeki",
-    type: "🤝 Komunitas",
+    type: " Komunitas",
     distance: 1.5,
     needs: ["Makanan Ringan", "Air Mineral"],
     progress: 80,
@@ -56,22 +56,22 @@ export default function DonationPage() {
   const handleRequestClick = (e: React.MouseEvent) => {
     if (!session?.user) {
       e.preventDefault();
-      setAlertMsg("🔒 Anda harus masuk terlebih dahulu sebagai Yayasan/Panti Asuhan.");
+      setAlertMsg(" Anda harus masuk terlebih dahulu sebagai Yayasan/Panti Asuhan.");
       return;
     }
     if (session.user.role !== 'YAYASAN' && session.user.role !== 'RESCUE_PARTNER') {
       e.preventDefault();
-      setAlertMsg("⚠️ Hanya akun Yayasan atau Panti Asuhan yang dapat mengajukan kebutuhan donasi.");
+      setAlertMsg("️ Hanya akun Yayasan atau Panti Asuhan yang dapat mengajukan kebutuhan donasi.");
       return;
     }
   };
 
   const filteredOrgs = organizations.filter(org => {
     if (activeCategory === "Semua") return true;
-    if (activeCategory === "🏠 Panti" && org.type.includes("Panti")) return true;
-    if (activeCategory === "🏢 Yayasan" && org.type.includes("Yayasan")) return true;
-    if (activeCategory === "🤝 Komunitas" && org.type.includes("Komunitas")) return true;
-    if (activeCategory === "🛖 Shelter" && org.type.includes("Shelter")) return true;
+    if (activeCategory === " Panti" && org.type.includes("Panti")) return true;
+    if (activeCategory === " Yayasan" && org.type.includes("Yayasan")) return true;
+    if (activeCategory === " Komunitas" && org.type.includes("Komunitas")) return true;
+    if (activeCategory === " Shelter" && org.type.includes("Shelter")) return true;
     return false;
   });
 
@@ -87,7 +87,7 @@ export default function DonationPage() {
           </div>
           <Link href="/dashboard/yayasan/claims" onClick={handleRequestClick}>
             <Button className="bg-[#D4A843] hover:bg-[#b88f35] text-[#1B3A5C] font-extrabold shadow-sm rounded-xl px-6 py-3">
-              🤝 Saya Butuh Donasi
+               Saya Butuh Donasi
             </Button>
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default function DonationPage() {
         )}
 
         <div className="flex flex-wrap gap-3 mb-8">
-          {["Semua", "🏠 Panti", "🏢 Yayasan", "🤝 Komunitas", "🛖 Shelter"].map((cat) => (
+          {["Semua", " Panti", " Yayasan", " Komunitas", " Shelter"].map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -134,7 +134,7 @@ export default function DonationPage() {
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 font-medium">
-                      📍 {o.distance.toFixed(1)} km
+                       {o.distance.toFixed(1)} km
                     </p>
                     <p className="text-sm text-slate-600">
                       Membutuhkan: <span className="font-semibold">{Array.isArray(o.needs) ? o.needs.join(", ") : o.needs}</span>

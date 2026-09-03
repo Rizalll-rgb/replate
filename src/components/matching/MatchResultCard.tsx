@@ -67,7 +67,7 @@ export const MatchResultCard: React.FC<MatchResultCardProps> = ({
       {onAccept && (
         <CardFooter>
           <Button variant="gold" size="sm" className="w-full text-xs font-bold" onClick={() => onAccept(id)}>
-            Terima & Ambil Tugas Penyelamatan ➔
+            Terima & Ambil Tugas Penyelamatan 
           </Button>
         </CardFooter>
       )}

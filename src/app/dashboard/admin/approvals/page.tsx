@@ -193,7 +193,7 @@ export default function AdminApprovalsPage() {
     setInspectConsumerModal({ isOpen: false, consumer: null });
     setToastState({
       isOpen: true,
-      message: '✅ Berhasil! Akun Konsumen disetujui sebagai Penerima Bantuan Terverifikasi Dinsos (Donasi Rp 0 Aktif).',
+      message: ' Berhasil! Akun Konsumen disetujui sebagai Penerima Bantuan Terverifikasi Dinsos (Donasi Rp 0 Aktif).',
       type: 'success',
     });
   };
@@ -206,7 +206,7 @@ export default function AdminApprovalsPage() {
     setInspectConsumerModal({ isOpen: false, consumer: null });
     setToastState({
       isOpen: true,
-      message: '❌ Permohonan verifikasi rentan ditolak. Akun dikembalikan ke Konsumen Biasa (Rescue Sale).',
+      message: ' Permohonan verifikasi rentan ditolak. Akun dikembalikan ke Konsumen Biasa (Rescue Sale).',
       type: 'error',
     });
   };
@@ -242,7 +242,7 @@ export default function AdminApprovalsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          🏢 Persetujuan Akun Mitra Provider & Rescue ({pendingUsers.length})
+           Persetujuan Akun Mitra Provider & Rescue ({pendingUsers.length})
         </button>
         <button
           onClick={() => setActiveTab('CONSUMER_BENEFICIARY')}
@@ -252,7 +252,7 @@ export default function AdminApprovalsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          🤝 Verifikasi Konsumen Rentan SKTM ({consumerQueue.length})
+           Verifikasi Konsumen Rentan SKTM ({consumerQueue.length})
         </button>
         <button
           onClick={() => setActiveTab('PROVIDER_FLEET')}
@@ -262,7 +262,7 @@ export default function AdminApprovalsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          🚚 Verifikasi Armada Toko (No. Pol, KTP, SIM & STNK) ({fleetQueue.length})
+           Verifikasi Armada Toko (No. Pol, KTP, SIM & STNK) ({fleetQueue.length})
         </button>
       </div>
 
@@ -333,7 +333,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold border-slate-300"
                             onClick={() => setInspectModal({ isOpen: true, user: u })}
                           >
-                            👁️ Inspeksi
+                            ️ Inspeksi
                           </Button>
                           <Button
                             variant="secondary"
@@ -341,7 +341,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200"
                             onClick={() => handleAction(u.id, 'HOLD_SURVEY')}
                           >
-                            🔍 Hold & Survei
+                             Hold & Survei
                           </Button>
                           <Button
                             variant="danger"
@@ -357,7 +357,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-extrabold"
                             onClick={() => handleAction(u.id, 'APPROVE')}
                           >
-                            Setujui ✔️
+                            Setujui ️
                           </Button>
                         </div>
                       </TableCell>
@@ -373,7 +373,7 @@ export default function AdminApprovalsPage() {
       {activeTab === 'CONSUMER_BENEFICIARY' && (
         <div className="space-y-4">
           <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-emerald-900">
-            <div className="text-lg">🤝</div>
+            <div className="text-lg"></div>
             <div className="space-y-1">
               <span className="font-extrabold block">Aturan Verifikasi Konsumen Rentan (Bantuan Donasi Rp 0):</span>
               <p className="text-emerald-800 leading-relaxed font-medium">
@@ -423,7 +423,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold border-slate-300"
                             onClick={() => setInspectConsumerModal({ isOpen: true, consumer: c })}
                           >
-                            👁️ Periksa Berkas
+                            ️ Periksa Berkas
                           </Button>
                           <Button
                             variant="danger"
@@ -439,7 +439,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-black text-slate-950"
                             onClick={() => handleConsumerApprove(c.id)}
                           >
-                            Setujui Rentan (Rp 0) ✔️
+                            Setujui Rentan (Rp 0) ️
                           </Button>
                         </div>
                       </TableCell>
@@ -456,7 +456,7 @@ export default function AdminApprovalsPage() {
         /* Tab Provider Fleet Verification (No. Polisi, KTP, SIM & STNK) */
         <div className="space-y-4">
           <div className="bg-[#1B3A5C] text-white p-4 rounded-2xl flex items-start gap-3 text-xs border border-slate-700 shadow-md">
-            <div className="text-lg">🚚</div>
+            <div className="text-lg"></div>
             <div className="space-y-1">
               <span className="font-extrabold text-[#D4A843] block">Aturan Verifikasi Armada Toko Mandiri (Direct Fleet):</span>
               <p className="text-slate-200 leading-relaxed font-medium">
@@ -494,7 +494,7 @@ export default function AdminApprovalsPage() {
                         <div className="space-y-0.5">
                           <span className="font-bold text-slate-800 block">{flt.vehicleType}</span>
                           <span className="font-mono font-black text-[#1B3A5C] text-xs bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md inline-block">
-                            🚘 {flt.plateNumber}
+                             {flt.plateNumber}
                           </span>
                         </div>
                       </TableCell>
@@ -511,7 +511,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold border-slate-300"
                             onClick={() => setInspectFleetModal({ isOpen: true, fleet: flt })}
                           >
-                            👁️ Inspeksi KTP, SIM & STNK
+                            ️ Inspeksi KTP, SIM & STNK
                           </Button>
                           <Button
                             variant="gold"
@@ -521,12 +521,12 @@ export default function AdminApprovalsPage() {
                               setFleetQueue(fleetQueue.filter((item) => item.id !== flt.id));
                               setToastState({
                                 isOpen: true,
-                                message: `✅ Armada Toko (${flt.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
+                                message: ` Armada Toko (${flt.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
                                 type: 'success',
                               });
                             }}
                           >
-                            Setujui Armada Toko ✔️
+                            Setujui Armada Toko ️
                           </Button>
                         </div>
                       </TableCell>
@@ -575,7 +575,7 @@ export default function AdminApprovalsPage() {
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[10px]">👤 Pasfoto Driver</span>
+                  <span className="font-extrabold text-slate-800 block text-[10px]"> Pasfoto Driver</span>
                   <img
                     src={inspectFleetModal.fleet.driverPhoto || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
                     alt="Driver"
@@ -584,7 +584,7 @@ export default function AdminApprovalsPage() {
                 </div>
 
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[10px]">🚚 Foto Fisik Armada</span>
+                  <span className="font-extrabold text-slate-800 block text-[10px]"> Foto Fisik Armada</span>
                   <img
                     src={inspectFleetModal.fleet.vehiclePhoto || 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60'}
                     alt="Armada Kendaraan"
@@ -593,17 +593,17 @@ export default function AdminApprovalsPage() {
                 </div>
 
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[10px]">🪪 Foto KTP Driver</span>
+                  <span className="font-extrabold text-slate-800 block text-[10px]"> Foto KTP Driver</span>
                   <img src={inspectFleetModal.fleet.ktpPhoto} alt="KTP" className="w-full h-28 object-cover rounded-lg border" />
                 </div>
 
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[10px]">💳 Foto SIM C/A Driver</span>
+                  <span className="font-extrabold text-slate-800 block text-[10px]"> Foto SIM C/A Driver</span>
                   <img src={inspectFleetModal.fleet.simPhoto} alt="SIM" className="w-full h-28 object-cover rounded-lg border" />
                 </div>
 
                 <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <span className="font-extrabold text-slate-800 block text-[10px]">📄 STNK ({inspectFleetModal.fleet.plateNumber})</span>
+                  <span className="font-extrabold text-slate-800 block text-[10px]"> STNK ({inspectFleetModal.fleet.plateNumber})</span>
                   <img src={inspectFleetModal.fleet.stnkPhoto} alt="STNK" className="w-full h-28 object-cover rounded-lg border" />
                 </div>
               </div>
@@ -622,12 +622,12 @@ export default function AdminApprovalsPage() {
                   setInspectFleetModal({ isOpen: false, fleet: null });
                   setToastState({
                     isOpen: true,
-                    message: `✅ Armada Toko (${inspectFleetModal.fleet.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
+                    message: ` Armada Toko (${inspectFleetModal.fleet.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
                     type: 'success',
                   });
                 }}
               >
-                Setujui Armada Toko & Terbitkan Lisensi ➔
+                Setujui Armada Toko & Terbitkan Lisensi 
               </Button>
             </div>
           </div>
@@ -684,7 +684,7 @@ export default function AdminApprovalsPage() {
                 className="font-black text-slate-950"
                 onClick={() => handleConsumerApprove(inspectConsumerModal.consumer.id)}
               >
-                Setujui & Aktifkan Donasi Rp 0 ➔
+                Setujui & Aktifkan Donasi Rp 0 
               </Button>
             </div>
           </div>
@@ -753,7 +753,7 @@ export default function AdminApprovalsPage() {
                 className="bg-amber-100 text-amber-900 font-bold"
                 onClick={() => inspectModal.user && handleAction(inspectModal.user.id, 'HOLD_SURVEY')}
               >
-                🔍 Hold & Jadwalkan Survei Lapangan
+                 Hold & Jadwalkan Survei Lapangan
               </Button>
               <Button
                 variant="danger"
@@ -772,7 +772,7 @@ export default function AdminApprovalsPage() {
                 className="font-extrabold"
                 onClick={() => inspectModal.user && handleAction(inspectModal.user.id, 'APPROVE')}
               >
-                Setujui & Aktifkan Akun ➔
+                Setujui & Aktifkan Akun 
               </Button>
             </div>
           </div>
@@ -808,7 +808,7 @@ export default function AdminApprovalsPage() {
               className="font-bold"
               onClick={() => handleAction(rejectModal.userId, 'REJECT')}
             >
-              Kirim Penolakan ➔
+              Kirim Penolakan 
             </Button>
           </div>
         </div>

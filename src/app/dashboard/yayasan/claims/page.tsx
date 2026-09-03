@@ -800,13 +800,13 @@ export default function YayasanClaimsPage() {
               {/* Action Bar: Cetak Bukti & Beri Ulasan (Poin 1) */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
                 <Link href="/dashboard/yayasan/bantuan-pangan" className="text-[11px] font-bold text-[#1B3A5C] hover:underline flex items-center gap-1">
-                  <span>Lihat / Cetak Bukti Bantuan Resmi ➔</span>
+                  <span>Lihat / Cetak Bukti Bantuan Resmi </span>
                 </Link>
                 <div className="flex items-center gap-2">
                   {item.reviewed ? (
                     <span className="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg font-black text-[11px] flex items-center gap-1">
                       <StarIcon size={12} className="text-[#D4A843]" />
-                      <span>Ulasan Terverifikasi: ★ {item.userRating || 5}/5</span>
+                      <span>Ulasan Terverifikasi:  {item.userRating || 5}/5</span>
                     </span>
                   ) : (
                     <Button
@@ -983,58 +983,80 @@ export default function YayasanClaimsPage() {
               vehicle: claim.courierVehicle || 'Motor Box Cooler Steril (Plat L 8912 RC)',
               photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
               status: 'Driver Internal Toko Terverifikasi',
-              rating: '4.9',
-              completedTrips: '312 Pengiriman',
             } : null;
           }
-
           return (
-            <div className="space-y-4 text-xs">
-              {/* Header Card Benchmark Provider: High Contrast Gradient */}
-              <div className="p-4 bg-gradient-to-r from-[#1B3A5C] via-[#142C47] to-[#1B3A5C] text-white rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#2C5A8F]">
-                <div className="space-y-0.5">
-                  <span className="text-[9.5px] font-black text-[#D4A843] uppercase tracking-widest block">
-                    REAL-TIME LOGISTICS & FOOD SAFETY TRACKING
+            <div className="space-y-5 text-xs text-slate-800">
+              {/* Header Status with High Contrast Typography */}
+              <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-[#142C47] to-[#1B3A5C] text-white rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#2C5A8F]">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
+                    REAL-TIME COURIER LOGISTICS TRACKING
                   </span>
-                  <h3 className="text-base font-black text-white leading-tight">
-                    {claim.foodName} ({claim.quantity})
+                  <h3 className="text-xl font-black text-white leading-tight drop-shadow-xs">
+                    {claim.foodName} ({claim.quantity || '1 Porsi'})
                   </h3>
-                  <p className="text-[11px] text-slate-200 font-mono">
+                  <p className="text-xs text-slate-200 font-mono">
                     Kode Resi: <strong className="text-[#D4A843] bg-slate-950/80 px-2 py-0.5 rounded">{claim.code || claim.id}</strong>
                   </p>
                 </div>
 
-                <span className={`px-3 py-1 text-white font-black text-[10.5px] rounded-xl self-start sm:self-center flex items-center gap-1.5 shadow-xs ${
-                  claim.status === 'COMPLETED' ? 'bg-emerald-500' : isWaitingApproval ? 'bg-amber-500' : isWaitingPool ? 'bg-purple-600' : 'bg-blue-600'
-                }`}>
+                <span className="px-3.5 py-1.5 bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs self-start sm:self-center flex items-center gap-1.5">
                   {claim.status === 'COMPLETED' ? (
                     <>
-                      <CheckIcon size={12} />
+                      <CheckIcon size={14} />
                       <span>Tiba & Diserahkan</span>
                     </>
                   ) : isWaitingApproval ? (
                     <>
-                      <ClockIcon size={12} />
-                      <span>Menunggu Approval Provider</span>
+                      <ClockIcon size={14} />
+                      <span>Menunggu Pembayaran</span>
                     </>
                   ) : isWaitingPool ? (
                     <>
-                      <BikeIcon size={12} />
-                      <span>Pool Siaga Relawan</span>
-                    </>
-                  ) : isPickup ? (
-                    <>
-                      <PackageIcon size={12} />
-                      <span>Siap Ambil di Gerai</span>
+                      <BoltIcon size={14} />
+                      <span>Menunggu Relawan</span>
                     </>
                   ) : (
                     <>
-                      <BikeIcon size={12} />
-                      <span>Dalam Pengantaran</span>
+                      <BikeIcon size={14} />
+                      <span>Sedang Diantar Kurir</span>
                     </>
                   )}
                 </span>
               </div>
+
+              {/* Courier Profile Card */}
+              {!isPickup && (
+                <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isProviderDelivery ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black text-xl shadow-xs ${isProviderDelivery ? 'bg-blue-600' : 'bg-purple-600'}`}>
+                      {isProviderDelivery ? <TruckIcon size={22} /> : <BikeIcon size={22} />}
+                    </div>
+                    <div>
+                      <span className={`text-[10px] font-black uppercase tracking-widest block ${isProviderDelivery ? 'text-blue-700' : 'text-purple-700'}`}>
+                        {isProviderDelivery ? 'ARMADA DRIVER INTERNAL TOKO' : 'KURIR RELAWAN RESMI KOMUNITAS'}
+                      </span>
+                      <h4 className="font-extrabold text-sm text-slate-900">
+                        {driver?.name || 'Budi Santoso (Relawan ID #RC-881)'}
+                      </h4>
+                      <p className="text-xs text-slate-600 font-medium">
+                        {driver?.vehicle || (isProviderDelivery ? 'Armada Toko' : 'Motor Box Cooler Steril (Plat L 8912 RC)')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`https://wa.me/${(driver?.phone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(`Halo, saya dari ${pantiName} menanyakan pengantaran donasi resi ${claim.code || claim.id}.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap cursor-pointer"
+                  >
+                    <ChatIcon size={14} />
+                    <span>Hubungi Driver (WhatsApp)</span>
+                  </a>
+                </div>
+              )}
 
               {/* Status Menunggu Approval Banner (Poin 5) */}
               {isWaitingApproval && (
@@ -1048,132 +1070,6 @@ export default function YayasanClaimsPage() {
                   </p>
                 </div>
               )}
-
-              {/* DRIVER & FLEET PROFILE (Poin 1 & 6: Plotting Driver Toko & Dual WhatsApp) */}
-              {driver ? (
-                <div className="p-4 bg-blue-50/90 rounded-2xl border border-blue-200 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider block">
-                      {plottedDriver
-                        ? `Plotting Toko: Ditugaskan Langsung oleh ${providerName} (${plottedDriver.assignedAt || 'Hari ini'})`
-                        : `Plotting Toko: Ditugaskan oleh ${providerName}`}
-                    </span>
-                    <span className="text-[9px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                      <ShieldCheckIcon size={9} />Driver Toko Terverifikasi
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-3.5">
-                    {/* Dedicated Large PP Driver (Poin 1) */}
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#1B3A5C] shadow-sm shrink-0 bg-slate-200 relative">
-                      <img
-                        src={driver.photo}
-                        alt={driver.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-0 inset-x-0 bg-slate-900/70 text-[8px] text-white text-center font-bold py-0.5">
-                        KURIR
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h5 className="font-black text-sm text-[#1B3A5C] flex items-center gap-1.5 flex-wrap">
-                        <span>{driver.name}</span>
-                        {plottedDriver && (
-                          <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-black">
-                            Driver Terplotting Toko
-                          </span>
-                        )}
-                      </h5>
-                      <p className="text-[11px] text-slate-800 font-bold mt-0.5">{driver.vehicle}</p>
-                      <p className="text-[10px] text-slate-500 font-mono">No. WhatsApp Driver: {driver.phone}</p>
-                      <div className="flex items-center gap-3 mt-1 text-[10px]">
-                        <span className="text-amber-700 font-bold">Rating: ★ {driver.rating}</span>
-                        <span className="text-slate-500 font-medium">• {driver.completedTrips}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* DUAL WHATSAPP BUTTONS (Poin 1) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-blue-200/80">
-                    <a
-                      href={`https://wa.me/62${driver.phone.replace(/^0|\D/g, '')}?text=${encodeURIComponent(
-                        `Halo ${driver.name}, saya dari ${pantiName} ingin menanyakan estimasi posisi pengantaran pesanan donasi resi ${claim.code || claim.id}.`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-colors"
-                    >
-                      <ChatIcon size={13} />
-                      <span>Hubungi Driver (WA)</span>
-                    </a>
-
-                    <a
-                      href={`https://wa.me/62${providerPhone.replace(/^0|\D/g, '')}?text=${encodeURIComponent(
-                        `Halo ${providerName}, saya dari ${pantiName} ingin menanyakan perihal bantuan donasi ${claim.foodName} dengan resi ${claim.code || claim.id}.`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="py-2.5 px-3 bg-[#1B3A5C] hover:bg-[#142C47] text-white rounded-xl font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-colors"
-                    >
-                      <ChatIcon size={13} />
-                      <span>Hubungi PIC Toko (WA)</span>
-                    </a>
-                  </div>
-                </div>
-              ) : isWaitingPool ? (
-                <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
-                      <BikeIcon size={22} />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-black uppercase text-purple-900 tracking-wider block">Menunggu Armada Pool Relawan</span>
-                      <p className="text-[11px] text-purple-950 font-medium">Pesanan masuk ke Pool Tugas Relawan Food Rescue Surabaya. Driver terdekat akan mengambil penugasan.</p>
-                    </div>
-                  </div>
-                  <div className="p-2.5 bg-white rounded-xl border border-purple-200 text-[10.5px] text-purple-900 font-medium">
-                    Status Pool: <strong className="text-purple-950">14 Relawan Siaga di Area Surabaya</strong> — Estimasi penugasan dalam 10–20 menit.
-                  </div>
-                  <a
-                    href={`https://wa.me/62${providerPhone.replace(/^0|\D/g, '')}?text=${encodeURIComponent(
-                      `Halo ${providerName}, saya dari ${pantiName} ingin menanyakan status kesiapan donasi ${claim.foodName} resi ${claim.code || claim.id}.`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-3 bg-[#1B3A5C] hover:bg-[#142C47] text-white rounded-xl font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-colors"
-                  >
-                    <ChatIcon size={13} />
-                    <span>Hubungi PIC Toko ({providerName}) via WhatsApp</span>
-                  </a>
-                </div>
-              ) : isPickup ? (
-                <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-                      <MapPinIcon size={18} />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider block">Informasi Ambil Mandiri</span>
-                      <p className="text-[11px] text-amber-950 font-medium">Pengurus panti dapat mengambil langsung ke gerai {providerName}.</p>
-                    </div>
-                  </div>
-                  <div className="p-2.5 bg-white rounded-xl border border-amber-200 text-[11px] text-amber-900 font-bold">
-                    Jadwal Pengambilan: {claim.pickupTime || 'Hari ini, 19:00 - 21:00 WIB'}
-                  </div>
-                  <a
-                    href={`https://wa.me/62${providerPhone.replace(/^0|\D/g, '')}?text=${encodeURIComponent(
-                      `Halo ${providerName}, saya dari ${pantiName} mengonfirmasi akan mengambil donasi ${claim.foodName} dengan resi ${claim.code || claim.id}.`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-3 bg-[#1B3A5C] hover:bg-[#142C47] text-white rounded-xl font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-colors"
-                  >
-                    <ChatIcon size={13} />
-                    <span>Hubungi PIC Toko ({providerName}) via WhatsApp</span>
-                  </a>
-                </div>
-              ) : null}
 
               {/* RUTE PENJEMPUTAN & PENERIMA (Benchmark Provider) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1192,28 +1088,26 @@ export default function YayasanClaimsPage() {
                 </div>
               </div>
 
-              {/* TIMELINE LOGISTIK TERVERIFIKASI */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Timeline Penyaluran & Keamanan Pangan</span>
-                <div className="space-y-2">
+              {/* Checkpoint Timeline */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <span className="font-extrabold text-[#1B3A5C] text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <ClockIcon size={14} className="text-[#1B3A5C]" />
+                  <span>Timeline Status Logistik Terverifikasi</span>
+                </span>
+                <div className="space-y-3 pl-2 border-l-2 border-slate-300 text-xs">
                   {timelineSteps.map((step, idx) => (
-                    <div key={idx} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
-                      step.current ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-300'
-                      : step.done ? 'bg-emerald-50/60 border-emerald-200'
-                      : 'bg-white border-slate-200 opacity-50'
-                    }`}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5 ${
-                        step.done ? 'bg-emerald-600 text-white' : step.current ? 'bg-[#D4A843] text-slate-950 animate-pulse' : 'bg-slate-200 text-slate-500'
-                      }`}>
-                        {step.done ? <CheckIcon size={10} /> : idx + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`font-black text-xs ${step.current ? 'text-[#1B3A5C]' : step.done ? 'text-slate-900' : 'text-slate-500'}`}>{step.title}</span>
-                          <span className="text-[10px] font-mono font-bold text-slate-400 shrink-0">{step.time}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{step.desc}</p>
-                      </div>
+                    <div key={idx} className="relative pl-4">
+                      <span className={`absolute -left-[21px] top-0.5 w-3 h-3 rounded-full ${
+                        step.done ? 'bg-emerald-500 ring-4 ring-emerald-100' :
+                        step.current ? 'bg-blue-500 ring-4 ring-blue-100 animate-pulse' :
+                        'bg-slate-300'
+                      }`}></span>
+                      <strong className={`block ${step.done ? 'text-slate-900' : step.current ? 'text-blue-950' : 'text-slate-400'}`}>
+                        {step.title}
+                      </strong>
+                      <span className="text-slate-500 text-[11px]">
+                        {step.time} • {step.desc}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1246,7 +1140,7 @@ export default function YayasanClaimsPage() {
                     });
                   }}
                 >
-                  Laporkan Kendala / Insiden Pengantaran ➔
+                  Laporkan Kendala / Insiden Pengantaran 
                 </Button>
 
                 <div className="flex items-center gap-2 flex-1 sm:justify-end">

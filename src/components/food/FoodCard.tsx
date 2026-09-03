@@ -138,7 +138,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
           }}
           className="hidden sm:flex w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 items-center justify-center gap-1 transition-colors cursor-pointer"
         >
-          <span>Lihat Detail & Peta GPS ➔</span>
+          <span>Lihat Detail & Peta GPS </span>
         </button>
 
         <div className="pt-1.5 sm:pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
@@ -162,7 +162,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
               }}
               className="w-full sm:w-auto px-2 sm:px-4 py-1.5 sm:py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-[10.5px] sm:text-xs rounded-lg sm:rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
-              <span>Kelola ➔</span>
+              <span>Kelola </span>
             </button>
           ) : (onClaim && (!props.status || props.status === 'AVAILABLE' || props.status === 'ACTIVE')) ? (
             <div className="flex gap-1 w-full sm:w-auto">
@@ -189,7 +189,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
                 }}
                 className="flex-1 sm:flex-initial px-2 sm:px-4 py-1.5 sm:py-2.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-[10.5px] sm:text-xs rounded-lg sm:rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
               >
-                <span>Beli ➔</span>
+                <span>Beli </span>
               </button>
             </div>
           ) : null}

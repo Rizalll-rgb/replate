@@ -302,7 +302,7 @@ export default function ConsumerBrowsePage() {
                     <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono">
                       Skor Kecocokan {item.matchScore}%
                     </span>
-                    <span className="text-[10px] font-bold text-slate-500">📍 {item.distance}</span>
+                    <span className="text-[10px] font-bold text-slate-500"> {item.distance}</span>
                   </div>
                   <h4 className="font-black text-xs text-[#1B3A5C]">{item.title}</h4>
                   <p className="text-[10px] text-amber-900 font-bold">{item.reason}</p>
@@ -320,7 +320,7 @@ export default function ConsumerBrowsePage() {
                   size="sm"
                   className="font-black text-[11px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap cursor-pointer"
                 >
-                  Klaim Cepat ➔
+                  Klaim Cepat 
                 </Button>
               </div>
             </div>

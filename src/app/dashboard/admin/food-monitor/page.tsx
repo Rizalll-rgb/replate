@@ -101,7 +101,7 @@ export default function AdminFoodMonitorPage() {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          <span>{isProjectorMode ? '✕ Keluar Mode Proyektor' : '📺 Mode Tampilan Proyektor Fullscreen'}</span>
+          <span>{isProjectorMode ? ' Keluar Mode Proyektor' : ' Mode Tampilan Proyektor Fullscreen'}</span>
         </Button>
       </div>
 
@@ -159,7 +159,7 @@ export default function AdminFoodMonitorPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={item.status === 'CRITICAL_URGENT' ? 'warning' : 'success'} size="sm">
-                    {item.status === 'CRITICAL_URGENT' ? '🚨 KRITIS < 2 JAM' : item.status}
+                    {item.status === 'CRITICAL_URGENT' ? ' KRITIS < 2 JAM' : item.status}
                   </Badge>
                   <span className="font-extrabold text-red-500 text-sm">Sisa: {item.timeRemaining}</span>
                 </div>
@@ -188,19 +188,19 @@ export default function AdminFoodMonitorPage() {
                   rel="noreferrer"
                   className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
                 >
-                  <span>📞 Kontak Provider</span>
+                  <span> Kontak Provider</span>
                 </a>
                 <button
                   onClick={() => handleDisqualify(item.id, item.foodName)}
                   className="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-xl text-xs font-bold transition-colors"
                 >
-                  🛑 Diskualifikasi
+                   Diskualifikasi
                 </button>
                 <button
                   onClick={() => handleTriggerEmergencyMatch(item.id, item.foodName)}
                   className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-900 rounded-xl text-xs font-extrabold transition-colors shadow-md flex items-center gap-1"
                 >
-                  <span>🚀 Trigger Emergency Match</span>
+                  <span> Trigger Emergency Match</span>
                 </button>
               </div>
             </div>

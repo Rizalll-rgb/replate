@@ -442,12 +442,12 @@ export default function AdminSettingsPage() {
                   setInfaqRules((prev) => ({ ...prev, totalDisbursed: prev.totalDisbursed + 500000 }));
                   setToastState({
                     isOpen: true,
-                    message: '✅ Dana Subsidi Sebesar Rp 500.000 Berhasil Dicairkan Ke Kas Kurir Relawan Komunitas!',
+                    message: ' Dana Subsidi Sebesar Rp 500.000 Berhasil Dicairkan Ke Kas Kurir Relawan Komunitas!',
                     type: 'success',
                   });
                 }}
               >
-                💸 Cairkan Subsidi Kurir Relawan (Rp 500rb) ➔
+                 Cairkan Subsidi Kurir Relawan (Rp 500rb) 
               </Button>
             </div>
           </CardBody>
@@ -456,7 +456,7 @@ export default function AdminSettingsPage() {
 
       <div className="flex justify-end pt-4">
         <Button variant="gold" size="lg" className="font-extrabold shadow-md" onClick={handleSave}>
-          Simpan Seluruh Parameter Bisnis Platform ➔
+          Simpan Seluruh Parameter Bisnis Platform 
         </Button>
       </div>
 

@@ -114,7 +114,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span>Unduh & Pasang Sekarang ➔</span>
+                <span>Unduh & Pasang Sekarang </span>
               </button>
             </div>
 
@@ -143,7 +143,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className =
 
             <div className="flex justify-end pt-2 border-t border-slate-200">
               <Button variant="gold" size="sm" className="font-extrabold text-slate-950" onClick={() => setShowModal(false)}>
-                Tutup ➔
+                Tutup 
               </Button>
             </div>
           </div>

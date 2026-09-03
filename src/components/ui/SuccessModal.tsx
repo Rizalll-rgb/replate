@@ -64,7 +64,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               if (onViewListings) onViewListings();
             }}
           >
-            Lihat Daftar Makanan Saya ➔
+            Lihat Daftar Makanan Saya 
           </Button>
         </div>
       </div>

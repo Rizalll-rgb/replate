@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '../ui/Button';
+import { Utensils, Croissant, CupSoda, Vegan, Apple, Package, Leaf, MapPin, Star } from 'lucide-react';
 
 export const LoggedInHome: React.FC = () => {
   const nearbyFoods = [
@@ -53,12 +54,12 @@ export const LoggedInHome: React.FC = () => {
   ];
 
   const categories = [
-    { name: 'Makanan', icon: '🍲' },
-    { name: 'Bakery', icon: '🥐' },
-    { name: 'Minuman', icon: '🥤' },
-    { name: 'Sayur', icon: '🥬' },
-    { name: 'Buah', icon: '🍎' },
-    { name: 'Lainnya', icon: '📦' },
+    { name: 'Makanan', icon: <Utensils /> },
+    { name: 'Bakery', icon: <Croissant /> },
+    { name: 'Minuman', icon: <CupSoda /> },
+    { name: 'Sayur', icon: <Vegan /> },
+    { name: 'Buah', icon: <Apple /> },
+    { name: 'Lainnya', icon: <Package /> },
   ];
 
   return (
@@ -70,7 +71,7 @@ export const LoggedInHome: React.FC = () => {
             {/* Left Content */}
             <div className="space-y-6">
               <div className="inline-flex items-center gap-1.5 text-[#1B3A5C] font-extrabold text-[10px] tracking-widest uppercase mb-2">
-                <span className="text-xl">🌱</span> FOOD RESCUE PLATFORM
+                <Leaf className="w-5 h-5 text-emerald-600" /> FOOD RESCUE PLATFORM
               </div>
               <h1 className="text-5xl lg:text-6xl font-black text-[#1B3A5C] leading-tight tracking-tight">
                 Selamatkan Makanan.<br />
@@ -116,7 +117,7 @@ export const LoggedInHome: React.FC = () => {
           </div>
           <Link href="/dashboard/consumer">
             <Button variant="outline" className="bg-white border-slate-200 text-slate-800 font-bold hover:bg-slate-50 rounded-xl px-5">
-              Lihat semua ➔
+              Lihat semua 
             </Button>
           </Link>
         </div>
@@ -137,8 +138,8 @@ export const LoggedInHome: React.FC = () => {
               {/* Details */}
               <div className="space-y-1">
                 <h3 className="font-extrabold text-slate-800 text-lg">{item.title}</h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  {item.provider} • <span className="text-[#D4A843]">★</span> {item.rating}
+                <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                  {item.provider} • <Star className="w-3 h-3 text-[#D4A843] fill-[#D4A843]" /> {item.rating}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`font-black text-xl ${item.price === 0 ? 'text-[#1B3A5C]' : 'text-[#1B3A5C]'}`}>
@@ -149,7 +150,7 @@ export const LoggedInHome: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-100">
-                  <span className="text-red-400">📍</span> {item.distance} • ⏰ {item.time}
+                  <span className="flex items-center gap-1 text-red-400"><MapPin className="w-3 h-3" /></span> {item.distance} • Waktu: {item.time}
                 </div>
               </div>
             </div>

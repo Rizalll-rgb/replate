@@ -348,7 +348,7 @@ export default function HomePage() {
               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="space-y-2 max-w-xl text-center md:text-left">
                   <span className="px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md inline-block">
-                    🔍 REPLATE GOVERNANCE TRACKER 24/7
+                     REPLATE GOVERNANCE TRACKER 24/7
                   </span>
                   <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                     Cek Status Pendaftaran & Audit Berkas Partner
@@ -380,11 +380,11 @@ export default function HomePage() {
                       type="submit"
                       className="px-6 py-3 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
                     >
-                      <span>Cari Status Audit ➔</span>
+                      <span>Cari Status Audit </span>
                     </button>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 justify-center md:justify-start pt-1">
-                    <span className="text-[10px] text-amber-300 font-medium">💡 Coba klik:</span>
+                    <span className="text-[10px] text-amber-300 font-medium"> Coba klik:</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -439,7 +439,7 @@ export default function HomePage() {
                     <div className="shrink-0 flex sm:flex-col items-end gap-2">
                       {trackerResult.docsStatus === 'APPROVED_ACTIVE' ? (
                         <span className="px-4 py-2 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-lg inline-flex items-center gap-1.5">
-                          <span>✓</span> AKUN RESMI AKTIF
+                          <span></span> AKUN RESMI AKTIF
                         </span>
                       ) : (
                         <span className="px-4 py-2 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg inline-flex items-center gap-1.5 animate-pulse">
@@ -454,7 +454,7 @@ export default function HomePage() {
                         }}
                         className="text-[11px] text-slate-400 hover:text-white font-bold underline cursor-pointer"
                       >
-                        Tutup Timeline ✕
+                        Tutup Timeline 
                       </button>
                     </div>
                   </div>
@@ -463,7 +463,7 @@ export default function HomePage() {
                   <div className="bg-[#142334] rounded-2xl p-6 border border-[#2C5A8F]/70 shadow-lg space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="font-black text-amber-300 text-xs uppercase tracking-wider block">
-                        📊 Timeline Proses Verifikasi Governance (Real-Time):
+                         Timeline Proses Verifikasi Governance (Real-Time):
                       </span>
                       <span className="text-[10px] text-slate-400 font-mono">
                         Update Terakhir: {trackerResult.submittedTime}
@@ -474,7 +474,7 @@ export default function HomePage() {
                       {/* Step 1 */}
                       <div className="relative">
                         <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
-                          ✓
+                          
                         </span>
                         <div className="font-bold text-xs">
                           <span className="text-emerald-300 font-extrabold block">1. Registrasi Akun & Verifikasi OTP WA</span>
@@ -485,7 +485,7 @@ export default function HomePage() {
                       {/* Step 2 */}
                       <div className="relative">
                         <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
-                          ✓
+                          
                         </span>
                         <div className="font-bold text-xs">
                           <span className="text-emerald-300 font-extrabold block">2. Pengisian Profil Usaha & Alamat GPS</span>
@@ -496,7 +496,7 @@ export default function HomePage() {
                       {/* Step 3 */}
                       <div className="relative">
                         <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
-                          ✓
+                          
                         </span>
                         <div className="font-bold text-xs">
                           <span className="text-emerald-300 font-extrabold block">3. Unggah Berkas Legalitas (NIB / Izin Dinsos, KTP PIC, Foto Lokasi)</span>
@@ -513,7 +513,7 @@ export default function HomePage() {
                               : 'bg-amber-400 border-amber-300 text-slate-950 animate-pulse'
                           }`}
                         >
-                          {trackerResult.docsStatus === 'APPROVED_ACTIVE' ? '✓' : '4'}
+                          {trackerResult.docsStatus === 'APPROVED_ACTIVE' ? '' : '4'}
                         </span>
                         <div className="font-bold text-xs">
                           <span className={trackerResult.docsStatus === 'APPROVED_ACTIVE' ? 'text-emerald-300 font-extrabold block' : 'text-amber-300 font-extrabold block'}>
@@ -536,7 +536,7 @@ export default function HomePage() {
                               : 'bg-slate-800 border-slate-600 text-slate-400'
                           }`}
                         >
-                          {trackerResult.docsStatus === 'APPROVED_ACTIVE' ? '✓' : '5'}
+                          {trackerResult.docsStatus === 'APPROVED_ACTIVE' ? '' : '5'}
                         </span>
                         <div className="font-bold text-xs">
                           <span className={trackerResult.docsStatus === 'APPROVED_ACTIVE' ? 'text-emerald-300 font-extrabold block' : 'text-slate-400 font-medium block'}>
@@ -569,7 +569,7 @@ export default function HomePage() {
                           onClick={handleSimulateApprove}
                           className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0"
                         >
-                          Simulasi SuperAdmin ACC & Aktifkan Akun ➔
+                          Simulasi SuperAdmin ACC & Aktifkan Akun 
                         </button>
                       </div>
                     ) : (
@@ -584,7 +584,7 @@ export default function HomePage() {
                         </div>
                         <Link href="/login" className="shrink-0">
                           <Button variant="gold" size="md" className="font-black text-xs text-slate-950 px-6 py-2.5 shadow-md">
-                            Masuk Ke Akun Saya ➔
+                            Masuk Ke Akun Saya 
                           </Button>
                         </Link>
                       </div>
@@ -608,7 +608,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <Link href="/explore">
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md">
-                  Lihat Semua di Eksplor Pangan ➔
+                  Lihat Semua di Eksplor Pangan 
                 </Button>
               </Link>
             </div>
@@ -650,7 +650,7 @@ export default function HomePage() {
           <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-xl border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center sm:text-left">
               <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
-                ⚡ PUSAT RESCUE SALE, DONASI Rp 0 & KEBUTUHAN PANTI
+                 PUSAT RESCUE SALE, DONASI Rp 0 & KEBUTUHAN PANTI
               </span>
               <h3 className="text-xl font-black text-white">Eksplorasi Lengkap dengan Filter Jarak & Kategori</h3>
               <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xl">
@@ -662,7 +662,7 @@ export default function HomePage() {
                 type="button"
                 className="px-6 py-3.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition-all cursor-pointer whitespace-nowrap"
               >
-                <span>Buka Eksplor Pangan ➔</span>
+                <span>Buka Eksplor Pangan </span>
               </button>
             </Link>
           </div>
@@ -679,7 +679,7 @@ export default function HomePage() {
       <Modal
         isOpen={authModal.isOpen}
         onClose={() => setAuthModal({ isOpen: false, itemTitle: '' })}
-        title="🔒 Silakan Masuk atau Daftar Akun untuk Melanjutkan Klaim"
+        title=" Silakan Masuk atau Daftar Akun untuk Melanjutkan Klaim"
         size="md"
       >
         <div className="space-y-5 text-xs text-slate-700">
@@ -699,7 +699,7 @@ export default function HomePage() {
                 size="md"
                 className="w-full font-black text-xs py-3 shadow-md"
               >
-                🚀 Masuk ke Akun Saya ➔
+                 Masuk ke Akun Saya 
               </Button>
             </Link>
 
@@ -709,7 +709,7 @@ export default function HomePage() {
                 size="md"
                 className="w-full font-black text-xs text-slate-950 py-3 shadow-md"
               >
-                ✨ Daftar Akun Baru Gratis ➔
+                 Daftar Akun Baru Gratis 
               </Button>
             </Link>
           </div>

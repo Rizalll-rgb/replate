@@ -35,13 +35,13 @@ export default function NotFound() {
             <div className="pt-4 border-t border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link href="/" className="w-full sm:w-auto">
                 <Button variant="outline" size="md" className="w-full font-black text-xs bg-white text-slate-900 border-amber-400 hover:bg-slate-100">
-                  <span>🏠 Kembali Ke Beranda</span>
+                  <span> Kembali Ke Beranda</span>
                 </Button>
               </Link>
 
               <Link href="/dashboard" className="w-full sm:w-auto">
                 <Button variant="gold" size="md" className="w-full font-black text-xs text-slate-950 shadow-md">
-                  <span>🚀 Masuk Ke Dashboard ➔</span>
+                  <span> Masuk Ke Dashboard </span>
                 </Button>
               </Link>
             </div>

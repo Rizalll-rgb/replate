@@ -16,7 +16,7 @@ export const CO2Calculator: React.FC = () => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] bg-amber-100 text-amber-950 font-black px-2.5 py-1 rounded-md border border-amber-300 uppercase tracking-wider">
-              🧮 BAPPENAS & KLH STANDARDIZED ENGINE
+               BAPPENAS & KLH STANDARDIZED ENGINE
             </span>
             <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-md border border-emerald-300">
               Faktor FW: 4.0515 kg CO2e/kg

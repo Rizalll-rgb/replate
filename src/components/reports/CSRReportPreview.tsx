@@ -69,7 +69,7 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
         <div className="flex items-center justify-between border-b-2 border-[#1B3A5C] pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl">🌱</span>
+              <span className="text-xl"></span>
               <h2 className="text-xl font-black text-[#1B3A5C]">LAPORAN KEBERLANJUTAN CSR REPLATE</h2>
             </div>
             <p className="text-xs text-slate-600 font-bold mt-0.5">
@@ -147,7 +147,7 @@ export const CSRReportPreview: React.FC<CSRReportPreviewProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
           </svg>
-          <span>🖨️ Cetak Laporan CSR PDF (1 Halaman Clean)</span>
+          <span>️ Cetak Laporan CSR PDF (1 Halaman Clean)</span>
         </Button>
       </div>
     </div>

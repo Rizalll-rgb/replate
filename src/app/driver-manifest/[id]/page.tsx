@@ -101,7 +101,7 @@ export default function DriverManifestNoLoginPage() {
 
     setToastState({
       isOpen: true,
-      message: `✅ Hore! Makanan Resi ${cleanCode} Berhasil Dikonfirmasi Sampai di Penerima!`,
+      message: ` Hore! Makanan Resi ${cleanCode} Berhasil Dikonfirmasi Sampai di Penerima!`,
       type: 'success',
     });
   };
@@ -112,7 +112,7 @@ export default function DriverManifestNoLoginPage() {
         {/* Header Branding (High Contrast Navy & Gold) */}
         <div className="bg-[#1B3A5C] p-5 rounded-2xl border border-[#2C5A8F] shadow-md text-center space-y-1 text-white">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#D4A843] text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-md shadow-xs">
-            <span>🚚 SURAT JALAN DIGITAL DRIVER TOKO (NO-LOGIN)</span>
+            <span> SURAT JALAN DIGITAL DRIVER TOKO (NO-LOGIN)</span>
           </div>
           <h1 className="text-xl font-black text-white tracking-tight pt-1">Replate Dispatch Express</h1>
           <p className="text-xs text-slate-200 font-medium">
@@ -144,7 +144,7 @@ export default function DriverManifestNoLoginPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 space-y-3.5 text-xs text-slate-800">
           <div className="border-b border-slate-200 pb-2.5 flex items-center justify-between">
             <span className="font-black text-[#1B3A5C] text-sm flex items-center gap-1.5">
-              <span>🏢 Lokasi & Penerima Tujuan</span>
+              <span> Lokasi & Penerima Tujuan</span>
             </span>
             <span className="text-[10px] bg-blue-100 text-blue-900 font-black px-2 py-0.5 rounded-md border border-blue-300">
               PANTI / KONSUMEN
@@ -161,7 +161,7 @@ export default function DriverManifestNoLoginPage() {
           </div>
 
           <div className="p-3.5 bg-[#1B3A5C] text-white rounded-2xl shadow-xs space-y-1">
-            <span className="text-amber-400 font-extrabold text-[10px] uppercase tracking-wider block">📍 Alamat Pengantaran Tujuan:</span>
+            <span className="text-amber-400 font-extrabold text-[10px] uppercase tracking-wider block"> Alamat Pengantaran Tujuan:</span>
             <p className="text-white font-bold leading-relaxed text-xs">{claimData.address}</p>
           </div>
 
@@ -198,7 +198,7 @@ export default function DriverManifestNoLoginPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-5 space-y-4 text-xs text-slate-800">
           <div className="border-b border-slate-200 pb-2.5">
             <h3 className="font-black text-[#1B3A5C] text-sm flex items-center gap-1.5">
-              <span>📷 Upload Bukti Makanan Sampai di Tujuan</span>
+              <span> Upload Bukti Makanan Sampai di Tujuan</span>
             </h3>
             <p className="text-[11px] text-slate-500 font-medium">
               Ambil foto serah terima makanan di lokasi tujuan sebagai bukti sah.
@@ -214,12 +214,12 @@ export default function DriverManifestNoLoginPage() {
                 <span className="text-slate-400 font-medium">Belum ada foto</span>
               )}
               <span className="absolute bottom-2 left-2 bg-slate-950/80 text-amber-300 text-[10px] px-2.5 py-1 rounded-md font-mono font-bold border border-amber-400/40">
-                📷 BUKTI FOTO SERAH TERIMA
+                 BUKTI FOTO SERAH TERIMA
               </span>
             </div>
 
             <label className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-extrabold rounded-xl text-center cursor-pointer block shadow-sm transition-all text-xs">
-              <span>📷 Ambil Foto Kamera HP</span>
+              <span> Ambil Foto Kamera HP</span>
               <input
                 type="file"
                 accept="image/*"
@@ -255,11 +255,11 @@ export default function DriverManifestNoLoginPage() {
               onClick={handleCompleteDeliveryByDriver}
               className="w-full font-black text-slate-950 shadow-md py-3.5 text-sm flex items-center justify-center gap-2"
             >
-              <span>✓ Konfirmasi Makanan Diterima Selesai ➔</span>
+              <span> Konfirmasi Makanan Diterima Selesai </span>
             </Button>
           ) : (
             <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-2xl text-center space-y-1">
-              <span className="font-black text-sm block text-emerald-900">🎉 Pengiriman Sukses Diverifikasi!</span>
+              <span className="font-black text-sm block text-emerald-900"> Pengiriman Sukses Diverifikasi!</span>
               <p className="text-[11px] text-emerald-800 font-medium">
                 Terima kasih, Mas Driver! Status pesanan <strong className="font-mono text-[#1B3A5C] font-black">{claimData.code}</strong> telah terbarui menjadi COMPLETED di sistem Replate.
               </p>

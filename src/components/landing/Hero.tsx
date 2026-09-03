@@ -79,12 +79,12 @@ export default function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-3">
               <Link href={session ? '/explore' : '/register'}>
                 <Button variant="gold" size="lg" className="w-full sm:w-auto text-base px-8 py-3.5 shadow-lg font-bold">
-                  Mulai Selamatkan Makanan ➔
+                  Mulai Selamatkan Makanan 
                 </Button>
               </Link>
               <Link href="/register">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-base text-white border-2 border-white/40 hover:bg-white/10 font-bold">
-                  Daftar Kemitraan Toko ➔
+                  Daftar Kemitraan Toko 
                 </Button>
               </Link>
             </div>
@@ -153,7 +153,7 @@ export default function Hero() {
                       <span className="text-slate-400 font-medium">Batas: {item.time}</span>
                       <Link href={session ? '/explore' : '/login'}>
                         <Button variant="gold" size="sm" className="px-3 py-1 text-[11px] font-black text-slate-950">
-                          Klaim Makanan ➔
+                          Klaim Makanan 
                         </Button>
                       </Link>
                     </div>
@@ -173,7 +173,7 @@ export default function Hero() {
                 </div>
                 <Link href="/register">
                   <Button variant="gold" size="sm" className="font-black text-[10px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap">
-                    Daftar Mitra ➔
+                    Daftar Mitra 
                   </Button>
                 </Link>
               </div>

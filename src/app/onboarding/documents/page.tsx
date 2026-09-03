@@ -52,7 +52,7 @@ export default function OnboardingDocumentsPage() {
 
     // Strict Validation Rule
     if (!nibDoc || !ktpDoc || !storePhoto) {
-      setValidationError('⚠️ ANDA WAJIB MENGUNGGAH SELURUH BERKAS LEGALITAS YANG DITANDAI [WAJIB] SEBELUM DAPAT MELANJUTKAN!');
+      setValidationError('️ ANDA WAJIB MENGUNGGAH SELURUH BERKAS LEGALITAS YANG DITANDAI [WAJIB] SEBELUM DAPAT MELANJUTKAN!');
       return;
     }
 
@@ -101,7 +101,7 @@ export default function OnboardingDocumentsPage() {
         <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
           <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <span>📄 Verifikasi 3 Berkas Asli Wajib</span>
+              <span> Verifikasi 3 Berkas Asli Wajib</span>
             </h3>
             <div className="flex items-center gap-2">
               <button
@@ -113,7 +113,7 @@ export default function OnboardingDocumentsPage() {
                 }}
                 className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
               >
-                ⚡ Gunakan Berkas Contoh Demo
+                 Gunakan Berkas Contoh Demo
               </button>
               <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/40 font-black px-2.5 py-1 rounded-lg">
                 REQUIRED AUDIT
@@ -135,12 +135,12 @@ export default function OnboardingDocumentsPage() {
                   1. {isBeneficiary ? 'Akta Pendirian Yayasan / Surat Keterangan Panti:' : isVolunteer ? 'Akta Pendirian Komunitas / SK Pengesahan / Surat Keterangan Komunitas:' : 'NIB / Surat Izin Usaha Resmi OSS (BPOM Verified):'}
                 </span>
                 <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${nibDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
-                  {nibDoc ? '✓ TERUNGGAH' : 'WAJIB'}
+                  {nibDoc ? ' TERUNGGAH' : 'WAJIB'}
                 </span>
               </div>
 
               <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                💡 <strong>Ketentuan:</strong> {isVolunteer ? 'Surat Keterangan Komunitas / SK Pengesahan Organisasi dari Kemenkumham / Camat setempat.' : 'Pastikan nomor NIB 13-digit dan QR Code sertifikat OSS terlihat utuh tanpa terpotong.'}
+                 <strong>Ketentuan:</strong> {isVolunteer ? 'Surat Keterangan Komunitas / SK Pengesahan Organisasi dari Kemenkumham / Camat setempat.' : 'Pastikan nomor NIB 13-digit dan QR Code sertifikat OSS terlihat utuh tanpa terpotong.'}
               </p>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -153,7 +153,7 @@ export default function OnboardingDocumentsPage() {
                     )}
                   </div>
                   <label className="px-4 py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md">
-                    <span>📷 Select File & Upload ➔</span>
+                    <span> Select File & Upload </span>
                     <input
                       type="file"
                       accept="image/*"
@@ -180,7 +180,7 @@ export default function OnboardingDocumentsPage() {
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
                     >
-                      👁️ Lihat Preview Berkas
+                      ️ Lihat Preview Berkas
                     </button>
                   )}
                   <button
@@ -196,7 +196,7 @@ export default function OnboardingDocumentsPage() {
                     }
                     className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
                   >
-                    📜 Lihat Contoh Valid
+                     Lihat Contoh Valid
                   </button>
                 </div>
               </div>
@@ -209,12 +209,12 @@ export default function OnboardingDocumentsPage() {
                   2. {isVolunteer ? 'Foto KTP Ketua / Koordinator Komunitas Relawan:' : 'Foto KTP Penanggung Jawab (PJ) Operasional:'}
                 </span>
                 <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${ktpDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
-                  {ktpDoc ? '✓ TERUNGGAH' : 'WAJIB'}
+                  {ktpDoc ? ' TERUNGGAH' : 'WAJIB'}
                 </span>
               </div>
 
               <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                💡 <strong>Ketentuan:</strong> Foto KTP Ketua / Koordinator asli (Bukan fotokopi). NIK 16-digit dan foto wajib terbaca tajam.
+                 <strong>Ketentuan:</strong> Foto KTP Ketua / Koordinator asli (Bukan fotokopi). NIK 16-digit dan foto wajib terbaca tajam.
               </p>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -227,7 +227,7 @@ export default function OnboardingDocumentsPage() {
                     )}
                   </div>
                   <label className="px-4 py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md">
-                    <span>📷 Select File & Upload ➔</span>
+                    <span> Select File & Upload </span>
                     <input
                       type="file"
                       accept="image/*"
@@ -254,7 +254,7 @@ export default function OnboardingDocumentsPage() {
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
                     >
-                      👁️ Lihat Preview Berkas
+                      ️ Lihat Preview Berkas
                     </button>
                   )}
                   <button
@@ -270,7 +270,7 @@ export default function OnboardingDocumentsPage() {
                     }
                     className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
                   >
-                    📜 Lihat Contoh Valid
+                     Lihat Contoh Valid
                   </button>
                 </div>
               </div>
@@ -283,12 +283,12 @@ export default function OnboardingDocumentsPage() {
                   3. {isBeneficiary ? 'Foto Plang Bangunan Panti Asuhan & Anak Asuh:' : isVolunteer ? 'Foto Posko Utama / Basecamp Logistik Komunitas Surabaya:' : 'Foto Etalase / Plang Bangunan Outlet Fisik:'}
                 </span>
                 <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${storePhoto ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
-                  {storePhoto ? '✓ TERUNGGAH' : 'WAJIB'}
+                  {storePhoto ? ' TERUNGGAH' : 'WAJIB'}
                 </span>
               </div>
 
               <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                💡 <strong>Ketentuan:</strong> {isVolunteer ? 'Foto tampak depan posko utama / sekretariat komunitas relawan yang menampilkan spanduk/logo komunitas.' : 'Foto tampak depan bangunan fisik / etalase toko yang menampilkan nama usaha secara jelas.'}
+                 <strong>Ketentuan:</strong> {isVolunteer ? 'Foto tampak depan posko utama / sekretariat komunitas relawan yang menampilkan spanduk/logo komunitas.' : 'Foto tampak depan bangunan fisik / etalase toko yang menampilkan nama usaha secara jelas.'}
               </p>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -301,7 +301,7 @@ export default function OnboardingDocumentsPage() {
                     )}
                   </div>
                   <label className="px-4 py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md">
-                    <span>📷 Select File & Upload ➔</span>
+                    <span> Select File & Upload </span>
                     <input
                       type="file"
                       accept="image/*"
@@ -328,7 +328,7 @@ export default function OnboardingDocumentsPage() {
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
                     >
-                      👁️ Lihat Preview Berkas
+                      ️ Lihat Preview Berkas
                     </button>
                   )}
                   <button
@@ -344,7 +344,7 @@ export default function OnboardingDocumentsPage() {
                     }
                     className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
                   >
-                    📜 Lihat Contoh Valid
+                     Lihat Contoh Valid
                   </button>
                 </div>
               </div>
@@ -352,7 +352,7 @@ export default function OnboardingDocumentsPage() {
 
             <div className="pt-4 border-t border-[#2C5A8F] flex justify-end">
               <Button variant="gold" size="md" type="submit" className="font-black text-xs py-3 px-6 shadow-md">
-                <span>Kirim Berkas Ke Tim Admin Replate ➔</span>
+                <span>Kirim Berkas Ke Tim Admin Replate </span>
               </Button>
             </div>
           </form>

@@ -24,7 +24,7 @@ export default function LoginPage() {
   const roleConfigs: Record<RoleType, { label: string; icon: string; targetUrl: string; demoEmail: string; hint: string; mockProfile: any }> = {
     FOOD_PROVIDER: {
       label: 'Food Provider',
-      icon: '🏪',
+      icon: '',
       targetUrl: '/dashboard/provider',
       demoEmail: 'bakso.pak.kumis@replate.id',
       hint: 'Untuk Restoran, Bakery, Supermarket, & Hotel penyedia makanan surplus.',
@@ -41,7 +41,7 @@ export default function LoginPage() {
     },
     FOOD_BENEFICIARY: {
       label: 'Food Beneficiary',
-      icon: '🏠',
+      icon: '',
       targetUrl: '/dashboard/yayasan',
       demoEmail: 'panti.kasih.ibu@replate.id',
       hint: 'Untuk Panti Asuhan, Yayasan Sosial, & Shelter penerima donasi makanan gratis.',
@@ -58,7 +58,7 @@ export default function LoginPage() {
     },
     FOOD_CONSUMER: {
       label: 'Food Consumer',
-      icon: '🛒',
+      icon: '',
       targetUrl: '/dashboard/consumer',
       demoEmail: 'budi.santoso@gmail.com',
       hint: 'Untuk Konsumen Umum / Anak Kos pembeli makanan diskon murah Rescue Sale.',
@@ -74,7 +74,7 @@ export default function LoginPage() {
     },
     RESCUE_VOLUNTEER: {
       label: 'Food Rescue Volunteer',
-      icon: '🛵',
+      icon: '',
       targetUrl: '/dashboard/rescue-partner',
       demoEmail: 'foodbank.surabaya@replate.id',
       hint: 'Untuk Armada Kurir Relawan Komunitas pengantar bantuan makanan.',
@@ -90,7 +90,7 @@ export default function LoginPage() {
     },
     SUPER_ADMIN: {
       label: 'SuperAdmin',
-      icon: '👑',
+      icon: '',
       targetUrl: '/dashboard/admin',
       demoEmail: 'admin@replate.id',
       hint: 'Untuk Tim Pengawas Platform, Verifikasi Berkas, & Kebijakan BPOM.',
@@ -304,12 +304,12 @@ export default function LoginPage() {
               onClick={() => setIsTOSOpen(true)}
               className="text-[#D4A843] hover:underline font-bold"
             >
-              Baca TOS Platform ➔
+              Baca TOS Platform 
             </button>
           </div>
 
           <button type="submit" className={styles.btnSubmit} disabled={loading}>
-            {loading ? 'Memproses Authentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label} ➔`}
+            {loading ? 'Memproses Authentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label} `}
           </button>
 
           {/* Google Sign In Section */}
@@ -334,7 +334,7 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
-            <span>Masuk Dengan Akun Google ➔</span>
+            <span>Masuk Dengan Akun Google </span>
           </button>
         </form>
 
@@ -342,7 +342,7 @@ export default function LoginPage() {
           <div>
             Belum mendaftarkan usaha / instansi?{' '}
             <Link href={`/register?role=${activeRoleTab}`} className="font-extrabold text-[#D4A843] hover:underline">
-              Daftar Akun Baru ➔
+              Daftar Akun Baru 
             </Link>
           </div>
           <div className="pt-1">
@@ -350,7 +350,7 @@ export default function LoginPage() {
               href="/track-status"
               className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#142C47] px-3.5 py-1.5 rounded-xl border border-amber-400/40 shadow-xs transition-all"
             >
-              <span>Pernah Mendaftar? Cek Live Status Audit ➔</span>
+              <span>Pernah Mendaftar? Cek Live Status Audit </span>
             </Link>
           </div>
         </div>

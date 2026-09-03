@@ -14,7 +14,7 @@ export const TOSModal: React.FC<TOSModalProps> = ({ isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="📋 Syarat, Ketentuan & Kebijakan Privasi Replate"
+      title=" Syarat, Ketentuan & Kebijakan Privasi Replate"
       size="lg"
     >
       <div className="space-y-4 text-xs text-slate-700 max-h-[60vh] overflow-y-auto pr-2">
@@ -76,7 +76,7 @@ export const TOSModal: React.FC<TOSModalProps> = ({ isOpen, onClose }) => {
 
       <div className="flex justify-end pt-3 border-t border-slate-200 mt-4">
         <Button variant="gold" size="sm" className="font-black text-xs" onClick={onClose}>
-          Saya Memahami & Menyetujui TOS ➔
+          Saya Memahami & Menyetujui TOS 
         </Button>
       </div>
     </Modal>

@@ -100,7 +100,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
 
   /** Share to WhatsApp */
   const handleShareWhatsApp = () => {
-    const text = `📋 *REPLATE - Surat Jalan Donasi*\n\n🔖 Kode Resi: ${value}\n🍽️ Menu: ${foodName || '-'}\n📦 Porsi: ${portions || '-'}\n🏠 Penerima: ${recipientName || '-'}\n🚚 Kurir: ${courierName || '-'}\n⏰ Batas: ${expiryTime || '-'}\n\n✅ Tunjukkan kode ini saat serah terima.`;
+    const text = ` *REPLATE - Surat Jalan Donasi*\n\n Kode Resi: ${value}\n️ Menu: ${foodName || '-'}\n Porsi: ${portions || '-'}\n Penerima: ${recipientName || '-'}\n Kurir: ${courierName || '-'}\n⏰ Batas: ${expiryTime || '-'}\n\n Tunjukkan kode ini saat serah terima.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -139,7 +139,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
             <span className="font-black text-xs tracking-wider text-[#1B3A5C]">REPLATE 2.0</span>
           </div>
           <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-black uppercase">
-            ✓ BPOM VERIFIED
+             BPOM VERIFIED
           </span>
         </div>
 
@@ -271,7 +271,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
             onClick={handleDownloadPNG}
             className="w-full py-2.5 px-3 bg-[#1B3A5C] hover:bg-[#142C47] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>💾 Unduh QR Tiket (PNG)</span>
+            <span> Unduh QR Tiket (PNG)</span>
           </button>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -279,19 +279,19 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
               onClick={handlePrintIsolated}
               className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11px] rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
-              🖨️ Cetak PDF
+              ️ Cetak PDF
             </button>
             <button
               type="button"
               onClick={handleShareWhatsApp}
               className="py-2 px-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-[11px] rounded-xl border border-emerald-200 transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
-              📲 WhatsApp
+               WhatsApp
             </button>
           </div>
           {downloaded && (
             <span className="text-[10px] text-emerald-700 font-bold block mt-1">
-              ✓ Berhasil! Dokumen siap disimpan atau dikirim.
+               Berhasil! Dokumen siap disimpan atau dikirim.
             </span>
           )}
         </div>

@@ -639,7 +639,7 @@ export default function YayasanDashboardPage() {
                 disabled={isProcessingClaim}
                 className="font-black text-xs text-slate-950 py-2 px-4 shadow-xs"
               >
-                {isProcessingClaim ? 'Menerbitkan Tiket QR...' : 'Konfirmasi & Ambil Alokasi ➔'}
+                {isProcessingClaim ? 'Menerbitkan Tiket QR...' : 'Konfirmasi & Ambil Alokasi '}
               </Button>
             </div>
           </div>
@@ -700,7 +700,7 @@ export default function YayasanDashboardPage() {
                   leftIcon={<TicketIcon size={13} className="text-slate-950" />}
                   className="w-full font-black text-xs text-slate-950 shadow-xs cursor-pointer"
                 >
-                  Buka Modul Klaim ➔
+                  Buka Modul Klaim 
                 </Button>
               </Link>
             </div>

@@ -334,7 +334,7 @@ export default function AdminUsersPage() {
 
           {/* Visual Maps Coordinates & Address */}
           <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100 space-y-2">
-            <span className="font-extrabold text-[#1B3A5C] text-sm block">📍 Titik Geografis & Alamat Penjemputan:</span>
+            <span className="font-extrabold text-[#1B3A5C] text-sm block"> Titik Geografis & Alamat Penjemputan:</span>
             <p className="font-bold text-slate-800 leading-snug">{selectedUser?.address}</p>
             <div className="flex items-center justify-between pt-1">
               <span className="font-mono text-slate-600 font-bold">
@@ -346,7 +346,7 @@ export default function AdminUsersPage() {
                 rel="noreferrer"
                 className="px-3 py-1 bg-[#1B3A5C] text-white rounded-lg text-[11px] font-bold hover:bg-[#2C5A8F] transition-colors"
               >
-                Buka di Google Maps 🗺️
+                Buka di Google Maps ️
               </a>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function AdminUsersPage() {
               Batal
             </Button>
             <Button variant="gold" size="sm" className="font-extrabold" onClick={executeResetPassword}>
-              Konfirmasi Reset Password ➔
+              Konfirmasi Reset Password 
             </Button>
           </div>
         </div>
@@ -451,7 +451,7 @@ export default function AdminUsersPage() {
               Batal
             </Button>
             <Button type="submit" variant="gold" size="sm" className="font-extrabold">
-              Daftarkan Akun ➔
+              Daftarkan Akun 
             </Button>
           </div>
         </form>

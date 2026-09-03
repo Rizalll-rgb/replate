@@ -533,7 +533,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
               onClick={handleNextToStep2}
               className="font-black text-xs py-2 px-3.5 shadow-xs cursor-pointer"
             >
-              Lanjut ke Langkah 2: Harga & Waktu ➔
+              Lanjut ke Langkah 2: Harga & Waktu 
             </Button>
           </div>
         </div>
@@ -690,7 +690,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 href="/dashboard/provider/settings"
                 className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-xl transition-all shrink-0 shadow-xs flex items-center gap-1"
               >
-                <span>Ubah di Pengaturan Toko ➔</span>
+                <span>Ubah di Pengaturan Toko </span>
               </a>
             </div>
 
@@ -724,7 +724,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
               onClick={handleNextToStep3}
               className="font-black text-xs py-2 px-3.5 shadow-xs cursor-pointer"
             >
-              Lanjut ke Langkah 3: Standar BPOM ➔
+              Lanjut ke Langkah 3: Standar BPOM 
             </Button>
           </div>
         </div>

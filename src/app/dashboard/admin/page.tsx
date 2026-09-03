@@ -51,13 +51,13 @@ export default function AdminOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-white border-slate-200 hover:border-[#1B3A5C] transition-all">
           <CardHeader>
-            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">👥 Kelola Pengguna & Akun</CardTitle>
+            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]"> Kelola Pengguna & Akun</CardTitle>
           </CardHeader>
           <CardBody className="space-y-3 text-xs">
             <p className="text-slate-500">Kelola direktori mitra provider, panti asuhan, dan akun konsumen di Surabaya.</p>
             <Link href="/dashboard/admin/users" className="block">
               <Button variant="primary" size="sm" className="w-full font-bold">
-                Buka Direktori Pengguna ➔
+                Buka Direktori Pengguna 
               </Button>
             </Link>
           </CardBody>
@@ -65,13 +65,13 @@ export default function AdminOverviewPage() {
 
         <Card className="bg-white border-slate-200 hover:border-[#1B3A5C] transition-all">
           <CardHeader>
-            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">📡 Monitoring Surplus Real-time</CardTitle>
+            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]"> Monitoring Surplus Real-time</CardTitle>
           </CardHeader>
           <CardBody className="space-y-3 text-xs">
             <p className="text-slate-[#495057] text-slate-500">Pantau pergerakan stok makanan berlebih dan status klaim secara langsung.</p>
             <Link href="/dashboard/admin/food-monitor" className="block">
               <Button variant="gold" size="sm" className="w-full font-bold">
-                Pantau Stream Surplus ➔
+                Pantau Stream Surplus 
               </Button>
             </Link>
           </CardBody>
@@ -79,13 +79,13 @@ export default function AdminOverviewPage() {
 
         <Card className="bg-white border-slate-200 hover:border-[#1B3A5C] transition-all">
           <CardHeader>
-            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">⚙️ Pengaturan Bobot Algoritma</CardTitle>
+            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">️ Pengaturan Bobot Algoritma</CardTitle>
           </CardHeader>
           <CardBody className="space-y-3 text-xs">
             <p className="text-slate-500">Atur bobot kriteria Smart Matching (jarak, urgensi deadline, kapasitas partner).</p>
             <Link href="/dashboard/admin/settings" className="block">
               <Button variant="outline" size="sm" className="w-full font-bold border-slate-300">
-                Konfigurasi Parameter ➔
+                Konfigurasi Parameter 
               </Button>
             </Link>
           </CardBody>

@@ -129,7 +129,7 @@ export default function PendingApprovalPage() {
               <div className="p-3.5 bg-[#0F1923] border-2 border-[#D4A843] rounded-2xl flex items-center justify-between text-left shadow-lg">
                 <div className="space-y-0.5">
                   <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">
-                    📌 Kode Registrasi Tracking Pendaftaran Anda:
+                     Kode Registrasi Tracking Pendaftaran Anda:
                   </span>
                   <span className="font-mono text-[#D4A843] font-black text-base tracking-wider block">
                     {regId}
@@ -141,7 +141,7 @@ export default function PendingApprovalPage() {
                   onClick={handleCopyRegId}
                   className="px-3.5 py-2 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                 >
-                  <span>{copied ? '✓ Kode Tersalin!' : '📋 Salin Kode'}</span>
+                  <span>{copied ? ' Kode Tersalin!' : ' Salin Kode'}</span>
                 </button>
               </div>
 
@@ -170,21 +170,21 @@ export default function PendingApprovalPage() {
                   type="button"
                   className="w-full py-3 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-amber-300"
                 >
-                  <span>🔍 Pantau Status Pendaftaran 24/7 (Live Tracker: {regId}) ➔</span>
+                  <span> Pantau Status Pendaftaran 24/7 (Live Tracker: {regId}) </span>
                 </button>
               </Link>
 
               {/* Demo Action Button for Judges */}
               <div className="p-4 bg-[#0F1923] border border-[#2C5A8F] rounded-2xl space-y-2.5 text-center shadow-lg">
                 <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block">
-                  ⚡ KHUSUS SIMULASI JURI / TESTING ACC SUPERADMIN
+                   KHUSUS SIMULASI JURI / TESTING ACC SUPERADMIN
                 </span>
                 <button
                   type="button"
                   onClick={handleSimulateApprove}
                   className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span>👑 Simulasi SuperAdmin Klik ACC & Aktifkan Akun ➔</span>
+                  <span> Simulasi SuperAdmin Klik ACC & Aktifkan Akun </span>
                 </button>
               </div>
             </div>
@@ -198,7 +198,7 @@ export default function PendingApprovalPage() {
 
               <div className="space-y-1.5">
                 <span className="text-xs font-black text-emerald-400 uppercase tracking-widest block">
-                  🎉 SELAMAT! AKUN ANDA RESMI DISETUJUI & AKTIF
+                   SELAMAT! AKUN ANDA RESMI DISETUJUI & AKTIF
                 </span>
                 <h3 className="text-xl font-black text-white">Verifikasi Dokumen Berhasil</h3>
                 <p className="text-xs text-emerald-200 font-bold max-w-md mx-auto leading-relaxed">
@@ -213,7 +213,7 @@ export default function PendingApprovalPage() {
                 isLoading={loading}
                 className="w-full font-black text-slate-950 shadow-lg py-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>🚀 Masuk Ke Dashboard {roleName} ➔</span>
+                <span> Masuk Ke Dashboard {roleName} </span>
               </Button>
             </div>
           )}

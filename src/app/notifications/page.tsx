@@ -22,7 +22,7 @@ const initialNotifications: NotificationItem[] = [
     title: "Nasi Box Ayam Anda Berhasil Di-claim",
     message: "Panti Asuhan Harapan telah mengajukan permintaan untuk 15 porsi Nasi Box Ayam Anda. Silakan bersiap untuk pengambilan.",
     time: "10 menit yang lalu",
-    icon: "🍱",
+    icon: "",
     unread: true,
   },
   {
@@ -30,7 +30,7 @@ const initialNotifications: NotificationItem[] = [
     title: "Smart Matching Menemukan Partner",
     message: "Sistem Smart Matching mendeteksi 3 organisasi terdekat (jarak < 5km) yang membutuhkan donasi Roti Croissant Anda.",
     time: "1 jam yang lalu",
-    icon: "🤝",
+    icon: "",
     unread: true,
   },
   {
@@ -38,7 +38,7 @@ const initialNotifications: NotificationItem[] = [
     title: "Donasi Sukses Diterima",
     message: "Yayasan Berbagi Kasih mengonfirmasi penerimaan 12 porsi Buah Potong. Terima kasih atas kontribusi Anda!",
     time: "1 hari yang lalu",
-    icon: "✅",
+    icon: "",
     unread: false,
   },
   {
@@ -46,7 +46,7 @@ const initialNotifications: NotificationItem[] = [
     title: "Tips Food Rescue Baru",
     message: "Baca panduan terbaru kami mengenai cara penyimpanan sayuran agar tetap segar sebelum didonasikan.",
     time: "3 hari yang lalu",
-    icon: "🌱",
+    icon: "",
     unread: false,
   }
 ];

@@ -369,7 +369,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
           <div className="px-4 pt-4 pb-4 border-b border-[#2C5A8F]/40 flex items-center justify-between">
             <Logo variant="light" size="md" href="/dashboard" />
             <button onClick={() => setIsOpenMobile(false)} className="lg:hidden text-slate-400 hover:text-white font-bold p-1 cursor-pointer">
-              ✕
+              
             </button>
           </div>
 

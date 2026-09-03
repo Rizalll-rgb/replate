@@ -10,21 +10,23 @@ import { Badge } from '@/components/ui/Badge';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
+import { Bike, Building, Truck, Utensils, Search, Users, Landmark, HeartHandshake, MapPin, AlertTriangle, MessageSquare, Check, X, ShieldAlert } from 'lucide-react';
+
 // Human-Readable Indonesian Status Label Helper for ALL Recipient Types (Panti, Shelter, Yayasan, Individu)
 const getHumanReadableStatusLabel = (statusCode: string) => {
   switch (statusCode) {
     case 'AWAITING_RESCUE_PICKUP':
-      return '🛵 Menunggu Penjemputan Kurir Relawan';
+      return <span className="flex items-center gap-1"><Bike className="w-4 h-4" /> Menunggu Penjemputan Kurir Relawan</span>;
     case 'READY_FOR_PICKUP':
-      return '🏢 Siap Diambil Mandiri oleh Penerima Manfaat';
+      return <span className="flex items-center gap-1"><Building className="w-4 h-4" /> Siap Diambil Mandiri oleh Penerima Manfaat</span>;
     case 'PROVIDER_DELIVERING':
-      return '🚚 Dalam Pengiriman Armada Toko';
+      return <span className="flex items-center gap-1"><Truck className="w-4 h-4" /> Dalam Pengiriman Armada Toko</span>;
     case 'IN_TRANSIT':
-      return '🚚 OTW Mengirim Ke Penerima Bantuan';
+      return <span className="flex items-center gap-1"><Truck className="w-4 h-4" /> OTW Mengirim Ke Penerima Bantuan</span>;
     case 'COMPLETED':
-      return '✓ Donasi Berhasil Diserahkan Ke Penerima & Selesai';
+      return <span className="flex items-center gap-1"><Check className="w-4 h-4" /> Donasi Berhasil Diserahkan Ke Penerima & Selesai</span>;
     case 'MATCHED & PROCESSED':
-      return '✓ Donasi Ter-Match & Diproses';
+      return <span className="flex items-center gap-1"><Check className="w-4 h-4" /> Donasi Ter-Match & Diproses</span>;
     default:
       return statusCode || 'Proses Penyelamatan';
   }
@@ -463,7 +465,7 @@ export function DonationsHubComponent() {
         <Card className="p-4 border-slate-200 bg-white shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#D4A843] flex items-center justify-center font-black text-lg">
-              🍱
+              <Utensils className="w-5 h-5" />
             </div>
             <div>
               <span className="text-[11px] text-slate-500 font-semibold block">Total Donasi Dihibahkan</span>
@@ -475,7 +477,7 @@ export function DonationsHubComponent() {
         <Card className="p-4 border-slate-200 bg-white shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-lg">
-              🏢
+              <Building className="w-5 h-5" />
             </div>
             <div>
               <span className="text-[11px] text-slate-500 font-semibold block">Penerima Bantuan Terbantu</span>
@@ -487,7 +489,7 @@ export function DonationsHubComponent() {
         <Card className="p-4 border-slate-200 bg-white shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-lg">
-              🛵
+              <Bike className="w-5 h-5" />
             </div>
             <div>
               <span className="text-[11px] text-slate-500 font-semibold block">Tingkat Pencocokan Smart Match</span>
@@ -512,10 +514,11 @@ export function DonationsHubComponent() {
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
           <div className="sm:col-span-1">
             <Input
-              placeholder="🔍 Cari nama / catatan..."
+              placeholder="Cari nama / catatan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="text-xs"
+              icon={<Search className="w-4 h-4 text-slate-400" />}
             />
           </div>
 
@@ -525,11 +528,11 @@ export function DonationsHubComponent() {
               value={filterRecipientType}
               onChange={(e) => setFilterRecipientType(e.target.value)}
             >
-              <option value="ALL">👥 Semua Tipe Penerima</option>
-              <option value="PANTI">🏛️ Panti Asuhan & Werdha</option>
-              <option value="SHELTER">🏥 Shelter & Rumah Singgah</option>
-              <option value="YAYASAN">🏢 Yayasan & Sosmas</option>
-              <option value="INDIVIDU">🧑‍🤝‍🧑 Individu / Warga Rentan</option>
+              <option value="ALL">Semua Tipe Penerima</option>
+              <option value="PANTI">Panti Asuhan & Werdha</option>
+              <option value="SHELTER">Shelter & Rumah Singgah</option>
+              <option value="YAYASAN">Yayasan & Sosmas</option>
+              <option value="INDIVIDU">Individu / Warga Rentan</option>
             </select>
           </div>
 
@@ -539,7 +542,7 @@ export function DonationsHubComponent() {
               value={filterLocation}
               onChange={(e) => setFilterLocation(e.target.value)}
             >
-              <option value="ALL">🏙️ Semua Wilayah Surabaya</option>
+              <option value="ALL">Semua Wilayah Surabaya</option>
               <option value="Surabaya Pusat">Surabaya Pusat</option>
               <option value="Surabaya Timur">Surabaya Timur</option>
               <option value="Surabaya Selatan">Surabaya Selatan</option>
@@ -554,7 +557,7 @@ export function DonationsHubComponent() {
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
             >
-              <option value="ALL">🥗 Semua Kategori Pangan</option>
+              <option value="ALL">Semua Kategori Pangan</option>
               <option value="Makanan Olahan (Meals)">Makanan Olahan (Meals)</option>
               <option value="Roti, Buah & Susu (Bakery & Dairy)">Roti, Buah & Susu (Bakery & Dairy)</option>
               <option value="Bahan Pokok (Produce)">Bahan Sembako (Produce)</option>
@@ -567,7 +570,7 @@ export function DonationsHubComponent() {
               value={filterUrgency}
               onChange={(e) => setFilterUrgency(e.target.value)}
             >
-              <option value="ALL">🚨 Semua Urgensi</option>
+              <option value="ALL">Semua Urgensi</option>
               <option value="HIGH">URGENT (Segera)</option>
               <option value="MEDIUM">MEMBUTUHKAN</option>
             </select>
@@ -585,11 +588,11 @@ export function DonationsHubComponent() {
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
                   {req.status === 'MATCHED & PROCESSED' ? (
                     <span className="px-3 py-1 bg-emerald-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
-                      ✓ MATCHED
+                       MATCHED
                     </span>
                   ) : req.urgency === 'HIGH' ? (
                     <span className="px-3 py-1 bg-red-600 text-white font-black text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
-                      🔥 URGENT
+                       URGENT
                     </span>
                   ) : (
                     <span className="px-3 py-1 bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-md shadow-md border border-white/40">
@@ -598,7 +601,7 @@ export function DonationsHubComponent() {
                   )}
                 </div>
                 <div className="absolute bottom-2.5 right-2.5 bg-slate-900/90 text-white px-3 py-1 rounded-md text-[10px] font-mono font-bold shadow-md border border-slate-700/80 backdrop-blur-xs">
-                  📍 {req.location}
+                   {req.location}
                 </div>
               </div>
 
@@ -622,10 +625,10 @@ export function DonationsHubComponent() {
                       <span className="font-semibold">Metode Pengiriman:</span>
                       <span className="font-bold text-[#1B3A5C]">
                         {req.preferredDelivery === 'RESCUE_COURIER'
-                          ? '🛵 Kurir Relawan'
+                          ? ' Kurir Relawan'
                           : req.preferredDelivery === 'PROVIDER_DIRECT'
-                          ? '🚚 Diantar Toko'
-                          : '🏢 Ambil Mandiri'}
+                          ? ' Diantar Toko'
+                          : ' Ambil Mandiri'}
                       </span>
                     </div>
                   </div>
@@ -639,7 +642,7 @@ export function DonationsHubComponent() {
                     onClick={() => setSelectedShelterProfile(req)}
                     className="text-[11px] font-bold text-[#1B3A5C] hover:underline flex items-center gap-1 pt-1"
                   >
-                    <span>Lihat Profil Detail & Titik Lokasi Peta ➔</span>
+                    <span>Lihat Profil Detail & Titik Lokasi Peta </span>
                   </button>
                 </div>
 
@@ -651,7 +654,7 @@ export function DonationsHubComponent() {
 
                   {req.status === 'MATCHED & PROCESSED' ? (
                     <div className="w-full py-2 bg-emerald-50 text-emerald-800 text-center font-extrabold text-xs rounded-xl border border-emerald-200">
-                      ✓ Donasi Ter-Match & Diproses
+                       Donasi Ter-Match & Diproses
                     </div>
                   ) : (
                     <Button
@@ -660,7 +663,7 @@ export function DonationsHubComponent() {
                       className="w-full font-extrabold text-xs shadow-xs"
                       onClick={() => handleOpenFulfillModal(req)}
                     >
-                      Penuhi Permintaan Donasi Ini ➔
+                      Penuhi Permintaan Donasi Ini 
                     </Button>
                   )}
                 </div>
@@ -721,7 +724,7 @@ export function DonationsHubComponent() {
               rel="noreferrer"
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
-              <span>💬 Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct)</span>
+              <span> Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct)</span>
             </a>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
@@ -743,7 +746,7 @@ export function DonationsHubComponent() {
                   className="w-full h-full filter saturate-150"
                 />
                 <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                  📍 Titik Lokasi: {selectedShelterProfile.shelterName}
+                   Titik Lokasi: {selectedShelterProfile.shelterName}
                 </div>
               </div>
             </div>
@@ -781,10 +784,10 @@ export function DonationsHubComponent() {
               </h4>
 
               <p className="text-xs text-slate-100 font-semibold flex items-center gap-2 pt-0.5">
-                <span>📍 Lokasi: {selectedRequest.location}</span>
+                <span> Lokasi: {selectedRequest.location}</span>
                 <span>•</span>
                 <span>
-                  Delivery Pref: {selectedRequest.preferredDelivery === 'RESCUE_COURIER' ? '🛵 Kurir Relawan' : selectedRequest.preferredDelivery === 'PROVIDER_DIRECT' ? '🚚 Diantar Toko' : '🏢 Ambil Mandiri'}
+                  Delivery Pref: {selectedRequest.preferredDelivery === 'RESCUE_COURIER' ? ' Kurir Relawan' : selectedRequest.preferredDelivery === 'PROVIDER_DIRECT' ? ' Diantar Toko' : ' Ambil Mandiri'}
                 </span>
               </p>
             </div>
@@ -798,7 +801,7 @@ export function DonationsHubComponent() {
                   </span>
                 </div>
                 <Badge variant={matchAnalysis.score >= 70 ? 'success' : 'danger'}>
-                  {matchAnalysis.score >= 70 ? '✓ HIGHLY RECOMMENDED' : '⚠️ MISMATCHED'}
+                  {matchAnalysis.score >= 70 ? ' HIGHLY RECOMMENDED' : '️ MISMATCHED'}
                 </Badge>
               </div>
 
@@ -831,7 +834,7 @@ export function DonationsHubComponent() {
                   const isMatch = item.category === selectedRequest.foodCategoryNeeded;
                   return (
                     <option key={item.id} value={item.id}>
-                      {isMatch ? '✓ [MATCHED] ' : '❌ [MISMATCHED] '}
+                      {isMatch ? ' [MATCHED] ' : ' [MISMATCHED] '}
                       {item.foodName} — ({item.category}) | Stok: {item.quantity} {item.quantityUnit || 'Porsi'}
                     </option>
                   );
@@ -840,7 +843,7 @@ export function DonationsHubComponent() {
 
               {!matchAnalysis.isMatch && (
                 <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
-                  ⚠️ Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan penerima ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
+                  ️ Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan penerima ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
                 </p>
               )}
             </div>
@@ -858,7 +861,7 @@ export function DonationsHubComponent() {
                 />
                 {portionedQuantity > (selectedFoodObj?.quantity || 0) && (
                   <p className="text-[11px] font-bold text-red-600">
-                    ⚠️ Melebihi stok ketersediaan makanan ({selectedFoodObj?.quantity} Porsi)!
+                    ️ Melebihi stok ketersediaan makanan ({selectedFoodObj?.quantity} Porsi)!
                   </p>
                 )}
               </div>
@@ -877,10 +880,10 @@ export function DonationsHubComponent() {
                 <span className="font-bold text-[#1B3A5C]">4. Metode Pengiriman Yang Diminta Penerima:</span>
                 <Badge variant="primary">
                   {selectedRequest.preferredDelivery === 'RESCUE_COURIER'
-                    ? '🛵 Kurir Relawan Komunitas'
+                    ? ' Kurir Relawan Komunitas'
                     : selectedRequest.preferredDelivery === 'PROVIDER_DIRECT'
-                    ? '🚚 Diantar Langsung Toko'
-                    : '🏢 Ambil Mandiri Penerima'}
+                    ? ' Diantar Langsung Toko'
+                    : ' Ambil Mandiri Penerima'}
                 </Badge>
               </div>
 
@@ -893,7 +896,7 @@ export function DonationsHubComponent() {
                     <span>Penyesuaian Kemampuan Armada Toko:</span>
                   </div>
                   <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-                    Penerima meminta pengiriman mandiri oleh toko. Karena outlet Anda belum mengaktifkan armada kurir mandiri, metode pengiriman <strong>dialihkan secara otomatis ke Kurir Relawan Komunitas Replate (🛵)</strong> agar donasi tetap berjalan lancar!
+                    Penerima meminta pengiriman mandiri oleh toko. Karena outlet Anda belum mengaktifkan armada kurir mandiri, metode pengiriman <strong>dialihkan secara otomatis ke Kurir Relawan Komunitas Replate ()</strong> agar donasi tetap berjalan lancar!
                   </p>
                 </div>
               )}
@@ -902,10 +905,10 @@ export function DonationsHubComponent() {
                 <span className="text-slate-500 font-semibold">Metode Pengiriman Efektif Ditentukan:</span>
                 <span className="font-extrabold text-emerald-700">
                   {effectiveDeliveryMethod === 'RESCUE_COURIER'
-                    ? '🛵 Kurir Relawan Replate (Auto Assigned)'
+                    ? ' Kurir Relawan Replate (Auto Assigned)'
                     : effectiveDeliveryMethod === 'PROVIDER_DIRECT'
-                    ? '🚚 Diantar Langsung Toko'
-                    : '🏢 Ambil Mandiri Penerima'}
+                    ? ' Diantar Langsung Toko'
+                    : ' Ambil Mandiri Penerima'}
                 </span>
               </div>
             </div>
@@ -936,7 +939,7 @@ export function DonationsHubComponent() {
                 className="font-extrabold shadow-md"
                 disabled={!matchAnalysis.isMatch || portionedQuantity > selectedFoodObj?.quantity}
               >
-                Proses & Terbitkan QR Tracking Donasi ➔
+                Proses & Terbitkan QR Tracking Donasi 
               </Button>
             </div>
           </form>
@@ -953,7 +956,7 @@ export function DonationsHubComponent() {
         {completedTicket && (
           <div className="space-y-5 text-xs text-center">
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 space-y-1">
-              <span className="font-black text-sm uppercase tracking-wider block">✓ Donasi Berhasil Dialokasikan & Terintegrasi</span>
+              <span className="font-black text-sm uppercase tracking-wider block"> Donasi Berhasil Dialokasikan & Terintegrasi</span>
               <p className="text-xs text-emerald-800 font-medium">
                 Smart Match Score: <strong>{completedTicket.matchScore}%</strong> • Data klaim otomatis terdaftar di rute <strong>Klaim & Penyelamatan</strong> serta Pelacak Transparansi Publik Replate!
               </p>
@@ -1003,7 +1006,7 @@ export function DonationsHubComponent() {
                 }}
                 className="w-full py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
               >
-                <span>🌐 Halaman Transparansi Publik ➔</span>
+                <span> Halaman Transparansi Publik </span>
               </button>
 
               <button
@@ -1014,13 +1017,13 @@ export function DonationsHubComponent() {
                 }}
                 className="w-full py-3 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
               >
-                <span>🏢 Halaman Penyelamatan ➔</span>
+                <span> Halaman Penyelamatan </span>
               </button>
             </div>
 
             {completedTicket.deliveryMethod === 'PROVIDER_DIRECT' && (
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
-                <span className="font-bold text-xs text-amber-900 block">🚚 Alur Diantar Langsung oleh Provider:</span>
+                <span className="font-bold text-xs text-amber-900 block"> Alur Diantar Langsung oleh Provider:</span>
                 <p className="text-[11px] text-amber-800">
                   Setelah armada Anda sampai di lokasi penerima bantuan, unggah foto penyerahan sebagai bukti verifikasi penyelesaian donasi.
                 </p>
@@ -1044,7 +1047,7 @@ export function DonationsHubComponent() {
                   />
                 </label>
                 {providerDeliveryPhoto && (
-                  <p className="text-[11px] text-emerald-700 font-extrabold">✓ Foto Penyerahan Terunggah</p>
+                  <p className="text-[11px] text-emerald-700 font-extrabold"> Foto Penyerahan Terunggah</p>
                 )}
               </div>
             )}
@@ -1113,9 +1116,9 @@ export function DonationsHubComponent() {
               value={newDeliveryPref}
               onChange={(e) => setNewDeliveryPref(e.target.value)}
             >
-              <option value="RESCUE_COURIER">🛵 Disalurkan via Kurir Relawan Komunitas Replate (Rekomendasi)</option>
-              <option value="PROVIDER_DIRECT">🚚 Diantar Langsung oleh Armada Toko / Restoran</option>
-              <option value="SHELTER_PICKUP">🏢 Diambil Mandiri oleh Penerima Manfaat</option>
+              <option value="RESCUE_COURIER"> Disalurkan via Kurir Relawan Komunitas Replate (Rekomendasi)</option>
+              <option value="PROVIDER_DIRECT"> Diantar Langsung oleh Armada Toko / Restoran</option>
+              <option value="SHELTER_PICKUP"> Diambil Mandiri oleh Penerima Manfaat</option>
             </select>
           </div>
 
@@ -1136,7 +1139,7 @@ export function DonationsHubComponent() {
               Batal
             </Button>
             <Button type="submit" variant="gold" size="sm" className="font-extrabold">
-              Publikasikan Permintaan Donasi ➔
+              Publikasikan Permintaan Donasi 
             </Button>
           </div>
         </form>

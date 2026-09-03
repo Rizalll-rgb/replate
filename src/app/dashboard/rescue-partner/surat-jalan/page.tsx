@@ -20,7 +20,7 @@ export default function SuratJalanPage() {
           </Button>
         </Link>
         <Button variant="gold" size="sm" onClick={handlePrint} className="font-black text-xs shadow-md">
-          🖨️ Cetak Surat Jalan
+          ️ Cetak Surat Jalan
         </Button>
       </div>
 

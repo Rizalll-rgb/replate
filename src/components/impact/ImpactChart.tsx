@@ -28,7 +28,7 @@ export const ImpactChart: React.FC<ImpactChartProps> = ({ data = defaultData }) 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-sm">📈 Tren Penyelamatan Makanan & Emisi CO2</CardTitle>
+        <CardTitle className="text-sm"> Tren Penyelamatan Makanan & Emisi CO2</CardTitle>
       </CardHeader>
       <CardBody className="h-64">
         <ResponsiveContainer width="100%" height="100%">

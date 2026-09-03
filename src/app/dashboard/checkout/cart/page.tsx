@@ -260,7 +260,7 @@ export default function CheckoutCartPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {/* Alamat — Poin 8: replace 📍 emoji with MapPinIcon */}
+            {/* Alamat — Poin 8: replace  emoji with MapPinIcon */}
             <div className="bg-white border-t-[3px] border-t-emerald-500 rounded-b-3xl border-x border-b border-slate-200 p-5 space-y-4 shadow-sm text-sm">
               <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider flex items-center gap-2">
                 <MapPinIcon size={14} className="text-emerald-600" />

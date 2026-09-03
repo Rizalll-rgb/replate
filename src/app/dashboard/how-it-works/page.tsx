@@ -124,28 +124,28 @@ export default function DashboardHowItWorksPage() {
           </p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-semibold text-slate-700">
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Informasi Produk Lengkap
+              <span className="text-emerald-600 font-bold"></span> Informasi Produk Lengkap
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Tidak Melewati Expiry Date
+              <span className="text-emerald-600 font-bold"></span> Tidak Melewati Expiry Date
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Suhu Penyimpanan Sesuai
+              <span className="text-emerald-600 font-bold"></span> Suhu Penyimpanan Sesuai
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Kemasan Utuh & Higienis
+              <span className="text-emerald-600 font-bold"></span> Kemasan Utuh & Higienis
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Bebas Tanda Kerusakan
+              <span className="text-emerald-600 font-bold"></span> Bebas Tanda Kerusakan
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Foto Produk Jelas
+              <span className="text-emerald-600 font-bold"></span> Foto Produk Jelas
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Batas Pickup Realistis
+              <span className="text-emerald-600 font-bold"></span> Batas Pickup Realistis
             </li>
             <li className="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg">
-              <span className="text-emerald-600 font-bold">✓</span> Alamat Akurat Surabaya
+              <span className="text-emerald-600 font-bold"></span> Alamat Akurat Surabaya
             </li>
           </ul>
         </Card>

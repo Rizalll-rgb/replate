@@ -1134,7 +1134,7 @@ export default function ProviderSettingsPage() {
                     }}
                     className="px-4 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all inline-block"
                   >
-                    + Daftarkan Driver Toko Pertama ➔
+                    + Daftarkan Driver Toko Pertama 
                   </button>
                 </div>
               ) : (
@@ -1209,7 +1209,7 @@ export default function ProviderSettingsPage() {
                             }}
                             className="px-3 py-1 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-[11px] rounded-lg shadow-xs"
                           >
-                            Simulasi Approve Admin (Demo) ➔
+                            Simulasi Approve Admin (Demo) 
                           </button>
                         </div>
                         <p className="text-slate-200 font-medium leading-relaxed">
@@ -1219,7 +1219,7 @@ export default function ProviderSettingsPage() {
                     ) : (
                       <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-xl space-y-1 text-xs">
                         <span className="font-extrabold text-white block">
-                          📝 Formulir Pendaftaran Armada Toko #{currentFleet.plateNumber}:
+                           Formulir Pendaftaran Armada Toko #{currentFleet.plateNumber}:
                         </span>
                         <p className="text-slate-300 text-[11px] font-medium">
                           Isi data driver, verifikasi nomor WhatsApp via OTP, serta unggah 5 foto berkas fisik kendaraan sebelum mengajukan.
@@ -1827,7 +1827,7 @@ export default function ProviderSettingsPage() {
                         }}
                       >
                         <CheckIcon size={14} />
-                        <span>Ajukan Verifikasi Berkas Armada ➔</span>
+                        <span>Ajukan Verifikasi Berkas Armada </span>
                       </Button>
                     </div>
                   </div>
@@ -2051,7 +2051,7 @@ export default function ProviderSettingsPage() {
                   className="font-extrabold text-xs shadow-xs"
                   onClick={() => setAddPartnerModal({ ...addPartnerModal, isOpen: true })}
                 >
-                  + Tambah Mitra Panti Langganan Baru ➔
+                  + Tambah Mitra Panti Langganan Baru 
                 </Button>
               </div>
 
@@ -2318,7 +2318,7 @@ export default function ProviderSettingsPage() {
           <div className="sticky bottom-4 z-20 flex justify-end gap-3 pt-2 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-slate-200 shadow-lg sm:static sm:bg-transparent sm:p-0 sm:border-0 sm:shadow-none">
             <Button type="submit" variant="gold" size="lg" className="w-full sm:w-auto font-black shadow-md flex items-center justify-center gap-1.5">
               <CheckIcon size={16} />
-              <span>Simpan Pengaturan Outlet ➔</span>
+              <span>Simpan Pengaturan Outlet </span>
             </Button>
           </div>
         )}
@@ -2404,7 +2404,7 @@ export default function ProviderSettingsPage() {
                   SOP Keamanan: Sandi otomatis terenkripsi bcrypt salted 12 rounds.
                 </span>
                 <Button type="submit" variant="primary" size="md" className="font-extrabold">
-                  Perbarui Kata Sandi Akun ➔
+                  Perbarui Kata Sandi Akun 
                 </Button>
               </div>
             </form>
@@ -2588,12 +2588,12 @@ export default function ProviderSettingsPage() {
                   setOtpModal((prev) => ({ ...prev, isOpen: false }));
                   setToastState({
                     isOpen: true,
-                    message: `✅ Nomor WhatsApp Driver (${otpModal.phone}) Berhasil Terverifikasi Sah via OTP!`,
+                    message: ` Nomor WhatsApp Driver (${otpModal.phone}) Berhasil Terverifikasi Sah via OTP!`,
                     type: 'success',
                   });
                 }}
               >
-                Verifikasi OTP Kontak Driver ➔
+                Verifikasi OTP Kontak Driver 
               </Button>
             </div>
           </div>
@@ -2661,7 +2661,7 @@ export default function ProviderSettingsPage() {
                 className="font-extrabold text-slate-950 shadow-md"
                 onClick={handleAddPreferredPartner}
               >
-                + Simpan Langganan Panti ➔
+                + Simpan Langganan Panti 
               </Button>
             </div>
           </div>

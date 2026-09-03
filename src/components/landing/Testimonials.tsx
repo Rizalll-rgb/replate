@@ -78,10 +78,10 @@ export const Testimonials: React.FC = () => {
               <CardBody className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex text-amber-400 text-xs">
-                    {'★'.repeat(item.rating || 5)}
+                    {''.repeat(item.rating || 5)}
                   </div>
                   <span className="text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-full">
-                    ✓ Transaksi Terverifikasi
+                     Transaksi Terverifikasi
                   </span>
                 </div>
 

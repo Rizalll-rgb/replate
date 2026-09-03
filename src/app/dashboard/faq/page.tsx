@@ -116,7 +116,7 @@ export default function DashboardFAQPage() {
             className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors shrink-0 flex items-center gap-1.5"
           >
             <span>Hubungi Live Helpdesk</span>
-            <span>➔</span>
+            <span></span>
           </a>
         </div>
       </Card>

@@ -54,7 +54,7 @@ export default function ChatPage() {
       name: 'Panti Asuhan Kasih Ibu (Ibu Ratna)',
       role: 'Food Beneficiary',
       avatar: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=500&auto=format&fit=crop&q=60',
-      lastMessage: 'Terima kasih banyak atas donasi makanan malamnya 🙏',
+      lastMessage: 'Terima kasih banyak atas donasi makanan malamnya ',
       lastTime: 'Kemarin',
       unread: 0,
       orderCode: 'FB-DON-77182',
@@ -73,7 +73,7 @@ export default function ChatPage() {
       { id: 'm2', sender: 'other', text: 'Saya sudah di depan outlet membawa box pendingin.', time: '18:45' },
     ],
     c3: [
-      { id: 'm1', sender: 'other', text: 'Terima kasih banyak atas donasi makanan malamnya 🙏', time: 'Kemarin' },
+      { id: 'm1', sender: 'other', text: 'Terima kasih banyak atas donasi makanan malamnya ', time: 'Kemarin' },
     ],
   });
 
@@ -208,7 +208,7 @@ export default function ChatPage() {
                 className="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1B3A5C]"
               />
               <Button variant="gold" size="sm" type="submit" className="font-black text-slate-950 text-xs px-4">
-                Kirim ➔
+                Kirim 
               </Button>
             </form>
           </div>

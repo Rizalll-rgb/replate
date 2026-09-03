@@ -116,7 +116,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                   <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
                   <span className="text-slate-400 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                    ➔
+                    
                   </span>
                 )}
               </button>
@@ -129,7 +129,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
               className="w-full p-3 rounded-2xl border border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50 flex items-center gap-3 text-slate-700 font-extrabold text-xs transition-all cursor-pointer"
             >
               <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0 border border-slate-200">
-                👤+
+                +
               </div>
               <span>Gunakan Akun Google Lain...</span>
             </button>
@@ -175,7 +175,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                 type="submit"
                 className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md"
               >
-                Lanjutkan ➔
+                Lanjutkan 
               </button>
             </div>
           </form>

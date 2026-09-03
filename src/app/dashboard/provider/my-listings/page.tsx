@@ -105,7 +105,8 @@ export default function MyListingsPage() {
       return;
     }
 
-    fetch('/api/surplus?status=')
+    const providerQuery = session?.user?.id ? `&providerId=${session.user.id}` : '';
+    fetch(`/api/surplus?status=${providerQuery}`)
       .then((res) => res.json())
       .then((data) => {
         let itemsList: any[] = [];
@@ -571,7 +572,7 @@ export default function MyListingsPage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" className="font-black text-slate-950" onClick={handleSaveManage}>
-                Simpan Perubahan ➔
+                Simpan Perubahan 
               </Button>
             </div>
           </div>
@@ -604,10 +605,10 @@ export default function MyListingsPage() {
                   onChange={(e) => setEditFormData({ ...editFormData, foodCategory: e.target.value })}
                   className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs"
                 >
-                  <option value="MEALS">🍱 Makanan Olahan Matang (Meals)</option>
-                  <option value="BAKERY">🥐 Roti, Kue & Pastry</option>
-                  <option value="PRODUCE">🥗 Sayuran & Buah Segar</option>
-                  <option value="DAIRY">🥛 Produk Olahan Susu / Minuman</option>
+                  <option value="MEALS"> Makanan Olahan Matang (Meals)</option>
+                  <option value="BAKERY"> Roti, Kue & Pastry</option>
+                  <option value="PRODUCE"> Sayuran & Buah Segar</option>
+                  <option value="DAIRY"> Produk Olahan Susu / Minuman</option>
                 </select>
               </div>
             </div>
@@ -697,7 +698,7 @@ export default function MyListingsPage() {
                 Batal
               </Button>
               <Button variant="gold" size="sm" type="submit" className="font-black text-slate-950">
-                Simpan Rincian Menu ➔
+                Simpan Rincian Menu 
               </Button>
             </div>
           </form>
@@ -753,7 +754,7 @@ export default function MyListingsPage() {
                 onClick={handleConfirmDelete}
                 className="py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer"
               >
-                Ya, Hapus Permanen ➔
+                Ya, Hapus Permanen 
               </button>
             </div>
           </div>

@@ -64,12 +64,12 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
   const handleVerify = () => {
     const entered = otp.join('');
     if (entered.length < 4) {
-      setError('⚠️ Mohon isi 4-digit kode OTP secara lengkap!');
+      setError('️ Mohon isi 4-digit kode OTP secara lengkap!');
       return;
     }
 
     if (entered !== generatedOtp) {
-      setError('❌ Kode OTP yang Anda masukkan salah! Periksa kembali pesan dari Replate WhatsApp Bot.');
+      setError(' Kode OTP yang Anda masukkan salah! Periksa kembali pesan dari Replate WhatsApp Bot.');
       return;
     }
 
@@ -88,7 +88,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     setGeneratedOtp(newRandomOtp);
     setOtp(['', '', '', '']);
     setCountdown(60);
-    setResendMessage('✓ Kode OTP baru berhasil dikirimkan ulang secara otomatis oleh Replate WA Gateway!');
+    setResendMessage(' Kode OTP baru berhasil dikirimkan ulang secara otomatis oleh Replate WA Gateway!');
     setTimeout(() => setResendMessage(''), 4000);
   };
 
@@ -96,7 +96,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="📱 Verifikasi 2-Langkah (Replate WA Gateway)"
+      title=" Verifikasi 2-Langkah (Replate WA Gateway)"
       size="sm"
     >
       <div className="space-y-4 text-center text-xs text-slate-700">
@@ -115,10 +115,10 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
         <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl space-y-1.5 text-emerald-950 text-left shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-emerald-900 flex items-center gap-1.5">
-              <span>💬 Replate WA Gateway Server:</span>
+              <span> Replate WA Gateway Server:</span>
             </span>
             <span className="px-2 py-0.5 bg-emerald-600 text-white rounded-md text-[9px] font-mono font-black shrink-0">
-              ✓ TERKIRIM OTOMATIS
+               TERKIRIM OTOMATIS
             </span>
           </div>
           <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
@@ -159,7 +159,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
           </div>
 
           <p className="text-[11px] text-slate-500 font-medium pt-1">
-            💡 <button type="button" onClick={() => setOtp(generatedOtp.split(''))} className="text-emerald-700 font-mono font-black underline cursor-pointer">Simulasi Terima Kode WA Bot ({generatedOtp})</button>
+             <button type="button" onClick={() => setOtp(generatedOtp.split(''))} className="text-emerald-700 font-mono font-black underline cursor-pointer">Simulasi Terima Kode WA Bot ({generatedOtp})</button>
           </p>
         </div>
 
@@ -171,7 +171,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
             isLoading={isVerifying}
             className="w-full font-black text-slate-950 py-3 shadow-md cursor-pointer"
           >
-            <span>Verifikasi Kode OTP WA ➔</span>
+            <span>Verifikasi Kode OTP WA </span>
           </Button>
 
           {/* Anti-Spam Countdown Button */}
@@ -188,7 +188,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
             {countdown > 0 ? (
               <span>⏳ Kirim Ulang Kode OTP WhatsApp (Tunggu {countdown}d)</span>
             ) : (
-              <span>🔄 Kirim Ulang Kode OTP WhatsApp Sekarang ➔</span>
+              <span> Kirim Ulang Kode OTP WhatsApp Sekarang </span>
             )}
           </button>
         </div>

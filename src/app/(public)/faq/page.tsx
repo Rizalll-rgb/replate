@@ -95,7 +95,7 @@ export default function FAQPage() {
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
                 className="w-full p-4 text-left flex items-center justify-between font-extrabold text-sm text-[#1B3A5C] hover:bg-slate-50 transition-colors"
               >
-                <span className="pr-4">❓ {faq.q}</span>
+                <span className="pr-4"> {faq.q}</span>
                 <span className="text-lg text-slate-400 font-mono shrink-0">{openIndex === idx ? '−' : '+'}</span>
               </button>
               {openIndex === idx && (
@@ -121,7 +121,7 @@ export default function FAQPage() {
               className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors shrink-0 flex items-center gap-1.5"
             >
               <span>Hubungi Live Helpdesk</span>
-              <span>➔</span>
+              <span></span>
             </a>
           </div>
         </Card>

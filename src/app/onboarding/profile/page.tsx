@@ -109,7 +109,7 @@ export default function OnboardingProfilePage() {
 
     if (role === 'FOOD_CONSUMER') {
       setLoading(true);
-      setSuccessMessage('🎉 Akun Food Consumer Anda Resmi Aktif! Mengalihkan ke Dashboard...');
+      setSuccessMessage(' Akun Food Consumer Anda Resmi Aktif! Mengalihkan ke Dashboard...');
 
       try {
         localStorage.setItem(
@@ -186,7 +186,7 @@ export default function OnboardingProfilePage() {
                 onClick={handleQuickFillDemo}
                 className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
               >
-                ⚡ Isi Contoh Simulasi Demo
+                 Isi Contoh Simulasi Demo
               </button>
               <span className="text-xs bg-slate-900 text-amber-300 font-extrabold px-3 py-1 rounded-lg border border-slate-700">
                 Peran: {formatRoleLabel(role)}
@@ -352,8 +352,8 @@ export default function OnboardingProfilePage() {
               <Button variant="gold" size="md" type="submit" isLoading={loading} className="font-black text-xs py-3 px-6 shadow-md cursor-pointer">
                 <span>
                   {isConsumer
-                    ? 'Selesaikan Registrasi & Masuk Dashboard Consumer ➔'
-                    : 'Lanjut Ke Upload Dokumen Legalitas ➔'}
+                    ? 'Selesaikan Registrasi & Masuk Dashboard Consumer '
+                    : 'Lanjut Ke Upload Dokumen Legalitas '}
                 </span>
               </Button>
             </div>

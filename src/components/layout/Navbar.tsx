@@ -138,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
               {/* User Dashboard Direct Action Button */}
               <Link href={dashboardUrl} className="ml-1">
                 <Button variant="gold" size="sm" className="font-extrabold text-xs text-slate-950 py-1.5 px-3.5 shadow-xs whitespace-nowrap">
-                  <span>🚀 Workspace ({activeRoleName || 'Dashboard'}) ➔</span>
+                  <span> Workspace ({activeRoleName || 'Dashboard'}) </span>
                 </Button>
               </Link>
             </>

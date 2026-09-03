@@ -99,12 +99,12 @@ export default function PartnerOverviewPage() {
               </div>
               <p className="font-black text-[#1B3A5C] text-sm">Nasi Goreng Buffet + Ayam Bakar (30 Porsi)</p>
               <p className="text-xs text-slate-600 font-medium">
-                Hotel Majapahit Surabaya ➔ Panti Asuhan Kasih Ibu Wonokromo (Jarak Rute: 2.1 km • Estimasi: 12 Menit)
+                Hotel Majapahit Surabaya  Panti Asuhan Kasih Ibu Wonokromo (Jarak Rute: 2.1 km • Estimasi: 12 Menit)
               </p>
             </div>
             <Link href="/dashboard/rescue-partner/surat-jalan" className="shrink-0">
               <Button variant="primary" size="sm" className="font-black text-xs py-2.5 px-4 shadow-xs">
-                Buka Surat Jalan Digital WA ➔
+                Buka Surat Jalan Digital WA 
               </Button>
             </Link>
           </div>

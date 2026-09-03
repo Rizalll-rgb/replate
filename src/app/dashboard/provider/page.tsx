@@ -237,7 +237,8 @@ export default function ProviderOverviewPage() {
       setActiveSurplusCount(defaultCatalog.length);
     }
 
-    fetch('/api/surplus?status=')
+    const providerQuery = session?.user?.id ? `&providerId=${session.user.id}` : '';
+    fetch(`/api/surplus?status=${providerQuery}`)
       .then((res) => res.json())
       .then((data) => {
         let itemsList: any[] = [];
@@ -280,7 +281,7 @@ export default function ProviderOverviewPage() {
 
   const handleOpenAllocationModal = (panti: any) => {
     // Dynamic refresh from local surplus cache so newly added items are immediately ready
-    let currentProducts = availableProducts;
+    let currentProducts = [...availableProducts];
     try {
       const localStr = localStorage.getItem('replate_local_surplus');
       if (localStr) {
@@ -298,7 +299,15 @@ export default function ProviderOverviewPage() {
             freshUntil: item.freshUntil || item.pickupTime || 'Hari ini 21:00 WIB',
             status: item.status || 'AVAILABLE',
           });
-          currentProducts = parsed.map(normalizeProd);
+          const localNormalized = parsed.map(normalizeProd);
+          const combined = [...localNormalized, ...currentProducts];
+          const deduped = Array.from(
+            combined.reduce((map, item) => {
+              if (!map.has(item.id)) map.set(item.id, item);
+              return map;
+            }, new Map<string, any>()).values()
+          );
+          currentProducts = deduped;
           setAvailableProducts(currentProducts);
         }
       }
@@ -711,7 +720,7 @@ export default function ProviderOverviewPage() {
                     }}
                     className="text-[10px] font-bold text-blue-700 hover:underline cursor-pointer"
                   >
-                    Rincian Skor ➔
+                    Rincian Skor 
                   </button>
                 </div>
 
@@ -731,7 +740,7 @@ export default function ProviderOverviewPage() {
                     onClick={() => handleOpenAllocationModal(panti)}
                     className="flex-1 font-black text-xs text-slate-950 py-2 shadow-md cursor-pointer"
                   >
-                    Sanggupi Donasi ➔
+                    Sanggupi Donasi 
                   </Button>
                 </div>
               </div>
@@ -745,7 +754,7 @@ export default function ProviderOverviewPage() {
         <Link href="/dashboard/provider/my-listings" className="p-5 bg-white rounded-3xl border border-slate-200 hover:border-[#1B3A5C] transition-all shadow-xs space-y-2 block group">
           <div className="flex items-center justify-between">
             <h4 className="font-black text-sm text-[#1B3A5C] group-hover:text-blue-700">Kelola Katalog Surplus</h4>
-            <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
+            <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"></span>
           </div>
           <p className="text-xs text-slate-500 font-medium">Pantau status stok makanan, sisa porsi, dan unggah menu baru.</p>
         </Link>
@@ -753,7 +762,7 @@ export default function ProviderOverviewPage() {
         <Link href="/dashboard/provider/claims" className="p-5 bg-white rounded-3xl border border-slate-200 hover:border-[#1B3A5C] transition-all shadow-xs space-y-2 block group">
           <div className="flex items-center justify-between">
             <h4 className="font-black text-sm text-[#1B3A5C] group-hover:text-blue-700">Klaim & Serah Terima Kasir</h4>
-            <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
+            <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"></span>
           </div>
           <p className="text-xs text-slate-500 font-medium">Validasi resi digital saat pembeli atau kurir relawan mengambil paket.</p>
         </Link>
@@ -761,7 +770,7 @@ export default function ProviderOverviewPage() {
         <Link href="/dashboard/provider/impact" className="p-5 bg-white rounded-3xl border border-slate-200 hover:border-[#1B3A5C] transition-all shadow-xs space-y-2 block group">
           <div className="flex items-center justify-between">
             <h4 className="font-black text-sm text-[#1B3A5C] group-hover:text-blue-700">Laporan Dampak & Sertifikat</h4>
-            <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform">➔</span>
+            <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"></span>
           </div>
           <p className="text-xs text-slate-500 font-medium">Unduh sertifikat resmi penyelamatan pangan untuk audit ESG.</p>
         </Link>
@@ -931,7 +940,7 @@ export default function ProviderOverviewPage() {
                     handleOpenAllocationModal(target);
                   }}
                 >
-                  Sanggupi Bantuan Panti ➔
+                  Sanggupi Bantuan Panti 
                 </Button>
               </div>
             </div>
@@ -1445,7 +1454,7 @@ export default function ProviderOverviewPage() {
                 }}
               >
                 <CheckIcon size={16} />
-                <span>Buka & Kelola di Modul Klaim & Kasir ➔</span>
+                <span>Buka & Kelola di Modul Klaim & Kasir </span>
               </Button>
 
               <button

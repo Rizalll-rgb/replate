@@ -262,7 +262,7 @@ export default function WorkspaceLiveTrackingPage() {
             className="flex-1 px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#1B3A5C] font-mono shadow-xs"
           />
           <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 py-3 px-6 shadow-md">
-            Lacak Resi ➔
+            Lacak Resi 
           </Button>
         </form>
 
@@ -460,7 +460,7 @@ export default function WorkspaceLiveTrackingPage() {
                   <span>
                     {activeTracking.currentStep >= 5
                       ? 'Pengantaran Selesai 100%'
-                      : `Update Step ke-${activeTracking.currentStep + 1} ➔`}
+                      : `Update Step ke-${activeTracking.currentStep + 1} `}
                   </span>
                 </Button>
               </div>
@@ -600,7 +600,7 @@ export default function WorkspaceLiveTrackingPage() {
                   className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
                 >
                   <ChatIcon size={14} />
-                  <span>Hubungi Driver via WhatsApp ➔</span>
+                  <span>Hubungi Driver via WhatsApp </span>
                 </a>
               </div>
 
@@ -642,7 +642,7 @@ export default function WorkspaceLiveTrackingPage() {
                 >
                   {activeTracking.currentStep >= 5
                     ? 'Pengantaran Telah Selesai 100%'
-                    : `Update Step ke-${activeTracking.currentStep + 1} ➔`}
+                    : `Update Step ke-${activeTracking.currentStep + 1} `}
                 </Button>
               </div>
             </div>

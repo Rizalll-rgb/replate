@@ -134,7 +134,7 @@ export default function PublicTrackPage() {
       setSteps([
         {
           status: 'LISTED',
-          title: '📦 1. Surplus Dipublikasikan di Replate Engine',
+          title: ' 1. Surplus Dipublikasikan di Replate Engine',
           description: 'Provider mengunggah makanan surplus & lulus 8 Checklist Kelayakan Pangan BPOM RI.',
           timestamp: foundClaim.createdAt || new Date(Date.now() - 3600000 * 4).toISOString(),
           actor: foundClaim.storeName || 'Warung Bakso Pak Kumis Surabaya',
@@ -143,7 +143,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'MATCHED',
-          title: '🔍 2. Smart Matching Engine 2.0 Calculated',
+          title: ' 2. Smart Matching Engine 2.0 Calculated',
           description: 'Algoritma memberikan skor kecocokan gizi & jarak lokasi terdekat.',
           timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
           actor: 'Replate Smart Matching Engine',
@@ -152,7 +152,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'CLAIMED',
-          title: '✅ 3. Penyelamatan Makanan Disetujui',
+          title: ' 3. Penyelamatan Makanan Disetujui',
           description: 'Klaim booking diverifikasi lunas & Kode Resi QR aktif.',
           timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
           actor: foundClaim.userName || 'Panti Asuhan / Konsumen',
@@ -161,7 +161,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'IN_TRANSIT',
-          title: '🚚 4. Pengiriman / Penjemputan Makanan OTW',
+          title: ' 4. Pengiriman / Penjemputan Makanan OTW',
           description: `Makanan sedang diantar oleh ${foundClaim.driverName || foundClaim.courierName || 'Armada Driver Toko'}.`,
           timestamp: new Date(Date.now() - 3600000 * 1).toISOString(),
           actor: foundClaim.driverName || foundClaim.courierName || 'Armada Toko Direct (Mas Doni/Mas Agus)',
@@ -170,7 +170,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'VERIFIED',
-          title: '✔️ 5. Verifikasi Makanan Sampai di Tujuan (Selesai)',
+          title: '️ 5. Verifikasi Makanan Sampai di Tujuan (Selesai)',
           description: isDone
             ? `Makanan telah diterima dengan baik di ${foundClaim.address || 'lokasi tujuan'}. Bukti foto serah terima terverifikasi.`
             : 'Menunggu konfirmasi foto serah terima & QR scan dari penerima.',
@@ -192,7 +192,7 @@ export default function PublicTrackPage() {
       setSteps([
         {
           status: 'LISTED',
-          title: '📦 1. Makanan Dipublikasikan (Listed)',
+          title: ' 1. Makanan Dipublikasikan (Listed)',
           description: 'Provider mengunggah makanan surplus dan lulus 8 SOP Readiness Checklist.',
           timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
           actor: 'Warung Bakso Pak Kumis Surabaya',
@@ -201,7 +201,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'MATCHED',
-          title: '🔍 2. Smart Matching Engine 2.0 Calculated',
+          title: ' 2. Smart Matching Engine 2.0 Calculated',
           description: 'Algoritma mencocokkan kategori gizi & radius lokasi terdekat.',
           timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
           actor: 'Replate Smart Engine',
@@ -210,7 +210,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'CLAIMED',
-          title: '✅ 3. Penyelamatan Diklaim & Disetujui',
+          title: ' 3. Penyelamatan Diklaim & Disetujui',
           description: 'Tugas rescue diterima dan QR verification code diterbitkan.',
           timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
           actor: 'Penerima Terdaftar',
@@ -219,7 +219,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'IN_TRANSIT',
-          title: '🚚 4. Dalam Pengantaran / Penjemputan (OTW)',
+          title: ' 4. Dalam Pengantaran / Penjemputan (OTW)',
           description: 'Driver Armada Toko / Kurir Relawan dalam perjalanan menuju lokasi tujuan.',
           timestamp: new Date(Date.now() - 3600000 * 1).toISOString(),
           actor: 'Driver Armada Logistik',
@@ -228,7 +228,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'VERIFIED',
-          title: '✔️ 5. Verifikasi Keamanan Pangan & Serah Terima Selesai',
+          title: '️ 5. Verifikasi Keamanan Pangan & Serah Terima Selesai',
           description: 'QR Code di-scan, SOP 5-point food safety diverifikasi.',
           completed: false,
           current: false,
@@ -245,7 +245,7 @@ export default function PublicTrackPage() {
         {/* Header Banner */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 border border-amber-300 text-amber-950 text-[10px] font-black uppercase tracking-wider rounded-md">
-            <span>🔒 PELACAK TRANSPARANSI TRANSAKSI & RANTAI PASOK</span>
+            <span> PELACAK TRANSPARANSI TRANSAKSI & RANTAI PASOK</span>
           </div>
           <h1 className="text-3xl font-black text-[#1B3A5C] tracking-tight">
             Lacak Status Food Rescue ID
@@ -262,7 +262,7 @@ export default function PublicTrackPage() {
         <div className="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-slate-700">
           <div className="space-y-0.5">
             <span className="font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
-              <span>🔒 Mode Transparansi Terproteksi (Privasi Data Panti & Konsumen):</span>
+              <span> Mode Transparansi Terproteksi (Privasi Data Panti & Konsumen):</span>
             </span>
             <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
               Nomor WhatsApp dan dokumen audit lengkap disembunyikan dari publik anonim untuk mematuhi regulasi privasi data.
@@ -272,7 +272,7 @@ export default function PublicTrackPage() {
             href="/login"
             className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all shrink-0"
           >
-            Login Dashboard ➔
+            Login Dashboard 
           </Link>
         </div>
 

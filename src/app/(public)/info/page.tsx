@@ -536,7 +536,7 @@ export default function PublicInfoHubPage() {
         {/* Hero Section */}
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#1B3A5C] text-[#D4A843] rounded-full text-xs font-black tracking-wider uppercase shadow-xs">
-            <span>🏛️ KAJIAN ILMIAH BAPPENAS RI & KLH 2025</span>
+            <span>️ KAJIAN ILMIAH BAPPENAS RI & KLH 2025</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-[#1B3A5C] tracking-tight">
             Pusat Informasi, Edukasi & Regulasi Replate
@@ -568,7 +568,7 @@ export default function PublicInfoHubPage() {
                 className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
                 title="Hapus pencarian"
               >
-                <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black">✕</span>
+                <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black"></span>
               </button>
             )}
           </div>
@@ -576,7 +576,7 @@ export default function PublicInfoHubPage() {
           {/* Quick Keywords Chips */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
             <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
-              <span>⚡ Topik Populer:</span>
+              <span> Topik Populer:</span>
             </span>
             {quickKeywords.map((kw, i) => (
               <button
@@ -650,7 +650,7 @@ export default function PublicInfoHubPage() {
                   }}
                   className="px-3 py-1 bg-red-600/80 hover:bg-red-600 text-white rounded-lg text-[10px] font-black cursor-pointer transition-colors"
                 >
-                  Reset Filter ✕
+                  Reset Filter 
                 </button>
               </div>
             </div>
@@ -659,7 +659,7 @@ export default function PublicInfoHubPage() {
             {searchResults.length === 0 ? (
               <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center space-y-3">
                 <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-2xl">
-                  🔍
+                  
                 </div>
                 <h4 className="text-base font-black text-slate-800">Tidak ada materi yang cocok</h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
@@ -671,7 +671,7 @@ export default function PublicInfoHubPage() {
                   onClick={() => setSearchQuery('')}
                   className="font-bold text-xs"
                 >
-                  Lihat Semua Konten ➔
+                  Lihat Semua Konten 
                 </Button>
               </div>
             ) : (
@@ -723,7 +723,7 @@ export default function PublicInfoHubPage() {
                         className="text-xs font-black text-[#1B3A5C] hover:text-[#D4A843] flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <span>Buka di Tab Terkait</span>
-                        <span>➔</span>
+                        <span></span>
                       </button>
                     </div>
                   </div>
@@ -744,7 +744,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            📊 Latar Belakang & Urgensi FLW
+             Latar Belakang & Urgensi FLW
           </button>
 
           <button
@@ -756,7 +756,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            🧮 Kalkulator Dampak Bappenas
+             Kalkulator Dampak Bappenas
           </button>
 
           <button
@@ -768,7 +768,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            ⚙️ Cara Kerja (4 Role)
+            ️ Cara Kerja (4 Role)
           </button>
 
           <button
@@ -780,7 +780,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            🛡️ Regulasi BPOM RI
+            ️ Regulasi BPOM RI
           </button>
 
           <button
@@ -792,7 +792,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            ❓ FAQ & Bantuan
+             FAQ & Bantuan
           </button>
         </div>
 
@@ -850,7 +850,7 @@ export default function PublicInfoHubPage() {
               {/* Deep Dive: Food Loss vs Food Waste Shift */}
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                 <h3 className="font-black text-sm text-[#1B3A5C] flex items-center gap-2">
-                  <span>🔄 Pergeseran Tren Komposisi FLW Indonesia (2000 – 2019)</span>
+                  <span> Pergeseran Tren Komposisi FLW Indonesia (2000 – 2019)</span>
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
                   Kajian Bappenas membuktikan bahwa porsi <strong>Food Loss (tahap hulu) menurun dari 61% ke 45%</strong>, sedangkan porsi <strong>Food Waste (tahap hilir: distribusi, ritel, layanan makanan, dan konsumsi) melonjak dari 39% menjadi 55%</strong>.
@@ -1244,7 +1244,7 @@ export default function PublicInfoHubPage() {
                 rel="noopener noreferrer"
               >
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md whitespace-nowrap">
-                  Hubungi Helpdesk WhatsApp ➔
+                  Hubungi Helpdesk WhatsApp 
                 </Button>
               </a>
             </div>

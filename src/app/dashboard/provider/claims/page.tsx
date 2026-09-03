@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   CameraIcon,
   GalleryIcon,
@@ -26,6 +27,7 @@ import {
   MapPinIcon,
   ShieldCheckIcon,
   AlertTriangleIcon,
+  MapIcon,
 } from '@/components/ui/Icon';
 
 export default function ProviderClaimsPage() {
@@ -966,7 +968,7 @@ export default function ProviderClaimsPage() {
                           <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
                             <span className="font-mono font-bold text-[#1B3A5C]">{tx.code}</span>
                             <span>•</span>
-                            <span className="text-slate-700 font-semibold">{tx.userName}</span>
+                            <span className="text-slate-700 font-semibold">{tx.recipientPerson || tx.userName}</span>
                             <span>•</span>
                             <span>{tx.deliveryMethod === 'SHELTER_PICKUP' ? 'Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? 'Diantar Toko' : 'Kurir Relawan'}</span>
                             {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status === 'AWAITING_RESCUE_PICKUP' && (
@@ -1090,7 +1092,7 @@ export default function ProviderClaimsPage() {
                         onClick={() => setPaymentInspectModal({ isOpen: true, claim: tx })}
                       >
                         <CreditCardIcon size={14} />
-                        <span>Inspect Struk ➔</span>
+                        <span>Inspect Struk </span>
                       </Button>
                     ) : activeTab === 'PENDING_PICKUP' ? (
                       tx.status === 'AWAITING_RESCUE_PICKUP' ? (
@@ -1112,7 +1114,7 @@ export default function ProviderClaimsPage() {
                           }}
                         >
                           <BikeIcon size={14} />
-                          <span>Kurir Tiba di Toko ➔</span>
+                          <span>Kurir Tiba di Toko </span>
                         </Button>
                       ) : (
                         <Button
@@ -1144,7 +1146,7 @@ export default function ProviderClaimsPage() {
                           onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
                         >
                           <MapPinIcon size={14} />
-                          <span>Live Tracking ➔</span>
+                          <span>Live Tracking </span>
                         </Button>
                       )
                     ) : (
@@ -1296,7 +1298,7 @@ export default function ProviderClaimsPage() {
                   }}
                   className="px-4 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
                 >
-                  <span>📋 Audit Log Resi Transaksi ➔</span>
+                  <span> Audit Log Resi Transaksi </span>
                 </button>
 
                 <Button variant="outline" size="sm" onClick={() => setDetailModal({ isOpen: false, claim: null })}>
@@ -1427,7 +1429,7 @@ export default function ProviderClaimsPage() {
                         className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
                       >
                         <ChatIcon size={14} />
-                        <span>Kirim Link Surat Jalan WA ke Driver Toko ➔</span>
+                        <span>Kirim Link Surat Jalan WA ke Driver Toko </span>
                       </a>
                     </>
                   )}
@@ -1629,7 +1631,7 @@ export default function ProviderClaimsPage() {
                 }}
               >
                 <CheckIcon size={14} />
-                <span>Konfirmasi Handover Selesai ➔</span>
+                <span>Konfirmasi Handover Selesai </span>
               </Button>
             </div>
           </div>
@@ -1680,7 +1682,7 @@ export default function ProviderClaimsPage() {
                 onClick={() => handleApprovePaymentProof(paymentInspectModal.claim.code)}
               >
                 <CheckIcon size={14} />
-                <span>Verifikasi Lunas & Terbitkan Tiket ➔</span>
+                <span>Verifikasi Lunas & Terbitkan Tiket </span>
               </Button>
             </div>
           </div>
@@ -1717,7 +1719,7 @@ export default function ProviderClaimsPage() {
                 className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
                 <ChatIcon size={14} />
-                <span>Kirim Link Tiket QR via WhatsApp ke Pembeli ➔</span>
+                <span>Kirim Link Tiket QR via WhatsApp ke Pembeli </span>
               </a>
 
               <Button
@@ -1729,7 +1731,7 @@ export default function ProviderClaimsPage() {
                   setActiveTab('PENDING_PICKUP');
                 }}
               >
-                Lihat di Tab Penyelamatan & Handover Kasir ➔
+                Lihat di Tab Penyelamatan & Handover Kasir 
               </Button>
             </div>
           </div>
@@ -1875,7 +1877,8 @@ export default function ProviderClaimsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="font-extrabold text-xs text-red-600 border-red-200 hover:bg-red-50 flex items-center justify-center gap-1.5"
+                leftIcon={<AlertTriangleIcon size={13} className="text-red-600" />}
+                className="font-bold text-xs text-red-600 border-red-200 hover:bg-red-50 flex items-center justify-center gap-1.5 cursor-pointer"
                 onClick={() => {
                   const target = liveTrackingModal.claim;
                   setLiveTrackingModal({ isOpen: false, claim: null });
@@ -1888,18 +1891,24 @@ export default function ProviderClaimsPage() {
                   });
                 }}
               >
-                <AlertTriangleIcon size={14} />
-                <span>Laporkan Kendala / Insiden Pengantaran ➔</span>
+                Laporkan Kendala / Insiden Pengantaran
               </Button>
 
-              <Button
-                variant="primary"
-                size="sm"
-                className="font-bold text-xs"
-                onClick={() => setLiveTrackingModal({ isOpen: false, claim: null })}
-              >
-                Tutup Live Tracking
-              </Button>
+              <div className="flex items-center gap-2 flex-1 sm:justify-end">
+                <Link href="/dashboard/tracking" className="flex-1 sm:flex-initial">
+                  <Button variant="outline" size="sm" leftIcon={<MapIcon size={12} />} className="w-full text-xs font-bold border-[#1B3A5C] text-[#1B3A5C] hover:bg-[#1B3A5C]/5 cursor-pointer">
+                    Live GPS
+                  </Button>
+                </Link>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="font-bold text-xs flex-1 sm:flex-initial"
+                  onClick={() => setLiveTrackingModal({ isOpen: false, claim: null })}
+                >
+                  Tutup Live Tracking
+                </Button>
+              </div>
             </div>
           </div>
         </Modal>
@@ -2008,7 +2017,7 @@ export default function ProviderClaimsPage() {
                 Batal
               </Button>
               <Button type="submit" variant="danger" size="sm" className="font-black text-white bg-red-600 hover:bg-red-700 shadow-md">
-                Kirim Laporan Eskalasi & SOS ➔
+                Kirim Laporan Eskalasi & SOS 
               </Button>
             </div>
           </form>
@@ -2055,7 +2064,7 @@ export default function ProviderClaimsPage() {
                       <div className="min-w-0">
                         <h5 className="font-black text-xs text-[#1B3A5C] flex items-center gap-1.5">
                           <span>{drv.name}</span>
-                          <span className="text-[9px] font-bold text-amber-700">★ {drv.rating}</span>
+                          <span className="text-[9px] font-bold text-amber-700"> {drv.rating}</span>
                         </h5>
                         <p className="text-[11px] text-slate-700 font-bold">{drv.vehicle}</p>
                         <p className="text-[10px] text-slate-500 font-mono">WA: {drv.phone} • {drv.trips}</p>
@@ -2091,7 +2100,7 @@ export default function ProviderClaimsPage() {
                 className="font-black text-xs text-slate-950 shadow-xs cursor-pointer"
                 onClick={() => handleAssignDriver(plotDriverModal.claim.code, selectedPlotDriverId)}
               >
-                Tugaskan Driver & Sinkronkan ➔
+                Tugaskan Driver & Sinkronkan 
               </Button>
             </div>
           </div>

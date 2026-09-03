@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { SparklesIcon, AlertTriangleIcon, CheckIcon, TruckIcon, ShieldCheckIcon, MinusIcon, PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
@@ -96,16 +97,17 @@ export default function WorkspaceExplorePage() {
   });
   
   const [syncRadius, setSyncRadius] = useState<number | null>(null);
+  const [showAIAnalyticsDetails, setShowAIAnalyticsDetails] = useState(false);
 
   // Multi-Slide Interactive Promo Hero Carousel State (Point 9)
   const promoSlides = [
     {
       id: 'promo-1',
-      badge: '🏷️ RESCUE SALE 50%-70% HARI INI',
+      badge: '️ RESCUE SALE 50%-70% HARI INI',
       title: 'Selamatkan Surplus Lezat, Hemat Hingga 70%',
       highlight: 'Surplus Pangan Lezat',
       description: 'Dapatkan hidangan restoran & bakery berkualitas mulai Rp 5.000, bantu kurangi emisi gas metana dan susut pangan Bappenas.',
-      btnText: 'Lihat Rescue Sale ➔',
+      btnText: 'Lihat Rescue Sale ',
       targetTab: 'RESCUE_SALE' as const,
       foodPreview: {
         id: 'hero-food-1',
@@ -123,11 +125,11 @@ export default function WorkspaceExplorePage() {
     },
     {
       id: 'promo-2',
-      badge: '🎁 GERAKAN 1.000 PORSI DONASI BEBAS BIAYA',
+      badge: ' GERAKAN 1.000 PORSI DONASI BEBAS BIAYA',
       title: 'Bantu Panti Asuhan & Dhuafa Surabaya (Rp 0)',
       highlight: 'Nutrisi Anak Panti',
       description: 'Salurkan kelebihan makanan bergizi langsung ke 12 panti asuhan terverifikasi dengan armada kurir relawan Food Bank.',
-      btnText: 'Lihat Donasi Pangan ➔',
+      btnText: 'Lihat Donasi Pangan ',
       targetTab: 'DONATION' as const,
       foodPreview: {
         id: 'hero-food-2',
@@ -145,11 +147,11 @@ export default function WorkspaceExplorePage() {
     },
     {
       id: 'promo-3',
-      badge: '🛡️ 100% SOP HIGIENE BPOM RI & HALAL BPJPH',
+      badge: '️ 100% SOP HIGIENE BPOM RI & HALAL BPJPH',
       title: 'Jaminan Standar Keamanan Pangan Steril',
       highlight: 'Higienis & Steril BPOM',
       description: 'Seluruh mitra dapur diaudit standar suhu simpan, inspeksi visual, serta surat jalan manifest digital terenkripsi.',
-      btnText: 'Eksplor Pangan Halal ➔',
+      btnText: 'Eksplor Pangan Halal ',
       targetTab: 'RESCUE_SALE' as const,
       foodPreview: {
         id: 'hero-food-3',
@@ -167,11 +169,11 @@ export default function WorkspaceExplorePage() {
     },
     {
       id: 'promo-4',
-      badge: '🥐 HAPPY HOUR BAKERY & RESTO (19:00 - 22:00 WIB)',
+      badge: ' HAPPY HOUR BAKERY & RESTO (19:00 - 22:00 WIB)',
       title: 'Nikmati Aneka Pastry & Roti Fresh Malam Hari',
       highlight: 'Artisan Bakery Surabaya',
       description: 'Jelajahi sajian roti artisan dan pastry lezat yang siap dijemput di kasir toko favorit Anda sebelum jam tutup operasional.',
-      btnText: 'Jelajah Roti & Pastry ➔',
+      btnText: 'Jelajah Roti & Pastry ',
       targetTab: 'RESCUE_SALE' as const,
       foodPreview: {
         id: 'hero-food-4',
@@ -290,6 +292,54 @@ export default function WorkspaceExplorePage() {
       allergens: ['Nut-Free', 'Halal BPJPH', 'Steril Food Grade'],
       lat: -7.2637,
       lng: 112.7407,
+    },
+    {
+      id: 'FOD-004',
+      title: 'Sop Buntut & Daging Kuah Steril',
+      description: 'Sop daging kuah kaldu rempah kaya gizi, dikemas dalam wadah mangkok microwaveable kedap udara.',
+      providerName: 'Dapur Katering Bu Rudy',
+      providerPhone: '081234567894',
+      providerAddress: 'Jl. Dharmahusada No. 140, Gubeng, Surabaya',
+      originalPrice: 35000,
+      discountPrice: 15000,
+      quantity: '12 Porsi',
+      pickupTime: '19:00 - 21:00 WIB',
+      distance: '1.5 km',
+      category: 'MAKANAN_BERAT',
+      isFree: false,
+      type: 'RESCUE_SALE',
+      imageUrl: 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=500&auto=format&fit=crop&q=60',
+      rating: 4.7,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'PACKAGED',
+      weightPerUnitKg: 0.5,
+      allergens: ['Nut-Free', 'Halal BPJPH', 'Bebas MSG Berlebih'],
+      lat: -7.2689,
+      lng: 112.7681,
+    },
+    {
+      id: 'FOD-005',
+      title: 'Paket Roti Tawar Gandum & Donat Susu',
+      description: 'Paket roti gandum tinggi serat dan donat tabur gula halus, higienis untuk sarapan atau camilan panti.',
+      providerName: 'Bakery Plaza Surabaya',
+      providerPhone: '081234567895',
+      providerAddress: 'Jl. Pemuda No. 33, Surabaya Pusat',
+      originalPrice: 22000,
+      discountPrice: 0,
+      quantity: '20 Porsi',
+      pickupTime: '20:30 - 21:45 WIB',
+      distance: '1.8 km',
+      category: 'ROTI_KUE',
+      isFree: true,
+      type: 'DONATION',
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60',
+      rating: 4.9,
+      storageCondition: 'ROOM_TEMP',
+      packagingType: 'PACKAGED',
+      weightPerUnitKg: 0.3,
+      allergens: ['Dairy (Susu)', 'Halal BPJPH'],
+      lat: -7.2655,
+      lng: 112.7472,
     },
   ];
 
@@ -415,6 +465,58 @@ export default function WorkspaceExplorePage() {
       });
   }, []);
 
+  useEffect(() => {
+    if (session?.user?.id) {
+      let localItems: any[] = [];
+      try {
+        localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      } catch (_) {}
+
+      const providerQuery = `&providerId=${session.user.id}`;
+      fetch(`/api/surplus?status=${providerQuery}`)
+        .then((res) => res.json())
+        .then((data) => {
+          let itemsList: any[] = [];
+          if (data.success && Array.isArray(data.data?.items)) {
+            itemsList = data.data.items;
+          } else if (data.success && Array.isArray(data.data)) {
+            itemsList = data.data;
+          }
+
+          const normalizeProduct = (item: any) => ({
+            ...item,
+            id: item.id || `SRP-${Math.random()}`,
+            foodName: item.foodName || item.title || 'Produk Surplus Toko',
+            quantity: Number(item.quantity || item.remainingQuantity || 15),
+            remainingQuantity: Number(item.remainingQuantity !== undefined ? item.remainingQuantity : (item.quantity || 15)),
+            quantityUnit: item.quantityUnit || 'Porsi',
+            imageUrl: item.imageUrl || item.photos?.[0] || item.photo || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=60',
+            category: item.foodCategory || item.category || 'MEALS',
+            freshUntil: item.freshUntil || item.pickupTime || 'Hari ini 21:00 WIB',
+            status: item.status || 'AVAILABLE',
+          });
+
+          const deduplicateProducts = (list: any[]) => {
+            const seen = new Map<string, any>();
+            const result: any[] = [];
+            for (const item of list) {
+              if (item.status && item.status !== 'AVAILABLE' && item.status !== 'ACTIVE') continue;
+              const norm = normalizeProduct(item);
+              if (!seen.has(norm.id)) {
+                seen.set(norm.id, true);
+                result.push(norm);
+              }
+            }
+            return result;
+          };
+
+          const combined = deduplicateProducts([...localItems, ...itemsList]);
+          setAvailableProducts(combined);
+        })
+        .catch(() => {});
+    }
+  }, [session]);
+
   const categoryList = [
     { key: 'ALL', name: 'Semua Kategori' },
     { key: 'MAKANAN_BERAT', name: 'Makanan Berat' },
@@ -506,7 +608,7 @@ export default function WorkspaceExplorePage() {
 
   const handleOpenAllocationModal = (panti: SharedPantiNeed) => {
     // Dynamic refresh from local surplus cache so newly added items are immediately ready
-    let currentProducts = availableProducts;
+    let currentProducts = [...availableProducts];
     try {
       const localStr = localStorage.getItem('replate_local_surplus');
       if (localStr) {
@@ -524,26 +626,19 @@ export default function WorkspaceExplorePage() {
             freshUntil: item.freshUntil || item.pickupTime || 'Hari ini 21:00 WIB',
             status: item.status || 'AVAILABLE',
           });
-          currentProducts = parsed.map(normalizeProd);
+          const localNormalized = parsed.map(normalizeProd);
+          const combined = [...localNormalized, ...currentProducts];
+          const deduped = Array.from(
+            combined.reduce((map, item) => {
+              if (!map.has(item.id)) map.set(item.id, item);
+              return map;
+            }, new Map<string, any>()).values()
+          );
+          currentProducts = deduped;
           setAvailableProducts(currentProducts);
         }
       }
     } catch (_) {}
-
-    if (currentProducts.length === 0) {
-      currentProducts = foods.map((f) => ({
-        id: f.id,
-        foodName: f.title,
-        quantity: parseInt(f.quantity) || 20,
-        remainingQuantity: parseInt(f.quantity) || 20,
-        quantityUnit: 'Porsi',
-        imageUrl: f.imageUrl,
-        category: f.category,
-        freshUntil: f.pickupTime,
-        status: 'AVAILABLE',
-      }));
-      setAvailableProducts(currentProducts);
-    }
 
     const targetNeedQty = Number(panti.targetQuantity || 50);
     const firstProduct = currentProducts[0] || { id: 'SRP-101', foodName: 'Surplus Toko', quantity: 30, remainingQuantity: 30 };
@@ -597,14 +692,14 @@ export default function WorkspaceExplorePage() {
 
     if (allocateModal.portions > targetNeedQty) {
       alert(
-        `⚠️ Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi batas kebutuhan yang diminta oleh ${allocateModal.panti.pantiName} (Maksimal ${targetNeedQty} porsi).\n\nAnda tidak dapat menyanggupi melebihi porsi yang dibutuhkan panti.`
+        `️ Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi batas kebutuhan yang diminta oleh ${allocateModal.panti.pantiName} (Maksimal ${targetNeedQty} porsi).\n\nAnda tidak dapat menyanggupi melebihi porsi yang dibutuhkan panti.`
       );
       return;
     }
 
     if (allocateModal.portions > availableStock) {
       alert(
-        `⚠️ Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi stok surplus produk yang tersedia di toko Anda (${availableStock} porsi).\n\nSilakan sesuaikan jumlah porsi donasi.`
+        `️ Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi stok surplus produk yang tersedia di toko Anda (${availableStock} porsi).\n\nSilakan sesuaikan jumlah porsi donasi.`
       );
       return;
     }
@@ -883,7 +978,7 @@ export default function WorkspaceExplorePage() {
             onClick={() => router.push('/dashboard/rescue-partner/requests')}
             className="shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-700 hover:text-slate-950 hover:bg-slate-300/50"
           >
-            <span>Penjemputan ➔</span>
+            <span>Penjemputan </span>
           </button>
         )}
 
@@ -912,7 +1007,7 @@ export default function WorkspaceExplorePage() {
                   Mode Katalog Toko
                 </span>
                 <span className="text-[9.5px] sm:text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">
-                  ✓ Seller Centre
+                   Seller Centre
                 </span>
               </div>
               <p className="text-slate-700 font-medium text-[11px] sm:text-xs">
@@ -924,7 +1019,7 @@ export default function WorkspaceExplorePage() {
               onClick={() => router.push('/dashboard/provider/my-listings')}
               className="w-full sm:w-auto px-3.5 py-2 sm:py-2.5 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] font-black text-xs rounded-xl shadow-xs shrink-0 transition-all cursor-pointer text-center"
             >
-              + Kelola di Daftar Makanan ➔
+              + Kelola di Daftar Makanan 
             </button>
           </div>
         )}
@@ -1011,7 +1106,7 @@ export default function WorkspaceExplorePage() {
               onClick={() => router.push('/dashboard/provider')}
               className="px-4 py-2.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer shrink-0"
             >
-              Smart Matching Provider ➔
+              Smart Matching Provider 
             </button>
           </div>
 
@@ -1082,52 +1177,52 @@ export default function WorkspaceExplorePage() {
           </div>
 
           {/* Grid Permintaan Panti (Rich Cards identical to http://localhost:3000/explore) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
             {filteredPantiNeeds.map((need) => (
               <div
                 key={need.id}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 overflow-hidden shadow-2xs sm:shadow-xs hover:shadow-lg transition-all flex flex-col justify-between group"
               >
                 {/* Panti Cover Image & Badges */}
-                <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                  <img src={need.imageUrl} alt={need.pantiName} className="w-full h-full object-cover" />
-                  <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-wrap gap-1 sm:gap-1.5">
-                    <span className={`text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-sm ${
+                <div className="relative aspect-square sm:aspect-video bg-slate-100 overflow-hidden">
+                  <img src={need.imageUrl} alt={need.pantiName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-wrap gap-1">
+                    <span className={`text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-xs ${
                       need.urgency === 'HIGH' ? 'bg-red-500 text-white animate-pulse' : 'bg-amber-400 text-slate-950'
                     }`}>
-                      {need.urgency === 'HIGH' ? 'URGENT HARI INI' : 'BUTUH BESOK'}
+                      {need.urgency === 'HIGH' ? 'URGENT' : 'BESOK'}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] bg-slate-950/80 text-emerald-300 font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg backdrop-blur-xs">
-                      ✓ {need.legalStatus}
+                    <span className="text-[9px] sm:text-[10px] bg-slate-950/80 text-emerald-300 font-black px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg backdrop-blur-xs">
+                       {need.legalStatus}
                     </span>
                   </div>
-                  <span className="absolute bottom-2 right-2 text-[9px] sm:text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-                    Area: {need.location.split('(')[0]}
+                  <span className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 text-[9px] sm:text-[10px] bg-slate-900/80 text-amber-300 font-bold px-1.5 sm:px-2 py-0.5 rounded-md">
+                    {need.location.split('(')[0]}
                   </span>
                 </div>
 
-                <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2.5 sm:space-y-3">
+                <div className="p-2.5 sm:p-5 space-y-2 sm:space-y-3 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1.5 sm:space-y-3">
                     <div>
-                      <span className="text-[9.5px] sm:text-[10px] font-mono font-bold text-slate-400 block">{need.id} • {need.shelterType}</span>
-                      <h4 className="font-extrabold text-sm sm:text-base text-[#1B3A5C] mt-0.5">{need.pantiName}</h4>
+                      <span className="text-[9px] sm:text-[11px] font-semibold text-slate-400 block truncate">{need.id} • {need.shelterType}</span>
+                      <h4 className="font-extrabold text-xs sm:text-base text-[#1B3A5C] line-clamp-1 sm:line-clamp-2 leading-snug">{need.pantiName}</h4>
                     </div>
 
                     {/* Detail Info Card Box */}
-                    <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                    <div className="p-2 sm:p-3.5 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 space-y-1.5 sm:space-y-2 text-[9.5px] sm:text-xs">
                       <div className="flex justify-between text-slate-700">
-                        <span className="font-semibold">Penerima Manfaat:</span>
+                        <span className="font-semibold">Penerima:</span>
                         <span className="font-extrabold text-[#1B3A5C]">{need.beneficiariesCount} Jiwa</span>
                       </div>
                       <div className="flex justify-between text-slate-700">
-                        <span className="font-semibold">Kebutuhan Menu:</span>
-                        <span className="font-bold text-emerald-700">{need.foodCategoryNeeded}</span>
+                        <span className="font-semibold">Menu:</span>
+                        <span className="font-bold text-emerald-700 max-w-[50%] truncate text-right">{need.foodCategoryNeeded}</span>
                       </div>
                       <div className="flex justify-between text-slate-700 pt-1 border-t border-slate-200/60">
-                        <span className="font-semibold">Metode Kirim:</span>
-                        <span className="font-bold text-[#1B3A5C]">
+                        <span className="font-semibold">Kirim:</span>
+                        <span className="font-bold text-[#1B3A5C] max-w-[50%] truncate text-right">
                           {need.preferredDelivery === 'RESCUE_COURIER'
-                            ? 'Kurir Relawan Replate'
+                            ? 'Kurir Relawan'
                             : need.preferredDelivery === 'PROVIDER_DIRECT'
                             ? 'Diantar Toko'
                             : 'Ambil Mandiri'}
@@ -1141,11 +1236,11 @@ export default function WorkspaceExplorePage() {
                         const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
                         return (
                           <div className="space-y-1 pt-1">
-                            <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                            <div className="flex justify-between text-[9px] sm:text-[11px] font-bold text-slate-600">
                               <span>Target: {need.targetQuantity}</span>
                               <span className="text-emerald-700 font-black">{percent}% ({need.fulfilledQuantity})</span>
                             </div>
-                            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-slate-300">
+                            <div className="w-full bg-slate-200 h-1.5 sm:h-2 rounded-full overflow-hidden border border-slate-300">
                               <div
                                 className="bg-emerald-500 h-full rounded-full transition-all duration-500"
                                 style={{ width: `${percent}%` }}
@@ -1155,7 +1250,7 @@ export default function WorkspaceExplorePage() {
                         );
                       })()}
 
-                      <p className="text-[11px] text-slate-600 italic leading-relaxed pt-1">
+                      <p className="hidden sm:block text-[11px] text-slate-600 italic leading-relaxed pt-1 line-clamp-2">
                         &quot;{need.notes}&quot;
                       </p>
 
@@ -1163,9 +1258,9 @@ export default function WorkspaceExplorePage() {
                       <button
                         type="button"
                         onClick={() => setSelectedShelterProfile(need)}
-                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer mt-1"
+                        className="hidden sm:flex w-full py-1.5 sm:py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[9px] sm:text-[11px] rounded-lg sm:rounded-xl border border-blue-200 items-center justify-center gap-1 transition-colors cursor-pointer mt-1"
                       >
-                        <span>Lihat Profil Detail & Titik Peta GPS ➔</span>
+                        <span>Lihat Detail & Peta GPS </span>
                       </button>
                     </div>
                   </div>
@@ -1181,9 +1276,9 @@ export default function WorkspaceExplorePage() {
                           variant="outline"
                           size="md"
                           disabled
-                          className="w-full font-bold text-xs text-slate-400 border-slate-200 bg-slate-100 py-3 flex items-center justify-center gap-1.5 cursor-not-allowed mt-2"
+                          className="w-full font-bold text-[9px] sm:text-xs text-slate-400 border-slate-200 bg-slate-100 py-2 sm:py-3 px-1 flex items-center justify-center gap-1 cursor-not-allowed mt-1.5 sm:mt-2"
                         >
-                          <span>Khusus Donatur (Penyedia Pangan)</span>
+                          <span className="truncate">Khusus Donatur</span>
                         </Button>
                       );
                     }
@@ -1193,9 +1288,9 @@ export default function WorkspaceExplorePage() {
                         variant="gold"
                         size="md"
                         onClick={() => handleOpenAllocationModal(need)}
-                        className="w-full font-black text-xs text-slate-950 py-3 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+                        className="w-full font-black text-[10px] sm:text-xs text-slate-950 py-2 sm:py-3 shadow-xs flex items-center justify-center gap-1 cursor-pointer mt-1.5 sm:mt-2"
                       >
-                        <span>Sanggupi Bantuan Panti ➔</span>
+                        <span className="truncate">Sanggupi Bantuan </span>
                       </Button>
                     );
                   })()}
@@ -1257,7 +1352,7 @@ export default function WorkspaceExplorePage() {
               rel="noreferrer"
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
-              <span>Hubungi Pengurus via WhatsApp Resmi ➔</span>
+              <span>Hubungi Pengurus via WhatsApp Resmi </span>
             </a>
 
             {/* Embedded Live GPS Map */}
@@ -1295,7 +1390,7 @@ export default function WorkspaceExplorePage() {
                   handleOpenAllocationModal(target);
                 }}
               >
-                Sanggupi Bantuan Panti Ini ➔
+                Sanggupi Bantuan Panti Ini 
               </Button>
             </div>
           </div>
@@ -1311,18 +1406,18 @@ export default function WorkspaceExplorePage() {
       >
         {allocateModal.panti && (
           <form onSubmit={handleConfirmAllocationSubmit} className="space-y-4 text-xs text-slate-700">
-            {/* Panti Header Banner */}
-            <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1 shadow-xs border border-[#2C5A8F]">
+            {/* Target Panti Info Banner */}
+            <div className="p-3.5 sm:p-4 bg-[#1B3A5C] text-white rounded-2xl space-y-1.5 shadow-md border border-[#2C5A8F]">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-widest block">
-                  TARGET PENERIMA BANTUAN PANGAN
+                <span className="text-[9.5px] sm:text-[10px] font-black uppercase text-[#D4A843] tracking-widest block">
+                  TARGET PENERIMA BANTUAN
                 </span>
                 <span className="px-2.5 py-0.5 bg-[#D4A843] text-slate-950 font-black text-[10px] rounded-md shadow-xs">
                   Kebutuhan: {allocateModal.panti.needTitle}
                 </span>
               </div>
 
-              <h4 className="text-lg font-black text-white leading-snug drop-shadow-xs">
+              <h4 className="text-base sm:text-lg font-black text-white leading-snug drop-shadow-xs">
                 {allocateModal.panti.pantiName} ({allocateModal.panti.beneficiariesCount} Jiwa Penerima)
               </h4>
 
@@ -1331,9 +1426,9 @@ export default function WorkspaceExplorePage() {
               </p>
             </div>
 
-            {/* Dynamic Smart Matching Compatibility Analyzer */}
+            {/* Dynamic Smart Matching Compatibility Analyzer (Collapsible on Mobile) */}
             {(() => {
-              const targetNeedQty = Number(allocateModal.panti.targetQuantity || 50);
+              const targetNeedQty = parseInt(allocateModal.panti.targetQuantity || '45', 10) || 45;
               const ratioPct = Math.min(100, Math.round((allocateModal.portions / targetNeedQty) * 100));
               const selectedProd = availableProducts.find(p => p.id === allocateModal.selectedFoodId);
               const pantiNeedText = (allocateModal.panti.needTitle + ' ' + (allocateModal.panti.notes || '') + ' ' + (allocateModal.panti.shelterType || '')).toLowerCase();
@@ -1356,34 +1451,34 @@ export default function WorkspaceExplorePage() {
               if (isPantiMilk) {
                 if (isProdMilk) {
                   categoryScore = 30;
-                  nutritionLabel = '✓ 100% Kalsium & Susu Steril';
+                  nutritionLabel = '100% Kalsium & Susu Steril';
                 } else if (isProdBakery) {
                   categoryScore = 18;
-                  nutritionLabel = '⚠️ Snack Karbohidrat (Bukan Susu)';
+                  nutritionLabel = 'Snack Karbohidrat (Bukan Susu)';
                 } else {
                   categoryScore = 5;
-                  nutritionLabel = '❌ Tidak Sesuai (Makanan Berat ≠ Susu Bayi)';
+                  nutritionLabel = 'Tidak Sesuai (Makanan Berat ≠ Susu Bayi)';
                   isMismatch = true;
-                  mismatchReason = 'Panti asuhan ini membutuhkan asupan Susu Formula Balita & Nutrisi Bayi. Menu surplus yang Anda pilih (Makanan Berat / Berbumbu) tidak dapat dikonsumsi oleh balita.';
+                  mismatchReason = 'Panti asuhan ini membutuhkan asupan Susu Formula Balita & Nutrisi Bayi. Menu surplus yang Anda pilih tidak dapat dikonsumsi oleh balita.';
                 }
               } else if (isPantiBakery) {
                 if (isProdBakery) {
                   categoryScore = 30;
-                  nutritionLabel = '✓ 100% Karbohidrat & Serat Gandum';
+                  nutritionLabel = '100% Karbohidrat & Serat Gandum';
                 } else {
                   categoryScore = 15;
-                  nutritionLabel = '⚠️ Beda Kategori (Permintaan Roti)';
+                  nutritionLabel = 'Beda Kategori (Permintaan Roti)';
                 }
               } else if (isPantiMeals) {
                 if (isProdMeals) {
                   categoryScore = 30;
-                  nutritionLabel = '✓ 100% Protein & Lauk Seimbang';
+                  nutritionLabel = '100% Protein & Lauk Seimbang';
                 } else if (isProdBakery) {
                   categoryScore = 18;
-                  nutritionLabel = '⚠️ Snack Roti (Bukan Lauk Pauk)';
+                  nutritionLabel = 'Snack Roti (Bukan Lauk Pauk)';
                 } else {
                   categoryScore = 20;
-                  nutritionLabel = '✓ Makanan Siap Santap';
+                  nutritionLabel = 'Makanan Siap Santap';
                 }
               }
 
@@ -1393,60 +1488,83 @@ export default function WorkspaceExplorePage() {
                 : Math.min(99, Math.round(50 + categoryScore + fulfillmentWeight));
 
               return (
-                <div className={`p-4 rounded-2xl border space-y-2.5 shadow-xs transition-all ${
+                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-2 shadow-xs transition-all ${
                   isMismatch
                     ? 'bg-gradient-to-r from-red-50 via-rose-50 to-amber-50 border-red-200'
                     : 'bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/50 border-emerald-200/80'
                 }`}>
                   <div className="flex items-center justify-between">
                     <span className={`font-extrabold text-xs flex items-center gap-1.5 ${isMismatch ? 'text-red-950' : 'text-emerald-950'}`}>
-                      <span>✨ Analitik Smart Matching Algoritma AI (Dinamis):</span>
+                      <SparklesIcon size={14} className={isMismatch ? 'text-red-600' : 'text-emerald-600'} />
+                      <span>Analitik Kecocokan AI:</span>
                     </span>
-                    <span className={`px-2.5 py-0.5 font-black text-[11px] rounded-md shadow-xs ${
-                      isMismatch
-                        ? 'bg-red-600 text-white'
-                        : 'bg-emerald-700 text-amber-200'
-                    }`}>
-                      {calculatedScore}% {isMismatch ? '⚠️ Kategori Tidak Cocok' : 'Sangat Cocok'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-0.5 font-black text-[10px] sm:text-[11px] rounded-md shadow-xs ${
+                        isMismatch
+                          ? 'bg-red-600 text-white'
+                          : 'bg-emerald-700 text-amber-200'
+                      }`}>
+                        {calculatedScore}% {isMismatch ? 'Kategori Beda' : 'Sangat Cocok'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAIAnalyticsDetails(!showAIAnalyticsDetails)}
+                        className="text-[10px] text-slate-600 underline font-bold cursor-pointer"
+                      >
+                        {showAIAnalyticsDetails ? 'Tutup' : 'Rincian'}
+                      </button>
+                    </div>
                   </div>
 
                   {isMismatch && (
-                    <div className="p-3 bg-red-100/90 text-red-900 border border-red-200 rounded-xl text-[11px] font-medium leading-relaxed">
-                      <strong>⚠️ Peringatan Ketidakcocokan Kebutuhan:</strong> {mismatchReason}
+                    <div className="p-2.5 bg-red-100/90 text-red-900 border border-red-200 rounded-xl text-[11px] font-medium leading-relaxed flex items-start gap-1.5">
+                      <AlertTriangleIcon size={14} className="text-red-700 shrink-0 mt-0.5" />
+                      <div>
+                        <strong>Peringatan Ketidakcocokan:</strong> {mismatchReason}
+                      </div>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-medium text-slate-700">
-                    <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
-                      <span className="text-slate-400 text-[10px] block font-bold">Kesesuaian Kategori & Gizi:</span>
-                      <strong className={`font-extrabold block text-xs ${isMismatch ? 'text-red-700' : 'text-emerald-900'}`}>
-                        {nutritionLabel}
-                      </strong>
+                  {/* Expandable breakdown details */}
+                  {showAIAnalyticsDetails && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-medium text-slate-700 pt-1">
+                      <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
+                        <span className="text-slate-400 text-[10px] block font-bold">Kesesuaian Gizi:</span>
+                        <strong className={`font-extrabold block text-xs ${isMismatch ? 'text-red-700' : 'text-emerald-900'}`}>
+                          {nutritionLabel}
+                        </strong>
+                      </div>
+                      <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
+                        <span className="text-slate-400 text-[10px] block font-bold">Suhu BPOM:</span>
+                        <strong className="text-emerald-900 font-extrabold block text-xs">Aman &lt; 3.5 Jam (Panas &gt;60°C)</strong>
+                      </div>
+                      <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
+                        <span className="text-slate-400 text-[10px] block font-bold">Rasio Pemenuhan:</span>
+                        <strong className="text-blue-900 font-extrabold block text-xs">
+                          {allocateModal.portions} Porsi ({ratioPct}% Terpenuhi)
+                        </strong>
+                      </div>
                     </div>
-                    <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
-                      <span className="text-slate-400 text-[10px] block font-bold">Ketahanan Suhu BPOM:</span>
-                      <strong className="text-emerald-900 font-extrabold block text-xs">✓ Aman &lt; 3.5 Jam (Panas &gt;60°C)</strong>
-                    </div>
-                    <div className="p-2.5 bg-white/95 rounded-xl border border-slate-200 space-y-0.5 shadow-2xs">
-                      <span className="text-slate-400 text-[10px] block font-bold">Rasio Pemenuhan:</span>
-                      <strong className="text-blue-900 font-extrabold block text-xs">
-                        {allocateModal.portions} Porsi ({ratioPct}% Terpenuhi)
-                      </strong>
-                    </div>
-                  </div>
+                  )}
                 </div>
               );
             })()}
 
-            {/* PRODUCT SELECTOR SECTION */}
-            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              <label className="font-extrabold text-slate-900 block text-xs">
-                Pilih Produk Surplus Dari Toko Anda Yang Ingin Didonasikan:
-              </label>
+            {/* PRODUCT SELECTOR SECTION (Horizontal Card Slider / Carousel - No Long Vertical Scroll) */}
+            <div className="space-y-2 bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <label className="font-extrabold text-slate-900 block text-xs">
+                  Pilih Produk Surplus Dari Toko Anda:
+                </label>
+                {availableProducts.length > 0 && (
+                  <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">
+                    ← Geser kartu →
+                  </span>
+                )}
+              </div>
 
               {availableProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 pt-0.5 snap-x snap-mandatory">
                   {availableProducts.map((prod) => {
                     const isSelected = allocateModal.selectedFoodId === prod.id;
                     const stock = Number(prod.remainingQuantity || prod.quantity || 0);
@@ -1455,26 +1573,31 @@ export default function WorkspaceExplorePage() {
                         key={prod.id}
                         type="button"
                         onClick={() => handleProductSelectChange(prod.id)}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                        className={`min-w-[185px] max-w-[205px] p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 shrink-0 snap-start ${
                           isSelected
-                            ? 'bg-[#1B3A5C] text-white border-[#D4A843] ring-2 ring-[#D4A843]/40 shadow-sm'
-                            : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
+                            ? 'bg-[#1B3A5C] text-white border-[#D4A843] ring-2 ring-[#D4A843]/50 shadow-sm'
+                            : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-2xs'
                         }`}
                       >
                         {prod.imageUrl && (
                           <img
                             src={prod.imageUrl}
                             alt={prod.foodName}
-                            className="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-200"
+                            className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200"
                           />
                         )}
                         <div className="flex-1 min-w-0">
                           <span className={`block font-extrabold text-xs truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>
                             {prod.foodName}
                           </span>
-                          <span className={`text-[10px] font-bold block ${isSelected ? 'text-amber-300' : 'text-emerald-700'}`}>
+                          <span className={`text-[10px] font-bold block mt-0.5 ${isSelected ? 'text-amber-300' : 'text-emerald-700'}`}>
                             Tersedia: {stock} {prod.quantityUnit || 'Porsi'}
                           </span>
+                          {isSelected && (
+                            <span className="inline-block mt-0.5 text-[8.5px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded">
+                              Dipilih
+                            </span>
+                          )}
                         </div>
                       </button>
                     );
@@ -1482,85 +1605,102 @@ export default function WorkspaceExplorePage() {
                 </div>
               ) : (
                 <div className="p-3 bg-amber-50 text-amber-900 rounded-xl border border-amber-200 text-xs font-semibold">
-                  ⚠️ Belum ada menu surplus aktif di katalog Anda. Silakan isi porsi estimasi di bawah.
+                  Belum ada menu surplus aktif di katalog Anda. Silakan isi porsi estimasi di bawah.
                 </div>
               )}
             </div>
 
-            {/* Portions Allocation Input */}
+            {/* Portions Allocation Stepper with Thumb-Friendly Buttons */}
             {(() => {
-              const targetNeedQty = Number(allocateModal.panti.targetQuantity || 50);
+              const targetNeedQty = Number(
+                allocateModal.panti.targetQuantity ||
+                allocateModal.panti.needTitle?.match(/\d+/)?.[0] ||
+                50
+              );
               const selProd = availableProducts.find((p) => p.id === allocateModal.selectedFoodId);
               const totalStk = selProd ? Number(selProd.remainingQuantity || selProd.quantity || 30) : 30;
+              const maxAllowed = Math.min(totalStk, targetNeedQty);
               const isExceedingNeed = allocateModal.portions > targetNeedQty;
               const isExceedingStock = allocateModal.portions > totalStk;
               const isExceeding = isExceedingNeed || isExceedingStock;
               const remainAfter = Math.max(0, totalStk - allocateModal.portions);
 
               return (
-                <div className="space-y-2">
+                <div className="space-y-2 p-3.5 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200">
                   <div className="flex items-center justify-between">
                     <label className="font-extrabold text-slate-800 block text-xs">
-                      Jumlah Porsi Yang Siap Anda Donasikan:
+                      Jumlah Porsi Yang Disanggupi:
                     </label>
-                    <span className="text-[11px] text-slate-600 font-bold bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200">
+                    <span className="text-[10.5px] text-slate-600 font-bold bg-white px-2 py-0.5 rounded-lg border border-slate-200">
                       Kebutuhan Panti: <strong className="text-amber-800">{targetNeedQty} Porsi</strong>
                     </span>
                   </div>
 
-                  <div className="relative">
+                  {/* Stepper with Large Buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAllocateModal({ ...allocateModal, portions: Math.max(1, allocateModal.portions - 5) })}
+                      className="w-11 h-11 rounded-xl bg-white border border-slate-300 text-[#1B3A5C] font-black text-lg flex items-center justify-center hover:bg-slate-100 active:scale-95 transition-all cursor-pointer shrink-0"
+                    >
+                      <MinusIcon size={18} />
+                    </button>
+
                     <input
                       type="number"
                       min="1"
-                      max={targetNeedQty}
+                      max={maxAllowed}
                       value={allocateModal.portions}
                       onChange={(e) => setAllocateModal({ ...allocateModal, portions: Number(e.target.value) })}
-                      className={`w-full p-3 bg-white border rounded-xl font-bold text-sm transition-all ${
+                      className={`flex-1 p-2.5 bg-white border rounded-xl font-mono font-black text-base text-center transition-all ${
                         isExceeding
                           ? 'border-red-500 ring-2 ring-red-400 bg-red-50/40 text-red-700'
                           : 'border-slate-300 text-[#1B3A5C] focus:ring-2 focus:ring-[#D4A843]'
                       }`}
                       required
                     />
+
+                    <button
+                      type="button"
+                      onClick={() => setAllocateModal({ ...allocateModal, portions: Math.min(maxAllowed, allocateModal.portions + 5) })}
+                      className="w-11 h-11 rounded-xl bg-white border border-slate-300 text-[#1B3A5C] font-black text-lg flex items-center justify-center hover:bg-slate-100 active:scale-95 transition-all cursor-pointer shrink-0"
+                    >
+                      <PlusIcon size={18} />
+                    </button>
                   </div>
 
-                  {/* Alert Warning Banner if portions exceed requested need or stock */}
-                  {isExceedingNeed && (
-                    <div className="p-3 bg-red-50 border border-red-300 text-red-800 rounded-xl text-xs font-bold flex items-start gap-2 shadow-xs">
-                      <span className="text-base leading-none">⚠️</span>
-                      <div>
-                        <span>
-                          Jumlah donasi ({allocateModal.portions} porsi) <strong>melebihi kebutuhan panti ({targetNeedQty} porsi)</strong>.
-                        </span>
-                        <span className="block text-[10.5px] text-red-600 font-medium mt-0.5">
-                          Sistem membatasi penyanggupan donasi tidak boleh melebihi porsi yang diminta panti asuhan.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {!isExceedingNeed && isExceedingStock && (
-                    <div className="p-3 bg-red-50 border border-red-300 text-red-800 rounded-xl text-xs font-bold flex items-start gap-2 shadow-xs">
-                      <span className="text-base leading-none">⚠️</span>
-                      <div>
-                        <span>
-                          Jumlah donasi ({allocateModal.portions} porsi) <strong>melebihi stok surplus produk toko Anda ({totalStk} porsi)</strong>.
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                  {/* Quick Percentage Presets */}
+                  <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {[0.25, 0.5, 0.75, 1.0].map((pct) => {
+                      const val = Math.max(1, Math.round(maxAllowed * pct));
+                      return (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => setAllocateModal({ ...allocateModal, portions: val })}
+                          className={`py-1.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer ${
+                            allocateModal.portions === val
+                              ? 'bg-[#1B3A5C] text-white'
+                              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {Math.round(pct * 100)}% ({val})
+                        </button>
+                      );
+                    })}
+                  </div>
 
                   {/* Split-batch remaining stock indicator */}
-                  <div className="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-[11px] flex justify-between items-center">
+                  <div className="p-2 bg-blue-50/80 rounded-xl border border-blue-200 text-[10.5px] flex justify-between items-center">
                     <span className="text-slate-600 font-medium">
-                      Stok Tersedia: <strong>{totalStk} Porsi</strong> | Sisa Setelah Donasi:
+                      Stok: <strong>{totalStk}</strong> | Sisa:
                     </span>
                     <span
                       className={`font-black px-2 py-0.5 rounded-md ${
                         remainAfter === 0 ? 'text-slate-700 bg-slate-200' : 'text-emerald-800 bg-emerald-100'
                       }`}
                     >
-                      {remainAfter} Porsi (Tersimpan di Katalog)
+                      {remainAfter} Porsi
                     </span>
                   </div>
                 </div>
@@ -1570,11 +1710,12 @@ export default function WorkspaceExplorePage() {
             {/* LOCKED DELIVERY METHOD & VEHICLE FLEET MATCHING */}
             <div className="p-3.5 bg-blue-50/90 rounded-2xl border border-blue-200 space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-extrabold text-[#1B3A5C] uppercase tracking-wider text-[10px] block">
-                  🚚 Metode Pengiriman & Ketentuan Armada:
+                <span className="font-extrabold text-[#1B3A5C] uppercase tracking-wider text-[10px] flex items-center gap-1">
+                  <TruckIcon size={13} />
+                  <span>Metode Pengiriman & Ketentuan Armada:</span>
                 </span>
                 <span className="px-2 py-0.5 rounded bg-blue-700 text-white font-black text-[9px] uppercase">
-                  {allocateModal.portions > 40 ? '📦 Wajib Mobil Box / Van' : '🛵 Motor Box Cooler Steril'}
+                  {allocateModal.portions > 40 ? 'Wajib Mobil Box / Van' : 'Motor Box Cooler'}
                 </span>
               </div>
               <p className="font-black text-slate-900 text-xs">
@@ -1586,65 +1727,72 @@ export default function WorkspaceExplorePage() {
             </div>
 
             {/* Interactive 8-Poin BPOM Checklist SOP */}
-            <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200/90 space-y-2.5">
+            <div className="p-3.5 sm:p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200/90 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <span className="font-black text-emerald-950 text-xs block">
-                    🛡️ Checklist Kepatuhan 8-Poin SOP Higienitas BPOM RI & WHO
-                  </span>
-                  <span className="text-[10px] text-emerald-800 font-medium block">
-                    Wajib memenuhi seluruh standar baku kelayakan pangan sebelum tiket donasi diterbitkan:
-                  </span>
-                </div>
+                <span className="font-black text-emerald-950 text-xs flex items-center gap-1.5">
+                  <ShieldCheckIcon size={15} className="text-emerald-700" />
+                  <span>8-Poin SOP Higienitas BPOM RI:</span>
+                </span>
                 <button
                   type="button"
                   onClick={() => setAllocateModal(prev => ({ ...prev, hygieneChecked: true }))}
-                  className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] rounded-lg cursor-pointer transition-colors"
+                  className="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[9.5px] rounded cursor-pointer transition-colors"
                 >
-                  ✓ Verifikasi Semua
+                  Verifikasi Semua
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-800 pt-1">
-                {[
-                  '1. Batas Masak < 4 Jam Selesai Olah',
-                  '2. Suhu Panas >60°C / Dingin <4°C',
-                  '3. Wadah Steril & Tersegel Rapat',
-                  '4. Uji Organoleptik (Warna Normal)',
-                  '5. Bebas Bau Asam / Fermentasi Liar',
-                  '6. Pelabelan Alergen Transparan',
-                  '7. Dapur Mitra Berizin NIB / Sanitasi',
-                  '8. Batas Waktu Konsumsi Tertera di Resi',
-                ].map((rule, idx) => (
-                  <label key={idx} className="flex items-center gap-2 p-2 bg-white/90 rounded-xl border border-emerald-100 cursor-pointer hover:bg-emerald-100/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={allocateModal.hygieneChecked}
-                      onChange={(e) => setAllocateModal(prev => ({ ...prev, hygieneChecked: e.target.checked }))}
-                      className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer"
-                    />
-                    <span className="font-semibold text-[10.5px] text-slate-700">{rule}</span>
-                  </label>
-                ))}
-              </div>
+              <label className="flex items-start gap-2 p-2.5 bg-white rounded-xl border border-emerald-200 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={allocateModal.hygieneChecked}
+                  onChange={(e) => setAllocateModal({ ...allocateModal, hygieneChecked: e.target.checked })}
+                  className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-0 cursor-pointer shrink-0"
+                />
+                <span className="text-[11px] font-bold text-emerald-950 leading-snug">
+                  Saya menyetujui seluruh 8 standar baku kelayakan pangan BPOM RI (batas olah &lt;4 jam, suhu &gt;60°C, kemasan food-grade, organoleptik normal).
+                </span>
+              </label>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+            {/* STICKY FOOTER ACTION BUTTON BAR FOR MOBILE SUPER-APP */}
+            <div className="sticky bottom-0 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 z-10 flex items-center justify-end gap-2">
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
-                type="button"
-                onClick={() => setAllocateModal({ isOpen: false, panti: null, selectedFoodId: '', portions: 30, deliveryMethod: 'RESCUE_COURIER', hygieneChecked: true })}
+                className="font-bold text-xs py-2 px-3 text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                onClick={() =>
+                  setAllocateModal({
+                    isOpen: false,
+                    panti: null,
+                    selectedFoodId: '',
+                    portions: 30,
+                    deliveryMethod: 'RESCUE_COURIER',
+                    hygieneChecked: true,
+                  })
+                }
               >
                 Batal
               </Button>
               <Button
+                type="submit"
                 variant="gold"
                 size="sm"
-                type="submit"
-                className="font-black text-slate-950 shadow-md"
+                leftIcon={<CheckIcon size={14} />}
+                disabled={
+                  !allocateModal.hygieneChecked ||
+                  allocateModal.portions <= 0 ||
+                  allocateModal.portions >
+                    Number(
+                      allocateModal.panti?.targetQuantity ||
+                      allocateModal.panti?.needTitle?.match(/\d+/)?.[0] ||
+                      50
+                    )
+                }
+                className="font-black text-xs text-slate-950 shadow-xs cursor-pointer py-2 px-3.5 rounded-xl whitespace-nowrap"
               >
-                Konfirmasi Alokasi Donasi & Terbitkan Resi ➔
+                Sanggupi Donasi
               </Button>
             </div>
           </form>
@@ -1655,7 +1803,7 @@ export default function WorkspaceExplorePage() {
       <Modal
         isOpen={issuedTicketModal.isOpen}
         onClose={() => setIssuedTicketModal({ isOpen: false, ticketData: null })}
-        title="🎉 QR Surat Jalan Donasi Berhasil Diterbitkan!"
+        title=" QR Surat Jalan Donasi Berhasil Diterbitkan!"
         size="md"
       >
         {issuedTicketModal.ticketData && (
@@ -1699,7 +1847,7 @@ export default function WorkspaceExplorePage() {
                   router.push('/dashboard/provider/claims');
                 }}
               >
-                <span>🚀 Buka & Kelola di Modul Klaim & Kasir ➔</span>
+                <span> Buka & Kelola di Modul Klaim & Kasir </span>
               </Button>
 
               <button

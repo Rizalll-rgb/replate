@@ -81,7 +81,7 @@ export default function YayasanHistoryPage() {
               </p>
               <Link href="/dashboard/explore" className="inline-block pt-2">
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs cursor-pointer">
-                  Mulai Ajukan Bantuan Makanan ➔
+                  Mulai Ajukan Bantuan Makanan 
                 </Button>
               </Link>
             </div>

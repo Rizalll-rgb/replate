@@ -181,7 +181,7 @@ export async function POST(request: Request) {
         await prisma.notification.create({
             data: {
                 userId: food.providerId,
-                title: 'Makanan Diklaim! 🎉',
+                title: 'Makanan Diklaim! ',
                 message: `${food.foodName} telah diklaim (${quantity} ${food.quantityUnit}). Kode klaim: ${claimCode}`,
                 type: 'CLAIM',
                 actionUrl: '/dashboard/provider/claims',

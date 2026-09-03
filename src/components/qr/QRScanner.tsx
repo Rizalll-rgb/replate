@@ -349,7 +349,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScanSuccess }) => {
             </>
           ) : (
             <>
-              <span>📷 Buka Kamera Scanner Live</span>
+              <span> Buka Kamera Scanner Live</span>
             </>
           )}
         </Button>
@@ -368,7 +368,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScanSuccess }) => {
             onClick={() => fileInputRef.current?.click()}
             className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>📁 Unggah Foto QR</span>
+            <span> Unggah Foto QR</span>
           </button>
 
           <button
@@ -377,7 +377,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScanSuccess }) => {
             disabled={isSimulating}
             className="flex-1 py-2 px-3 bg-[#D4A843]/15 hover:bg-[#D4A843]/25 text-[#1B3A5C] font-extrabold text-xs rounded-xl border border-[#D4A843]/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>{isSimulating ? '⏳ Memindai...' : '⚡ Demo Scan'}</span>
+            <span>{isSimulating ? '⏳ Memindai...' : ' Demo Scan'}</span>
           </button>
         </div>
       </div>

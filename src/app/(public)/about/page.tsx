@@ -390,7 +390,7 @@ export default function AboutPage() {
                     }`}
                   aria-label="Previous Slide"
                 >
-                  ❮
+                  
                 </button>
 
                 <button
@@ -403,7 +403,7 @@ export default function AboutPage() {
                     }`}
                   aria-label="Next Slide"
                 >
-                  ❯
+                  
                 </button>
               </div>
             </div>
@@ -442,7 +442,7 @@ export default function AboutPage() {
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
                     <span>Status Kemitraan:</span>
-                    <span className="text-emerald-700 font-black">✓ Terverifikasi Replate</span>
+                    <span className="text-emerald-700 font-black"> Terverifikasi Replate</span>
                   </div>
                 </div>
               ))}
