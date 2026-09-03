@@ -4,6 +4,7 @@ import React from 'react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { CheckIcon } from '../ui/Icon';
 
 export interface FoodDetailModalProps {
   isOpen: boolean;
@@ -134,8 +135,9 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
           </span>
           <div className="flex flex-wrap gap-1.5">
             {defaultAllergens.map((tag, idx) => (
-              <span key={idx} className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-extrabold rounded-md text-[10px]">
-                ✓ {tag}
+              <span key={idx} className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-extrabold rounded-md text-[10px] flex items-center gap-1">
+                <CheckIcon size={11} />
+                <span>{tag}</span>
               </span>
             ))}
           </div>

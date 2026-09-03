@@ -27,32 +27,41 @@ export default function PartnerOverviewPage() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
-        <div>
-          <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-widest block">
-            Dashboard Food Rescue Volunteer
-          </span>
-          <h2 className="text-xl sm:text-2xl font-black text-[#1B3A5C]">{orgName}</h2>
-          <p className="text-xs text-[#6C757D] font-medium">
-            Koordinator: <strong>{leaderName}</strong> • Posko Logistik Surabaya Raya
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard/profile">
-            <Button variant="outline" size="md" className="font-extrabold text-xs">
-              Profil & Kelola Driver
-            </Button>
-          </Link>
-          <Link href="/dashboard/rescue-partner/pickup">
-            <Button variant="outline" size="md" className="font-extrabold text-xs">
-              Mulai Penjemputan Baru
-            </Button>
-          </Link>
-          <Link href="/dashboard/rescue-partner/requests">
-            <Button variant="gold" size="md" className="font-black text-xs text-slate-950">
-              Permintaan Match Baru ({isFreshAccount ? '0' : '2'})
-            </Button>
-          </Link>
+      {/* Sleek Modern Header Card (Seragam Antar Modul & Role) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="px-2 py-0.5 bg-[#1B3A5C]/10 text-[#1B3A5C] text-[9.5px] font-black uppercase tracking-wider rounded-md">
+                Dashboard Food Rescue Volunteer
+              </span>
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Armada Siap Jalan</span>
+              </span>
+            </div>
+            <h1 className="text-base sm:text-xl font-black text-[#1B3A5C] tracking-tight">{orgName}</h1>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              Koordinator: <strong>{leaderName}</strong> · Posko Logistik Wilayah Operasional
+            </p>
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 flex-nowrap sm:flex-wrap w-full sm:w-auto shrink-0">
+            <Link href="/dashboard/profile" className="shrink-0">
+              <Button variant="outline" size="sm" className="font-bold text-xs py-2 px-3.5 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer">
+                Profil Driver
+              </Button>
+            </Link>
+            <Link href="/dashboard/rescue-partner/pickup" className="shrink-0">
+              <Button variant="outline" size="sm" className="font-bold text-xs py-2 px-3.5 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer">
+                Mulai Jemput
+              </Button>
+            </Link>
+            <Link href="/dashboard/rescue-partner/requests" className="shrink-0">
+              <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-xs py-2 px-3.5 rounded-xl cursor-pointer">
+                Match Baru ({isFreshAccount ? '0' : '2'})
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

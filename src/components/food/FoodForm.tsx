@@ -1,8 +1,17 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
+import {
+  PackageIcon,
+  CreditCardIcon,
+  ShieldCheckIcon,
+  TruckIcon,
+  CheckIcon,
+  ClockIcon,
+  MapPinIcon,
+} from '../ui/Icon';
 import { RescueReadinessForm, RescueReadinessChecklist, FormValidationSignals } from './RescueReadinessForm';
 
 export interface FoodFormData {
@@ -113,6 +122,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     setFormData((prev) => ({ ...prev, pickupDeadline: formatLocalDateTime(target) }));
   };
 
+  // SOP Rescue Readiness Checklist State
   const [checklistReady, setChecklistReady] = useState<boolean>(false);
   const [checklistData, setChecklistData] = useState<RescueReadinessChecklist>({
     infoComplete: false,
@@ -124,6 +134,35 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     pickupRealistic: false,
     locationAccurate: false,
   });
+
+  const handleChecklistChange = useCallback((checkData: RescueReadinessChecklist, isComplete: boolean) => {
+    setChecklistData((prev) => (JSON.stringify(prev) === JSON.stringify(checkData) ? prev : checkData));
+    setChecklistReady((prev) => (prev === isComplete ? prev : isComplete));
+  }, []);
+
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+
+  const handleNextToStep2 = () => {
+    if (!formData.foodName?.trim()) {
+      alert('Mohon masukkan nama makanan surplus terlebih dahulu.');
+      return;
+    }
+    if (!formData.quantity || Number(formData.quantity) <= 0) {
+      alert('Mohon tentukan jumlah kuantitas porsi yang valid.');
+      return;
+    }
+    setCurrentStep(2);
+  };
+
+  const handleNextToStep3 = () => {
+    const deadlineMs = formData.pickupDeadline ? new Date(formData.pickupDeadline).getTime() : 0;
+    const twoHoursFromNow = Date.now() + (2 * 60 * 60 * 1000);
+    if (!formData.pickupDeadline || deadlineMs < twoHoursFromNow) {
+      alert('Batas waktu penjemputan harus minimal 2 jam dari sekarang! Silakan atur ulang.');
+      return;
+    }
+    setCurrentStep(3);
+  };
 
   // Derive form validation signals from actual form state for auto-validation checklist
   const formSignals: FormValidationSignals = useMemo(() => {
@@ -140,7 +179,21 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       hasAddress: !!(useDefaultAddress || (formData.address && formData.address.trim().length > 0)),
       hasCoordinates: !!(formData.latitude && formData.longitude),
     };
-  }, [formData, previewPhoto, useDefaultAddress]);
+  }, [
+    formData.foodName,
+    formData.foodCategory,
+    formData.quantity,
+    formData.weightPerUnitKg,
+    formData.pickupDeadline,
+    formData.storageCondition,
+    formData.packagingType,
+    formData.address,
+    formData.latitude,
+    formData.longitude,
+    previewPhoto,
+    useDefaultAddress,
+    defaultAddress,
+  ]);
 
   // Custom Select Dropdown CSS Class
   const customSelectClass =
@@ -149,13 +202,46 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
   const handlePhotoUploadMock = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Ukuran file melebihi batas 5MB!');
+      if (file.size > 15 * 1024 * 1024) {
+        alert('Ukuran file melebihi batas 15MB!');
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewPhoto(reader.result as string);
+      reader.onload = (event) => {
+        const rawUrl = event.target?.result as string;
+        // Ultra-lightweight Canvas compression (resizes to max 800px & 0.75 JPEG quality, ~40KB)
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressed = canvas.toDataURL('image/jpeg', 0.75);
+              setPreviewPhoto(compressed);
+              return;
+            }
+          } catch (_) {}
+          setPreviewPhoto(rawUrl);
+        };
+        img.onerror = () => setPreviewPhoto(rawUrl);
+        img.src = rawUrl;
       };
       reader.readAsDataURL(file);
     }
@@ -189,7 +275,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     const deadlineMs = new Date(formData.pickupDeadline!).getTime();
     const twoHoursFromNow = Date.now() + (2 * 60 * 60 * 1000);
     if (deadlineMs < twoHoursFromNow) {
-      alert('⚠️ Batas waktu penjemputan harus minimal 2 jam dari sekarang! Silakan atur ulang.');
+      alert('Batas waktu penjemputan harus minimal 2 jam dari sekarang! Silakan atur ulang.');
       return;
     }
 
@@ -221,7 +307,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       rescueReadiness: checklistData,
     };
 
-    // Store in localStorage cache so newly added items show in My Listings immediately
+    // Store in localStorage cache safely with quota guard
     try {
       const existing = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
       const newItem = {
@@ -232,322 +318,492 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
         createdAt: new Date().toISOString(),
         provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
       };
-      localStorage.setItem('replate_local_surplus', JSON.stringify([newItem, ...existing]));
-    } catch (_) {}
+      // Keep up to 25 items so localStorage quota is never exceeded
+      const updated = [newItem, ...existing.filter((item: any) => item.id !== newItem.id)].slice(0, 25);
+      localStorage.setItem('replate_local_surplus', JSON.stringify(updated));
+    } catch (_) {
+      try {
+        const newItem = {
+          id: `SRP-LOCAL-${Date.now()}`,
+          ...payload,
+          remainingQuantity: payload.quantity,
+          status: 'AVAILABLE',
+          createdAt: new Date().toISOString(),
+          provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
+        };
+        localStorage.setItem('replate_local_surplus', JSON.stringify([newItem]));
+      } catch (_) {}
+    }
 
     await onSubmit(payload);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 text-slate-800">
-      {/* Skema Distribusi & Logika Harga */}
-      <div className="p-5 bg-[#1B3A5C]/5 border border-[#1B3A5C]/20 rounded-2xl space-y-3">
-        <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-2">
-          <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span>Pilih Skema Distribusi & Penyelamatan Makanan</span>
-        </label>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          {/* Option 1: Rescue Sale */}
-          <div
-            onClick={() => handlePricingSchemeChange('RESCUE_SALE')}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              pricingScheme === 'RESCUE_SALE'
-                ? 'bg-amber-50 border-[#D4A843] shadow-xs'
-                : 'bg-white border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            <span className="font-extrabold text-slate-900 block text-xs">Rescue Sale (Diskon)</span>
-            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-              Dijual murah di bawah harga normal untuk masyarakat umum & anak kos.
-            </p>
-          </div>
-
-          {/* Option 2: Donasi Skala Besar Yayasan */}
-          <div
-            onClick={() => handlePricingSchemeChange('DONATION_YAYASAN')}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              pricingScheme === 'DONATION_YAYASAN'
-                ? 'bg-blue-50 border-[#1B3A5C] shadow-xs'
-                : 'bg-white border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            <span className="font-extrabold text-slate-900 block text-xs">Donasi Yayasan / Panti</span>
-            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-              Gratis 100% (Porsi Besar). Otomatis masuk Smart Matching Panti Surabaya.
-            </p>
-          </div>
-
-          {/* Option 3: Donasi Skala Kecil Individu */}
-          <div
-            onClick={() => handlePricingSchemeChange('DONATION_INDIVIDUAL')}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              pricingScheme === 'DONATION_INDIVIDUAL'
-                ? 'bg-emerald-50 border-emerald-600 shadow-xs'
-                : 'bg-white border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            <span className="font-extrabold text-slate-900 block text-xs">Donasi Gratis Individu</span>
-            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-              Gratis 100% (Porsi Sedikit). Untuk warga / individu yang membutuhkan.
-            </p>
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-5 text-slate-800">
+      {/* 3-Step Wizard Navigation Header */}
+      <div className="flex rounded-2xl bg-slate-100 p-1.5 border border-slate-200 gap-1.5 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setCurrentStep(1)}
+          className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            currentStep === 1
+              ? 'bg-[#1B3A5C] text-white shadow-xs font-black'
+              : 'text-slate-600 hover:text-slate-900 bg-white/60'
+          }`}
+        >
+          <PackageIcon size={14} />
+          <span className="hidden sm:inline">1.</span>
+          <span>Info Makanan</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleNextToStep2}
+          className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            currentStep === 2
+              ? 'bg-[#1B3A5C] text-white shadow-xs font-black'
+              : 'text-slate-600 hover:text-slate-900 bg-white/60'
+          }`}
+        >
+          <CreditCardIcon size={14} />
+          <span className="hidden sm:inline">2.</span>
+          <span>Harga & Waktu</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (!formData.foodName?.trim()) {
+              alert('Mohon lengkapi info makanan di Langkah 1 terlebih dahulu.');
+              setCurrentStep(1);
+              return;
+            }
+            setCurrentStep(3);
+          }}
+          className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            currentStep === 3
+              ? 'bg-[#1B3A5C] text-white shadow-xs font-black'
+              : 'text-slate-600 hover:text-slate-900 bg-white/60'
+          }`}
+        >
+          <ShieldCheckIcon size={14} />
+          <span className="hidden sm:inline">3.</span>
+          <span>SOP BPOM</span>
+        </button>
       </div>
 
-      {/* Photo Upload Section */}
-      <div className="space-y-2">
-        <label className="text-xs font-extrabold text-[#1B3A5C] block">
-          Upload Foto Produk Surplus Makanan
-        </label>
-        <div className="border-2 border-dashed border-slate-300 hover:border-[#1B3A5C] rounded-2xl p-5 bg-slate-50 transition-colors text-center relative overflow-hidden">
-          {previewPhoto ? (
-            <div className="relative max-w-sm mx-auto group">
-              <img
-                src={previewPhoto}
-                alt="Preview Produk"
-                className="w-full h-44 object-cover rounded-xl shadow-xs border border-slate-200"
+      {/* LANGKAH 1: IDENTITAS & PORSI MAKANAN */}
+      {currentStep === 1 && (
+        <div className="space-y-4">
+          {/* Photo Upload Section */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-extrabold text-[#1B3A5C] block">
+              Upload Foto Produk Surplus Makanan
+            </label>
+            <div className="border-2 border-dashed border-slate-300 hover:border-[#1B3A5C] rounded-2xl p-4 bg-slate-50 transition-colors text-center relative overflow-hidden">
+              {previewPhoto ? (
+                <div className="relative max-w-sm mx-auto group">
+                  <img
+                    src={previewPhoto}
+                    alt="Preview Produk"
+                    className="w-full h-40 object-cover rounded-xl shadow-xs border border-slate-200"
+                  />
+                  <label className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white font-bold text-xs cursor-pointer">
+                    Ganti Foto Produk
+                    <input type="file" accept="image/png, image/jpeg" onChange={handlePhotoUploadMock} className="hidden" />
+                  </label>
+                </div>
+              ) : (
+                <label className="cursor-pointer space-y-2 block">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-amber-100 text-[#D4A843] flex items-center justify-center text-xl font-bold">
+                    +
+                  </div>
+                  <p className="text-xs font-bold text-[#1B3A5C]">Klik atau Drag & Drop foto produk di sini</p>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Rasio disarankan 16:9 atau 4:3, maksimal ukuran 5 MB.
+                  </p>
+                  <input type="file" accept="image/png, image/jpeg" onChange={handlePhotoUploadMock} className="hidden" />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Main Product Info Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <Input
+              label="Nama Makanan Surplus"
+              placeholder="Contoh: Bakso Sapi Komplit / Roti Tawar Gandum"
+              value={formData.foodName || ''}
+              onChange={(e) => setFormData({ ...formData, foodName: e.target.value })}
+              required
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#343A40]">Kategori Makanan</label>
+              <select
+                className={customSelectClass}
+                value={formData.foodCategory}
+                onChange={(e) => setFormData({ ...formData, foodCategory: e.target.value })}
+              >
+                <option value="MEALS">Makanan Olahan (Meals)</option>
+                <option value="BAKERY">Roti & Pastry (Bakery)</option>
+                <option value="PRODUCE">Buah & Sayur (Produce)</option>
+                <option value="DAIRY">Susu & Olahan (Dairy)</option>
+                <option value="BEVERAGES">Minuman (Beverages)</option>
+                <option value="SNACKS">Camilan (Snacks)</option>
+                <option value="OTHER">Lainnya</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#343A40]">Deskripsi / Rincian Menu</label>
+              <input
+                type="text"
+                placeholder="Rincian lauk, bahan utama, atau info alergen..."
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#D4A843]"
               />
-              <label className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white font-bold text-xs cursor-pointer">
-                Ganti Foto Produk
-                <input type="file" accept="image/png, image/jpeg" onChange={handlePhotoUploadMock} className="hidden" />
-              </label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                label="Jumlah Kuantitas"
+                type="number"
+                placeholder="15"
+                value={formData.quantity || ''}
+                onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                required
+              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#343A40]">Satuan</label>
+                <select
+                  className={customSelectClass}
+                  value={formData.quantityUnit}
+                  onChange={(e) => setFormData({ ...formData, quantityUnit: e.target.value })}
+                >
+                  <option value="porsi">Porsi</option>
+                  <option value="kotak">Kotak</option>
+                  <option value="kg">Kg</option>
+                  <option value="pcs">Pcs</option>
+                </select>
+              </div>
+            </div>
+
+            <Input
+              label="Estimasi Berat Bersih (Kg per Unit)"
+              type="number"
+              step="0.1"
+              placeholder="0.5"
+              value={formData.weightPerUnitKg || ''}
+              onChange={(e) => setFormData({ ...formData, weightPerUnitKg: Number(e.target.value) })}
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#343A40]">Kondisi Penyimpanan Higienis</label>
+              <select
+                className={customSelectClass}
+                value={formData.storageCondition}
+                onChange={(e) => setFormData({ ...formData, storageCondition: e.target.value })}
+              >
+                <option value="ROOM_TEMP">Suhu Ruangan (&gt;60°C / Hangat)</option>
+                <option value="REFRIGERATED">Pendingin Chiller (&lt;4°C)</option>
+                <option value="FROZEN">Beku (Freezer)</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <label className="text-xs font-semibold text-[#343A40]">Jenis Wadah / Kemasan Makanan</label>
+              <select
+                className={customSelectClass}
+                value={formData.packagingType}
+                onChange={(e) => setFormData({ ...formData, packagingType: e.target.value })}
+              >
+                <option value="PACKAGED">Kotak Makanan / Food Box Steril</option>
+                <option value="VACUUM_SEALED">Vakum Tersegel (Vacuum Sealed)</option>
+                <option value="PLASTIC_WRAP">Mika / Wrap Rapat</option>
+                <option value="BULK">Wadah Bersama / Prasmanan</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-3 border-t border-slate-200">
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={handleNextToStep2}
+              className="font-black text-xs py-2 px-3.5 shadow-xs cursor-pointer"
+            >
+              Lanjut ke Langkah 2: Harga & Waktu ➔
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* LANGKAH 2: SKEMA HARGA, WAKTU & LOGISTIK */}
+      {currentStep === 2 && (
+        <div className="space-y-4">
+          {/* Skema Distribusi & Penyelamatan */}
+          <div className="p-4 bg-[#1B3A5C]/5 border border-[#1B3A5C]/20 rounded-2xl space-y-2.5">
+            <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
+              <CreditCardIcon size={14} className="text-[#D4A843]" />
+              <span>Pilih Skema Distribusi & Penyelamatan Makanan</span>
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              <div
+                onClick={() => handlePricingSchemeChange('RESCUE_SALE')}
+                className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  pricingScheme === 'RESCUE_SALE'
+                    ? 'bg-amber-50 border-[#D4A843] shadow-xs'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <span className="font-extrabold text-slate-900 block text-xs">Rescue Sale (Diskon)</span>
+                <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                  Dijual murah di bawah harga normal untuk konsumen umum & anak kos.
+                </p>
+              </div>
+
+              <div
+                onClick={() => handlePricingSchemeChange('DONATION_YAYASAN')}
+                className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  pricingScheme === 'DONATION_YAYASAN'
+                    ? 'bg-blue-50 border-[#1B3A5C] shadow-xs'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <span className="font-extrabold text-slate-900 block text-xs">Donasi Yayasan / Panti</span>
+                <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                  Gratis 100% (Porsi Besar). Otomatis dialirkan ke Smart Matching Panti Surabaya.
+                </p>
+              </div>
+
+              <div
+                onClick={() => handlePricingSchemeChange('DONATION_INDIVIDUAL')}
+                className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  pricingScheme === 'DONATION_INDIVIDUAL'
+                    ? 'bg-emerald-50 border-emerald-600 shadow-xs'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <span className="font-extrabold text-slate-900 block text-xs">Donasi Gratis Individu</span>
+                <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                  Gratis 100% (Porsi Sedikit). Untuk warga / individu rentan yang membutuhkan.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing Details */}
+          {pricingScheme === 'RESCUE_SALE' ? (
+            <div className="space-y-2">
+              <Input
+                label="Harga Diskon Surplus (Rp per Unit)"
+                type="number"
+                placeholder="5000"
+                value={formData.price || ''}
+                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                required
+              />
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-xs text-amber-950">
+                <div className="flex justify-between items-center font-black">
+                  <span>Alokasi Auto-Infaq Kemanusiaan (5%):</span>
+                  <span className="text-amber-950 font-mono">Rp {((formData.price || 0) * 0.05).toLocaleString('id-ID')} / porsi</span>
+                </div>
+                <p className="text-[11px] font-medium text-amber-800 leading-snug">
+                  *Dialokasikan ke Kas Dana Kemanusiaan Replate untuk subsidi logistik boks steril & bensin relawan Panti Asuhan. Pendapatan bersih toko: <strong>Rp {((formData.price || 0) * 0.95).toLocaleString('id-ID')}</strong>.
+                </p>
+              </div>
             </div>
           ) : (
-            <label className="cursor-pointer space-y-2 block">
-              <div className="w-10 h-10 mx-auto rounded-full bg-amber-100 text-[#D4A843] flex items-center justify-center text-xl font-bold">
-                +
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#343A40]">Harga Penyelamatan</label>
+              <div className="px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-xs sm:text-sm rounded-xl">
+                GRATIS (Rp 0 - Skema Donasi Sosial Panti/Rentan)
               </div>
-              <p className="text-xs font-bold text-[#1B3A5C]">Klik atau Drag & Drop foto produk di sini</p>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Hint: Disarankan rasio <strong className="text-slate-700">16:9 atau 4:3</strong>, maksimal ukuran file <strong className="text-slate-700">5 MB</strong> (JPG/PNG).
-              </p>
-              <input type="file" accept="image/png, image/jpeg" onChange={handlePhotoUploadMock} className="hidden" />
-            </label>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* Main Product Info Fields with Custom Styled Dropdowns (Poin 2) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Nama Makanan Surplus"
-          placeholder="Contoh: Bakso Sapi Komplit / Roti Tawar Gandum"
-          value={formData.foodName || ''}
-          onChange={(e) => setFormData({ ...formData, foodName: e.target.value })}
-          required
-        />
+          {/* Custom Date & Time Picker */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-extrabold text-[#1B3A5C]">
+                Batas Waktu Penjemputan (Pickup Deadline)
+              </label>
+              <span className="text-[10.5px] text-slate-500 font-medium">Pilih preset atau tentukan jam</span>
+            </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-[#343A40]">Kategori Makanan</label>
-          <select
-            className={customSelectClass}
-            value={formData.foodCategory}
-            onChange={(e) => setFormData({ ...formData, foodCategory: e.target.value })}
-          >
-            <option value="MEALS">Makanan Olahan (Meals)</option>
-            <option value="BAKERY">Roti & Pastry (Bakery)</option>
-            <option value="PRODUCE">Buah & Sayur (Produce)</option>
-            <option value="DAIRY">Susu & Olahan (Dairy)</option>
-            <option value="BEVERAGES">Minuman (Beverages)</option>
-            <option value="SNACKS">Camilan (Snacks)</option>
-            <option value="OTHER">Lainnya</option>
-          </select>
-        </div>
+            {/* Preset Chips */}
+            <div className="flex flex-wrap gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => handleQuickPresetTime(2)}
+                className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                2 Jam Lagi
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickPresetTime(4)}
+                className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                4 Jam Lagi
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickPresetTime(0, 21)}
+                className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Malam Ini 21.00 WIB
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickPresetTime(0, 8)}
+                className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Besok Pagi 08.00 WIB
+              </button>
+            </div>
 
-        <Input
-          label="Jumlah Kuantitas Porsi"
-          type="number"
-          placeholder="15"
-          value={formData.quantity || ''}
-          onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-          required
-        />
-
-        {pricingScheme === 'RESCUE_SALE' ? (
-          <div className="space-y-2">
             <Input
-              label="Harga Diskon Surplus (Rp per Unit)"
-              type="number"
-              placeholder="5000"
-              value={formData.price || ''}
-              onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+              type="datetime-local"
+              value={formData.pickupDeadline || ''}
+              onChange={(e) => setFormData({ ...formData, pickupDeadline: e.target.value })}
               required
             />
-            {/* Breakdown Transparansi Alokasi Infaq 5% (Sesuai Brainstorming Poin 7) */}
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-xs text-amber-950">
-              <div className="flex justify-between items-center font-black">
-                <span>Alokasi Auto-Infaq Kemanusiaan (5%):</span>
-                <span className="text-amber-950 font-mono">Rp {((formData.price || 0) * 0.05).toLocaleString('id-ID')} / porsi</span>
+          </div>
+
+          {/* Logistik & Pilihan Opsi Pengiriman Outlet (Global Setup) */}
+          <div className="p-4 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200 pb-2">
+              <div>
+                <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
+                  <TruckIcon size={14} className="text-[#1B3A5C]" />
+                  <span>Opsi Pengiriman Didukung Outlet Ini (Pengaturan Global Toko)</span>
+                  <span className="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded-md font-bold">AUTOMATIC GLOBAL</span>
+                </label>
+                <p className="text-[11px] text-slate-600 font-medium">
+                  Metode pengiriman mengikuti konfigurasi terpusat toko Anda di Modul Pengaturan.
+                </p>
               </div>
-              <p className="text-[11px] font-medium text-amber-800 leading-snug">
-                *Otomatis dialokasikan ke Kas Dana Kemanusiaan Replate untuk mendanai boks steril & subsidi bensin kurir relawan Panti Asuhan. Pendapatan bersih toko: <strong>Rp {((formData.price || 0) * 0.95).toLocaleString('id-ID')}</strong>.
-              </p>
+              <a
+                href="/dashboard/provider/settings"
+                className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-xl transition-all shrink-0 shadow-xs flex items-center gap-1"
+              >
+                <span>Ubah di Pengaturan Toko ➔</span>
+              </a>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="px-3 py-1 bg-white border border-slate-300 font-extrabold text-slate-800 rounded-lg shadow-2xs">
+                Ambil Mandiri (Self Pickup)
+              </span>
+              <span className="px-3 py-1 bg-white border border-slate-300 font-extrabold text-slate-800 rounded-lg shadow-2xs">
+                Kurir Relawan Replate
+              </span>
+              <span className="px-3 py-1 bg-emerald-100 border border-emerald-300 font-extrabold text-emerald-900 rounded-lg shadow-2xs">
+                Armada Toko Direct (Mas Doni - L 4582 ABC) (Terverifikasi)
+              </span>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#343A40]">Harga Penyelamatan</label>
-            <div className="px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-xs sm:text-sm rounded-xl">
-              GRATIS (Rp 0 - Skema Donasi Sosial Panti/Rentan)
+
+          <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentStep(1)}
+              className="font-bold text-xs py-2 px-3 cursor-pointer"
+            >
+              ‹ Kembali ke Info Makanan
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={handleNextToStep3}
+              className="font-black text-xs py-2 px-3.5 shadow-xs cursor-pointer"
+            >
+              Lanjut ke Langkah 3: Standar BPOM ➔
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* LANGKAH 3: STANDAR BPOM & ALAMAT TOKO */}
+      {currentStep === 3 && (
+        <div className="space-y-4">
+          {/* Auto-Fill Address Toggle with Driver GPS & Loading Dock Notes */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-extrabold text-[#1B3A5C]">Alamat Penjemputan Makanan</label>
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={useDefaultAddress}
+                  onChange={(e) => setUseDefaultAddress(e.target.checked)}
+                  className="rounded border-slate-300 text-[#1B3A5C] focus:ring-0 cursor-pointer"
+                />
+                <span>Gunakan Alamat Toko Utama ({defaultAddress})</span>
+              </label>
             </div>
+
+            {!useDefaultAddress && (
+              <div className="space-y-3 pt-2 border-t border-slate-200">
+                <Input
+                  label="Alamat Lengkap Lokasi Penjemputan Alternatif"
+                  placeholder="Contoh: Jl. Panglima Sudirman No. 12, Pintu Loading Dock Samping, Surabaya"
+                  value={formData.address || ''}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  required
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    label="Titik Koordinat GPS / Link Google Maps"
+                    placeholder="Contoh: -7.2625, 112.7482 atau https://maps.app.goo.gl/..."
+                    value={(formData as any).gpsLink || ''}
+                    onChange={(e) => setFormData({ ...formData, gpsLink: e.target.value } as any)}
+                  />
+                  <Input
+                    label="Catatan Khusus Titik Temu Driver"
+                    placeholder="Contoh: Masuk lewat pintu loading dock samping pos satpam"
+                    value={(formData as any).driverNotes || ''}
+                    onChange={(e) => setFormData({ ...formData, driverNotes: e.target.value } as any)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Logistik & Pilihan Opsi Pengiriman Outlet (Poin 2: Global Outlet Setup - Tanpa Bolak-Balik) */}
-      <div className="p-4 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2 text-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200 pb-2">
-          <div>
-            <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
-              <span>🚚 Opsi Pengiriman Didukung Outlet Ini (Pengaturan Global Toko)</span>
-              <span className="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded-md font-bold">AUTOMATIC GLOBAL</span>
-            </label>
-            <p className="text-[11px] text-slate-600 font-medium">
-              Metode pengiriman mengikuti konfigurasi terpusat toko Anda di Modul Pengaturan.
-            </p>
+          {/* Hybrid BPOM SOP Readiness Checklist — Auto-validated from form signals */}
+          <RescueReadinessForm
+            formSignals={formSignals}
+            onChange={handleChecklistChange}
+          />
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-3 border-t border-slate-200">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentStep(2)}
+              className="font-bold text-xs py-2 px-3 cursor-pointer w-full sm:w-auto"
+            >
+              ‹ Kembali ke Harga & Waktu
+            </Button>
+            <Button
+              type="submit"
+              variant="gold"
+              size="sm"
+              isLoading={isLoading}
+              disabled={!checklistReady}
+              className="font-black text-xs py-2 px-4 shadow-sm cursor-pointer w-full sm:w-auto"
+            >
+              Publikasikan & Smart Matching
+            </Button>
           </div>
-          <a
-            href="/dashboard/provider/settings"
-            className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-xl transition-all shrink-0 shadow-xs flex items-center gap-1"
-          >
-            <span>Ubah di Pengaturan Toko ⚙️</span>
-          </a>
         </div>
-
-        <div className="flex flex-wrap gap-2 pt-1">
-          <span className="px-3 py-1 bg-white border border-slate-300 font-extrabold text-slate-800 rounded-lg shadow-2xs">
-            🏬 Ambil Mandiri (Self Pickup)
-          </span>
-          <span className="px-3 py-1 bg-white border border-slate-300 font-extrabold text-slate-800 rounded-lg shadow-2xs">
-            🛵 Kurir Relawan Replate
-          </span>
-          <span className="px-3 py-1 bg-emerald-100 border border-emerald-300 font-extrabold text-emerald-900 rounded-lg shadow-2xs">
-            🚚 Armada Toko Direct (Mas Doni - L 4582 ABC) ✓ TERVERIFIKASI
-          </span>
-        </div>
-      </div>
-      {/* Custom Date & Time Picker */}
-      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-extrabold text-[#1B3A5C]">
-            Batas Waktu Penjemputan (Pickup Deadline)
-          </label>
-          <span className="text-[11px] text-slate-500 font-medium">Pilih preset cepat atau tentukan tanggal & jam</span>
-        </div>
-
-        {/* Preset Chips */}
-        <div className="flex flex-wrap gap-2 text-xs">
-          <button
-            type="button"
-            onClick={() => handleQuickPresetTime(2)}
-            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors cursor-pointer"
-          >
-            2 Jam Lagi
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickPresetTime(4)}
-            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg transition-colors cursor-pointer"
-          >
-            4 Jam Lagi
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickPresetTime(0, 21)}
-            className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg transition-colors cursor-pointer"
-          >
-            Malam Ini 21.00 WIB
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickPresetTime(0, 8)}
-            className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg transition-colors cursor-pointer"
-          >
-            Besok Pagi 08.00 WIB
-          </button>
-        </div>
-
-        <Input
-          type="datetime-local"
-          value={formData.pickupDeadline || ''}
-          onChange={(e) => setFormData({ ...formData, pickupDeadline: e.target.value })}
-          required
-        />
-      </div>
-
-      {/* Kondisi Penyimpanan */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-[#343A40]">Kondisi Penyimpanan Higienis</label>
-        <select
-          className={customSelectClass}
-          value={formData.storageCondition}
-          onChange={(e) => setFormData({ ...formData, storageCondition: e.target.value })}
-        >
-          <option value="ROOM_TEMP">Suhu Ruangan (&gt;60°C / Hangat)</option>
-          <option value="REFRIGERATED">Pendingin Chiller (&lt;4°C)</option>
-          <option value="FROZEN">Beku (Freezer)</option>
-        </select>
-      </div>
-
-      {/* Auto-Fill Address Toggle with Driver GPS & Loading Dock Notes */}
-      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-extrabold text-[#1B3A5C]">Alamat Penjemputan Makanan</label>
-          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
-            <input
-              type="checkbox"
-              checked={useDefaultAddress}
-              onChange={(e) => setUseDefaultAddress(e.target.checked)}
-              className="rounded border-slate-300 text-[#1B3A5C] focus:ring-0 cursor-pointer"
-            />
-            <span>Gunakan Alamat Toko Utama ({defaultAddress})</span>
-          </label>
-        </div>
-
-        {!useDefaultAddress && (
-          <div className="space-y-3 pt-2 border-t border-slate-200">
-            <Input
-              label="Alamat Lengkap Lokasi Penjemputan Alternatif"
-              placeholder="Contoh: Jl. Panglima Sudirman No. 12, Pintu Loading Dock Samping, Surabaya"
-              value={formData.address || ''}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              required
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                label="Titik Koordinat GPS / Link Google Maps"
-                placeholder="Contoh: -7.2625, 112.7482 atau https://maps.app.goo.gl/..."
-                value={(formData as any).gpsLink || ''}
-                onChange={(e) => setFormData({ ...formData, gpsLink: e.target.value } as any)}
-              />
-              <Input
-                label="Catatan Khusus Titik Temu Driver"
-                placeholder="Contoh: Masuk lewat pintu loading dock samping pos satpam"
-                value={(formData as any).driverNotes || ''}
-                onChange={(e) => setFormData({ ...formData, driverNotes: e.target.value } as any)}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Hybrid BPOM SOP Readiness Checklist — Auto-validated from form signals */}
-      <RescueReadinessForm
-        formSignals={formSignals}
-        onChange={(checkData, isComplete) => {
-          setChecklistData(checkData);
-          setChecklistReady(isComplete);
-        }}
-      />
-
-      <div className="flex justify-end gap-3 pt-2">
-        <Button type="submit" variant="gold" size="lg" isLoading={isLoading} disabled={!checklistReady} className="font-extrabold shadow-md">
-          Publikasikan Surplus & Trigger Smart Matching ➔
-        </Button>
-      </div>
+      )}
     </form>
   );
 };

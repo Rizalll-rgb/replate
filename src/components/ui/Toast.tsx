@@ -57,11 +57,14 @@ export const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-slide-in-right flex items-center">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border border-white/20 ${bgColors[type]}`}>
+    <div
+      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 left-4 sm:left-auto z-[99999] animate-slide-in-right flex items-center justify-center sm:justify-end pointer-events-none"
+      style={{ position: 'fixed', zIndex: 99999 }}
+    >
+      <div className={`pointer-events-auto flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl shadow-2xl border border-white/20 max-w-md w-full sm:w-auto ${bgColors[type]}`}>
         {icons[type]}
-        <span className="text-xs font-bold">{message}</span>
-        <button onClick={onClose} className="ml-2 p-1 hover:bg-white/20 rounded-md transition-colors">
+        <span className="text-xs font-bold flex-1">{message}</span>
+        <button onClick={onClose} className="ml-2 p-1 hover:bg-white/20 rounded-lg transition-colors cursor-pointer shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>

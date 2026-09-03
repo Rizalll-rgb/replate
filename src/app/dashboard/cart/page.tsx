@@ -7,6 +7,8 @@ import { Toast } from '@/components/ui/Toast';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
+import { ClockIcon, MapPinIcon, CheckIcon, AlertTriangleIcon } from '@/components/ui/Icon';
 
 interface CartItem {
   id: string;
@@ -21,6 +23,7 @@ interface CartItem {
   imageUrl?: string;
   pickupTime?: string;
   isFree?: boolean;
+  deliveryMethod?: string;
 }
 
 export default function CartPage() {
@@ -38,6 +41,36 @@ export default function CartPage() {
     message: '',
     type: 'success',
   });
+
+  const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({
+    isOpen: false,
+    message: '',
+    submessage: '',
+  });
+
+  const [minCapacity, setMinCapacity] = useState<number>(0);
+  const [isBeneficiary, setIsBeneficiary] = useState<boolean>(false);
+  const [shelterName, setShelterName] = useState<string>('');
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        const r = String(parsed.role || '').toUpperCase();
+        if (r.includes('BENEFICIARY') || r.includes('YAYASAN')) {
+          setIsBeneficiary(true);
+          if (parsed.entityName) setShelterName(parsed.entityName);
+          if (parsed.capacity) {
+            const digits = parseInt(parsed.capacity.replace(/\D/g, ''));
+            if (!isNaN(digits) && digits > 0) {
+              setMinCapacity(digits);
+            }
+          }
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   useEffect(() => {
     try {
@@ -163,19 +196,42 @@ export default function CartPage() {
 
   const handleStartCheckout = () => {
     if (selectedCartItems.length === 0) return;
+
+    if (isBeneficiary && minCapacity > 0 && totalItems < minCapacity) {
+      setToastState({
+        isOpen: true,
+        message: `Kapasitas panti Anda adalah ${minCapacity} jiwa. Jumlah porsi yang dipilih (${totalItems} porsi) belum memenuhi kuota minimum ${minCapacity} porsi. Mohon sesuaikan jumlah porsi agar mencukupi kebutuhan seluruh anak panti.`,
+        type: 'error',
+      });
+      return;
+    }
+
     setIsCheckingOut(true);
+    setActionLoader({
+      isOpen: true,
+      message: 'Mempersiapkan Checkout...',
+      submessage: 'Menyinkronkan item terpilih ke alur transaksi',
+    });
     
     // Save selected items for the unified checkout page
     localStorage.setItem('replate_checkout_pending', JSON.stringify(selectedCartItems));
     
-    // Navigate to the checkout page
-    router.push('/dashboard/checkout/cart');
+    setTimeout(() => {
+      // Navigate to the checkout page
+      router.push('/dashboard/checkout/cart');
+    }, 800);
   };
 
   if (!isLoaded) return null;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      <SuperAppLoader
+        isOpen={actionLoader.isOpen}
+        message={actionLoader.message}
+        submessage={actionLoader.submessage}
+      />
+
       <div className="border-b border-slate-200 pb-4">
         <h1 className="text-2xl font-black text-[#1B3A5C]">Tas Klaim & Keranjang</h1>
         <p className="text-sm text-slate-500 font-medium">
@@ -250,7 +306,8 @@ export default function CartPage() {
                             onChange={() => toggleProviderSelection(providerName)}
                           />
                           <span className="font-black text-slate-800 flex items-center gap-2">
-                            🏪 {providerName}
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>{providerName}</span>
                           </span>
                         </label>
                       </div>
@@ -285,8 +342,17 @@ export default function CartPage() {
                                 <div className="flex justify-between items-start gap-2">
                                   <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">{item.foodName}</h3>
                                 </div>
-                                <p className="text-[11px] text-amber-600 font-bold inline-flex items-center gap-1 mt-1 bg-amber-50 px-2 py-0.5 rounded-md">
-                                  ⏰ Ambil: {item.pickupTime}
+                                <p className="text-[11px] text-amber-800 font-bold inline-flex items-center gap-1.5 mt-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                  <ClockIcon size={12} className="text-amber-600 shrink-0" />
+                                  <span>
+                                    {isBeneficiary ? (
+                                      item.deliveryMethod === 'COURIER_DELIVERY' || item.deliveryMethod === 'RESCUE_PARTNER'
+                                        ? `Estimasi Diantar: ${item.pickupTime || 'Hari ini 20:30 WIB'}`
+                                        : `Jam Ambil di Toko: ${item.pickupTime || 'Hari ini 20:30 WIB'}`
+                                    ) : (
+                                      `Waktu Ambil: ${item.pickupTime || 'Hari ini 20:30 WIB'}`
+                                    )}
+                                  </span>
                                 </p>
                               </div>
                               
@@ -335,10 +401,47 @@ export default function CartPage() {
 
 
                 {/* Ringkasan Belanja */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-72">
-                  <h3 className="text-lg font-black text-slate-800 mb-6">Ringkasan Pesanan</h3>
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-72 space-y-5">
+                  <h3 className="text-lg font-black text-slate-800">Ringkasan Pesanan</h3>
+
+                  {/* Beneficiary Capacity Indicator */}
+                  {isBeneficiary && minCapacity > 0 && (
+                    <div className={`p-3.5 rounded-2xl border text-xs space-y-1.5 ${
+                      totalItems >= minCapacity 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-950' 
+                        : 'bg-amber-50 border-amber-200 text-amber-950'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold uppercase text-[9.5px] tracking-wider text-slate-500">
+                          Standar Kuota Panti
+                        </span>
+                        <span className={`px-2 py-0.5 rounded font-black text-[9.5px] flex items-center gap-1 ${
+                          totalItems >= minCapacity ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-slate-950'
+                        }`}>
+                          {totalItems >= minCapacity ? (
+                            <>
+                              <CheckIcon size={10} />
+                              <span>MEMENUHI KUOTA</span>
+                            </>
+                          ) : 'DI BAWAH MINIMAL'}
+                        </span>
+                      </div>
+                      <p className="font-bold text-[#1B3A5C]">
+                        Kapasitas Panti: {minCapacity} Jiwa
+                      </p>
+                      <p className="text-[11px] leading-relaxed text-slate-600 font-medium">
+                        Total Porsi Terpilih: <strong>{totalItems}</strong> / Minimal <strong>{minCapacity}</strong> porsi.
+                        {totalItems < minCapacity && (
+                          <span className="text-amber-800 font-extrabold flex items-center gap-1 mt-1">
+                            <AlertTriangleIcon size={12} className="text-amber-700 shrink-0" />
+                            <span>Kurang {minCapacity - totalItems} porsi agar seluruh anak panti tercukupi.</span>
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
                   
-                  <div className="space-y-3 text-sm mb-6">
+                  <div className="space-y-3 text-sm">
                     <div className="flex justify-between text-slate-600">
                       <span>Total Item Terpilih</span>
                       <span className="font-bold text-slate-800">{totalItems} Porsi</span>
@@ -357,7 +460,7 @@ export default function CartPage() {
                     </div>
                   </div>
                   
-                  <div className="border-t border-slate-200 pt-4 mb-6">
+                  <div className="border-t border-slate-200 pt-4">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-slate-800">Total Tagihan</span>
                       <span className="text-2xl font-black text-[#1B3A5C]">
@@ -368,17 +471,16 @@ export default function CartPage() {
                   
                   <Button 
                     variant="primary" 
-                    className="w-full font-black py-3 text-sm shadow-xl shadow-primary/20"
+                    className="w-full font-black py-3 text-sm shadow-xl shadow-primary/20 cursor-pointer"
                     onClick={handleStartCheckout}
-                    disabled={isCheckingOut || selectedCartItems.length === 0}
+                    disabled={isCheckingOut || selectedCartItems.length === 0 || (isBeneficiary && minCapacity > 0 && totalItems < minCapacity)}
                   >
                     {isCheckingOut ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Memproses...
-                      </span>
+                      'Memproses...'
+                    ) : isBeneficiary && minCapacity > 0 && totalItems < minCapacity ? (
+                      `Minimal ${minCapacity} Porsi (Pilih +${minCapacity - totalItems})`
                     ) : (
-                      'Selesaikan & Lanjut Bayar ➔'
+                      'Lanjut ke Checkout'
                     )}
                   </Button>
                 </div>

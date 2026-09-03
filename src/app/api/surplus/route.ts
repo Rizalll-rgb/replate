@@ -131,7 +131,9 @@ export async function POST(request: Request) {
                 pickupDeadline: new Date(data.pickupDeadline),
                 storageCondition: data.storageCondition,
                 packagingType: data.packagingType,
-                photos: body.photos || [],
+                photos: Array.isArray(body.photos)
+                    ? body.photos.map((p: any) => (typeof p === 'string' && p.length > 500000 ? p.slice(0, 500000) : p))
+                    : [],
                 latitude: data.latitude,
                 longitude: data.longitude,
                 address: data.address,
@@ -178,16 +180,20 @@ export async function POST(request: Request) {
             console.error('Matching error:', matchError);
         }
 
-        // Create initial tracking entry
-        await prisma.foodTracking.create({
-            data: {
-                referenceId: surplus.id,
-                referenceType: 'CLAIM',
-                status: 'LISTED',
-                description: `${surplus.foodName} ditambahkan oleh ${surplus.provider.organizationName || surplus.provider.name}`,
-                updatedById: session.user.id,
-            },
-        });
+        // Create initial tracking entry safely
+        try {
+            await prisma.foodTracking.create({
+                data: {
+                    referenceId: surplus.id,
+                    referenceType: 'CLAIM',
+                    status: 'LISTED',
+                    description: `${surplus.foodName} ditambahkan oleh ${surplus.provider.organizationName || surplus.provider.name}`,
+                    updatedById: session.user.id,
+                },
+            });
+        } catch (trackError) {
+            console.error('Initial food tracking error:', trackError);
+        }
 
         return NextResponse.json(
             {
@@ -197,10 +203,10 @@ export async function POST(request: Request) {
             },
             { status: 201 }
         );
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create surplus error:', error);
         return NextResponse.json(
-            { success: false, error: 'Gagal menambahkan surplus makanan' },
+            { success: false, error: error?.message || 'Gagal menambahkan surplus makanan' },
             { status: 500 }
         );
     }

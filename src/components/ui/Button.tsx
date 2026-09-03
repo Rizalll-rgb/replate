@@ -19,7 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap';
 
   const sizeStyles = {
     sm: 'px-3 py-1.5 text-xs gap-1.5',
@@ -43,7 +43,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading ? (
-        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current shrink-0" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path
             className="opacity-75"
@@ -52,10 +52,10 @@ export const Button: React.FC<ButtonProps> = ({
           />
         </svg>
       ) : (
-        leftIcon
+        leftIcon && <span className="inline-flex shrink-0 items-center">{leftIcon}</span>
       )}
-      <span>{children}</span>
-      {!isLoading && rightIcon}
+      <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">{children}</span>
+      {!isLoading && rightIcon && <span className="inline-flex shrink-0 items-center">{rightIcon}</span>}
     </button>
   );
 };
