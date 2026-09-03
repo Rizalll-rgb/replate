@@ -65,6 +65,10 @@ export default function AboutPage() {
       nim: 'NIM: 23080574640 (UNESA)',
       role: 'Penulis Proposal & Konseptor Platform',
       bio: 'Merumuskan konsep kebaruan inovasi SDGs, riset urgensi dampak emisi food waste, serta penyusunan dokumen proposal kompetisi.',
+      src: '/images/team/tina.jpg',
+      imagePosition: 'object-center',
+      instagram: 'https://www.instagram.com/tnf.20?igsi=MWxnd2poMWhvZnpx',
+      linkedin: 'https://www.linkedin.com/in/tina-nur-fadilah-?utm_source=share_via&utm_content=profile&utm_medium=member_android',
     },
   ];
 
