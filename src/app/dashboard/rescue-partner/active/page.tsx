@@ -24,7 +24,6 @@ import {
 
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
-  const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
   const [trackingModal, setTrackingModal] = useState<any | null>(null);

@@ -280,7 +280,7 @@ export default function CheckoutPage() {
     setTimeout(() => {
       try {
         const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
-        const status = isFreeItem ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
+        const status = (isFreeItem || paymentMethod === 'COD') ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
         const newClaim = buildClaim(resiCode, status);
         persistClaim(newClaim);
         setIsCheckingOut(false);

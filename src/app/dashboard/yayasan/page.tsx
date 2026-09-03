@@ -89,6 +89,18 @@ export default function YayasanDashboardPage() {
       foodType: 'Roti & Kue Pastry',
       hasStoreDriver: false,
     },
+    {
+      id: 'SM-HOTEL-MAJAPAHIT',
+      storeName: 'Hotel Majapahit Surabaya',
+      offer: '35 Porsi Lauk Buffet Nusantara (Donasi Rp 0)',
+      portions: 35,
+      distance: '2.1 km',
+      matchScore: 88,
+      readyTime: 'Siap Ambil Pukul 21:15 WIB',
+      address: 'Jl. Tunjungan No. 65, Surabaya',
+      foodType: 'Makanan Berat Berkualitas',
+      hasStoreDriver: false,
+    },
   ];
 
   const [totalPortionsReceived, setTotalPortionsReceived] = useState(185);
@@ -426,47 +438,50 @@ export default function YayasanDashboardPage() {
           </span>
         </div>
 
-        {/* Horizontal Peek Carousel on mobile, 2-column grid on desktop */}
-        <div className="flex md:grid md:grid-cols-2 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-2">
+        {/* Horizontal Peek Carousel on mobile, 3-column grid on desktop */}
+        <div className="flex md:grid lg:grid-cols-3 md:grid-cols-2 lg:gap-6 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-2 md:pb-6">
           {matchedSuppliers.map((supplier, idx) => (
             <div
               key={idx}
-              className="w-[85vw] max-w-[340px] md:w-auto shrink-0 snap-start p-4 sm:p-5 bg-gradient-to-br from-white to-emerald-50/40 rounded-2xl sm:rounded-3xl border-2 border-emerald-300 shadow-xs flex flex-col justify-between space-y-3 sm:space-y-4"
+              className="w-[85vw] max-w-[340px] md:max-w-none md:w-auto shrink-0 snap-start p-4 sm:p-5 lg:p-5 xl:p-6 bg-gradient-to-br from-white to-emerald-50/40 md:from-white md:to-emerald-50/20 rounded-2xl sm:rounded-3xl border-2 border-emerald-300 shadow-xs md:shadow-md md:hover:shadow-2xl md:hover:-translate-y-1 md:hover:border-emerald-400 transition-all duration-300 flex flex-col justify-between space-y-3 sm:space-y-4 md:space-y-5 relative overflow-hidden group"
             >
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono">
-                    Skor Kecocokan {supplier.matchScore}%
+              {/* Decorative element for desktop only */}
+              <div className="hidden md:block absolute top-0 right-0 -mr-12 -mt-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500 pointer-events-none"></div>
+
+              <div className="space-y-1.5 md:space-y-2.5 relative z-10">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="px-2 md:px-2.5 py-0.5 md:py-1 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] lg:text-[9px] xl:text-[10px] rounded-md font-mono shadow-sm whitespace-nowrap">
+                    Skor {supplier.matchScore}%
                   </span>
-                  <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-md">
+                  <span className="px-2 md:px-2.5 py-0.5 md:py-1 bg-emerald-500 text-slate-950 font-black text-[10px] lg:text-[9px] xl:text-[10px] rounded-md shadow-sm whitespace-nowrap">
                     DONASI Rp 0
                   </span>
                 </div>
-                <h4 className="font-black text-sm text-[#1B3A5C]">{supplier.storeName}</h4>
-                <p className="text-xs font-bold text-slate-800">{supplier.offer}</p>
-                <div className="text-[11px] text-slate-500 space-y-0.5">
-                  <p className="flex items-center gap-1">
-                    <MapPinIcon size={11} className="text-slate-400" />
-                    Jarak: <strong>{supplier.distance}</strong> ({supplier.address})
+                <h4 className="font-black text-sm md:text-lg xl:text-xl text-[#1B3A5C] md:pt-0.5 leading-tight">{supplier.storeName}</h4>
+                <p className="text-xs md:text-[11px] xl:text-xs font-bold text-slate-800 bg-emerald-50/50 md:bg-emerald-50 p-2 md:p-2.5 rounded-lg border border-emerald-100 leading-snug">{supplier.offer}</p>
+                <div className="text-[11px] md:text-[10px] xl:text-xs text-slate-500 space-y-0.5 md:space-y-1.5 md:pt-0.5">
+                  <p className="flex items-center gap-1 md:gap-1.5">
+                    <MapPinIcon size={14} className="text-slate-400 shrink-0" />
+                    <span className="leading-tight">Jarak: <strong className="text-slate-700">{supplier.distance}</strong> ({supplier.address})</span>
                   </p>
-                  <p className="text-emerald-700 font-bold flex items-center gap-1">
-                    <ClockIcon size={11} className="text-emerald-600" />
-                    {supplier.readyTime}
+                  <p className="text-emerald-700 font-bold flex items-center gap-1 md:gap-1.5">
+                    <ClockIcon size={14} className="text-emerald-600 shrink-0" />
+                    <span>{supplier.readyTime}</span>
                   </p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-emerald-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                  <ShieldCheckIcon size={11} className="text-slate-400" />
-                  Bisa Diantar / Self-Pickup
+              <div className="pt-2 md:pt-3 border-t border-emerald-200 md:border-emerald-100 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2 xl:gap-3 relative z-10">
+                <span className="text-[10px] lg:text-[9.5px] xl:text-[10px] text-slate-600 font-bold flex items-center justify-center xl:justify-start gap-1 md:gap-1.5 bg-slate-50 md:bg-white px-2 py-1.5 rounded-lg">
+                  <ShieldCheckIcon size={14} className="text-emerald-500 shrink-0" />
+                  Diantar / Self-Pickup
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-stretch">
                   <Button
                     variant="gold"
                     size="sm"
-                    leftIcon={<CheckIcon size={13} />}
-                    className="font-black text-xs text-slate-950 px-3.5 py-1.5 shadow-xs cursor-pointer"
+                    leftIcon={<CheckIcon size={14} className="shrink-0" />}
+                    className="w-full font-black text-xs lg:text-[11px] xl:text-xs text-slate-950 px-3 md:px-4 py-1.5 md:py-2 shadow-xs md:shadow-md cursor-pointer md:hover:scale-105 transition-transform"
                     onClick={() => handleOpenClaimModal(supplier)}
                   >
                     Klaim Alokasi

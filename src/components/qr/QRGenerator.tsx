@@ -226,19 +226,19 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
               </div>
             </div>
           )}
-          {courierName && (
+          {courierName && deliveryMethod !== 'SELF_PICKUP' && deliveryMethod !== 'SHELTER_PICKUP' && (
             <div className="flex justify-between border-t border-slate-200 pt-1.5 mt-1">
               <span className="text-slate-500">Kurir Ditugaskan:</span>
               <strong className="text-slate-900 truncate max-w-[170px]">{courierName}</strong>
             </div>
           )}
-          {courierVehicle && (
+          {courierVehicle && deliveryMethod !== 'SELF_PICKUP' && deliveryMethod !== 'SHELTER_PICKUP' && (
             <div className="flex justify-between">
               <span className="text-slate-500">Armada:</span>
               <strong className="text-slate-900 truncate max-w-[170px]">{courierVehicle}</strong>
             </div>
           )}
-          {courierPhone && (
+          {courierPhone && deliveryMethod !== 'SELF_PICKUP' && deliveryMethod !== 'SHELTER_PICKUP' && (
             <div className="flex justify-between">
               <span className="text-slate-500">Telepon Kurir:</span>
               <strong className="text-slate-900">{courierPhone}</strong>

@@ -1428,7 +1428,7 @@ export default function WorkspaceExplorePage() {
 
             {/* Dynamic Smart Matching Compatibility Analyzer (Collapsible on Mobile) */}
             {(() => {
-              const targetNeedQty = parseInt(allocateModal.panti.targetQuantity || '45', 10) || 45;
+              const targetNeedQty = parseInt(String(allocateModal.panti.targetQuantity || '45'), 10) || 45;
               const ratioPct = Math.min(100, Math.round((allocateModal.portions / targetNeedQty) * 100));
               const selectedProd = availableProducts.find(p => p.id === allocateModal.selectedFoodId);
               const pantiNeedText = (allocateModal.panti.needTitle + ' ' + (allocateModal.panti.notes || '') + ' ' + (allocateModal.panti.shelterType || '')).toLowerCase();

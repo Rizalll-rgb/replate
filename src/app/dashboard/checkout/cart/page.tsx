@@ -191,7 +191,7 @@ export default function CheckoutCartPage() {
       try {
         // Poin 6: standardized resi
         const resiCode = isFree ? genResiCode('YYS') : genResiCode('CNS');
-        const status = isFree ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
+        const status = (isFree || paymentMethod === 'COD') ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
         const newClaim = saveClaimAndRedirect(resiCode, status);
         setActionLoader({ isOpen: false, message: '' });
         setIsCheckingOut(false);
@@ -337,6 +337,7 @@ export default function CheckoutCartPage() {
             </div>
 
             {/* Metode Pembayaran — Poin 8: replace $ emoji placeholder */}
+            {/* Metode Pembayaran */}
             <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-sm text-sm">
               <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider flex items-center gap-2">
                 <CreditCardIcon size={14} className="text-slate-500" />
@@ -344,15 +345,15 @@ export default function CheckoutCartPage() {
               </h4>
               <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsPaymentModalOpen(true)}>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                     <QrCodeIcon size={16} className="text-emerald-600" />
                   </div>
                   <div>
                     <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                      {paymentMethod === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : `Transfer Bank ${paymentMethod}`}
+                      {paymentMethod === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : paymentMethod === 'COD' ? 'Bayar di Tempat (COD)' : `Transfer Bank ${paymentMethod}`}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      {paymentMethod === 'QRIS' ? 'Scan QR dari aplikasi apapun. Gratis biaya admin.' : 'Virtual Account otomatis dicek.'}
+                      {paymentMethod === 'QRIS' ? 'Scan QR dari aplikasi apapun. Gratis admin.' : paymentMethod === 'COD' ? 'Bayar tunai saat pesanan tiba' : 'Virtual Account. Dicek otomatis.'}
                     </div>
                   </div>
                 </div>
@@ -433,12 +434,12 @@ export default function CheckoutCartPage() {
           <div className="p-2 space-y-4">
             <h3 className="font-black text-lg text-slate-800 border-b border-slate-100 pb-3">Pilih Metode Pembayaran</h3>
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              {['QRIS', 'BCA', 'MANDIRI', 'BNI', 'BRI'].map((method) => (
+              {['QRIS', 'COD', 'BCA', 'MANDIRI', 'BNI', 'BRI'].map((method) => (
                 <label key={method} className={`p-4 rounded-2xl border-2 flex items-center gap-4 cursor-pointer transition-all ${paymentMethod === method ? 'bg-amber-50/50 border-[#D4A843] shadow-sm' : 'bg-white border-slate-200 hover:border-amber-200'}`}>
                   <input type="radio" name="paymentMethodModal" checked={paymentMethod === method} onChange={() => { setPaymentMethod(method); setIsPaymentModalOpen(false); }} className="w-4 h-4 text-[#1B3A5C]" />
                   <div className="flex-1">
-                    <span className="font-extrabold text-slate-900 text-sm">{method === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : `Transfer Bank ${method}`}</span>
-                    <p className="text-xs text-slate-500 mt-0.5">{method === 'QRIS' ? 'Scan QR. Gratis biaya admin.' : 'Virtual Account. Dicek otomatis.'}</p>
+                    <span className="font-extrabold text-slate-900 text-sm">{method === 'QRIS' ? 'QRIS (Semua E-Wallet & Bank)' : method === 'COD' ? 'Bayar di Tempat (COD)' : `Transfer Bank ${method}`}</span>
+                    <p className="text-xs text-slate-500 mt-0.5">{method === 'QRIS' ? 'Scan QR. Gratis biaya admin.' : method === 'COD' ? 'Bayar tunai saat pesanan tiba.' : 'Virtual Account. Dicek otomatis.'}</p>
                   </div>
                   {method === 'QRIS' && <QrCodeIcon size={18} className="text-emerald-600 shrink-0" />}
                 </label>

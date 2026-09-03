@@ -518,7 +518,7 @@ export function DonationsHubComponent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="text-xs"
-              icon={<Search className="w-4 h-4 text-slate-400" />}
+              leftIcon={<Search className="w-4 h-4 text-slate-400" />}
             />
           </div>
 

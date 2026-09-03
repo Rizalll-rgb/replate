@@ -1672,7 +1672,7 @@ export default function DashboardProfilePage() {
           <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
             SUITE PENGATURAN OUTLET, IDENTITAS & OPERASIONAL TERPADU
           </span>
-          <h1 className="text-2xl font-black text-[#1B3A5C]">Profil & Pengaturan Akun Mitra</h1>
+          <h1 className="text-2xl font-black text-[#1B3A5C]">Pengaturan</h1>
           <p className="text-xs text-slate-500 font-medium">
             Kelola identitas, radius pengiriman, rekening QRIS, kelola armada driver internal toko, dan pantau sertifikasi BPOM.
           </p>

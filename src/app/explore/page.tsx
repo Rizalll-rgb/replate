@@ -738,8 +738,8 @@ export default function ExplorePage() {
 
                         {/* Progress Bar */}
                         {(() => {
-                          const targetNum = parseInt(need.targetQuantity.replace(/\D/g, '')) || 1;
-                          const fulfilledNum = parseInt(need.fulfilledQuantity.replace(/\D/g, '')) || 0;
+                          const targetNum = parseInt(String(need.targetQuantity).replace(/\D/g, '')) || 1;
+                          const fulfilledNum = parseInt(String(need.fulfilledQuantity).replace(/\D/g, '')) || 0;
                           const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
                           return (
                             <div className="space-y-1 pt-1">
