@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ArrowLeft, Printer } from 'lucide-react';
 
 export default function SuratJalanPage() {
   const handlePrint = () => {
@@ -15,12 +16,12 @@ export default function SuratJalanPage() {
       {/* Action Bar - Hidden on print */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden mb-6">
         <Link href="/dashboard/rescue-partner">
-          <Button variant="outline" size="sm" className="font-extrabold text-xs">
-            ⬅ Kembali ke Dashboard
+          <Button variant="outline" size="sm" className="font-extrabold text-xs inline-flex items-center gap-1.5">
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Dashboard
           </Button>
         </Link>
-        <Button variant="gold" size="sm" onClick={handlePrint} className="font-black text-xs shadow-md">
-          ️ Cetak Surat Jalan
+        <Button variant="gold" size="sm" onClick={handlePrint} className="font-black text-xs shadow-md inline-flex items-center gap-1.5">
+          <Printer className="w-4 h-4" /> Cetak Surat Jalan
         </Button>
       </div>
 
@@ -76,7 +77,7 @@ export default function SuratJalanPage() {
           {/* Table Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-black uppercase text-slate-800 tracking-wider">
-              RINCIAN ITEM DONASI PANGAN
+              RINCIAN ITEM DONASI FOOD RESCUE
             </h4>
             <div className="border border-slate-200 rounded-xl overflow-hidden">
               <table className="w-full text-left text-sm">
@@ -126,7 +127,7 @@ export default function SuratJalanPage() {
           </div>
           
           <div className="pt-8 border-t border-dashed border-slate-300 text-center text-xs text-slate-500">
-            <p>Dokumen ini dihasilkan secara otomatis oleh sistem Replate dan sah sebagai bukti serah terima donasi pangan.</p>
+            <p>Dokumen ini dihasilkan secara otomatis oleh sistem Replate dan sah sebagai bukti serah terima donasi food rescue.</p>
             <p className="font-mono mt-1">Dicetak pada: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
           </div>
 

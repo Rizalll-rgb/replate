@@ -786,8 +786,8 @@ export default function ProviderClaimsPage() {
                     isOpen: true,
                     claim: {
                       code: manualCodeInput.trim().toUpperCase(),
-                      foodName: 'Paket Surplus Donasi Pangan',
-                      userName: 'Penerima Terdaftar Surabaya',
+                      foodName: 'Paket Surplus Donasi Food Rescue',
+                      userName: 'Penerima Terdaftar',
                       quantity: '1 Porsi',
                       status: 'IN_TRANSIT',
                       deliveryMethod: manualCodeInput.includes('DIR') ? 'PROVIDER_DIRECT' : 'RESCUE_COURIER',

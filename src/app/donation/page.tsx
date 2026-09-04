@@ -56,27 +56,27 @@ export default function DonationPage() {
   const handleRequestClick = (e: React.MouseEvent) => {
     if (!session?.user) {
       e.preventDefault();
-      setAlertMsg(" Anda harus masuk terlebih dahulu sebagai Yayasan/Panti Asuhan.");
+      setAlertMsg("Anda harus masuk terlebih dahulu sebagai Yayasan/Panti Asuhan.");
       return;
     }
     if (session.user.role !== 'YAYASAN' && session.user.role !== 'RESCUE_PARTNER') {
       e.preventDefault();
-      setAlertMsg("️ Hanya akun Yayasan atau Panti Asuhan yang dapat mengajukan kebutuhan donasi.");
+      setAlertMsg("Hanya akun Yayasan atau Panti Asuhan yang dapat mengajukan kebutuhan donasi.");
       return;
     }
   };
 
   const filteredOrgs = organizations.filter(org => {
     if (activeCategory === "Semua") return true;
-    if (activeCategory === " Panti" && org.type.includes("Panti")) return true;
-    if (activeCategory === " Yayasan" && org.type.includes("Yayasan")) return true;
-    if (activeCategory === " Komunitas" && org.type.includes("Komunitas")) return true;
-    if (activeCategory === " Shelter" && org.type.includes("Shelter")) return true;
+    if (activeCategory === "Panti" && org.type.includes("Panti")) return true;
+    if (activeCategory === "Yayasan" && org.type.includes("Yayasan")) return true;
+    if (activeCategory === "Komunitas" && org.type.includes("Komunitas")) return true;
+    if (activeCategory === "Shelter" && org.type.includes("Shelter")) return true;
     return false;
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar user={session?.user} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
@@ -87,7 +87,7 @@ export default function DonationPage() {
           </div>
           <Link href="/dashboard/yayasan/claims" onClick={handleRequestClick}>
             <Button className="bg-[#D4A843] hover:bg-[#b88f35] text-[#1B3A5C] font-extrabold shadow-sm rounded-xl px-6 py-3">
-               Saya Butuh Donasi
+              Saya Butuh Donasi
             </Button>
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default function DonationPage() {
         )}
 
         <div className="flex flex-wrap gap-3 mb-8">
-          {["Semua", " Panti", " Yayasan", " Komunitas", " Shelter"].map((cat) => (
+          {["Semua", "Panti", "Yayasan", "Komunitas", "Shelter"].map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}

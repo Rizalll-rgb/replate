@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
 import { Input } from '@/components/ui/Input';
+import { Clock, Info } from 'lucide-react';
 
 export default function AdminApprovalsPage() {
   const [activeTab, setActiveTab] = useState<'MITRA' | 'CONSUMER_BENEFICIARY' | 'PROVIDER_FLEET'>('MITRA');
@@ -269,7 +270,7 @@ export default function AdminApprovalsPage() {
       {activeTab === 'MITRA' && (
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
-            <div className="text-lg">ℹ️</div>
+            <Info className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <span className="font-extrabold block">Aturan Verifikasi Administrasi Mitra Replate:</span>
               <p className="text-blue-800 leading-relaxed font-medium">
@@ -316,8 +317,8 @@ export default function AdminApprovalsPage() {
                       </TableCell>
                       <TableCell>
                         {u.status === 'HOLD_SURVEY' ? (
-                          <Badge variant="warning" size="sm">
-                            ⏳ HOLD (SURVEI LAPANGAN)
+                          <Badge variant="warning" size="sm" className="inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> HOLD (SURVEI LAPANGAN)
                           </Badge>
                         ) : (
                           <Badge variant="secondary" size="sm">
@@ -333,7 +334,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold border-slate-300"
                             onClick={() => setInspectModal({ isOpen: true, user: u })}
                           >
-                            ️ Inspeksi
+                            Inspeksi
                           </Button>
                           <Button
                             variant="secondary"
@@ -341,7 +342,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200"
                             onClick={() => handleAction(u.id, 'HOLD_SURVEY')}
                           >
-                             Hold & Survei
+                            Hold & Survei
                           </Button>
                           <Button
                             variant="danger"
@@ -357,7 +358,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-extrabold"
                             onClick={() => handleAction(u.id, 'APPROVE')}
                           >
-                            Setujui ️
+                            Setujui
                           </Button>
                         </div>
                       </TableCell>
@@ -423,7 +424,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold border-slate-300"
                             onClick={() => setInspectConsumerModal({ isOpen: true, consumer: c })}
                           >
-                            ️ Periksa Berkas
+                            Periksa Berkas
                           </Button>
                           <Button
                             variant="danger"
@@ -439,7 +440,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-black text-slate-950"
                             onClick={() => handleConsumerApprove(c.id)}
                           >
-                            Setujui Rentan (Rp 0) ️
+                            Setujui Rentan (Rp 0)
                           </Button>
                         </div>
                       </TableCell>
@@ -511,7 +512,7 @@ export default function AdminApprovalsPage() {
                             className="text-xs font-bold border-slate-300"
                             onClick={() => setInspectFleetModal({ isOpen: true, fleet: flt })}
                           >
-                            ️ Inspeksi KTP, SIM & STNK
+                            Inspeksi KTP, SIM & STNK
                           </Button>
                           <Button
                             variant="gold"
@@ -521,12 +522,12 @@ export default function AdminApprovalsPage() {
                               setFleetQueue(fleetQueue.filter((item) => item.id !== flt.id));
                               setToastState({
                                 isOpen: true,
-                                message: ` Armada Toko (${flt.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
+                                message: `Armada Toko (${flt.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
                                 type: 'success',
                               });
                             }}
                           >
-                            Setujui Armada Toko ️
+                            Setujui Armada Toko
                           </Button>
                         </div>
                       </TableCell>

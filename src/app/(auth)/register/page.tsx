@@ -68,6 +68,19 @@ export default function RegisterPage() {
         // Fallthrough for demo resiliency
       }
 
+      try {
+        localStorage.setItem(
+          'replate_registered_user',
+          JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            role: formData.role,
+            password: formData.password,
+          })
+        );
+      } catch (_) {}
+
       setSuccess(' Nomor WhatsApp Berhasil Diverifikasi! Mengalihkan ke pengisian profil...');
 
       setTimeout(() => {

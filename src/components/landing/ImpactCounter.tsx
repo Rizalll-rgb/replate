@@ -33,7 +33,7 @@ export const ImpactCounter: React.FC = () => {
       ),
     },
     {
-      label: 'Mitra Aktif Surabaya',
+      label: 'Mitra Aktif Terdaftar',
       value: '25+ Provider & Partner',
       color: 'text-blue-300',
       icon: (
@@ -45,23 +45,23 @@ export const ImpactCounter: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 bg-[#1B3A5C] text-white">
+    <section className="py-12 sm:py-16 bg-[#1B3A5C] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12 space-y-2">
+        <div className="text-center mb-10 sm:mb-12 space-y-2">
           <span className="text-xs font-extrabold text-[#D4A843] uppercase tracking-widest">
             Dampak Akumulatif
           </span>
-          <h2 className="text-3xl font-extrabold text-white">Penyelamatan Pangan Surabaya</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Penyelamatan Pangan Nasional</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="bg-[#142C47] p-6 rounded-2xl border border-[#2C5A8F]/60 text-center flex flex-col items-center justify-center space-y-3 hover:border-[#D4A843] transition-colors"
+              className="bg-[#142C47] p-5 sm:p-6 rounded-2xl border border-[#2C5A8F]/60 text-center flex flex-col items-center justify-center space-y-3 hover:border-[#D4A843] transition-colors"
             >
               <div className="p-3 rounded-xl bg-white/5">{stat.icon}</div>
-              <h3 className={`text-2xl font-extrabold ${stat.color}`}>{stat.value}</h3>
+              <h3 className={`text-2xl sm:text-3xl font-extrabold ${stat.color}`}>{stat.value}</h3>
               <p className="text-xs text-slate-300 font-medium">{stat.label}</p>
             </div>
           ))}

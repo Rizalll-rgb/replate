@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
+import { Clock } from 'lucide-react';
 
 export default function OnboardingPendingReviewPage() {
   const router = useRouter();
@@ -136,8 +137,9 @@ export default function OnboardingPendingReviewPage() {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-xs font-black text-amber-300 uppercase tracking-widest block">
-                  ⏳ SEDANG DITINJAU TIM ADMIN REPLATE SURABAYA
+                <span className="text-xs font-black text-amber-300 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <span>SEDANG DITINJAU TIM ADMIN REPLATE</span>
                 </span>
                 <h3 className="text-xl font-black text-white">{profile.entityName}</h3>
                 <p className="text-xs text-slate-200 font-bold max-w-md mx-auto leading-relaxed">

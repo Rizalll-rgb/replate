@@ -616,7 +616,7 @@ export default function YayasanClaimsPage() {
               <h4 className="font-black text-sm text-[#1B3A5C]">Tidak Ada Klaim Aktif Sesuai Filter</h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">Silakan ubah filter atau jelajahi donasi makanan gratis dari toko donatur.</p>
               <Link href="/dashboard/explore" className="inline-block pt-1">
-                <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs cursor-pointer">Eksplor Pangan Donasi</Button>
+                <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs cursor-pointer">Eksplor Donasi Food Rescue</Button>
               </Link>
             </div>
           ) : (
@@ -910,7 +910,7 @@ export default function YayasanClaimsPage() {
                         </Button>
                         <a
                           href={`https://wa.me/62${(req.providerPhone || '081234567890').replace(/^0|\D/g, '')}?text=${encodeURIComponent(
-                            `Halo Donatur ${req.provider || 'Superindo'}, saya dari ${pantiName} ingin mengonfirmasi jadwal pengambilan donasi pangan ${req.foodType} dengan resi ${req.code || req.id}.`
+                            `Halo Donatur ${req.provider || 'Superindo'}, saya dari ${pantiName} ingin mengonfirmasi jadwal pengambilan donasi food rescue ${req.foodType} dengan resi ${req.code || req.id}.`
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1347,7 +1347,7 @@ export default function YayasanClaimsPage() {
                 className="w-full p-3 bg-white border border-slate-300 rounded-xl font-medium text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
               />
               <p className="text-[10px] text-slate-400">
-                Ulasan ini akan ditayangkan secara publik di Galeri Testimoni Beranda Utama Replate sebagai bukti transparansi donasi pangan.
+                Ulasan ini akan ditayangkan secara publik di Galeri Testimoni Beranda Utama Replate sebagai bukti transparansi donasi food rescue.
               </p>
             </div>
 

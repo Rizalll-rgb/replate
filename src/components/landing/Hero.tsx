@@ -120,7 +120,7 @@ export default function Hero() {
                     <h4 className="text-xs font-bold text-white">Live Surplus Monitor</h4>
                     <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      Surabaya Active Stream
+                      National Active Stream
                     </span>
                   </div>
                 </div>
@@ -130,7 +130,7 @@ export default function Hero() {
               </div>
 
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Pantauan stok makanan berlebih aktif di Surabaya. Klik klaim untuk langsung merespons surplus.
+                Pantauan stok makanan berlebih aktif real-time di seluruh jejaring Replate. Klik klaim untuk langsung merespons surplus.
               </p>
 
               <div className="space-y-3 text-xs">

@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
+import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface FleetVehicle {
   id: string;
@@ -1474,6 +1475,9 @@ export default function DashboardProfilePage() {
           name: parsed.name || parsed.entityName || prev.name,
           phone: parsed.phone || prev.phone,
           address: parsed.address || prev.address,
+          province: parsed.province || prev.province,
+          city: parsed.city || prev.city,
+          district: parsed.district || prev.district,
         }));
       }
 
@@ -1512,6 +1516,9 @@ export default function DashboardProfilePage() {
           entityName: profileData.entityName,
           phone: profileData.phone,
           address: profileData.address,
+          province: profileData.province,
+          city: profileData.city,
+          district: profileData.district,
           pickupHours: profileData.pickupHours,
           maxRadiusKm: profileData.maxRadiusKm,
           defaultPackaging: profileData.defaultPackaging,
@@ -1657,6 +1664,7 @@ export default function DashboardProfilePage() {
   const isProvider = String(profileData.role).toUpperCase().includes('PROVIDER');
   const isVolunteer = String(profileData.role).toUpperCase().includes('VOLUNTEER') || String(profileData.role).toUpperCase().includes('RESCUE');
   const isBeneficiary = String(profileData.role).toUpperCase().includes('BENEFICIARY') || String(profileData.role).toUpperCase().includes('YAYASAN');
+  const isConsumer = !isProvider && !isVolunteer && !isBeneficiary;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
@@ -1670,11 +1678,13 @@ export default function DashboardProfilePage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
         <div>
           <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
-            SUITE PENGATURAN OUTLET, IDENTITAS & OPERASIONAL TERPADU
+            {isConsumer ? 'SUITE PENGATURAN AKUN KONSUMEN REPLATE' : 'SUITE PENGATURAN OUTLET, IDENTITAS & OPERASIONAL TERPADU'}
           </span>
           <h1 className="text-2xl font-black text-[#1B3A5C]">Pengaturan</h1>
           <p className="text-xs text-slate-500 font-medium">
-            Kelola identitas, radius pengiriman, rekening QRIS, kelola armada driver internal toko, dan pantau sertifikasi BPOM.
+            {isConsumer
+              ? 'Kelola identitas akun, alamat domisili/pengiriman makanan, dan keamanan akun konsumen Replate Anda.'
+              : 'Kelola identitas, radius pengiriman, rekening QRIS, kelola armada driver internal toko, dan pantau sertifikasi BPOM.'}
           </p>
         </div>
 
@@ -1726,17 +1736,19 @@ export default function DashboardProfilePage() {
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('LEGALITAS')}
-          className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
-            activeTab === 'LEGALITAS'
-              ? 'bg-[#1B3A5C] text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-900 font-bold'
-          }`}
-        >
-          Legalitas & Audit BPOM RI
-        </button>
+        {!isConsumer && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('LEGALITAS')}
+            className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center ${
+              activeTab === 'LEGALITAS'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-900 font-bold'
+            }`}
+          >
+            Legalitas & Audit BPOM RI
+          </button>
+        )}
       </div>
 
       {/* TAB 1: IDENTITAS & KEAMANAN AKUN */}
@@ -1867,9 +1879,11 @@ export default function DashboardProfilePage() {
               </h3>
 
               <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className={`grid grid-cols-1 ${isConsumer ? '' : 'sm:grid-cols-2'} gap-4`}>
                   <div className="space-y-1.5">
-                    <label className="font-extrabold text-slate-700 block">Nama Kontak / Penanggung Jawab:</label>
+                    <label className="font-extrabold text-slate-700 block">
+                      {isConsumer ? 'Nama Lengkap Pengguna:' : 'Nama Kontak / Penanggung Jawab:'}
+                    </label>
                     <Input
                       value={profileData.name}
                       onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
@@ -1877,13 +1891,15 @@ export default function DashboardProfilePage() {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="font-extrabold text-slate-700 block">Nama Toko / Restoran / Entitas:</label>
-                    <Input
-                      value={profileData.entityName}
-                      onChange={(e) => setProfileData({ ...profileData, entityName: e.target.value })}
-                    />
-                  </div>
+                  {!isConsumer && (
+                    <div className="space-y-1.5">
+                      <label className="font-extrabold text-slate-700 block">Nama Toko / Restoran / Entitas:</label>
+                      <Input
+                        value={profileData.entityName}
+                        onChange={(e) => setProfileData({ ...profileData, entityName: e.target.value })}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1986,8 +2002,10 @@ export default function DashboardProfilePage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="font-extrabold text-slate-700 block">Alamat Lengkap Outlet / Resto:</label>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <label className="font-extrabold text-slate-700 block">
+                      {isConsumer ? 'Alamat Lengkap Domisili / Pengiriman Makanan:' : 'Alamat Lengkap Outlet / Resto:'}
+                    </label>
                     <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                       Tersinkronisasi Otomatis dengan Pin Peta
@@ -1997,9 +2015,19 @@ export default function DashboardProfilePage() {
                     rows={2}
                     value={profileData.address}
                     onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
-                    placeholder="Nama Jalan, Nomor Bangunan, Kelurahan, Patokan Lokasi..."
+                    placeholder={isConsumer ? 'Nama Jalan, Nomor Rumah, RT/RW, Kelurahan, Patokan Lokasi (untuk pengantaran makanan)...' : 'Nama Jalan, Nomor Bangunan, Kelurahan, Patokan Lokasi...'}
                     className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#D4A843]"
                   />
+                  {/* Kecamatan / Kota mismatch warning for consumer */}
+                  {isConsumer && profileData.city && profileData.address &&
+                    !profileData.address.toLowerCase().includes(profileData.city.toLowerCase().split(' ').pop()?.substring(0, 4) || '') && (
+                    <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-[11px] text-amber-900 font-medium">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600 mt-0.5" />
+                      <span>
+                        Pastikan kota/kecamatan pada alamat sesuai dengan pilihan wilayah (<strong>{profileData.city}</strong>). Jika berbeda, kurir mungkin kesulitan menemukan lokasi pengiriman.
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* GPS Location & Visual Interactive Map Pin Picker (Skala Nasional Indonesia) */}
@@ -2008,10 +2036,10 @@ export default function DashboardProfilePage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <label className="font-black text-slate-900 text-sm block">
-                          ️ Peta Interaktif GPS Outlet (Cakupan Nasional Indonesia):
+                          {isConsumer ? 'Peta Interaktif GPS Domisili / Pengiriman (Cakupan Nasional Indonesia):' : 'Peta Interaktif GPS Outlet (Cakupan Nasional Indonesia):'}
                         </label>
                         <span className="px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[10px] font-black rounded-md">
-                          🇮🇩 Seluruh Nusantara
+                          Seluruh Nusantara
                         </span>
                       </div>
                       <span className="text-xs text-slate-500 font-medium">
@@ -2025,7 +2053,7 @@ export default function DashboardProfilePage() {
                         onClick={() => setIsMapModalOpen(true)}
                         className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-[#c49835] text-slate-950 text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
                       >
-                        <span>️ Mode Layar Penuh (Perbesar)</span>
+                        <span>Mode Layar Penuh (Perbesar)</span>
                       </button>
 
                       <button
@@ -2110,7 +2138,10 @@ export default function DashboardProfilePage() {
                           <span> PILIH DETAIL ALAMAT / LOKASI TUJUAN:</span>
                           <div className="flex items-center gap-2">
                             {isSearchingMap && (
-                              <span className="text-[#D4A843] animate-pulse">⏳ Mencari di peta satelit...</span>
+                              <span className="text-[#D4A843] animate-pulse flex items-center gap-1">
+                                <Loader2 className="w-3 h-3 animate-spin inline" />
+                                <span>Mencari di peta satelit...</span>
+                              </span>
                             )}
                             <span className="text-[#D4A843] font-black">{mapSuggestions.length} Lokasi Cocok</span>
                           </div>
@@ -2232,7 +2263,7 @@ export default function DashboardProfilePage() {
                         className="px-2.5 py-1 bg-[#D4A843] hover:bg-[#c49835] text-slate-950 font-black text-xs rounded-lg transition-colors cursor-pointer"
                         title="Layar Penuh"
                       >
-                        ️ Fullscreen
+                        Fullscreen
                       </button>
                     </div>
                   </div>
@@ -2241,7 +2272,7 @@ export default function DashboardProfilePage() {
                   <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-0.5">
                       <span className="text-xs font-black text-slate-800 block">
-                        ️ Geser Presisi Pin Koordinat (±100m):
+                        Geser Presisi Pin Koordinat (±100m):
                       </span>
                       <span className="text-[11px] text-slate-500 font-medium">
                         Gunakan tombol arah mata angin untuk menyempurnakan lokasi gang/titik presisi:
@@ -2255,9 +2286,9 @@ export default function DashboardProfilePage() {
                           setProfileData(prev => ({ ...prev, lat: Number((prev.lat + 0.0012).toFixed(5)) }));
                           setToastState({ isOpen: true, message: 'Pin digeser ke Utara (+100m)', type: 'success' });
                         }}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
-                        ⬆️ Utara
+                        <ArrowUp className="w-3.5 h-3.5" /> Utara
                       </button>
                       <button
                         type="button"
@@ -2265,9 +2296,9 @@ export default function DashboardProfilePage() {
                           setProfileData(prev => ({ ...prev, lat: Number((prev.lat - 0.0012).toFixed(5)) }));
                           setToastState({ isOpen: true, message: 'Pin digeser ke Selatan (-100m)', type: 'success' });
                         }}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
-                        ⬇️ Selatan
+                        <ArrowDown className="w-3.5 h-3.5" /> Selatan
                       </button>
                       <button
                         type="button"
@@ -2275,9 +2306,9 @@ export default function DashboardProfilePage() {
                           setProfileData(prev => ({ ...prev, lng: Number((prev.lng - 0.0012).toFixed(5)) }));
                           setToastState({ isOpen: true, message: 'Pin digeser ke Barat (-100m)', type: 'success' });
                         }}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
-                        ⬅️ Barat
+                        <ArrowLeft className="w-3.5 h-3.5" /> Barat
                       </button>
                       <button
                         type="button"
@@ -2285,9 +2316,9 @@ export default function DashboardProfilePage() {
                           setProfileData(prev => ({ ...prev, lng: Number((prev.lng + 0.0012).toFixed(5)) }));
                           setToastState({ isOpen: true, message: 'Pin digeser ke Timur (+100m)', type: 'success' });
                         }}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs"
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
-                        ️ Timur
+                        <ArrowRight className="w-3.5 h-3.5" /> Timur
                       </button>
                     </div>
                   </div>
@@ -2312,7 +2343,7 @@ export default function DashboardProfilePage() {
                   </div>
 
                   <div className="p-3 bg-blue-50/90 rounded-xl border border-blue-200 text-xs text-blue-950 font-medium">
-                    ️ <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke panti asuhan & kurir relawan terdekat.
+                    <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke panti asuhan & kurir relawan terdekat.
                   </div>
                 </div>
 
@@ -2335,7 +2366,7 @@ export default function DashboardProfilePage() {
               {/* Pickup Windows & Packaging */}
               <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
                 <h3 className="font-black text-base text-[#1B3A5C] border-b border-slate-100 pb-3 flex items-center gap-2">
-                  <span>⏰ Waktu Operasional & Standar Kemasan</span>
+                  <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-slate-500" /> Waktu Operasional & Standar Kemasan</span>
                 </h3>
 
                 <div className="space-y-4 text-xs">
@@ -2547,7 +2578,7 @@ export default function DashboardProfilePage() {
           <Card className="p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-6">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-black text-xl">
-                ️
+                <ShieldCheckIcon className="w-6 h-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -2813,7 +2844,7 @@ export default function DashboardProfilePage() {
                 })}
               </div>
               <p className="text-[10px] text-slate-500 leading-relaxed font-medium pt-1">
-                ️ Dokumen driver akan otomatis masuk ke antrean verifikasi <strong>SuperAdmin Replate</strong>. Setelah diapprove, armada ini langsung dapat dipilih pada penugasan pengantaran langsung.
+                Dokumen driver akan otomatis masuk ke antrean verifikasi <strong>SuperAdmin Replate</strong>. Setelah diapprove, armada ini langsung dapat dipilih pada penugasan pengantaran langsung.
               </p>
             </div>
 
@@ -2906,7 +2937,7 @@ export default function DashboardProfilePage() {
         <Modal
           isOpen={isMapModalOpen}
           onClose={() => setIsMapModalOpen(false)}
-          title="️ Penentuan Titik Koordinat GPS Outlet (Layar Penuh)"
+          title="Penentuan Titik Koordinat GPS Outlet (Layar Penuh)"
           size="xl"
         >
           <div className="space-y-3.5 text-xs text-slate-800">

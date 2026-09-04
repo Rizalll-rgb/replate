@@ -341,12 +341,12 @@ export default function AdminUsersPage() {
                 GPS Pins: {selectedUser?.lat}, {selectedUser?.lng}
               </span>
               <a
-                href={`https://maps.google.com/?q=${selectedUser?.lat},${selectedUser?.lng}`}
+                href={`https://maps.google.com/?q=${encodeURIComponent(selectedUser?.address || `${selectedUser?.lat},${selectedUser?.lng}`)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1 bg-[#1B3A5C] text-white rounded-lg text-[11px] font-bold hover:bg-[#2C5A8F] transition-colors"
+                className="px-3 py-1 bg-[#1B3A5C] text-white rounded-lg text-[11px] font-bold hover:bg-[#2C5A8F] transition-colors inline-flex items-center gap-1"
               >
-                Buka di Google Maps ️
+                Buka di Google Maps
               </a>
             </div>
           </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Html5Qrcode } from 'html5-qrcode';
+import { Square, Loader2, Play } from 'lucide-react';
 
 export interface QRScannerProps {
   onScanSuccess: (decodedText: string) => void;
@@ -345,7 +346,8 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScanSuccess }) => {
         >
           {isCameraActive ? (
             <>
-              <span>⏹️ Matikan Kamera Scanner</span>
+              <Square className="w-4 h-4" />
+              <span>Matikan Kamera Scanner</span>
             </>
           ) : (
             <>
@@ -377,7 +379,10 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScanSuccess }) => {
             disabled={isSimulating}
             className="flex-1 py-2 px-3 bg-[#D4A843]/15 hover:bg-[#D4A843]/25 text-[#1B3A5C] font-extrabold text-xs rounded-xl border border-[#D4A843]/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>{isSimulating ? '⏳ Memindai...' : ' Demo Scan'}</span>
+            <span className="flex items-center justify-center gap-1.5">
+              {isSimulating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+              <span>{isSimulating ? 'Memindai...' : 'Demo Scan'}</span>
+            </span>
           </button>
         </div>
       </div>

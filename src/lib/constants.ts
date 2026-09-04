@@ -157,7 +157,7 @@ export const SDG_INFO = [
     {
         number: 11,
         title: 'Kota & Komunitas Berkelanjutan',
-        description: 'Mewujudkan ekosistem kota sirkular zero-waste di Surabaya dan menekan timbulan sampah di TPA Benowo.',
+        description: 'Mewujudkan ekosistem kota sirkular zero-waste di seluruh Indonesia dan menekan timbulan sampah di Tempat Pembuangan Akhir (TPA).',
         color: '#F99D26',
         badgeColor: 'bg-amber-500',
     },

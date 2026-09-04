@@ -177,8 +177,8 @@ export default function DashboardInfoHubPage() {
       a: 'Setiap makanan surplus yang diunggah wajib lolos 8 Poin SOP Kelayakan Higienitas BPOM RI & WHO (termasuk batas toleransi waktu simpan < 4 jam, suhu penyimpanan terkontrol > 60°C atau < 4°C, kemasan steril bersegel, dan inspeksi sensorik visual/aroma).',
     },
     {
-      q: 'Apa perbedaan antara Rescue Sale dan Donasi Pangan Rp 0?',
-      a: 'Rescue Sale adalah makanan berlebih berbayar murah dengan diskon hingga 70% untuk konsumen umum/anak kos. Sedangkan Donasi Pangan Rp 0 dialokasikan khusus untuk panti asuhan, yayasan sosial, dan masyarakat berpenghasilan rendah terverifikasi SKTM/KIS.',
+      q: 'Apa perbedaan antara Rescue Sale dan Donasi Food Rescue Rp 0?',
+      a: 'Rescue Sale adalah makanan berlebih berbayar murah dengan diskon hingga 70% untuk konsumen umum/anak kos. Sedangkan Donasi Food Rescue Rp 0 dialokasikan khusus untuk panti asuhan, yayasan sosial, dan masyarakat berpenghasilan rendah terverifikasi SKTM/KIS.',
     },
     {
       q: 'Apa itu Strategi D2 Bappenas dalam pengelolaan Food Waste nasional?',
@@ -444,7 +444,7 @@ export default function DashboardInfoHubPage() {
       category: 'FAQ',
       categoryLabel: 'FAQ & Bantuan',
       categoryBadgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
-      title: 'Perbedaan Rescue Sale vs Donasi Pangan Bebas Biaya Rp 0',
+      title: 'Perbedaan Rescue Sale vs Donasi Food Rescue Bebas Biaya Rp 0',
       subtitle: 'Model Distribusi Ganda Pangan Surplus',
       content: 'Rescue Sale: Makanan berbayar murah diskon s/d 70% untuk konsumen umum. Donasi Rp 0: Pangan dialokasikan cuma-cuma khusus panti asuhan, yayasan, dan dhuafa.',
       tags: ['faq', 'rescue sale', 'donasi rp 0', 'perbedaan', 'gratis'],
@@ -786,7 +786,7 @@ export default function DashboardInfoHubPage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          ️ Cara Kerja (4 Role)
+          Cara Kerja (4 Role)
         </button>
 
         <button
@@ -798,7 +798,7 @@ export default function DashboardInfoHubPage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          ️ Regulasi BPOM RI
+          Regulasi BPOM RI
         </button>
 
         <button

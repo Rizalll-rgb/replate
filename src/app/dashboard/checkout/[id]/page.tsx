@@ -72,7 +72,9 @@ export default function CheckoutPage() {
   // Poin 4: SuperAppLoader
   const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({ isOpen: false, message: '' });
 
-  const [address, setAddress] = useState('RT 02 RW 03 Dusun 02 Blok Cibogo Kidul Desa Panonganlor Kecamatan Sedong Kabupaten Cirebon 45189 KAB. CIREBON - SEDONG, JAWA BARAT, ID 45189');
+  const [recipientName, setRecipientName] = useState('Konsumen Replate');
+  const [recipientPhone, setRecipientPhone] = useState('0812-3456-7890');
+  const [address, setAddress] = useState('Jl. Ketintang No. 12, Gayungan, Surabaya, Jawa Timur');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [tempAddress, setTempAddress] = useState(address);
 
@@ -117,17 +119,34 @@ export default function CheckoutPage() {
 
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
+      const reg = localStorage.getItem('replate_registered_user');
+      const regParsed = reg ? JSON.parse(reg) : null;
+
       if (p) {
         const parsed = JSON.parse(p);
         if (parsed.address) {
-          const formatted = parsed.entityName 
-            ? `${parsed.entityName} — ${parsed.address}`
-            : parsed.address;
-          setAddress(formatted);
-          setTempAddress(formatted);
+          setAddress(parsed.address);
+          setTempAddress(parsed.address);
+        }
+        if (parsed.contactPerson || parsed.name || parsed.entityName) {
+          setRecipientName(parsed.contactPerson || parsed.name || parsed.entityName);
+        } else if (regParsed?.name) {
+          setRecipientName(regParsed.name);
+        } else if (session?.user?.name) {
+          setRecipientName(session.user.name);
+        }
+        if (parsed.phone) {
+          setRecipientPhone(parsed.phone);
+        } else if (regParsed?.phone) {
+          setRecipientPhone(regParsed.phone);
         }
         const r = String(parsed.role || '').toUpperCase();
         if (r.includes('YAYASAN') || r.includes('BENEFICIARY')) setIsBeneficiaryRole(true);
+      } else if (regParsed) {
+        if (regParsed.name) setRecipientName(regParsed.name);
+        if (regParsed.phone) setRecipientPhone(regParsed.phone);
+      } else if (session?.user) {
+        if (session.user.name) setRecipientName(session.user.name);
       }
     } catch (_) {}
 
@@ -266,21 +285,34 @@ export default function CheckoutPage() {
       setToastState({ isOpen: true, message: 'Diantar komunitas memerlukan minimal 20 porsi.', type: 'error' });
       return;
     }
-    // Poin 7: If QRIS & paid — show QRIS modal first
-    if (paymentMethod === 'QRIS' && !isFreeItem) {
+    const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
+    const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
+
+    // If Free Item: instant confirmation & ready for pickup (no provider approval needed for Rp 0)
+    if (isFreeItem) {
+      processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_RESCUE_POOL');
+      return;
+    }
+
+    // If QRIS: persist order with code, then open QRIS popup
+    if (paymentMethod === 'QRIS') {
+      const initialClaim = buildClaim(resiCode, 'AWAITING_PAYMENT');
+      persistClaim(initialClaim);
+      setUploadProofModal({ isOpen: false, resiCode, totalAmt });
       setQrisModal(true);
       return;
     }
-    processDirectCheckout();
+
+    processDirectCheckout(resiCode, 'AWAITING_VERIFICATION');
   };
 
-  const processDirectCheckout = () => {
+  const processDirectCheckout = (forcedResi?: string, forcedStatus?: string) => {
     setIsCheckingOut(true);
     setActionLoader({ isOpen: true, message: 'Memproses Pesanan...', submessage: 'Menerbitkan tiket klaim' });
     setTimeout(() => {
       try {
-        const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
-        const status = (isFreeItem || paymentMethod === 'COD') ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
+        const resiCode = forcedResi || (isFreeItem ? genResiCode('YYS') : genResiCode('CNS'));
+        const status = forcedStatus || (isFreeItem ? (deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_RESCUE_POOL') : (paymentMethod === 'COD' ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL'));
         const newClaim = buildClaim(resiCode, status);
         persistClaim(newClaim);
         setIsCheckingOut(false);
@@ -291,14 +323,16 @@ export default function CheckoutPage() {
         setIsCheckingOut(false);
         setActionLoader({ isOpen: false, message: '' });
       }
-    }, 1200);
+    }, 1000);
   };
 
   const handleQrisConfirmed = () => {
-    const resiCode = genResiCode('CNS');
-    const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
     setQrisModal(false);
-    setUploadProofModal({ isOpen: true, resiCode, totalAmt });
+    setUploadProofModal((prev) => ({
+      isOpen: true,
+      resiCode: prev.resiCode,
+      totalAmt: prev.totalAmt,
+    }));
   };
 
   const handleUploadProof = () => {
@@ -338,7 +372,8 @@ export default function CheckoutPage() {
     );
   }
 
-  const maxStock = parseInt(String(item.quantity).replace(/\D/g, '')) || 5;
+  const stockDigits = parseInt(String(item.quantity).replace(/\D/g, ''));
+  const maxStock = (!isNaN(stockDigits) && stockDigits > 0) ? stockDigits : 99;
   const subtotal = item.isFree ? 0 : item.price * quantity;
   const deliveryFee = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0;
   const totalAmount = subtotal + deliveryFee;
@@ -374,7 +409,7 @@ export default function CheckoutPage() {
             }}>
               <div>
                 <p className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                  {session?.user?.name || 'Muhamad Nursidik'} | (+62) 838-2396-2754
+                  {recipientName} | {recipientPhone}
                 </p>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm line-clamp-2 leading-relaxed">
                   {address}

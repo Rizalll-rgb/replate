@@ -17,6 +17,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
   const [cartCount, setCartCount] = useState<number>(0);
   const [role, setRole] = useState<string>('CONSUMER');
 
+  const activeUser = propUser || session?.user;
+
   useEffect(() => {
     try {
       // Sync active cart item count from localStorage
@@ -36,6 +38,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
       }
     } catch (_) {}
   }, [propUser, session, pathname]);
+
+  // Public visitor guard: BottomNav is strictly for authenticated users in app workspaces
+  if (!activeUser) {
+    return null;
+  }
 
   // Define role-specific navigation tabs (SuperApp Mobile Style)
   const getNavItems = () => {

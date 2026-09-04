@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-import { Bike, Building, Truck, Utensils, Search, Users, Landmark, HeartHandshake, MapPin, AlertTriangle, MessageSquare, Check, X, ShieldAlert } from 'lucide-react';
+import { Bike, Building, Truck, Utensils, Search, Users, Landmark, HeartHandshake, MapPin, AlertTriangle, MessageSquare, Check, X, ShieldAlert, ExternalLink } from 'lucide-react';
 
 // Human-Readable Indonesian Status Label Helper for ALL Recipient Types (Panti, Shelter, Yayasan, Individu)
 const getHumanReadableStatusLabel = (statusCode: string) => {
@@ -97,7 +97,7 @@ export function DonationsHubComponent() {
       foodCategoryNeeded: 'Makanan Olahan (Meals)',
       urgency: 'HIGH',
       deadline: 'Hari ini 19:00 WIB',
-      location: 'Surabaya Timur',
+      location: 'Surabaya (Gubeng)',
       address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
       lat: -7.2754,
       lng: 112.7541,
@@ -118,17 +118,17 @@ export function DonationsHubComponent() {
       foodCategoryNeeded: 'Roti, Buah & Susu (Bakery & Dairy)',
       urgency: 'MEDIUM',
       deadline: 'Besok Pagi 08:00 WIB',
-      location: 'Surabaya Selatan',
-      address: 'Jl. Wonokromo No. 12, Wonokromo, Surabaya',
-      lat: -7.3012,
-      lng: 112.7389,
+      location: 'Jakarta (Tebet)',
+      address: 'Jl. Tebet Barat No. 12, Tebet, Jakarta Selatan',
+      lat: -6.2361,
+      lng: 106.8527,
       photoUrl: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan roti tekstur lembut, buah potong segar, atau susu UHT untuk lansia.',
       preferredDelivery: 'SHELTER_PICKUP',
       status: 'OPEN',
       contactPhone: '081345678901',
       leaderName: 'Bpk. Dr. Handoko',
-      legalPermit: 'DINSOS-SBY/2022/4102',
+      legalPermit: 'DINSOS-DKI/2022/4102',
     },
     {
       id: 'REQ-DON-003',
@@ -139,38 +139,38 @@ export function DonationsHubComponent() {
       foodCategoryNeeded: 'Makanan Olahan (Meals)',
       urgency: 'HIGH',
       deadline: 'Hari ini 20:30 WIB',
-      location: 'Surabaya Pusat',
-      address: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
-      lat: -7.2623,
-      lng: 112.7391,
+      location: 'Bandung (Dago)',
+      address: 'Jl. Ir. H. Juanda No. 34, Coblong, Bandung',
+      lat: -6.8856,
+      lng: 107.6139,
       photoUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan porsi makanan surplus siap santap untuk pembagian malam relawan.',
       preferredDelivery: 'PROVIDER_DIRECT',
       status: 'OPEN',
       contactPhone: '081567890123',
       leaderName: 'Mas Rizky Relawan',
-      legalPermit: 'DINSOS-SBY/2024/1109',
+      legalPermit: 'DINSOS-JBR/2024/1109',
     },
     {
       id: 'REQ-DON-004',
-      shelterName: 'Komunitas Dapur Umum Sosmas Ketintang',
+      shelterName: 'Komunitas Dapur Umum Sosmas',
       shelterType: 'Yayasan & Sosmas',
       recipientCategory: 'YAYASAN',
       beneficiariesCount: 50,
       foodCategoryNeeded: 'Bahan Pokok (Produce)',
       urgency: 'MEDIUM',
       deadline: 'Besok Pagi 09:00 WIB',
-      location: 'Surabaya Selatan',
-      address: 'Jl. Ketintang No. 15, Gayungan, Surabaya',
-      lat: -7.3112,
-      lng: 112.7291,
+      location: 'Yogyakarta (Sleman)',
+      address: 'Jl. Kaliurang No. 15, Sleman, DI Yogyakarta',
+      lat: -7.7554,
+      lng: 110.3846,
       photoUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan bahan sembako & sayuran segar untuk dimasak di dapur umum.',
       preferredDelivery: 'RESCUE_COURIER',
       status: 'OPEN',
       contactPhone: '081789012345',
       leaderName: 'Mbak Dewi Sosmas',
-      legalPermit: 'YAYASAN-SBY/2023/3312',
+      legalPermit: 'YAYASAN-DIY/2023/3312',
     },
     {
       id: 'REQ-DON-005',
@@ -181,17 +181,17 @@ export function DonationsHubComponent() {
       foodCategoryNeeded: 'Makanan Olahan (Meals)',
       urgency: 'HIGH',
       deadline: 'Hari ini 18:00 WIB',
-      location: 'Surabaya Utara',
-      address: 'Jl. Krembangan Barat No. 8, Pabean, Surabaya',
-      lat: -7.2312,
-      lng: 112.7381,
+      location: 'Medan (Medan Baru)',
+      address: 'Jl. Padang Bulan No. 8, Medan Baru, Kota Medan',
+      lat: 3.5852,
+      lng: 98.6756,
       photoUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
       notes: 'Membutuhkan bantuan porsi makanan siap santap untuk keluarga buruh harian.',
       preferredDelivery: 'RESCUE_COURIER',
       status: 'OPEN',
       contactPhone: '081901234567',
       leaderName: 'Ibu Ratna',
-      legalPermit: 'KTP-VERIFIED/357801992',
+      legalPermit: 'KTP-VERIFIED/127101992',
     },
   ]);
 
@@ -201,7 +201,7 @@ export function DonationsHubComponent() {
   const [newCount, setNewCount] = useState<number>(30);
   const [newCategory, setNewCategory] = useState('Makanan Olahan (Meals)');
   const [newNotes, setNewNotes] = useState('');
-  const [newLocation, setNewLocation] = useState('Surabaya Pusat');
+  const [newLocation, setNewLocation] = useState('Jakarta');
   const [newDeliveryPref, setNewDeliveryPref] = useState('RESCUE_COURIER');
 
   // Shelter Profile Detail Modal State
@@ -236,7 +236,10 @@ export function DonationsHubComponent() {
         req.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
         req.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesLocation = filterLocation === 'ALL' || req.location === filterLocation;
+      const matchesLocation =
+        filterLocation === 'ALL' ||
+        req.location.toLowerCase().includes(filterLocation.toLowerCase()) ||
+        req.address.toLowerCase().includes(filterLocation.toLowerCase());
       const matchesCategory = filterCategory === 'ALL' || req.foodCategoryNeeded === filterCategory;
       const matchesType = filterRecipientType === 'ALL' || req.recipientCategory === filterRecipientType;
       const matchesUrgency = filterUrgency === 'ALL' || req.urgency === filterUrgency;
@@ -407,7 +410,7 @@ export function DonationsHubComponent() {
       urgency: 'HIGH',
       deadline: 'Hari ini 20:00 WIB',
       location: newLocation,
-      address: `Wilayah ${newLocation}, Kota Surabaya`,
+      address: `Wilayah ${newLocation}`,
       lat: -7.2575,
       lng: 112.7521,
       photoUrl: 'https://images.unsplash.com/photo-1594708767771-a7502209ff51?auto=format&fit=crop&w=600&q=80',
@@ -506,7 +509,7 @@ export function DonationsHubComponent() {
             <svg className="w-4 h-4 text-[#D4A843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span>Pencarian & Filter Kebutuhan Bantuan Surabaya</span>
+            <span>Pencarian & Filter Kebutuhan Bantuan (Nasional)</span>
           </h3>
           <span className="text-[11px] font-bold text-slate-500">Menampilkan {filteredRequests.length} dari {requests.length} Penerima</span>
         </div>
@@ -542,12 +545,13 @@ export function DonationsHubComponent() {
               value={filterLocation}
               onChange={(e) => setFilterLocation(e.target.value)}
             >
-              <option value="ALL">Semua Wilayah Surabaya</option>
-              <option value="Surabaya Pusat">Surabaya Pusat</option>
-              <option value="Surabaya Timur">Surabaya Timur</option>
-              <option value="Surabaya Selatan">Surabaya Selatan</option>
-              <option value="Surabaya Barat">Surabaya Barat</option>
-              <option value="Surabaya Utara">Surabaya Utara</option>
+              <option value="ALL">Semua Kota</option>
+              <option value="Jakarta">Jakarta</option>
+              <option value="Surabaya">Surabaya</option>
+              <option value="Bandung">Bandung</option>
+              <option value="Yogyakarta">Yogyakarta</option>
+              <option value="Medan">Medan</option>
+              <option value="Semarang">Semarang</option>
             </select>
           </div>
 
@@ -729,7 +733,7 @@ export function DonationsHubComponent() {
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS Surabaya</h4>
+                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS</h4>
                 <span className="text-[10px] font-mono font-bold text-slate-500">
                   GPS: {selectedShelterProfile.lat}, {selectedShelterProfile.lng}
                 </span>
@@ -742,12 +746,27 @@ export function DonationsHubComponent() {
                   height="100%"
                   frameBorder="0"
                   scrolling="no"
-                  src={`https://maps.google.com/maps?q=${selectedShelterProfile.lat},${selectedShelterProfile.lng}&z=15&output=embed`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}&z=15&output=embed`}
                   className="w-full h-full filter saturate-150"
                 />
                 <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                   Titik Lokasi: {selectedShelterProfile.shelterName}
+                  Titik Lokasi: {selectedShelterProfile.shelterName}
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-slate-500 truncate max-w-[70%]">
+                  {selectedShelterProfile.address}
+                </span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline shrink-0 ml-2"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Buka di Google Maps
+                </a>
               </div>
             </div>
 
@@ -801,7 +820,7 @@ export function DonationsHubComponent() {
                   </span>
                 </div>
                 <Badge variant={matchAnalysis.score >= 70 ? 'success' : 'danger'}>
-                  {matchAnalysis.score >= 70 ? ' HIGHLY RECOMMENDED' : '️ MISMATCHED'}
+                  {matchAnalysis.score >= 70 ? 'HIGHLY RECOMMENDED' : 'MISMATCHED'}
                 </Badge>
               </div>
 
@@ -843,7 +862,7 @@ export function DonationsHubComponent() {
 
               {!matchAnalysis.isMatch && (
                 <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
-                  ️ Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan penerima ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
+                  Peringatan Smart Matching 2.0: Kategori makanan yang Anda pilih ({selectedFoodObj?.category}) tidak sesuai dengan jenis gizi yang dibutuhkan penerima ({selectedRequest.foodCategoryNeeded}). Silakan pilih produk surplus dengan kategori yang cocok!
                 </p>
               )}
             </div>
@@ -861,7 +880,7 @@ export function DonationsHubComponent() {
                 />
                 {portionedQuantity > (selectedFoodObj?.quantity || 0) && (
                   <p className="text-[11px] font-bold text-red-600">
-                    ️ Melebihi stok ketersediaan makanan ({selectedFoodObj?.quantity} Porsi)!
+                    Melebihi stok ketersediaan makanan ({selectedFoodObj?.quantity} Porsi)!
                   </p>
                 )}
               </div>
@@ -1081,17 +1100,18 @@ export function DonationsHubComponent() {
             />
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#343A40]">Wilayah Surabaya</label>
+              <label className="text-xs font-semibold text-[#343A40]">Wilayah / Kota</label>
               <select
                 className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2 bg-white font-bold text-[#1B3A5C]"
                 value={newLocation}
                 onChange={(e) => setNewLocation(e.target.value)}
               >
-                <option value="Surabaya Pusat">Surabaya Pusat</option>
-                <option value="Surabaya Timur">Surabaya Timur</option>
-                <option value="Surabaya Selatan">Surabaya Selatan</option>
-                <option value="Surabaya Barat">Surabaya Barat</option>
-                <option value="Surabaya Utara">Surabaya Utara</option>
+                <option value="Jakarta">Jakarta</option>
+                <option value="Surabaya">Surabaya</option>
+                <option value="Bandung">Bandung</option>
+                <option value="Yogyakarta">Yogyakarta</option>
+                <option value="Medan">Medan</option>
+                <option value="Semarang">Semarang</option>
               </select>
             </div>
           </div>

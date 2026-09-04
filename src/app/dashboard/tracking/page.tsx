@@ -83,7 +83,7 @@ export default function WorkspaceLiveTrackingPage() {
         { time: '18:30 WIB', title: 'Alokasi Donasi Terkonfirmasi', desc: 'Restoran menyanggupi dan menyiapkan 45 porsi makanan.', done: true },
         { time: '18:50 WIB', title: 'Inspeksi Higienitas 8-Poin BPOM Lolos', desc: 'Suhu makanan terjaga >60°C, kemasan food grade tersegel.', done: true },
         { time: '19:10 WIB', title: 'Kurir Relawan Menjemput Paket', desc: 'Driver Budi Santoso memindai QR Serah Terima di resto.', done: true },
-        { time: '19:25 WIB', title: 'Dalam Pengantaran GPS Surabaya', desc: 'Armada sedang melaju di koridor Jl. Raya Darmo menuju Panti.', done: true },
+        { time: '19:25 WIB', title: 'Dalam Pengantaran GPS', desc: 'Armada sedang melaju di koridor pengantaran menuju lokasi penerima.', done: true },
         { time: 'Estimasi 19:45 WIB', title: 'Serah Terima di Panti Asuhan', desc: 'Pengurus panti memindai QR Surat Jalan untuk konfirmasi tiba.', done: false },
       ],
     },

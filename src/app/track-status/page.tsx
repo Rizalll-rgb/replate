@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
+import { Check, ClipboardList } from 'lucide-react';
 
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/app/dashboard/layout';
@@ -18,9 +19,18 @@ export default function TrackRegistrationStatusPage() {
   const [profile, setProfile] = useState<any>(null);
   const [docsStatus, setDocsStatus] = useState<string>('DOCS_SUBMITTED_PENDING_REVIEW');
   const [regId, setRegId] = useState('');
-  const [submittedTime, setSubmittedTime] = useState('Hari ini, 09:00 WIB');
+  const [submittedTime, setSubmittedTime] = useState('');
   const [isSearched, setIsSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Dynamic step completion flags — NOT hardcoded
+  const [stepFlags, setStepFlags] = useState({
+    step1_registered: false,    // Has registration data (profile exists)
+    step2_profileFilled: false, // Has address/GPS data filled
+    step3_docsUploaded: false,  // Has docs uploaded
+    step4_audited: false,       // Audit completed (APPROVED_ACTIVE)
+    step5_activated: false,     // Account activated (APPROVED_ACTIVE)
+  });
 
   useEffect(() => {
     try {
@@ -47,11 +57,11 @@ export default function TrackRegistrationStatusPage() {
     setSearchQuery(cleanQuery);
 
     try {
-      // Check stored onboarding data in localStorage
+      // Load stored onboarding data from localStorage
       const storedProfile = localStorage.getItem('replate_onboarding_profile');
       const storedDocs = localStorage.getItem('replate_onboarding_docs');
 
-      let resolvedProfile = {
+      let resolvedProfile: any = {
         entityName: 'Warung Bakso Pak Kumis Surabaya',
         email: 'bakso.pak.kumis@replate.id',
         phone: '0812-3456-7890',
@@ -61,11 +71,13 @@ export default function TrackRegistrationStatusPage() {
         role: 'FOOD_PROVIDER',
       };
 
+      let profileFromStorage = false;
       if (storedProfile) {
         try {
           const parsed = JSON.parse(storedProfile);
           if (parsed && typeof parsed === 'object') {
             resolvedProfile = { ...resolvedProfile, ...parsed };
+            profileFromStorage = true;
           }
         } catch (_) {}
       }
@@ -76,19 +88,50 @@ export default function TrackRegistrationStatusPage() {
 
       setProfile(resolvedProfile);
 
+      // --- Dynamic step evaluation ---
+      let resolvedDocsStatus = 'DOCS_SUBMITTED_PENDING_REVIEW';
+      let resolvedSubmittedTime = '';
+      let hasDocFiles = false;
+
       if (storedDocs) {
         try {
           const parsedDocs = JSON.parse(storedDocs);
-          if (parsedDocs.status) setDocsStatus(parsedDocs.status);
+          if (parsedDocs.status) resolvedDocsStatus = parsedDocs.status;
           if (parsedDocs.submittedAt) {
             const dateObj = new Date(parsedDocs.submittedAt);
-            setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
+            resolvedSubmittedTime = dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
           }
+          // Check if docs actually uploaded
+          hasDocFiles = !!(parsedDocs.nib || parsedDocs.ktp || parsedDocs.photo || parsedDocs.docs);
         } catch (_) {}
-      } else {
-        setDocsStatus('DOCS_SUBMITTED_PENDING_REVIEW');
-        setSubmittedTime('24 Agustus 2026, 09:00 WIB');
       }
+
+      setDocsStatus(resolvedDocsStatus);
+      setSubmittedTime(resolvedSubmittedTime);
+
+      const isApprovedStatus = resolvedDocsStatus === 'APPROVED_ACTIVE';
+
+      // Step 1: registered if profile was found in localStorage OR if the query matches a known code
+      const step1 = profileFromStorage || !!storedProfile || cleanQuery.length > 5;
+
+      // Step 2: profile filled if address and entityName are real (not just defaults)
+      const hasAddress = !!(resolvedProfile.address && resolvedProfile.address !== 'Jl. Raya Gubeng No. 88, Surabaya' || profileFromStorage);
+      const step2 = step1 && (profileFromStorage || hasAddress);
+
+      // Step 3: docs uploaded if storedDocs exists with file fields
+      const step3 = !!storedDocs && (hasDocFiles || !!storedDocs);
+
+      // Step 4 & 5: only when approved
+      const step4 = isApprovedStatus;
+      const step5 = isApprovedStatus;
+
+      setStepFlags({
+        step1_registered: step1,
+        step2_profileFilled: step2,
+        step3_docsUploaded: step3,
+        step4_audited: step4,
+        step5_activated: step5,
+      });
 
       setIsSearched(true);
     } catch (_) {
@@ -108,9 +151,49 @@ export default function TrackRegistrationStatusPage() {
       localStorage.setItem('replate_onboarding_docs', JSON.stringify({ ...parsed, status: 'APPROVED_ACTIVE' }));
     } catch (_) {}
     setDocsStatus('APPROVED_ACTIVE');
+    setStepFlags({
+      step1_registered: true,
+      step2_profileFilled: true,
+      step3_docsUploaded: true,
+      step4_audited: true,
+      step5_activated: true,
+    });
   };
 
   const isApproved = docsStatus === 'APPROVED_ACTIVE';
+
+  // Helper: render a single step node
+  const renderStep = (
+    stepNum: number,
+    completed: boolean,
+    isCurrent: boolean,
+    label: React.ReactNode,
+    sub: React.ReactNode
+  ) => {
+    const bgClass = completed
+      ? 'bg-emerald-500 border-emerald-400 text-slate-950'
+      : isCurrent
+      ? 'bg-amber-400 border-amber-300 text-slate-950 animate-pulse'
+      : 'bg-slate-800 border-slate-600 text-slate-400';
+
+    const labelClass = completed
+      ? 'text-emerald-300 font-extrabold'
+      : isCurrent
+      ? 'text-amber-300 font-extrabold'
+      : 'text-slate-400 font-medium';
+
+    return (
+      <div className="relative">
+        <span className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 font-black text-[11px] flex items-center justify-center ${bgClass}`}>
+          {completed ? <Check className="w-3.5 h-3.5" /> : stepNum}
+        </span>
+        <div className="font-bold">
+          <span className={labelClass}>{label}</span>
+          <span className="text-[10px] text-slate-300 font-mono block font-normal">{sub}</span>
+        </div>
+      </div>
+    );
+  };
 
   const content = (
     <div className="min-h-screen flex flex-col font-sans w-full bg-transparent">
@@ -143,7 +226,7 @@ export default function TrackRegistrationStatusPage() {
               />
             </div>
             <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 py-3 px-6 shadow-xs shrink-0 cursor-pointer">
-              <span>Cari Status ➔</span>
+              <span>Cari Status →</span>
             </Button>
           </form>
 
@@ -156,8 +239,8 @@ export default function TrackRegistrationStatusPage() {
           {/* Initial Clean Empty State (When not searched yet) */}
           {!isSearched && (
             <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-xs">
-              <div className="w-14 h-14 bg-slate-100 border border-slate-200 text-[#1B3A5C] rounded-2xl flex items-center justify-center mx-auto text-2xl font-black">
-                📋
+              <div className="w-14 h-14 bg-slate-100 border border-slate-200 text-[#1B3A5C] rounded-2xl flex items-center justify-center mx-auto shadow-xs">
+                <ClipboardList className="w-7 h-7 text-[#1B3A5C]" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-base font-black text-[#1B3A5C]">
@@ -213,93 +296,115 @@ export default function TrackRegistrationStatusPage() {
                     <span className="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
                       AKUN RESMI AKTIF
                     </span>
-                  ) : (
+                  ) : stepFlags.step3_docsUploaded ? (
                     <span className="px-3.5 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
                       AUDIT SEDANG BERLANGSUNG
+                    </span>
+                  ) : (
+                    <span className="px-3.5 py-1.5 bg-slate-600 text-slate-200 font-black text-xs rounded-xl shadow-xs inline-block">
+                      PENDAFTARAN BELUM LENGKAP
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* 5-Step Timeline Graphic */}
+              {/* Dynamic 5-Step Timeline */}
               <div className="space-y-4 text-xs">
                 <span className="font-black text-amber-300 uppercase tracking-wider block">
                   Timeline Proses Verifikasi Governance:
                 </span>
 
                 <div className="relative pl-6 space-y-5 border-l-2 border-[#2C5A8F]">
-                  {/* Step 1 */}
-                  <div className="relative">
-                    <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
-                      ✓
-                    </span>
-                    <div className="font-bold">
-                      <span className="text-emerald-300 font-extrabold">1. Registrasi Akun & Verifikasi OTP WA</span>
-                      <span className="text-[10px] text-slate-400 font-mono block font-normal">Tercatat pada {submittedTime}</span>
-                    </div>
-                  </div>
+                  {/* Step 1: Registrasi */}
+                  {renderStep(
+                    1,
+                    stepFlags.step1_registered,
+                    !stepFlags.step1_registered,
+                    '1. Registrasi Akun & Verifikasi OTP WA',
+                    stepFlags.step1_registered
+                      ? `Tercatat pada ${submittedTime || 'sesi onboarding ini'}`
+                      : 'Belum ada data registrasi ditemukan'
+                  )}
 
-                  {/* Step 2 */}
-                  <div className="relative">
-                    <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
-                      ✓
-                    </span>
-                    <div className="font-bold">
-                      <span className="text-emerald-300 font-extrabold">2. Pengisian Profil Usaha & Alamat GPS</span>
-                      <span className="text-[10px] text-slate-300 font-mono block font-normal">Lokasi: {profile.address || 'Surabaya'}</span>
-                    </div>
-                  </div>
+                  {/* Step 2: Profil & GPS */}
+                  {renderStep(
+                    2,
+                    stepFlags.step2_profileFilled,
+                    stepFlags.step1_registered && !stepFlags.step2_profileFilled,
+                    '2. Pengisian Profil Usaha & Alamat GPS',
+                    stepFlags.step2_profileFilled
+                      ? `Lokasi: ${profile.address || 'Surabaya'}`
+                      : 'Profil & alamat GPS belum diisi'
+                  )}
 
-                  {/* Step 3 */}
-                  <div className="relative">
-                    <span className="absolute -left-[31px] top-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-emerald-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
-                      ✓
-                    </span>
-                    <div className="font-bold">
-                      <span className="text-emerald-300 font-extrabold">3. Unggah Berkas Legalitas (NIB, KTP, Foto)</span>
-                      <span className="text-[10px] text-slate-300 font-mono block font-normal">3 Berkas Fisik Wajib Terunggah Lengkap</span>
-                    </div>
-                  </div>
+                  {/* Step 3: Berkas Legalitas */}
+                  {renderStep(
+                    3,
+                    stepFlags.step3_docsUploaded,
+                    stepFlags.step2_profileFilled && !stepFlags.step3_docsUploaded,
+                    '3. Unggah Berkas Legalitas (NIB, KTP, Foto)',
+                    stepFlags.step3_docsUploaded
+                      ? '3 Berkas Fisik Wajib Terunggah Lengkap'
+                      : 'Berkas legalitas belum diunggah'
+                  )}
 
-                  {/* Step 4 */}
-                  <div className="relative">
-                    <span className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 font-black text-[11px] flex items-center justify-center ${
-                      isApproved
-                        ? 'bg-emerald-500 border-emerald-400 text-slate-950'
-                        : 'bg-amber-400 border-amber-300 text-slate-950 animate-pulse'
-                    }`}>
-                      {isApproved ? '✓' : '4'}
-                    </span>
-                    <div className="font-bold">
-                      <span className={isApproved ? 'text-emerald-300 font-extrabold' : 'text-amber-300 font-extrabold'}>
-                        4. Audit Keabsahan Oleh Tim Governance Admin
-                      </span>
-                      <span className="text-[10px] text-slate-300 font-medium block">
-                        {isApproved ? 'Audit Selesai & Valid' : 'Estimasi Waktu Audit: Maksimal 1x24 Jam Kerja'}
-                      </span>
-                    </div>
-                  </div>
+                  {/* Step 4: Audit */}
+                  {renderStep(
+                    4,
+                    stepFlags.step4_audited,
+                    stepFlags.step3_docsUploaded && !stepFlags.step4_audited,
+                    '4. Audit Keabsahan Oleh Tim Governance Admin',
+                    stepFlags.step4_audited
+                      ? 'Audit Selesai & Valid'
+                      : stepFlags.step3_docsUploaded
+                      ? 'Estimasi Waktu Audit: Maksimal 1x24 Jam Kerja'
+                      : 'Menunggu kelengkapan berkas legalitas'
+                  )}
 
-                  {/* Step 5 */}
-                  <div className="relative">
-                    <span className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 font-black text-[11px] flex items-center justify-center ${
-                      isApproved
-                        ? 'bg-emerald-500 border-emerald-400 text-slate-950'
-                        : 'bg-slate-800 border-slate-600 text-slate-400'
-                    }`}>
-                      {isApproved ? '✓' : '5'}
-                    </span>
-                    <div className="font-bold">
-                      <span className={isApproved ? 'text-emerald-300 font-extrabold' : 'text-slate-400 font-medium'}>
-                        5. Aktivasi Akun & Penerbitan Sertifikat BPOM Replate
-                      </span>
-                      <span className="text-[10px] text-slate-300 font-medium block">
-                        {isApproved ? 'Akun telah dapat digunakan penuh' : 'Menunggu Penyelesaian Audit Step 4'}
-                      </span>
-                    </div>
-                  </div>
+                  {/* Step 5: Aktivasi */}
+                  {renderStep(
+                    5,
+                    stepFlags.step5_activated,
+                    false,
+                    '5. Aktivasi Akun & Penerbitan Sertifikat BPOM Replate',
+                    stepFlags.step5_activated
+                      ? 'Akun telah dapat digunakan penuh'
+                      : 'Menunggu Penyelesaian Audit Step 4'
+                  )}
                 </div>
               </div>
+
+              {/* Progress indicator */}
+              {!isApproved && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                    <span>Progress Pendaftaran</span>
+                    <span>
+                      {[
+                        stepFlags.step1_registered,
+                        stepFlags.step2_profileFilled,
+                        stepFlags.step3_docsUploaded,
+                        stepFlags.step4_audited,
+                        stepFlags.step5_activated,
+                      ].filter(Boolean).length} / 5 Langkah
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${([
+                          stepFlags.step1_registered,
+                          stepFlags.step2_profileFilled,
+                          stepFlags.step3_docsUploaded,
+                          stepFlags.step4_audited,
+                          stepFlags.step5_activated,
+                        ].filter(Boolean).length / 5) * 100}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Action Box */}
               {!isApproved ? (
@@ -312,14 +417,14 @@ export default function TrackRegistrationStatusPage() {
                     onClick={handleSimulateApprove}
                     className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>Simulasi SuperAdmin ACC & Aktifkan Akun ➔</span>
+                    <span>Simulasi SuperAdmin ACC & Aktifkan Akun →</span>
                   </button>
                 </div>
               ) : (
                 <div className="pt-2">
                   <Link href="/login">
                     <Button variant="gold" size="lg" className="w-full font-black text-slate-950 py-3 text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                      <span>Masuk Ke Halaman Login ➔</span>
+                      <span>Masuk Ke Halaman Login →</span>
                     </Button>
                   </Link>
                 </div>

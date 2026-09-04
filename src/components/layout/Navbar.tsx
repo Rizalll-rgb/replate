@@ -82,6 +82,13 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
     { href: '/info', label: 'Pusat Informasi' },
   ];
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+
+  // Auto-close mobile drawer on route navigation
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   if (activeUser) {
     return null;
   }
@@ -89,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
   const navLinks = publicNavLinks;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-xs">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-8">
@@ -115,50 +122,102 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
           </nav>
         </div>
 
-        {/* Right Side: Actions */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          {activeUser ? (
-            <>
-              {/* Cart Icon (Tas Klaim) */}
-              <Link
-                href="/dashboard/cart"
-                className="text-gray-500 hover:text-[#1B3A5C] transition-colors p-2 rounded-xl hover:bg-slate-100 relative"
-                title="Tas Klaim Makanan"
-              >
-                <svg className="w-5 h-5 text-[#1B3A5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {cartCount > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full ring-2 ring-white animate-bounce">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
+        {/* Right Side: Desktop Actions & Mobile Menu Toggle */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Desktop Only Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <PWAInstallButton />
+            <Link href="/login">
+              <Button variant="outline" size="sm" className="font-bold text-xs">
+                Masuk
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs text-slate-950">
+                Daftar Akun
+              </Button>
+            </Link>
+          </div>
 
-              {/* User Dashboard Direct Action Button */}
-              <Link href={dashboardUrl} className="ml-1">
-                <Button variant="gold" size="sm" className="font-extrabold text-xs text-slate-950 py-1.5 px-3.5 shadow-xs whitespace-nowrap">
-                  <span> Workspace ({activeRoleName || 'Dashboard'}) </span>
-                </Button>
-              </Link>
-            </>
-          ) : (
-            <>
-              <PWAInstallButton />
-              <Link href="/login">
-                <Button variant="outline" size="sm" className="font-bold text-xs">
-                  Masuk
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs text-slate-950">
-                  Daftar Akun
-                </Button>
-              </Link>
-            </>
-          )}
+          {/* Mobile Right: Quick CTA + Hamburger Button */}
+          <div className="flex md:hidden items-center gap-2">
+            <Link href="/login">
+              <button
+                type="button"
+                className="px-3 py-1.5 text-xs font-bold text-[#1B3A5C] bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Masuk
+              </button>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-slate-700 hover:text-[#1B3A5C] hover:bg-slate-100 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20"
+              aria-label={mobileMenuOpen ? 'Tutup Menu' : 'Buka Menu Navigasi'}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Drawer Menu (Slide-Down with backdrop) */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-200 bg-white/98 backdrop-blur-lg shadow-xl animate-fade-in">
+          <div className="px-4 pt-3 pb-6 space-y-4 max-w-md mx-auto">
+            {/* Nav Links */}
+            <nav className="flex flex-col space-y-1">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+                      isActive
+                        ? 'bg-[#1B3A5C] text-[#D4A843] font-black shadow-xs'
+                        : 'text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-[#D4A843]" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="pt-3 border-t border-slate-200 space-y-2.5">
+              <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="block w-full">
+                <Button variant="gold" size="md" className="w-full font-black text-xs text-slate-950 py-3 shadow-sm justify-center">
+                  Daftar Akun Baru
+                </Button>
+              </Link>
+              <div className="flex items-center justify-between gap-2">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full font-bold text-xs py-2.5 justify-center">
+                    Masuk ke Akun
+                  </Button>
+                </Link>
+                <div className="shrink-0">
+                  <PWAInstallButton />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

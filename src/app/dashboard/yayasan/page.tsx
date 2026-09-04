@@ -292,7 +292,7 @@ export default function YayasanDashboardPage() {
                 <CheckIcon size={28} className="text-white" />
               </div>
               <h3 className="font-black text-base text-emerald-900">Tiket QR Serah Terima Diterbitkan!</h3>
-              <p className="text-[11px] text-emerald-800 font-medium">Klaim alokasi donasi pangan telah dikonfirmasi. Simpan resi di bawah ini.</p>
+              <p className="text-[11px] text-emerald-800 font-medium">Klaim alokasi donasi food rescue telah dikonfirmasi. Simpan resi di bawah ini.</p>
             </div>
 
             {/* Resi Code Prominent */}

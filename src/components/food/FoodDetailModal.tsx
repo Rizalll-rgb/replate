@@ -56,7 +56,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
 
   const defaultAllergens = food.allergens || ['Nut-Free (Bebas Kacang)', 'Halal Certified BPJPH', 'Sterile Package'];
   const providerPhone = food.provider?.phone || '081234567891';
-  const providerOrg = food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis Surabaya';
+  const providerOrg = food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis';
 
   const latitude = food.lat || -7.2575;
   const longitude = food.lng || 112.7521;
@@ -221,7 +221,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         {/* Interactive Google Maps GPS Coordinate Embed */}
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="font-black text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Outlet Peta GPS Surabaya</h4>
+            <h4 className="font-black text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Outlet Peta GPS</h4>
             <span className="text-[10px] font-mono font-bold text-slate-500">
               GPS: {latitude}, {longitude}
             </span>
@@ -234,12 +234,26 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
               height="100%"
               frameBorder="0"
               scrolling="no"
-              src={`https://maps.google.com/maps?q=${latitude},${longitude}&z=15&output=embed`}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(food.address || `${latitude},${longitude}`)}&z=15&output=embed`}
               className="w-full h-full filter saturate-150"
             />
             <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
               Titik Lokasi: {providerOrg}
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[10px] text-slate-500 font-medium truncate max-w-[70%]">
+              Alamat: {food.address}
+            </span>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(food.address || `${latitude},${longitude}`)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
+            >
+              Buka di Google Maps ↗
+            </a>
           </div>
         </div>
       </div>

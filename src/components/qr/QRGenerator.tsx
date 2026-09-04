@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { Clock, Printer } from 'lucide-react';
 
 export interface QRGeneratorProps {
   value: string;
@@ -100,7 +101,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
 
   /** Share to WhatsApp */
   const handleShareWhatsApp = () => {
-    const text = ` *REPLATE - Surat Jalan Donasi*\n\n Kode Resi: ${value}\n️ Menu: ${foodName || '-'}\n Porsi: ${portions || '-'}\n Penerima: ${recipientName || '-'}\n Kurir: ${courierName || '-'}\n⏰ Batas: ${expiryTime || '-'}\n\n Tunjukkan kode ini saat serah terima.`;
+    const text = `*REPLATE - Surat Jalan Donasi*\n\nKode Resi: ${value}\nMenu: ${foodName || '-'}\nPorsi: ${portions || '-'}\nPenerima: ${recipientName || '-'}\nKurir: ${courierName || '-'}\nBatas: ${expiryTime || '-'}\n\nTunjukkan kode ini saat serah terima.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -219,7 +220,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
           {deliveryMethod === 'RESCUE_COURIER' && !courierName && (
             <div className="border-t border-slate-200 pt-2 mt-1">
               <div className="p-2 bg-amber-50 rounded-xl border border-amber-300 text-amber-900 text-center space-y-0.5">
-                <span className="font-black text-[10.5px] block text-amber-950">⏳ Menunggu Driver Mengambil di Pool Siaga</span>
+                <span className="font-black text-[10.5px] text-amber-950 flex items-center justify-center gap-1.5"><Clock className="w-3.5 h-3.5 shrink-0 text-amber-800" /><span>Menunggu Driver Mengambil di Pool Siaga</span></span>
                 <p className="text-[9.5px] text-amber-800 font-medium">
                   Transaksi berada di Pool Siaga Relawan Komunitas. Informasi pengemudi & plat kendaraan akan otomatis muncul saat ada driver kurir komunitas yang mengambil pesanan ini.
                 </p>
@@ -279,7 +280,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
               onClick={handlePrintIsolated}
               className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11px] rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
-              ️ Cetak PDF
+              <Printer className="w-3.5 h-3.5 text-slate-700" /> Cetak PDF
             </button>
             <button
               type="button"

@@ -52,7 +52,7 @@ export default function OnboardingDocumentsPage() {
 
     // Strict Validation Rule
     if (!nibDoc || !ktpDoc || !storePhoto) {
-      setValidationError('️ ANDA WAJIB MENGUNGGAH SELURUH BERKAS LEGALITAS YANG DITANDAI [WAJIB] SEBELUM DAPAT MELANJUTKAN!');
+      setValidationError('ANDA WAJIB MENGUNGGAH SELURUH BERKAS LEGALITAS YANG DITANDAI [WAJIB] SEBELUM DAPAT MELANJUTKAN!');
       return;
     }
 
@@ -180,7 +180,7 @@ export default function OnboardingDocumentsPage() {
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
                     >
-                      ️ Lihat Preview Berkas
+                      Lihat Preview Berkas
                     </button>
                   )}
                   <button
@@ -254,7 +254,7 @@ export default function OnboardingDocumentsPage() {
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
                     >
-                      ️ Lihat Preview Berkas
+                      Lihat Preview Berkas
                     </button>
                   )}
                   <button
@@ -328,7 +328,7 @@ export default function OnboardingDocumentsPage() {
                       }
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
                     >
-                      ️ Lihat Preview Berkas
+                      Lihat Preview Berkas
                     </button>
                   )}
                   <button

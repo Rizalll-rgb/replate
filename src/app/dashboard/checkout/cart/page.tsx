@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
@@ -32,6 +33,7 @@ const genResiCode = (role: 'YYS' | 'CNS') =>
 
 export default function CheckoutCartPage() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [items, setItems] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -48,7 +50,9 @@ export default function CheckoutCartPage() {
   const [proofImageName, setProofImageName] = useState('');
   const [successModal, setSuccessModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
 
-  const [address, setAddress] = useState('RT 02 RW 03 Dusun 02 Blok Cibogo Kidul Desa Panonganlor Kecamatan Sedong Kabupaten Cirebon 45189 KAB. CIREBON - SEDONG, JAWA BARAT, ID 45189');
+  const [recipientName, setRecipientName] = useState('Konsumen Replate');
+  const [recipientPhone, setRecipientPhone] = useState('0812-3456-7890');
+  const [address, setAddress] = useState('Jl. Ketintang No. 12, Gayungan, Surabaya, Jawa Timur');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [tempAddress, setTempAddress] = useState(address);
 
@@ -94,17 +98,34 @@ export default function CheckoutCartPage() {
     } catch (_) {}
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
+      const reg = localStorage.getItem('replate_registered_user');
+      const regParsed = reg ? JSON.parse(reg) : null;
+
       if (p) {
         const parsed = JSON.parse(p);
         if (parsed.address) {
-          const formatted = parsed.entityName
-            ? `${parsed.entityName} — ${parsed.address}`
-            : parsed.address;
-          setAddress(formatted);
-          setTempAddress(formatted);
+          setAddress(parsed.address);
+          setTempAddress(parsed.address);
+        }
+        if (parsed.contactPerson || parsed.name || parsed.entityName) {
+          setRecipientName(parsed.contactPerson || parsed.name || parsed.entityName);
+        } else if (regParsed?.name) {
+          setRecipientName(regParsed.name);
+        } else if (session?.user?.name) {
+          setRecipientName(session.user.name);
+        }
+        if (parsed.phone) {
+          setRecipientPhone(parsed.phone);
+        } else if (regParsed?.phone) {
+          setRecipientPhone(regParsed.phone);
         }
         const r = String(parsed.role || '').toUpperCase();
         if (r.includes('BENEFICIARY') || r.includes('YAYASAN')) setIsBeneficiaryRole(true);
+      } else if (regParsed) {
+        if (regParsed.name) setRecipientName(regParsed.name);
+        if (regParsed.phone) setRecipientPhone(regParsed.phone);
+      } else if (session?.user?.name) {
+        setRecipientName(session.user.name);
       }
     } catch (_) {}
 
@@ -191,7 +212,9 @@ export default function CheckoutCartPage() {
       try {
         // Poin 6: standardized resi
         const resiCode = isFree ? genResiCode('YYS') : genResiCode('CNS');
-        const status = (isFree || paymentMethod === 'COD') ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL';
+        const status = isFree
+          ? (deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_RESCUE_POOL')
+          : (paymentMethod === 'COD' ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL');
         const newClaim = saveClaimAndRedirect(resiCode, status);
         setActionLoader({ isOpen: false, message: '' });
         setIsCheckingOut(false);
@@ -272,7 +295,7 @@ export default function CheckoutCartPage() {
               }}>
                 <div>
                   <p className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                    Muhamad Nursidik | (+62) 838-2396-2754
+                    {recipientName} | {recipientPhone}
                   </p>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm line-clamp-2 leading-relaxed">{address}</p>
                 </div>
@@ -569,7 +592,7 @@ export default function CheckoutCartPage() {
                 <p className="text-[11px] text-emerald-800 font-medium">
                   {successModal.claim.status === 'WAITING_PAYMENT_APPROVAL'
                     ? 'Pembayaran Anda sedang diverifikasi oleh provider toko. Tiket QR Handover akan aktif setelah disetujui.'
-                    : 'Pesanan donasi pangan Anda telah berhasil diklaim.'}
+                    : 'Pesanan donasi food rescue Anda telah berhasil diklaim.'}
                 </p>
               </div>
               <div className="p-3.5 bg-[#1B3A5C] rounded-2xl text-center">

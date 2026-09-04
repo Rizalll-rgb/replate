@@ -110,7 +110,7 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
               {ch4SavedKg} Kg CH4
             </p>
             <p className="text-slate-500">
-              Mencegah potensi pembentukan gas metana beracun penyebab efek rumah kaca dari sampah makanan di TPA Benowo Surabaya.
+              Mencegah potensi pembentukan gas metana beracun penyebab efek rumah kaca dari sampah makanan di Tempat Pembuangan Akhir (TPA).
             </p>
           </CardBody>
         </Card>

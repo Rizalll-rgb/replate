@@ -13,6 +13,7 @@ import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Check, Clock, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -439,11 +440,11 @@ export default function HomePage() {
                     <div className="shrink-0 flex sm:flex-col items-end gap-2">
                       {trackerResult.docsStatus === 'APPROVED_ACTIVE' ? (
                         <span className="px-4 py-2 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-lg inline-flex items-center gap-1.5">
-                          <span></span> AKUN RESMI AKTIF
+                          <Check className="w-3.5 h-3.5 text-slate-950 stroke-[3]" /> AKUN RESMI AKTIF
                         </span>
                       ) : (
                         <span className="px-4 py-2 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg inline-flex items-center gap-1.5 animate-pulse">
-                          <span>⏳</span> AUDIT SEDANG BERLANGSUNG
+                          <Clock className="w-3.5 h-3.5 text-slate-950 stroke-[2.5]" /> AUDIT SEDANG BERLANGSUNG
                         </span>
                       )}
                       <button
@@ -597,18 +598,18 @@ export default function HomePage() {
         </section>
 
         {/* Live Available Surplus Section with 3-Card Pagination Limit */}
-        <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest">
-                Surplus Makanan Aktif Surabaya
+              <span className="text-xs font-bold text-[#D4A843] uppercase tracking-widest block">
+                Katalog Surplus Pangan Nasional
               </span>
-              <h2 className="text-3xl font-black text-[#1B3A5C] mt-1">Eksplor Pangan Surabaya</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#1B3A5C] mt-1">Eksplor Pangan Terkini</h2>
             </div>
             <div className="flex items-center gap-3">
               <Link href="/explore">
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md">
-                  Lihat Semua di Eksplor Pangan 
+                  Lihat Semua di Eksplor Pangan →
                 </Button>
               </Link>
             </div>
@@ -627,7 +628,7 @@ export default function HomePage() {
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 className="font-extrabold text-xs"
               >
-                ◀ Sebelumnya
+                Sebelumnya
               </Button>
 
               <span className="text-xs font-bold text-[#1B3A5C]">
@@ -641,28 +642,28 @@ export default function HomePage() {
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 className="font-extrabold text-xs"
               >
-                Selanjutnya ▶
+                Selanjutnya
               </Button>
             </div>
           )}
 
           {/* Direct CTA Banner to Explore */}
-          <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-xl border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="space-y-1 text-center sm:text-left">
-              <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
-                 PUSAT RESCUE SALE, DONASI Rp 0 & KEBUTUHAN PANTI
+          <div className="p-6 sm:p-8 bg-[#1B3A5C] text-white rounded-3xl shadow-xl border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="space-y-1.5 text-center sm:text-left">
+              <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 justify-center sm:justify-start">
+                <span>PUSAT RESCUE SALE, DONASI Rp 0 & KEBUTUHAN YAYASAN</span>
               </span>
-              <h3 className="text-xl font-black text-white">Eksplorasi Lengkap dengan Filter Jarak & Kategori</h3>
-              <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xl">
-                Temukan puluhan makanan surplus layak konsumsi di Surabaya dengan diskon hingga 70% atau donasi steril Rp 0 untuk yayasan dan warga rentan.
+              <h3 className="text-xl sm:text-2xl font-black text-white">Eksplorasi Lengkap dengan Filter Jarak & Kategori</h3>
+              <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-xl">
+                Temukan puluhan makanan surplus layak konsumsi di seluruh Indonesia dengan diskon hingga 70% atau donasi steril Rp 0 untuk yayasan dan sesama yang membutuhkan.
               </p>
             </div>
-            <Link href="/explore" className="shrink-0">
+            <Link href="/explore" className="shrink-0 w-full sm:w-auto">
               <button
                 type="button"
-                className="px-6 py-3.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition-all cursor-pointer whitespace-nowrap"
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition-all cursor-pointer whitespace-nowrap text-center"
               >
-                <span>Buka Eksplor Pangan </span>
+                <span>Buka Eksplor Pangan →</span>
               </button>
             </Link>
           </div>

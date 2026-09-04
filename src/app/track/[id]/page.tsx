@@ -134,10 +134,10 @@ export default function PublicTrackPage() {
       setSteps([
         {
           status: 'LISTED',
-          title: ' 1. Surplus Dipublikasikan di Replate Engine',
+          title: '1. Surplus Dipublikasikan di Replate Engine',
           description: 'Provider mengunggah makanan surplus & lulus 8 Checklist Kelayakan Pangan BPOM RI.',
           timestamp: foundClaim.createdAt || new Date(Date.now() - 3600000 * 4).toISOString(),
-          actor: foundClaim.storeName || 'Warung Bakso Pak Kumis Surabaya',
+          actor: foundClaim.storeName || 'Warung Bakso Pak Kumis',
           completed: true,
           current: false,
         },
@@ -170,7 +170,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'VERIFIED',
-          title: '️ 5. Verifikasi Makanan Sampai di Tujuan (Selesai)',
+          title: '5. Verifikasi Makanan Sampai di Tujuan (Selesai)',
           description: isDone
             ? `Makanan telah diterima dengan baik di ${foundClaim.address || 'lokasi tujuan'}. Bukti foto serah terima terverifikasi.`
             : 'Menunggu konfirmasi foto serah terima & QR scan dari penerima.',
@@ -228,7 +228,7 @@ export default function PublicTrackPage() {
         },
         {
           status: 'VERIFIED',
-          title: '️ 5. Verifikasi Keamanan Pangan & Serah Terima Selesai',
+          title: '5. Verifikasi Keamanan Pangan & Serah Terima Selesai',
           description: 'QR Code di-scan, SOP 5-point food safety diverifikasi.',
           completed: false,
           current: false,

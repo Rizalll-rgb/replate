@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Clock } from 'lucide-react';
 
 export interface OTPVerificationModalProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
   const handleVerify = () => {
     const entered = otp.join('');
     if (entered.length < 4) {
-      setError('️ Mohon isi 4-digit kode OTP secara lengkap!');
+      setError('Mohon isi 4-digit kode OTP secara lengkap!');
       return;
     }
 
@@ -186,7 +187,7 @@ export const OTPVerificationModal: React.FC<OTPVerificationModalProps> = ({
             }`}
           >
             {countdown > 0 ? (
-              <span>⏳ Kirim Ulang Kode OTP WhatsApp (Tunggu {countdown}d)</span>
+              <span className="flex items-center justify-center gap-1.5"><Clock className="w-3.5 h-3.5 shrink-0" /> Kirim Ulang Kode OTP WhatsApp (Tunggu {countdown}d)</span>
             ) : (
               <span> Kirim Ulang Kode OTP WhatsApp Sekarang </span>
             )}

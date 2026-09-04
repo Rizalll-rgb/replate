@@ -103,11 +103,11 @@ export default function WorkspaceExplorePage() {
   const promoSlides = [
     {
       id: 'promo-1',
-      badge: '️ RESCUE SALE 50%-70% HARI INI',
+      badge: 'RESCUE SALE 50%-70% HARI INI',
       title: 'Selamatkan Surplus Lezat, Hemat Hingga 70%',
       highlight: 'Surplus Pangan Lezat',
       description: 'Dapatkan hidangan restoran & bakery berkualitas mulai Rp 5.000, bantu kurangi emisi gas metana dan susut pangan Bappenas.',
-      btnText: 'Lihat Rescue Sale ',
+      btnText: 'Lihat Rescue Sale',
       targetTab: 'RESCUE_SALE' as const,
       foodPreview: {
         id: 'hero-food-1',
@@ -125,11 +125,11 @@ export default function WorkspaceExplorePage() {
     },
     {
       id: 'promo-2',
-      badge: ' GERAKAN 1.000 PORSI DONASI BEBAS BIAYA',
-      title: 'Bantu Panti Asuhan & Dhuafa Surabaya (Rp 0)',
+      badge: 'GERAKAN 1.000 PORSI DONASI BEBAS BIAYA',
+      title: 'Bantu Panti Asuhan & Dhuafa Indonesia (Rp 0)',
       highlight: 'Nutrisi Anak Panti',
       description: 'Salurkan kelebihan makanan bergizi langsung ke 12 panti asuhan terverifikasi dengan armada kurir relawan Food Bank.',
-      btnText: 'Lihat Donasi Pangan ',
+      btnText: 'Lihat Donasi Food Rescue',
       targetTab: 'DONATION' as const,
       foodPreview: {
         id: 'hero-food-2',
@@ -147,16 +147,16 @@ export default function WorkspaceExplorePage() {
     },
     {
       id: 'promo-3',
-      badge: '️ 100% SOP HIGIENE BPOM RI & HALAL BPJPH',
+      badge: '100% SOP HIGIENE BPOM RI & HALAL BPJPH',
       title: 'Jaminan Standar Keamanan Pangan Steril',
       highlight: 'Higienis & Steril BPOM',
       description: 'Seluruh mitra dapur diaudit standar suhu simpan, inspeksi visual, serta surat jalan manifest digital terenkripsi.',
-      btnText: 'Eksplor Pangan Halal ',
+      btnText: 'Eksplor Pangan Halal',
       targetTab: 'RESCUE_SALE' as const,
       foodPreview: {
         id: 'hero-food-3',
         title: 'Nasi Kotak Ayam Bakar Madu',
-        providerName: 'Katering Berkah Surabaya',
+        providerName: 'Katering Berkah',
         category: 'MAKANAN_BERAT',
         quantity: '24 Porsi',
         discountPrice: 8500,
@@ -692,14 +692,14 @@ export default function WorkspaceExplorePage() {
 
     if (allocateModal.portions > targetNeedQty) {
       alert(
-        `️ Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi batas kebutuhan yang diminta oleh ${allocateModal.panti.pantiName} (Maksimal ${targetNeedQty} porsi).\n\nAnda tidak dapat menyanggupi melebihi porsi yang dibutuhkan panti.`
+        `Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi batas kebutuhan yang diminta oleh ${allocateModal.panti.pantiName} (Maksimal ${targetNeedQty} porsi).\n\nAnda tidak dapat menyanggupi melebihi porsi yang dibutuhkan panti.`
       );
       return;
     }
 
     if (allocateModal.portions > availableStock) {
       alert(
-        `️ Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi stok surplus produk yang tersedia di toko Anda (${availableStock} porsi).\n\nSilakan sesuaikan jumlah porsi donasi.`
+        `Peringatan: Jumlah donasi (${allocateModal.portions} porsi) melebihi stok surplus produk yang tersedia di toko Anda (${availableStock} porsi).\n\nSilakan sesuaikan jumlah porsi donasi.`
       );
       return;
     }
@@ -1092,10 +1092,10 @@ export default function WorkspaceExplorePage() {
           <div className="p-5 bg-gradient-to-r from-[#1B3A5C] via-[#1E436D] to-[#142C47] text-white rounded-3xl shadow-md border border-[#2C5A8F] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1 max-w-2xl">
               <span className="text-[10px] font-black uppercase text-[#D4A843] tracking-widest block">
-                PORTAL BANTUAN LEMBAGA & YAYASAN SURABAYA
+                PORTAL BANTUAN LEMBAGA & YAYASAN NASIONAL
               </span>
               <h3 className="text-xl font-black text-white">
-                Permohonan Donasi Pangan Panti Asuhan & Dhuafa
+                Permohonan Donasi Food Rescue Panti Asuhan & Dhuafa
               </h3>
               <p className="text-xs text-slate-200 font-medium leading-relaxed">
                 Salurkan surplus makanan layak konsumsi Anda langsung ke lembaga terverifikasi Dinsos RI. Dilengkapi verifikasi standar higienitas BPOM RI dan pengantaran kurir relawan.

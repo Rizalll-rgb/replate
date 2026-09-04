@@ -15,7 +15,7 @@ export default function AdminOverviewPage() {
             Control Tower Superadmin
           </span>
           <h2 className="text-2xl font-extrabold text-[#1B3A5C]">Admin Platform Overview</h2>
-          <p className="text-xs text-slate-500 font-medium">Pengawasan pusat redistribusi makanan berlebih Replate Surabaya.</p>
+          <p className="text-xs text-slate-500 font-medium">Pengawasan pusat redistribusi makanan berlebih Replate Indonesia.</p>
         </div>
         <Link href="/dashboard/admin/approvals">
           <Button variant="gold" size="md" className="font-extrabold flex items-center gap-2">
@@ -79,7 +79,7 @@ export default function AdminOverviewPage() {
 
         <Card className="bg-white border-slate-200 hover:border-[#1B3A5C] transition-all">
           <CardHeader>
-            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">️ Pengaturan Bobot Algoritma</CardTitle>
+            <CardTitle className="text-sm font-extrabold text-[#1B3A5C]">Pengaturan Bobot Algoritma</CardTitle>
           </CardHeader>
           <CardBody className="space-y-3 text-xs">
             <p className="text-slate-500">Atur bobot kriteria Smart Matching (jarak, urgensi deadline, kapasitas partner).</p>

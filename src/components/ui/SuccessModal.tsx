@@ -34,7 +34,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
         <div className="space-y-1">
           <h3 className="text-lg font-black text-[#1B3A5C]">{title}</h3>
           <p className="text-xs text-slate-500">
-            Smart Matching Engine telah aktif dan mencocokkan dengan target penerima terdekat di Surabaya.
+            Smart Matching Engine telah aktif dan mencocokkan dengan target penerima terdekat di sekitar lokasi Anda.
           </p>
         </div>
 

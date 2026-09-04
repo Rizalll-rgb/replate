@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardBody } from '@/components/ui/Card';
@@ -26,6 +26,13 @@ export default function PublicInfoHubPage() {
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearchCategory, setSelectedSearchCategory] = useState<string>('ALL');
+  const [searchPage, setSearchPage] = useState<number>(1);
+  const searchItemsPerPage = 4; // 4 cards per page: neat 2x2 grid, eliminates endless scroll
+
+  // Reset pagination when search query or category changes
+  useEffect(() => {
+    setSearchPage(1);
+  }, [searchQuery, selectedSearchCategory]);
 
   // Interactive Live Carbon Simulation State (Bappenas & KLH Standard)
   const [simulatedPortions, setSimulatedPortions] = useState<number>(50);
@@ -175,8 +182,8 @@ export default function PublicInfoHubPage() {
       a: 'Setiap makanan surplus yang diunggah wajib lolos 8 Poin SOP Kelayakan Higienitas BPOM RI & WHO (termasuk batas toleransi waktu simpan < 4 jam, suhu penyimpanan terkontrol > 60°C atau < 4°C, kemasan steril bersegel, dan inspeksi sensorik visual/aroma).',
     },
     {
-      q: 'Apa perbedaan antara Rescue Sale dan Donasi Pangan Rp 0?',
-      a: 'Rescue Sale adalah makanan berlebih berbayar murah dengan diskon hingga 70% untuk konsumen umum/anak kos. Sedangkan Donasi Pangan Rp 0 dialokasikan khusus untuk panti asuhan, yayasan sosial, dan masyarakat berpenghasilan rendah terverifikasi SKTM/KIS.',
+      q: 'Apa perbedaan antara Rescue Sale dan Donasi Food Rescue Rp 0?',
+      a: 'Rescue Sale adalah makanan berlebih berbayar murah dengan diskon hingga 70% untuk konsumen umum/anak kos. Sedangkan Donasi Food Rescue Rp 0 dialokasikan khusus untuk panti asuhan, yayasan sosial, dan masyarakat berpenghasilan rendah terverifikasi SKTM/KIS.',
     },
     {
       q: 'Apa itu Strategi D2 Bappenas dalam pengelolaan Food Waste nasional?',
@@ -442,7 +449,7 @@ export default function PublicInfoHubPage() {
       category: 'FAQ',
       categoryLabel: 'FAQ & Bantuan',
       categoryBadgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
-      title: 'Perbedaan Rescue Sale vs Donasi Pangan Bebas Biaya Rp 0',
+      title: 'Perbedaan Rescue Sale vs Donasi Food Rescue Bebas Biaya Rp 0',
       subtitle: 'Model Distribusi Ganda Pangan Surplus',
       content: 'Rescue Sale: Makanan berbayar murah diskon s/d 70% untuk konsumen umum. Donasi Rp 0: Pangan dialokasikan cuma-cuma khusus panti asuhan, yayasan, dan dhuafa.',
       tags: ['faq', 'rescue sale', 'donasi rp 0', 'perbedaan', 'gratis'],
@@ -498,6 +505,12 @@ export default function PublicInfoHubPage() {
     });
   }, [searchQuery, selectedSearchCategory, knowledgeBase]);
 
+  const totalSearchPages = Math.max(1, Math.ceil(searchResults.length / searchItemsPerPage));
+  const paginatedSearchResults = searchResults.slice(
+    (searchPage - 1) * searchItemsPerPage,
+    searchPage * searchItemsPerPage
+  );
+
   const highlightText = (text: string, query: string) => {
     if (!query || !query.trim()) return text;
     const trimmed = query.trim();
@@ -522,10 +535,13 @@ export default function PublicInfoHubPage() {
     if (item.roleTarget) {
       setSelectedRoleFlow(item.roleTarget);
     }
-    const el = document.getElementById('info-content-container');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+    setSearchQuery('');
+    setTimeout(() => {
+      const el = document.getElementById('info-content-container');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 60);
   };
 
   return (
@@ -536,7 +552,7 @@ export default function PublicInfoHubPage() {
         {/* Hero Section */}
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#1B3A5C] text-[#D4A843] rounded-full text-xs font-black tracking-wider uppercase shadow-xs">
-            <span>️ KAJIAN ILMIAH BAPPENAS RI & KLH 2025</span>
+            <span>KAJIAN ILMIAH BAPPENAS RI & KLH 2025</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-[#1B3A5C] tracking-tight">
             Pusat Informasi, Edukasi & Regulasi Replate
@@ -675,66 +691,117 @@ export default function PublicInfoHubPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {searchResults.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${item.categoryBadgeColor}`}>
-                          {item.categoryLabel}
-                        </span>
-                        {item.roleTarget && (
-                          <span className="text-[9px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
-                            Peran: {item.roleTarget}
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {paginatedSearchResults.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-white rounded-2xl border-l-4 border-l-[#1B3A5C] border-y border-r border-slate-200 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${item.categoryBadgeColor}`}>
+                            {item.categoryLabel}
+                          </span>
+                          {item.roleTarget && (
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
+                              Peran: {item.roleTarget}
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 className="text-sm sm:text-base font-black text-[#1B3A5C] leading-snug group-hover:text-blue-900 transition-colors">
+                          {highlightText(item.title, searchQuery)}
+                        </h4>
+
+                        {item.subtitle && (
+                          <span className="text-[11px] font-bold text-amber-700 block">
+                            {highlightText(item.subtitle, searchQuery)}
                           </span>
                         )}
+
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium line-clamp-3">
+                          {highlightText(item.content, searchQuery)}
+                        </p>
                       </div>
 
-                      <h4 className="text-sm font-black text-[#1B3A5C] leading-snug">
-                        {highlightText(item.title, searchQuery)}
-                      </h4>
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {item.tags.slice(0, 3).map((tag, idx) => (
+                            <span key={idx} className="text-[9px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
 
-                      {item.subtitle && (
-                        <span className="text-[11px] font-bold text-amber-700 block">
-                          {highlightText(item.subtitle, searchQuery)}
-                        </span>
-                      )}
-
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        {highlightText(item.content, searchQuery)}
-                      </p>
+                        <button
+                          type="button"
+                          onClick={() => handleJumpToTopic(item)}
+                          className="text-xs font-black text-[#1B3A5C] hover:text-[#D4A843] flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <span>Buka Materi Lengkap →</span>
+                        </button>
+                      </div>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {item.tags.slice(0, 3).map((tag, idx) => (
-                          <span key={idx} className="text-[9px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded">
-                            #{tag}
-                          </span>
+                {/* Search Pagination Bar */}
+                {totalSearchPages > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                    <span className="text-xs font-bold text-slate-500">
+                      Menampilkan {(searchPage - 1) * searchItemsPerPage + 1} - {Math.min(searchPage * searchItemsPerPage, searchResults.length)} dari {searchResults.length} materi
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={searchPage === 1}
+                        onClick={() => setSearchPage((p) => Math.max(1, p - 1))}
+                        className="font-bold text-xs"
+                      >
+                        ◀ Sebelumnya
+                      </Button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalSearchPages }).map((_, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSearchPage(i + 1)}
+                            className={`w-8 h-8 rounded-lg font-black text-xs transition-all cursor-pointer ${
+                              searchPage === i + 1
+                                ? 'bg-[#1B3A5C] text-[#D4A843] shadow-xs'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                          >
+                            {i + 1}
+                          </button>
                         ))}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleJumpToTopic(item)}
-                        className="text-xs font-black text-[#1B3A5C] hover:text-[#D4A843] flex items-center gap-1 transition-colors cursor-pointer"
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={searchPage === totalSearchPages}
+                        onClick={() => setSearchPage((p) => Math.min(totalSearchPages, p + 1))}
+                        className="font-bold text-xs"
                       >
-                        <span>Buka di Tab Terkait</span>
-                        <span></span>
-                      </button>
+                        Selanjutnya ▶
+                      </Button>
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
         )}
 
-        {/* 5 Core Navigation Tabs */}
-        <div id="info-content-container" className="flex flex-wrap items-center gap-2 p-2 bg-slate-200/80 rounded-2xl scroll-mt-24">
+        {/* 5 Core Navigation Tabs & Detailed Content (Only rendered when NOT actively searching) */}
+        {searchQuery.trim().length === 0 ? (
+          <>
+            <div id="info-content-container" className="flex flex-wrap items-center gap-2 p-2 bg-slate-200/80 rounded-2xl scroll-mt-24">
           <button
             type="button"
             onClick={() => setActiveTab('LATAR_BELAKANG')}
@@ -768,7 +835,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            ️ Cara Kerja (4 Role)
+            Cara Kerja (4 Role)
           </button>
 
           <button
@@ -780,7 +847,7 @@ export default function PublicInfoHubPage() {
                 : 'text-slate-700 hover:text-slate-900 font-bold'
             }`}
           >
-            ️ Regulasi BPOM RI
+            Regulasi BPOM RI
           </button>
 
           <button
@@ -1234,7 +1301,7 @@ export default function PublicInfoHubPage() {
               <div className="space-y-1 text-center sm:text-left">
                 <h4 className="font-black text-sm text-[#D4A843]">Butuh Bantuan Operasional Langsung?</h4>
                 <p className="text-xs text-slate-200 font-medium">
-                  Tim Helpdesk Governance Replate Surabaya siap mendampingi Anda 24/7.
+                  Tim Helpdesk Governance Replate siap mendampingi Anda 24/7.
                 </p>
               </div>
 
@@ -1244,10 +1311,25 @@ export default function PublicInfoHubPage() {
                 rel="noopener noreferrer"
               >
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-md whitespace-nowrap">
-                  Hubungi Helpdesk WhatsApp 
+                  Hubungi Helpdesk WhatsApp →
                 </Button>
               </a>
             </div>
+          </div>
+        )}
+          </>
+        ) : (
+          <div className="pt-6 text-center border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedSearchCategory('ALL');
+              }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-2xl shadow-sm transition-all cursor-pointer"
+            >
+              <span>← Selesai Mencari & Tampilkan Semua 5 Tab Materi</span>
+            </button>
           </div>
         )}
       </main>

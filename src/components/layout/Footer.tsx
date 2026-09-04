@@ -11,7 +11,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-4">
             <Logo variant="light" size="md" />
             <p className="text-xs text-slate-400 leading-relaxed">
-              Platform redistribusi makanan berlebih cerdas untuk menghubungkan Food Provider dengan penerima manfaat secara aman, cepat, dan transparan di Surabaya & sekitarnya.
+              Platform redistribusi makanan berlebih cerdas untuk menghubungkan Food Provider dengan penerima manfaat secara aman, cepat, dan transparan di seluruh Indonesia.
             </p>
           </div>
 
@@ -95,7 +95,7 @@ export const Footer: React.FC = () => {
 
         <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400">
           <p>© 2026 Replate. Hak Cipta Dilindungi.</p>
-          <p className="mt-2 md:mt-0">Surabaya, Jawa Timur, Indonesia</p>
+          <p className="mt-2 md:mt-0">Indonesia</p>
         </div>
       </div>
     </footer>

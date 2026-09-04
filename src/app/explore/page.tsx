@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
 import { CheckIcon } from '@/components/ui/Icon';
+import { MapPin, Utensils } from 'lucide-react';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed } from '@/lib/pantiData';
 
 interface FoodItem {
@@ -56,7 +57,7 @@ export default function ExplorePage() {
   const [userRole, setUserRole] = useState<string>('FOOD_CONSUMER');
   const [isConsumerVerified, setIsConsumerVerified] = useState<boolean>(true);
 
-  // Selected Food for Detail Modal (Rescue Sale & Donasi Pangan)
+  // Selected Food for Detail Modal (Rescue Sale & Donasi Food Rescue)
   const [selectedFoodForModal, setSelectedFoodForModal] = useState<any | null>(null);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
@@ -335,7 +336,10 @@ export default function ExplorePage() {
 
   const filteredPantiNeeds = useMemo(() => {
     return pantiNeeds.filter((need) => {
-      const matchLoc = filterPantiLocation === 'ALL' || need.location.includes(filterPantiLocation);
+      const matchLoc =
+        filterPantiLocation === 'ALL' ||
+        need.location.toLowerCase().includes(filterPantiLocation.toLowerCase()) ||
+        need.address.toLowerCase().includes(filterPantiLocation.toLowerCase());
       const matchUrg = filterPantiUrgency === 'ALL' || need.urgency === filterPantiUrgency;
       return matchLoc && matchUrg;
     });
@@ -505,49 +509,49 @@ export default function ExplorePage() {
         {/* Header Hero */}
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <span className="inline-block px-3.5 py-1.5 rounded-full bg-[#1B3A5C]/10 text-[#1B3A5C] text-xs font-black uppercase tracking-wider">
-            KATALOG EKSPLORASI PANGAN SURABAYA
+            KATALOG EKSPLORASI PANGAN INDONESIA
           </span>
           <h1 className="text-3xl sm:text-4xl font-black text-[#1B3A5C] tracking-tight">
-            Selamatkan Makanan Surplus & Bantu Nutrisi Panti
+            Selamatkan Makanan Surplus & Penuhi Nutrisi Sesama
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-            Temukan makanan berkualitas diskon hingga 70% (Rescue Sale) atau salurkan donasi pangan steril bebas biaya untuk panti asuhan di Kota Surabaya.
+            Temukan makanan berkualitas diskon hingga 70% (Rescue Sale) atau salurkan donasi food rescue steril bebas biaya untuk yayasan, komunitas, dan sesama di seluruh Indonesia.
           </p>
         </div>
 
-        {/* 3 Main Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl max-w-3xl mx-auto">
+        {/* 3 Main Navigation Tabs - Fully Responsive across Mobile, Tablet, & Desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 p-1.5 bg-slate-200/80 rounded-2xl max-w-3xl mx-auto w-full shadow-inner">
           <button
             type="button"
             onClick={() => setActiveTab('RESCUE_SALE')}
-            className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
               activeTab === 'RESCUE_SALE'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-950 font-bold'
+                : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Rescue Sale (Diskon Murah)</span>
+            <span>Rescue Sale (Diskon)</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('DONATION')}
-            className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
               activeTab === 'DONATION'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-950 font-bold'
+                : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Donasi Pangan (Rp 0)</span>
+            <span>Donasi Food Rescue (Rp 0)</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('PANTI_NEEDS')}
-            className={`flex-1 py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
               activeTab === 'PANTI_NEEDS'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-950 font-bold'
+                : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
             <span>Permintaan Panti ({pantiNeeds.length})</span>
@@ -586,7 +590,7 @@ export default function ExplorePage() {
           </div>
         )}
 
-        {/* Dynamic Content Grid (RESCUE SALE & DONASI PANGAN DENGAN DETAIL LENGKAP & GPS) */}
+        {/* Dynamic Content Grid (RESCUE SALE & DONASI FOOD RESCUE DENGAN DETAIL LENGKAP & GPS) */}
         {activeTab !== 'PANTI_NEEDS' ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -604,7 +608,7 @@ export default function ExplorePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6">
                 {filteredFoods.map((item) => (
                   <FoodCard
                     key={item.id}
@@ -628,16 +632,16 @@ export default function ExplorePage() {
             )}
           </div>
         ) : (
-          /* Tab Permintaan Bantuan Panti Asuhan (DENGAN INFO DETAIL RICH SEPERTI PROVIDER DONATIONS) */
+          /* Tab Permintaan Bantuan Panti Asuhan (DENGAN TAMPILAN KONSISTEN DENGAN FOODCARD) */
           <div className="space-y-6">
-            <div className="p-6 bg-[#1B3A5C] text-white rounded-3xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 bg-[#1B3A5C] text-white rounded-2xl sm:rounded-3xl shadow-lg border border-[#2C5A8F] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">
-                <span className="text-[#D4A843] font-black text-xs uppercase tracking-wider block">
+                <span className="text-[#D4A843] font-black text-[10px] sm:text-xs uppercase tracking-wider block">
                   PROGRAM REDISTRIBUSI PANGAN YAYASAN & PANTI
                 </span>
-                <h3 className="text-xl font-black text-white">Daftar Kebutuhan Pangan Panti Asuhan Surabaya</h3>
+                <h3 className="text-lg sm:text-xl font-black text-white">Daftar Kebutuhan Pangan Yayasan & Panti Asuhan (Nasional)</h3>
                 <p className="text-xs text-slate-200 font-medium max-w-xl">
-                  Restoran, Bakery, atau Donatur dapat langsung memilih panti asuhan yang membutuhkan, melihat titik lokasi peta GPS, dan menyanggupi alokasi makanan secara langsung.
+                  Restoran, Bakery, atau Donatur dapat langsung memilih yayasan atau panti asuhan yang membutuhkan, melihat titik lokasi peta GPS, dan menyanggupi alokasi makanan secara langsung.
                 </p>
               </div>
 
@@ -651,25 +655,28 @@ export default function ExplorePage() {
             </div>
 
             {/* Filter Bar Kebutuhan Panti */}
-            <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="p-3 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-black text-[#1B3A5C]">Filter Wilayah:</span>
+                <span className="font-black text-[#1B3A5C]">Filter Kota:</span>
                 <select
                   value={filterPantiLocation}
                   onChange={(e) => setFilterPantiLocation(e.target.value)}
-                  className="rounded-xl border border-slate-300 text-xs px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                  className="rounded-xl border border-slate-300 text-xs px-2.5 sm:px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
                 >
-                  <option value="ALL">Semua Wilayah Surabaya</option>
-                  <option value="Pusat">Surabaya Pusat</option>
-                  <option value="Timur">Surabaya Timur</option>
-                  <option value="Selatan">Surabaya Selatan</option>
+                  <option value="ALL">Semua Kota</option>
+                  <option value="Jakarta">Jakarta</option>
+                  <option value="Surabaya">Surabaya</option>
+                  <option value="Bandung">Bandung</option>
+                  <option value="Yogyakarta">Yogyakarta</option>
+                  <option value="Medan">Medan</option>
+                  <option value="Semarang">Semarang</option>
                 </select>
 
-                <span className="font-black text-[#1B3A5C] ml-2">Urgensi:</span>
+                <span className="font-black text-[#1B3A5C] ml-1 sm:ml-2">Urgensi:</span>
                 <select
                   value={filterPantiUrgency}
                   onChange={(e) => setFilterPantiUrgency(e.target.value)}
-                  className="rounded-xl border border-slate-300 text-xs px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                  className="rounded-xl border border-slate-300 text-xs px-2.5 sm:px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
                 >
                   <option value="ALL">Semua Urgensi</option>
                   <option value="HIGH">Urgent (Hari Ini)</option>
@@ -682,116 +689,132 @@ export default function ExplorePage() {
               </span>
             </div>
 
-            {/* Grid Permintaan Panti */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPantiNeeds.map((need) => (
-                <div
-                  key={need.id}
-                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
-                >
-                  {/* Panti Cover Image & Badges */}
-                  <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                    <img src={need.imageUrl} alt={need.pantiName} className="w-full h-full object-cover" />
-                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
-                        need.urgency === 'HIGH' ? 'bg-red-500 text-white animate-pulse' : 'bg-amber-400 text-slate-950'
-                      }`}>
-                        {need.urgency === 'HIGH' ? 'URGENT HARI INI' : 'BUTUH BESOK'}
-                      </span>
-                      <span className="text-[10px] bg-slate-950/80 text-emerald-300 font-black px-2.5 py-1 rounded-lg backdrop-blur-xs flex items-center gap-1">
-                        <CheckIcon size={10} />
-                        <span>{need.legalStatus}</span>
-                      </span>
-                    </div>
-                    <span className="absolute bottom-2 right-2 text-[10px] bg-slate-900/80 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-                      Area: {need.location.split('(')[0]}
-                    </span>
-                  </div>
+            {/* Grid Permintaan Panti (Konsisten dengan FoodCard di Rescue Sale & Donasi) */}
+            {filteredPantiNeeds.length === 0 ? (
+              <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-2">
+                <h4 className="font-extrabold text-slate-800 text-base">Tidak ada permintaan panti ditemukan</h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  Coba sesuaikan filter wilayah atau urgensi kebutuhan panti asuhan.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6">
+                {filteredPantiNeeds.map((need) => {
+                  const targetNum = parseInt(String(need.targetQuantity).replace(/\D/g, '')) || 1;
+                  const fulfilledNum = parseInt(String(need.fulfilledQuantity).replace(/\D/g, '')) || 0;
+                  const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
 
-                  <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-[10px] font-mono font-bold text-slate-400 block">{need.id} • {need.shelterType}</span>
-                        <h4 className="font-extrabold text-base text-[#1B3A5C] mt-0.5">{need.pantiName}</h4>
+                  return (
+                    <div
+                      key={need.id}
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-[#1B3A5C]/40 transition-all flex flex-col justify-between group cursor-pointer"
+                      onClick={() => setSelectedShelterProfile(need)}
+                    >
+                      {/* Panti Cover Image & Badges */}
+                      <div className="relative h-28 sm:h-44 w-full bg-slate-100 overflow-hidden">
+                        <img
+                          src={need.imageUrl}
+                          alt={need.pantiName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 flex flex-wrap gap-1 sm:gap-1.5">
+                          <span
+                            className={`text-[8.5px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg shadow-xs ${
+                              need.urgency === 'HIGH'
+                                ? 'bg-red-500 text-white animate-pulse'
+                                : 'bg-[#D4A843] text-slate-950'
+                            }`}
+                          >
+                            {need.urgency === 'HIGH' ? 'URGENT' : 'BUTUH'}
+                          </span>
+                          <span className="text-[8.5px] sm:text-[10px] bg-slate-950/80 text-emerald-300 font-bold px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg backdrop-blur-xs flex items-center gap-0.5">
+                            <CheckIcon size={9} />
+                            <span>{need.legalStatus.replace('Terdaftar ', '')}</span>
+                          </span>
+                        </div>
+                        <span className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 text-[8.5px] sm:text-[10px] bg-slate-900/80 text-amber-300 font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs flex items-center gap-0.5 sm:gap-1">
+                          <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 shrink-0" />
+                          <span>{need.location.split('(')[0].trim()}</span>
+                        </span>
                       </div>
 
-                      {/* Detail Info Card Box (Mirip di Provider Donations) */}
-                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
-                        <div className="flex justify-between text-slate-700">
-                          <span className="font-semibold">Penerima Manfaat:</span>
-                          <span className="font-extrabold text-[#1B3A5C]">{need.beneficiariesCount} Jiwa</span>
-                        </div>
-                        <div className="flex justify-between text-slate-700">
-                          <span className="font-semibold">Kebutuhan Menu:</span>
-                          <span className="font-bold text-emerald-700">{need.foodCategoryNeeded}</span>
-                        </div>
-                        <div className="flex justify-between text-slate-700 pt-1 border-t border-slate-200/60">
-                          <span className="font-semibold">Metode Kirim:</span>
-                          <span className="font-bold text-[#1B3A5C]">
-                            {need.preferredDelivery === 'RESCUE_COURIER'
-                              ? 'Kurir Relawan Replate'
-                              : need.preferredDelivery === 'PROVIDER_DIRECT'
-                              ? 'Diantar Toko'
-                              : 'Ambil Mandiri'}
+                      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2.5 flex-1 flex flex-col justify-between">
+                        <div className="space-y-0.5 sm:space-y-1">
+                          <span className="text-[9.5px] sm:text-[11px] font-semibold text-slate-500 block truncate">
+                            {need.shelterType} • {need.beneficiariesCount} Jiwa
                           </span>
+                          <h4 className="font-extrabold text-xs sm:text-base text-[#1B3A5C] line-clamp-1 leading-snug group-hover:text-blue-900 transition-colors">
+                            {need.pantiName}
+                          </h4>
+                          <p className="text-[9.5px] sm:text-[11px] text-slate-500 font-medium truncate flex items-center gap-1">
+                            <Utensils className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{need.foodCategoryNeeded}</span>
+                          </p>
                         </div>
 
                         {/* Progress Bar */}
-                        {(() => {
-                          const targetNum = parseInt(String(need.targetQuantity).replace(/\D/g, '')) || 1;
-                          const fulfilledNum = parseInt(String(need.fulfilledQuantity).replace(/\D/g, '')) || 0;
-                          const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
-                          return (
-                            <div className="space-y-1 pt-1">
-                              <div className="flex justify-between text-[11px] font-bold text-slate-600">
-                                <span>Target: {need.targetQuantity}</span>
-                                <span className="text-emerald-700 font-black">{percent}% ({need.fulfilledQuantity})</span>
-                              </div>
-                              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-slate-300">
-                                <div
-                                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                                  style={{ width: `${percent}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          );
-                        })()}
+                        <div className="space-y-1 py-0.5">
+                          <div className="flex justify-between text-[9px] sm:text-[10.5px] font-bold text-slate-600">
+                            <span>Target: {need.targetQuantity}</span>
+                            <span className="text-emerald-700 font-black">{percent}%</span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-1.5 sm:h-2 rounded-full overflow-hidden border border-slate-200">
+                            <div
+                              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        </div>
 
-                        <p className="text-[11px] text-slate-600 italic leading-relaxed pt-1">
-                          &quot;{need.notes}&quot;
-                        </p>
-
-                        {/* Button Lihat Profil Detail & Peta GPS */}
+                        {/* Quick detail secondary link */}
                         <button
                           type="button"
-                          onClick={() => setSelectedShelterProfile(need)}
-                          className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[11px] rounded-xl border border-blue-200 flex items-center justify-center gap-1 transition-colors cursor-pointer mt-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedShelterProfile(need);
+                          }}
+                          className="w-full py-1 sm:py-1.5 bg-slate-50 hover:bg-slate-100 text-[#1B3A5C] font-extrabold text-[10px] sm:text-[11px] rounded-lg sm:rounded-xl border border-slate-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
                         >
-                          <span>Lihat Profil Detail & Titik Peta GPS </span>
+                          <span>Detail & Peta GPS</span>
+                          <span>→</span>
                         </button>
+
+                        {/* Bottom Footer / Action Row */}
+                        <div className="pt-1.5 sm:pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                          <div>
+                            <span className="text-xs sm:text-base font-black text-[#1B3A5C] block leading-tight">
+                              {need.fulfilledQuantity}
+                            </span>
+                            <span className="text-[8.5px] sm:text-[9.5px] text-slate-400 font-bold block leading-tight">
+                              dari {need.targetQuantity}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSanggupiPanti(need);
+                            }}
+                            className="w-full sm:w-auto px-2.5 sm:px-3.5 py-1 sm:py-1.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-[10.5px] sm:text-xs rounded-lg sm:rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <span>Sanggupi</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <Button
-                      variant="gold"
-                      size="md"
-                      onClick={() => handleSanggupiPanti(need)}
-                      className="w-full font-black text-xs text-slate-950 py-3 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-2"
-                    >
-                      <span>Sanggupi Bantuan Panti </span>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </main>
 
       <Footer />
-      <BottomNav user={session?.user} />
+      {session?.user && <BottomNav user={session.user} />}
 
-      {/* RICH FOOD DETAIL MODAL (RESCUE SALE & DONASI PANGAN Rp 0 DENGAN PETA GPS & WA DIRECT) */}
+      {/* RICH FOOD DETAIL MODAL (RESCUE SALE & DONASI FOOD RESCUE Rp 0 DENGAN PETA GPS & WA DIRECT) */}
       {selectedFoodForModal && (
         <FoodDetailModal
           isOpen={selectedFoodForModal !== null}
@@ -865,7 +888,7 @@ export default function ExplorePage() {
             {/* Embed Google Maps GPS */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS Surabaya</h4>
+                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS</h4>
                 <span className="text-[10px] font-mono font-bold text-slate-500">
                   GPS: {selectedShelterProfile.lat}, {selectedShelterProfile.lng}
                 </span>
@@ -878,12 +901,26 @@ export default function ExplorePage() {
                   height="100%"
                   frameBorder="0"
                   scrolling="no"
-                  src={`https://maps.google.com/maps?q=${selectedShelterProfile.lat},${selectedShelterProfile.lng}&z=15&output=embed`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}&z=15&output=embed`}
                   className="w-full h-full filter saturate-150"
                 />
                 <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
                   Titik Lokasi: {selectedShelterProfile.pantiName}
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[10px] text-slate-500 font-medium truncate max-w-[70%]">
+                  Alamat: {selectedShelterProfile.address}
+                </span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
+                >
+                  Buka di Google Maps ↗
+                </a>
               </div>
             </div>
 

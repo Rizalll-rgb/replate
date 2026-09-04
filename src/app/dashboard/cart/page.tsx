@@ -235,7 +235,7 @@ export default function CartPage() {
       <div className="border-b border-slate-200 pb-4">
         <h1 className="text-2xl font-black text-[#1B3A5C]">Tas Klaim & Keranjang</h1>
         <p className="text-sm text-slate-500 font-medium">
-          Tinjau kembali pilihan donasi pangan dan pesanan surplus Anda sebelum melakukan konfirmasi.
+          Tinjau kembali pilihan donasi food rescue dan pesanan surplus Anda sebelum melakukan konfirmasi.
         </p>
       </div>
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
+import { Check } from 'lucide-react';
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function OnboardingProfilePage() {
   const [role, setRole] = useState<'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'RESCUE_VOLUNTEER' | 'FOOD_CONSUMER'>('FOOD_PROVIDER');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [registeredUser, setRegisteredUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     entityName: '',
     category: 'RESTAURANT',
@@ -45,13 +47,24 @@ export default function OnboardingProfilePage() {
       else if (detectedRole === 'RESCUE_VOLUNTEER') defaultCategory = 'COMMUNITY_ORGANIZATION';
       else if (detectedRole === 'FOOD_CONSUMER') defaultCategory = 'STUDENT';
 
+      // Load registered user if available
+      let reg: any = null;
+      try {
+        const raw = localStorage.getItem('replate_registered_user');
+        if (raw) reg = JSON.parse(raw);
+        setRegisteredUser(reg);
+      } catch (_) {}
+
+      const initialName = reg?.name || '';
+      const initialPhone = reg?.phone || '';
+
       setFormData({
-        entityName: '',
+        entityName: initialName,
         category: defaultCategory,
         address: '',
-        contactPerson: '',
-        phone: '',
-        capacity: '',
+        contactPerson: initialName,
+        phone: initialPhone,
+        capacity: detectedRole === 'FOOD_CONSUMER' ? 'Mahasiswa / Anak Kos' : '',
         vehiclePlate: '',
       });
     }
@@ -80,11 +93,11 @@ export default function OnboardingProfilePage() {
       });
     } else if (role === 'FOOD_CONSUMER') {
       setFormData({
-        entityName: 'Budi Santoso',
+        entityName: registeredUser?.name || 'Farhan Ramadhan',
         category: 'STUDENT',
-        address: 'Jl. Ketintang No. 12, Gayungan, Surabaya Pusat',
-        contactPerson: 'Budi Santoso',
-        phone: '0812-3456-7890',
+        address: 'Jl. Ketintang No. 12, Gayungan, Surabaya',
+        contactPerson: registeredUser?.name || 'Farhan Ramadhan',
+        phone: registeredUser?.phone || '0812-3456-7890',
         capacity: 'Mahasiswa / Anak Kos',
         vehiclePlate: '',
       });
@@ -103,8 +116,19 @@ export default function OnboardingProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const finalName = role === 'FOOD_CONSUMER' ? (formData.entityName || formData.contactPerson) : formData.entityName;
+    const finalProfile = {
+      ...formData,
+      name: finalName,
+      entityName: finalName,
+      contactPerson: finalName,
+      email: registeredUser?.email || 'konsumen@replate.id',
+      role,
+    };
+
     try {
-      localStorage.setItem('replate_onboarding_profile', JSON.stringify({ ...formData, role }));
+      localStorage.setItem('replate_onboarding_profile', JSON.stringify(finalProfile));
     } catch (_) {}
 
     if (role === 'FOOD_CONSUMER') {
@@ -122,11 +146,20 @@ export default function OnboardingProfilePage() {
         );
 
         setTimeout(async () => {
-          await signIn('credentials', {
-            email: 'budi.santoso@gmail.com',
-            password: 'password123',
-            callbackUrl: '/dashboard/consumer',
-          });
+          if (registeredUser?.email && registeredUser?.password) {
+            try {
+              const res = await signIn('credentials', {
+                email: registeredUser.email,
+                password: registeredUser.password,
+                redirect: false,
+              });
+              if (res?.ok) {
+                router.push('/dashboard/consumer');
+                return;
+              }
+            } catch (_) {}
+          }
+          router.push('/dashboard/consumer');
         }, 1000);
       } catch (_) {
         router.push('/dashboard/consumer');
@@ -201,152 +234,235 @@ export default function OnboardingProfilePage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
-            <div className="space-y-1.5">
-              <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                1. Nama Resmi{' '}
-                {isBeneficiary
-                  ? 'Panti Asuhan / Yayasan:'
-                  : isVolunteer
-                  ? 'Organisasi / Komunitas Food Rescue:'
-                  : isConsumer
-                  ? 'Pengguna Pembeli:'
-                  : 'Restoran / Toko / Outlet:'}
-              </label>
-              <input
-                type="text"
-                value={formData.entityName}
-                onChange={(e) => setFormData({ ...formData, entityName: e.target.value })}
-                className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                placeholder={
-                  isBeneficiary
-                    ? 'Contoh: Panti Asuhan Kasih Ibu Surabaya'
-                    : isVolunteer
-                    ? 'Contoh: Komunitas Garda Pangan Surabaya'
-                    : isConsumer
-                    ? 'Contoh: Budi Santoso'
-                    : 'Contoh: Warung Bakso Pak Kumis'
-                }
-                required
-              />
-            </div>
+            {isConsumer ? (
+              /* STREAMLINED CLEAN CONSUMER FORM */
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                    1. Nama Lengkap Pengguna:
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.entityName}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        entityName: e.target.value,
+                        contactPerson: e.target.value,
+                      })
+                    }
+                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    placeholder="Contoh: Farhan Ramadhan"
+                    required
+                  />
+                  <span className="text-[10px] text-slate-300">
+                    Nama ini akan digunakan pada resi penjemputan makanan dan tiket pesanan Anda.
+                  </span>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  2. {isVolunteer ? 'Jenis Organisasi Komunitas:' : 'Kategori Entitas:'}
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                >
-                  {isBeneficiary ? (
-                    <>
-                      <option value="YAYASAN_PANTI">Yayasan Panti Asuhan Anak</option>
-                      <option value="PANTI_WERDHA">Panti Werdha Lansia</option>
-                      <option value="SHELTER_DHUAFA">Shelter Dhuafa & Rumah Singgah</option>
-                    </>
-                  ) : isVolunteer ? (
-                    <>
-                      <option value="COMMUNITY_ORGANIZATION">Komunitas Rescue Pangan Non-Profit</option>
-                      <option value="FOODBANK_FOUNDATION">Organisasi Bank Pangan (Foodbank)</option>
-                      <option value="LOGISTICS_FOUNDATION">Yayasan Logistik Sosial & Kemanusiaan</option>
-                    </>
-                  ) : isConsumer ? (
-                    <>
-                      <option value="STUDENT">Mahasiswa / Anak Kos</option>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      2. Status / Tipe Konsumen:
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const labelMap: Record<string, string> = {
+                          STUDENT: 'Mahasiswa / Anak Kos',
+                          WORKER: 'Pekerja / Karyawan',
+                          FAMILY: 'Keluarga / Rumah Tangga',
+                          PUBLIC: 'Konsumen Umum Mandiri',
+                        };
+                        setFormData({
+                          ...formData,
+                          category: val,
+                          capacity: labelMap[val] || val,
+                        });
+                      }}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                    >
+                      <option value="STUDENT">Mahasiswa / Anak Kos / Pelajar</option>
+                      <option value="WORKER">Pekerja / Karyawan / Mandiri</option>
+                      <option value="FAMILY">Keluarga / Rumah Tangga</option>
                       <option value="PUBLIC">Konsumen Umum</option>
-                      <option value="WORKER">Pekerja Mandiri</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="RESTAURANT">Restoran / Warung Kuliner</option>
-                      <option value="BAKERY">Bakery & Toko Roti</option>
-                      <option value="SUPERMARKET">Supermarket / Retail</option>
-                      <option value="HOTEL">Hotel & Buffet Catering</option>
-                    </>
-                  )}
-                </select>
-              </div>
+                    </select>
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  3.{' '}
-                  {isBeneficiary
-                    ? 'Jumlah Anak Asuh / Lansia:'
-                    : isVolunteer
-                    ? 'Jumlah Anggota Kurir Relawan Aktif:'
-                    : isConsumer
-                    ? 'Pekerjaan / Status:'
-                    : 'Kapasitas Porsi / Hari:'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                  className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder={
-                    isBeneficiary
-                      ? 'Contoh: 80 Anak Asuh'
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                        3. No. WhatsApp Aktif:
+                      </label>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/40 flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5" />
+                        <span>OTP Verified</span>
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      placeholder="Contoh: 0812-3456-7890"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                    4. Alamat Domisili Pengantaran / Penjemputan Makanan:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                    placeholder="Contoh: Jl. Ketintang No. 12, Kel. Ketintang, Kec. Gayungan, Kota Surabaya, Jawa Timur"
+                    required
+                  />
+                  <span className="text-[10px] text-slate-300">
+                    Alamat ini tersinkronisasi otomatis dengan modul Checkout dan penentuan radius makanan terdekat.
+                  </span>
+                </div>
+              </>
+            ) : (
+              /* STANDARD MULTI-STEP FOR PROVIDER / BENEFICIARY / VOLUNTEER */
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                    1. Nama Resmi{' '}
+                    {isBeneficiary
+                      ? 'Panti Asuhan / Yayasan:'
                       : isVolunteer
-                      ? 'Contoh: 35 Kurir Relawan'
-                      : isConsumer
-                      ? 'Contoh: Mahasiswa / Pekerja'
-                      : 'Contoh: 50 Porsi / Hari'
-                  }
-                  required
-                />
-              </div>
-            </div>
+                      ? 'Organisasi / Komunitas Food Rescue:'
+                      : 'Restoran / Toko / Outlet:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.entityName}
+                    onChange={(e) => setFormData({ ...formData, entityName: e.target.value })}
+                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    placeholder={
+                      isBeneficiary
+                        ? 'Contoh: Panti Asuhan Kasih Ibu Surabaya'
+                        : isVolunteer
+                        ? 'Contoh: Komunitas Garda Pangan Surabaya'
+                        : 'Contoh: Warung Bakso Pak Kumis'
+                    }
+                    required
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                4.{' '}
-                {isVolunteer
-                  ? 'Alamat Posko Utama / Basecamp Logistik Komunitas di Indonesia:'
-                  : isConsumer
-                  ? 'Alamat Domisili Pengiriman / Penjemputan Makanan di Indonesia:'
-                  : 'Alamat Lengkap Bangunan Operasional di Indonesia:'}
-              </label>
-              <textarea
-                rows={2}
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                placeholder="Contoh: Jl. Sudirman No. 45, Jakarta / Jl. Raya Gubeng No. 88, Surabaya / Jl. Dago No. 12, Bandung..."
-                required
-              />
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      2. {isVolunteer ? 'Jenis Organisasi Komunitas:' : 'Kategori Entitas:'}
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                    >
+                      {isBeneficiary ? (
+                        <>
+                          <option value="YAYASAN_PANTI">Yayasan Panti Asuhan Anak</option>
+                          <option value="PANTI_WERDHA">Panti Werdha Lansia</option>
+                          <option value="SHELTER_DHUAFA">Shelter Dhuafa & Rumah Singgah</option>
+                        </>
+                      ) : isVolunteer ? (
+                        <>
+                          <option value="COMMUNITY_ORGANIZATION">Komunitas Rescue Pangan Non-Profit</option>
+                          <option value="FOODBANK_FOUNDATION">Organisasi Bank Pangan (Foodbank)</option>
+                          <option value="LOGISTICS_FOUNDATION">Yayasan Logistik Sosial & Kemanusiaan</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="RESTAURANT">Restoran / Warung Kuliner</option>
+                          <option value="BAKERY">Bakery & Toko Roti</option>
+                          <option value="SUPERMARKET">Supermarket / Retail</option>
+                          <option value="HOTEL">Hotel & Buffet Catering</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Ketua / Koordinator Komunitas (PJ):' : 'Nama Lengkap Pengguna (PJ):'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.contactPerson}
-                  onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                  className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder="Contoh: Budi Santoso"
-                  required
-                />
-              </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      3.{' '}
+                      {isBeneficiary
+                        ? 'Jumlah Anak Asuh / Lansia:'
+                        : isVolunteer
+                        ? 'Jumlah Anggota Kurir Relawan Aktif:'
+                        : 'Kapasitas Porsi / Hari:'}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.capacity}
+                      onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      placeholder={
+                        isBeneficiary
+                          ? 'Contoh: 80 Anak Asuh'
+                          : isVolunteer
+                          ? 'Contoh: 35 Kurir Relawan'
+                          : 'Contoh: 50 Porsi / Hari'
+                      }
+                      required
+                    />
+                  </div>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                  6. No. WhatsApp Aktif (OTP Verified):
-                </label>
-                <input
-                  type="text"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                  placeholder="Contoh: 0812-3456-7890"
-                  required
-                />
-              </div>
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                    4.{' '}
+                    {isVolunteer
+                      ? 'Alamat Posko Utama / Basecamp Logistik Komunitas di Indonesia:'
+                      : 'Alamat Lengkap Bangunan Operasional di Indonesia:'}
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                    placeholder="Contoh: Jl. Sudirman No. 45, Jakarta / Jl. Raya Gubeng No. 88, Surabaya / Jl. Dago No. 12, Bandung..."
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Ketua / Koordinator Komunitas (PJ):' : 'Nama Penanggung Jawab Outlet:'}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.contactPerson}
+                      onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      placeholder="Contoh: Mas Doni (Penanggung Jawab Outlet)"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      6. No. WhatsApp Aktif (OTP Verified):
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      placeholder="Contoh: 0812-3456-7890"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="pt-4 border-t border-[#2C5A8F] flex justify-end">
               <Button variant="gold" size="md" type="submit" isLoading={loading} className="font-black text-xs py-3 px-6 shadow-md cursor-pointer">
