@@ -8,9 +8,10 @@ export interface FoodGridProps {
   onClaim?: (id: string) => void;
   onDetail?: (id: string) => void;
   onManage?: (id: string) => void;
+  onAddToCart?: (id: string) => void;
 }
 
-export const FoodGrid: React.FC<FoodGridProps> = ({ foods, onClaim, onDetail, onManage }) => {
+export const FoodGrid: React.FC<FoodGridProps> = ({ foods, onClaim, onDetail, onManage, onAddToCart }) => {
   if (!foods || foods.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8 space-y-2">
@@ -30,7 +31,7 @@ export const FoodGrid: React.FC<FoodGridProps> = ({ foods, onClaim, onDetail, on
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
       {foods.map((food) => (
-        <FoodCard key={food.id} {...food} onClaim={onClaim} onDetail={onDetail} onManage={onManage} />
+        <FoodCard key={food.id} {...food} onClaim={onClaim} onDetail={onDetail} onManage={onManage} onAddToCart={onAddToCart} />
       ))}
     </div>
   );

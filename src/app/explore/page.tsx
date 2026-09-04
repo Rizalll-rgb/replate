@@ -15,7 +15,8 @@ import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
 import { CheckIcon } from '@/components/ui/Icon';
 import { MapPin, Utensils } from 'lucide-react';
-import { SHARED_PANTI_NEEDS, SharedPantiNeed } from '@/lib/pantiData';
+import { SHARED_PANTI_NEEDS, SharedPantiNeed, deduplicatePantiNeeds } from '@/lib/pantiData';
+import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
 
 interface FoodItem {
   id: string;
@@ -60,7 +61,7 @@ export default function ExplorePage() {
   // Selected Food for Detail Modal (Rescue Sale & Donasi Food Rescue)
   const [selectedFoodForModal, setSelectedFoodForModal] = useState<any | null>(null);
 
-  const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [foods, setFoods] = useState<FoodItem[]>(MOCK_SURPLUS_FOODS as unknown as FoodItem[]);
   const [pantiNeeds, setPantiNeeds] = useState<SharedPantiNeed[]>(SHARED_PANTI_NEEDS);
 
   // Shelter Profile Detail Modal State
@@ -112,6 +113,16 @@ export default function ExplorePage() {
       const vStatus = localStorage.getItem('replate_consumer_verification_status');
       if (vStatus) {
         setIsConsumerVerified(vStatus === 'BENEFICIARY_VERIFIED');
+      }
+    } catch (_) {}
+
+    try {
+      const customPantiReqs = localStorage.getItem('replate_panti_requests');
+      if (customPantiReqs) {
+        const parsed = JSON.parse(customPantiReqs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPantiNeeds(deduplicatePantiNeeds([...parsed, ...SHARED_PANTI_NEEDS]));
+        }
       }
     } catch (_) {}
 
@@ -184,128 +195,8 @@ export default function ExplorePage() {
       });
   }, [session]);
 
-  const defaultFoods: FoodItem[] = [
-    {
-      id: 'FOD-001',
-      title: 'Nasi Paket Ayam Bakar Madu',
-      description: 'Nasi hangat dengan ayam bakar madu bumbu rempah, lalapan segar, dan sambal terasi terpisah dalam kemasan higienis.',
-      providerName: 'Warung Bakso Pak Kumis',
-      providerPhone: '081234567891',
-      providerAddress: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
-      originalPrice: 28000,
-      discountPrice: 12000,
-      quantity: '15 Porsi',
-      pickupTime: '19:30 - 21:30 WIB',
-      distance: '0.8 km',
-      category: 'MAKANAN_BERAT',
-      isFree: false,
-      type: 'RESCUE_SALE',
-      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
-      rating: 4.9,
-      storageCondition: 'ROOM_TEMP',
-      packagingType: 'PACKAGED',
-      weightPerUnitKg: 0.4,
-      allergens: ['Nut-Free', 'Halal BPJPH', 'Wadah Steril'],
-      lat: -7.2575,
-      lng: 112.7521,
-    },
-    {
-      id: 'FOD-002',
-      title: 'Roti Croissant & Choco Pastry',
-      description: 'Aneka roti croissant butter dan pastry cokelat lembut yang baru dipanggang hari ini di outlet bakery.',
-      providerName: 'Rotiboy Bakery Surabaya',
-      providerPhone: '081234567892',
-      providerAddress: 'Tunjungan Plaza Lt. G, Jl. Basuki Rahmat, Surabaya',
-      originalPrice: 18000,
-      discountPrice: 6000,
-      quantity: '25 Porsi',
-      pickupTime: '20:00 - 22:00 WIB',
-      distance: '1.2 km',
-      category: 'ROTI_KUE',
-      isFree: false,
-      type: 'RESCUE_SALE',
-      imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60',
-      rating: 4.8,
-      storageCondition: 'ROOM_TEMP',
-      packagingType: 'PACKAGED',
-      weightPerUnitKg: 0.25,
-      allergens: ['Dairy (Susu)', 'Halal BPJPH', 'Bebas Pengawet'],
-      lat: -7.2614,
-      lng: 112.7385,
-    },
-    {
-      id: 'FOD-003',
-      title: 'Prasmanan Nasi Goreng & Ayam Goreng',
-      description: 'Menu buffet hotel bintang 5 yang tidak tersentuh tamu, disimpan di warm chafing dish dengan suhu >60°C.',
-      providerName: 'Hotel Majapahit Surabaya',
-      providerPhone: '081234567893',
-      providerAddress: 'Jl. Tunjungan No. 65, Surabaya',
-      originalPrice: 45000,
-      discountPrice: 0,
-      quantity: '30 Porsi',
-      pickupTime: '20:30 - 22:00 WIB',
-      distance: '2.1 km',
-      category: 'MAKANAN_BERAT',
-      isFree: true,
-      type: 'DONATION',
-      imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=60',
-      rating: 5.0,
-      storageCondition: 'ROOM_TEMP',
-      packagingType: 'STERILE_CONTAINER',
-      weightPerUnitKg: 0.45,
-      allergens: ['Nut-Free', 'Halal BPJPH', 'Steril Food Grade'],
-      lat: -7.2637,
-      lng: 112.7407,
-    },
-    {
-      id: 'FOD-004',
-      title: 'Sop Buntut & Daging Kuah Steril',
-      description: 'Sop daging kuah kaldu rempah kaya gizi, dikemas dalam wadah mangkok microwaveable kedap udara.',
-      providerName: 'Dapur Katering Bu Rudy',
-      providerPhone: '081234567894',
-      providerAddress: 'Jl. Dharmahusada No. 140, Gubeng, Surabaya',
-      originalPrice: 35000,
-      discountPrice: 15000,
-      quantity: '12 Porsi',
-      pickupTime: '19:00 - 21:00 WIB',
-      distance: '1.5 km',
-      category: 'MAKANAN_BERAT',
-      isFree: false,
-      type: 'RESCUE_SALE',
-      imageUrl: 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=500&auto=format&fit=crop&q=60',
-      rating: 4.7,
-      storageCondition: 'ROOM_TEMP',
-      packagingType: 'PACKAGED',
-      weightPerUnitKg: 0.5,
-      allergens: ['Nut-Free', 'Halal BPJPH', 'Bebas MSG Berlebih'],
-      lat: -7.2689,
-      lng: 112.7681,
-    },
-    {
-      id: 'FOD-005',
-      title: 'Paket Roti Tawar Gandum & Donat Susu',
-      description: 'Paket roti gandum tinggi serat dan donat tabur gula halus, higienis untuk sarapan atau camilan panti.',
-      providerName: 'Bakery Plaza Surabaya',
-      providerPhone: '081234567895',
-      providerAddress: 'Jl. Pemuda No. 33, Surabaya Pusat',
-      originalPrice: 22000,
-      discountPrice: 0,
-      quantity: '20 Porsi',
-      pickupTime: '20:30 - 21:45 WIB',
-      distance: '1.8 km',
-      category: 'ROTI_KUE',
-      isFree: true,
-      type: 'DONATION',
-      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60',
-      rating: 4.9,
-      storageCondition: 'ROOM_TEMP',
-      packagingType: 'PACKAGED',
-      weightPerUnitKg: 0.3,
-      allergens: ['Dairy (Susu)', 'Halal BPJPH'],
-      lat: -7.2655,
-      lng: 112.7472,
-    },
-  ];
+  // Synchronized single source of truth for surplus foods across all explore pages
+  const defaultFoods: FoodItem[] = MOCK_SURPLUS_FOODS as unknown as FoodItem[];
 
   const categoryList = [
     { key: 'ALL', name: 'Semua Kategori' },
@@ -335,7 +226,7 @@ export default function ExplorePage() {
   });
 
   const filteredPantiNeeds = useMemo(() => {
-    return pantiNeeds.filter((need) => {
+    const rawFiltered = pantiNeeds.filter((need) => {
       const matchLoc =
         filterPantiLocation === 'ALL' ||
         need.location.toLowerCase().includes(filterPantiLocation.toLowerCase()) ||
@@ -343,6 +234,7 @@ export default function ExplorePage() {
       const matchUrg = filterPantiUrgency === 'ALL' || need.urgency === filterPantiUrgency;
       return matchLoc && matchUrg;
     });
+    return deduplicatePantiNeeds(rawFiltered);
   }, [pantiNeeds, filterPantiLocation, filterPantiUrgency]);
 
   const handleAddToCart = (item: FoodItem) => {
@@ -350,14 +242,6 @@ export default function ExplorePage() {
       setAuthModal({
         isOpen: true,
         actionTitle: 'Klaim Makanan Surplus',
-        itemTitle: item.title,
-      });
-      return;
-    }
-
-    if (item.isFree && !isConsumerVerified && userRole === 'FOOD_CONSUMER') {
-      setMismatchModal({
-        isOpen: true,
         itemTitle: item.title,
       });
       return;
@@ -406,14 +290,6 @@ export default function ExplorePage() {
       setAuthModal({
         isOpen: true,
         actionTitle: 'Klaim Makanan Surplus',
-        itemTitle: item.title,
-      });
-      return;
-    }
-
-    if (item.isFree && !isConsumerVerified && userRole === 'FOOD_CONSUMER') {
-      setMismatchModal({
-        isOpen: true,
         itemTitle: item.title,
       });
       return;

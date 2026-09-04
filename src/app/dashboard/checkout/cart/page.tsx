@@ -163,7 +163,10 @@ export default function CheckoutCartPage() {
     quantity: `${totalItemsCount} Porsi`,
     deliveryMethod,
     method: deliveryMethod,
-    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Sendiri (Self-Pickup)' : 'Diantar Kurir Relawan',
+    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
+    recipientName: recipientName || 'Budi Santoso',
+    recipientPhone: recipientPhone || '0812-3456-7890',
+    deliveryAddress: address,
     paymentMethod,
     address,
     status,
@@ -201,7 +204,7 @@ export default function CheckoutCartPage() {
       return;
     }
 
-    // Free (beneficiary) or non-QRIS — direct confirm
+    // Free (beneficiary) or non-QRIS (COD) — direct confirm
     processDirectCheckout();
   };
 
@@ -212,9 +215,10 @@ export default function CheckoutCartPage() {
       try {
         // Poin 6: standardized resi
         const resiCode = isFree ? genResiCode('YYS') : genResiCode('CNS');
+        const defaultStatus = deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH';
         const status = isFree
-          ? (deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_RESCUE_POOL')
-          : (paymentMethod === 'COD' ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL');
+          ? defaultStatus
+          : (paymentMethod === 'COD' ? defaultStatus : 'WAITING_PAYMENT_APPROVAL');
         const newClaim = saveClaimAndRedirect(resiCode, status);
         setActionLoader({ isOpen: false, message: '' });
         setIsCheckingOut(false);
@@ -341,10 +345,10 @@ export default function CheckoutCartPage() {
               <div className="flex items-center justify-between cursor-pointer border-b border-slate-100 pb-3 group" onClick={() => setIsDeliveryModalOpen(true)}>
                 <div>
                   <div className="font-extrabold text-slate-900 group-hover:text-[#1B3A5C] transition-colors">
-                    {deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Kurir Relawan Replate'}
+                    {deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko (Driver Provider)'}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">
-                    {deliveryMethod === 'SELF_PICKUP' ? 'Bebas ongkir (Rp 0). Ambil langsung di gerai penyedia makanan.' : 'Pengantaran aman oleh armada relawan logistik Replate. (+Rp 5.000)'}
+                    {deliveryMethod === 'SELF_PICKUP' ? 'Bebas ongkir (Rp 0). Ambil langsung di gerai penyedia makanan.' : 'Pengantaran aman oleh armada internal pihak toko mitra. (+Rp 5.000)'}
                   </div>
                   <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 mt-2 inline-block">
                     {deliveryMethod === 'SELF_PICKUP'
@@ -435,7 +439,7 @@ export default function CheckoutCartPage() {
             <div className="space-y-3">
               {[
                 { id: 'SELF_PICKUP', label: 'Ambil Mandiri (Self-Pickup)', desc: 'Bebas ongkir. Ambil pesanan langsung di gerai provider.', price: 'Rp 0' },
-                { id: 'COURIER_DELIVERY', label: 'Diantar Kurir Relawan Replate', desc: 'Pengantaran oleh armada relawan logistik Replate.', price: 'Rp 5.000' },
+                { id: 'COURIER_DELIVERY', label: 'Diantar Armada Toko (Driver Provider)', desc: 'Pengantaran oleh armada/driver internal pihak toko.', price: 'Rp 5.000' },
               ].map((opt) => (
                 <label key={opt.id} className={`p-4 rounded-2xl border-2 flex items-start gap-4 cursor-pointer transition-all ${deliveryMethod === opt.id ? 'bg-amber-50/50 border-[#D4A843] shadow-sm' : 'bg-white border-slate-200 hover:border-amber-200'}`}>
                   <input type="radio" name="deliveryMethodModal" checked={deliveryMethod === opt.id as any} onChange={() => { setDeliveryMethod(opt.id as any); setIsDeliveryModalOpen(false); }} className="mt-0.5 w-4 h-4 text-[#1B3A5C]" />

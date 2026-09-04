@@ -85,6 +85,39 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
     return rawRole.replace(/_/g, ' ');
   };
 
+  const [cartCount, setCartCount] = useState<number>(0);
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      try {
+        const tasKlaim = localStorage.getItem('replate_tas_klaim');
+        const cart = localStorage.getItem('replate_cart');
+        let items: any[] = [];
+        if (tasKlaim) {
+          items = JSON.parse(tasKlaim);
+        } else if (cart) {
+          items = JSON.parse(cart);
+        }
+        if (Array.isArray(items)) {
+          const total = items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0);
+          setCartCount(total);
+        } else {
+          setCartCount(0);
+        }
+      } catch (_) {
+        setCartCount(0);
+      }
+    };
+
+    updateCartCount();
+    window.addEventListener('storage', updateCartCount);
+    window.addEventListener('replate_cart_updated', updateCartCount);
+    return () => {
+      window.removeEventListener('storage', updateCartCount);
+      window.removeEventListener('replate_cart_updated', updateCartCount);
+    };
+  }, []);
+
   const userRole = formatRoleLabel(user?.role || 'FOOD_PROVIDER');
 
   return (
@@ -102,12 +135,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
           {(userRole === 'Food Consumer' || userRole === 'Food Beneficiary') && (
             <button
               onClick={() => router.push('/dashboard/cart')}
-              className="relative p-2 text-slate-500 hover:text-[#1B3A5C] transition-colors rounded-xl hover:bg-slate-100"
+              className="relative p-2 text-slate-500 hover:text-[#1B3A5C] transition-colors rounded-xl hover:bg-slate-100 cursor-pointer"
               title="Tas Klaim (Keranjang)"
+              aria-label="Tas Klaim"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-md border-2 border-white animate-in zoom-in-50 duration-200">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
             </button>
           )}
 

@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/Icon';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Info, CheckCircle2 } from 'lucide-react';
+import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
 
 export default function ConsumerBrowsePage() {
   const router = useRouter();
@@ -37,24 +38,51 @@ export default function ConsumerBrowsePage() {
     setTimeout(() => router.push(`/dashboard/checkout/${item.id}`), 600);
   };
 
-  const [foods, setFoods] = useState<any[]>([]);
+  const [foods, setFoods] = useState<any[]>(MOCK_SURPLUS_FOODS);
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [consumerName, setConsumerName] = useState('Konsumen Replate');
   const [consumerAddress, setConsumerAddress] = useState('Surabaya');
   const [activeClaimsCount, setActiveClaimsCount] = useState(1);
   const [completedClaimsCount, setCompletedClaimsCount] = useState(2);
+  const [totalSavings, setTotalSavings] = useState(45000);
+  const [totalSavedPortions, setTotalSavedPortions] = useState(2);
 
-  // Consumer Verification Status
+  // Pagination for Surplus Catalog
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 6;
+
+  // Consumer Verification Status & Explanation Modal
   const [consumerStatus, setConsumerStatus] = useState<'REGULAR_SAVER' | 'PENDING_VERIFICATION' | 'BENEFICIARY_VERIFIED'>('REGULAR_SAVER');
+  const [isStatusExplanationModalOpen, setIsStatusExplanationModalOpen] = useState(false);
   const [sktmNumber, setSktmNumber] = useState('');
-  const [syncRadius, setSyncRadius] = useState<number | null>(null);
+  const [syncRadius, setSyncRadius] = useState<number>(15);
+
+  // Single Source of Truth: Synchronized with explore page
+  const defaultFoods: any[] = MOCK_SURPLUS_FOODS;
+
+  const totalPages = Math.max(1, Math.ceil(foods.length / itemsPerPage));
+  const paginatedFoods = React.useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return foods.slice(start, start + itemsPerPage);
+  }, [foods, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    try {
-      const radius = localStorage.getItem('replate_admin_sync_radius');
-      if (radius) setSyncRadius(parseInt(radius));
-    } catch (_) { }
+    const syncAdminRadius = () => {
+      try {
+        const radius = localStorage.getItem('replate_admin_sync_radius');
+        if (radius) {
+          setSyncRadius(parseInt(radius));
+        } else {
+          setSyncRadius(15);
+        }
+      } catch (_) {
+        setSyncRadius(15);
+      }
+    };
+    syncAdminRadius();
+    window.addEventListener('storage', syncAdminRadius);
+    return () => window.removeEventListener('storage', syncAdminRadius);
   }, []);
 
   // Modal Verification Form State
@@ -62,8 +90,6 @@ export default function ConsumerBrowsePage() {
   const [proofNumberInput, setProofNumberInput] = useState('');
   const [proofPhotoUrl, setProofPhotoUrl] = useState<string | null>(null);
   const [proofType, setProofType] = useState('SKTM');
-
-
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -82,7 +108,7 @@ export default function ConsumerBrowsePage() {
       discount: '60%',
       distance: '800 meter',
       matchScore: 98,
-      reason: 'Jarak sangat dekat (<1km) • Diskon 60% • Makanan Siap Santap',
+      reason: `Jarak sangat dekat (< ${syncRadius} km) • Diskon 60% • Makanan Siap Santap`,
       pickupTime: '19:00 - 21:30 WIB',
       imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
     },
@@ -95,11 +121,38 @@ export default function ConsumerBrowsePage() {
       discount: '67%',
       distance: '1.2 km',
       matchScore: 95,
-      reason: 'Rating Mitra 4.9 • Diskon 67% • Batas Waktu 2 Jam Lagi',
+      reason: `Rating Mitra 4.9 • Diskon 67% • Radius < ${syncRadius} km`,
       pickupTime: '20:00 - 22:00 WIB',
       imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60',
     },
   ];
+
+  const mapToFoodItem = (item: any) => ({
+    id: item.id || `food-${Math.random()}`,
+    title: item.foodName || item.title || 'Makanan Surplus',
+    description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
+    providerName: item.provider?.organizationName || item.provider?.name || item.providerName || item.storeName || 'Warung Bakso Pak Kumis',
+    providerPhone: item.provider?.phone || item.providerPhone || '081234567891',
+    providerAddress: item.address || item.pickupAddress || item.providerAddress || 'Jl. Genteng Kali No. 45, Surabaya',
+    originalPrice: Number(item.originalPrice || 25000),
+    discountPrice: item.discountPrice !== undefined ? Number(item.discountPrice) : (item.pricingScheme === 'RESCUE_SALE' ? Number(item.price || 5000) : (item.price !== undefined ? Number(item.price) : 0)),
+    price: item.discountPrice !== undefined ? Number(item.discountPrice) : (item.pricingScheme === 'RESCUE_SALE' ? Number(item.price || 5000) : (item.price !== undefined ? Number(item.price) : 0)),
+    quantity: typeof item.quantity === 'number' ? `${item.quantity} ${item.quantityUnit || 'Porsi'}` : item.quantity || '10 Porsi',
+    pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+    distance: item.distance || '1.2 km',
+    category: item.foodCategory || item.category || 'MAKANAN_BERAT',
+    isFree: item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.price === 0,
+    type: (item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.price === 0) ? 'DONATION' : 'RESCUE_SALE',
+    imageUrl: item.imageUrl || item.photos?.[0] || item.photo || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+    rating: item.rating || 4.8,
+    storageCondition: item.storageCondition || 'ROOM_TEMP',
+    packagingType: item.packagingType || 'PACKAGED',
+    weightPerUnitKg: Number(item.weightPerUnitKg || 0.4),
+    allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Wadah Steril'],
+    lat: item.lat || item.latitude || -7.2575,
+    lng: item.lng || item.longitude || 112.7521,
+    status: item.status || 'AVAILABLE',
+  });
 
   useEffect(() => {
     try {
@@ -134,9 +187,19 @@ export default function ConsumerBrowsePage() {
         const parsedClaims = JSON.parse(claimsRaw);
         if (Array.isArray(parsedClaims)) {
           const active = parsedClaims.filter((c: any) => c.status !== 'COMPLETED').length;
-          const completed = parsedClaims.filter((c: any) => c.status === 'COMPLETED').length;
+          const completed = parsedClaims.filter((c: any) => c.status === 'COMPLETED');
           setActiveClaimsCount(active);
-          setCompletedClaimsCount(completed + 2); // Includes initial history
+          const totalCompleted = completed.length > 0 ? completed.length : 2;
+          setCompletedClaimsCount(totalCompleted);
+          setTotalSavedPortions(totalCompleted);
+
+          let computedSavings = 0;
+          completed.forEach((c: any) => {
+            const amt = Number(c.totalAmount) || 10000;
+            const estOriginal = amt === 0 ? 25000 : amt * 2.5;
+            computedSavings += (estOriginal - amt);
+          });
+          setTotalSavings(computedSavings > 0 ? computedSavings : 45000);
         }
       }
     } catch (_) { }
@@ -148,17 +211,100 @@ export default function ConsumerBrowsePage() {
       }
     } catch (_) { }
 
+    let localItems: any[] = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]')
+        .filter((item: any) => item.status === 'AVAILABLE' || !item.status);
+    } catch (_) {}
+
     fetch('/api/surplus')
       .then((res) => res.json())
       .then((data) => {
+        let items: any[] = [];
         if (data.success && Array.isArray(data.data?.items)) {
-          setFoods(data.data.items);
+          items = data.data.items;
         } else if (data.success && Array.isArray(data.data)) {
-          setFoods(data.data);
+          items = data.data;
+        }
+
+        const combined = [...localItems, ...items];
+        const deduped = Array.from(
+          combined.reduce((map, item) => {
+            if (!map.has(item.id)) map.set(item.id, item);
+            return map;
+          }, new Map<string, any>()).values()
+        );
+
+        if (deduped.length > 0) {
+          const mappedCombined = deduped.map(mapToFoodItem);
+          const defaultUnadded = defaultFoods.filter((df) => !mappedCombined.some((m) => m.id === df.id));
+          setFoods([...mappedCombined, ...defaultUnadded]);
+        } else {
+          setFoods(defaultFoods);
         }
       })
-      .catch(() => { });
+      .catch(() => {
+        if (localItems.length > 0) {
+          const mappedLocal = localItems.map(mapToFoodItem);
+          const defaultUnadded = defaultFoods.filter((df) => !mappedLocal.some((m) => m.id === df.id));
+          setFoods([...mappedLocal, ...defaultUnadded]);
+        } else {
+          setFoods(defaultFoods);
+        }
+      });
   }, [session]);
+
+  const handleAddToCart = (foodId: string) => {
+    const targetFood = foods.find((f) => f.id === foodId);
+    if (!targetFood) return;
+
+    try {
+      const tasKlaimRaw = localStorage.getItem('replate_tas_klaim');
+      const cartRaw = localStorage.getItem('replate_cart');
+      let items: any[] = [];
+      if (tasKlaimRaw) {
+        items = JSON.parse(tasKlaimRaw);
+      } else if (cartRaw) {
+        items = JSON.parse(cartRaw);
+      }
+
+      const existingIndex = items.findIndex((i: any) => String(i.id) === String(foodId));
+      if (existingIndex > -1) {
+        items[existingIndex].quantity = (Number(items[existingIndex].quantity) || 1) + 1;
+      } else {
+        items.push({
+          id: String(targetFood.id),
+          foodName: targetFood.title || targetFood.foodName || 'Surplus Makanan',
+          name: targetFood.title || targetFood.foodName || 'Surplus Makanan',
+          providerName: targetFood.providerName || targetFood.provider || 'Mitra Replate',
+          provider: targetFood.providerName || targetFood.provider || 'Mitra Replate',
+          price: targetFood.discountPrice !== undefined ? targetFood.discountPrice : (targetFood.price || 0),
+          originalPrice: targetFood.originalPrice || (targetFood.price ? targetFood.price * 2 : 25000),
+          quantity: 1,
+          maxQuantity: 10,
+          imageUrl: targetFood.imageUrl || targetFood.photo || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+          pickupTime: targetFood.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+          isFree: targetFood.isFree || targetFood.discountPrice === 0 || targetFood.price === 0,
+        });
+      }
+
+      localStorage.setItem('replate_tas_klaim', JSON.stringify(items));
+      localStorage.setItem('replate_cart', JSON.stringify(items));
+      window.dispatchEvent(new Event('replate_cart_updated'));
+
+      setToastState({
+        isOpen: true,
+        message: `"${targetFood.title || targetFood.foodName}" berhasil dimasukkan ke Tas Klaim!`,
+        type: 'success',
+      });
+    } catch (_) {
+      setToastState({
+        isOpen: true,
+        message: 'Gagal menambahkan ke tas klaim.',
+        type: 'error',
+      });
+    }
+  };
 
   const handleClaim = async (id: string) => {
     const targetFood = foods.find((f) => f.id === id);
@@ -182,7 +328,14 @@ export default function ConsumerBrowsePage() {
             provider: targetFood?.providerName || 'Warung Bakso Pak Kumis Surabaya',
             quantity: '1 Porsi',
             totalAmount: targetFood?.price || targetFood?.discountPrice || 0,
-            status: (targetFood?.price === 0 || targetFood?.distributionType === 'FREE') ? 'READY_FOR_PICKUP' : 'AWAITING_PAYMENT',
+            status: (targetFood?.price === 0 || targetFood?.distributionType === 'FREE') ? 'READY_FOR_PICKUP' : 'READY_FOR_PICKUP',
+            deliveryMethod: 'SELF_PICKUP',
+            method: 'SELF_PICKUP',
+            methodLabel: 'Ambil Mandiri (Self-Pickup)',
+            paymentMethod: (targetFood?.price === 0 || targetFood?.distributionType === 'FREE') ? 'FREE' : 'COD',
+            recipientName: consumerName || 'Budi Santoso',
+            recipientPhone: '0812-3456-7890',
+            deliveryAddress: consumerAddress || 'Surabaya',
             qrCode: data.data?.qrCodePayload || `REPLATE-CLAIM-${Date.now()}`,
             pickupAddress: targetFood?.pickupAddress || 'Jl. Raya Darmo No. 45, Surabaya',
             pickupTime: targetFood?.pickupTime || 'Hari ini 21:00 WIB',
@@ -254,28 +407,16 @@ export default function ConsumerBrowsePage() {
               <span className="px-2.5 py-0.5 bg-[#1B3A5C]/10 text-[#1B3A5C] text-[10px] font-black uppercase tracking-wider rounded-md">
                 Dashboard Food Consumer
               </span>
-              {consumerStatus === 'BENEFICIARY_VERIFIED' ? (
-                <span className="text-[9.5px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Penerima Bantuan (Donasi Rp 0)</span>
-                </span>
-              ) : consumerStatus === 'PENDING_VERIFICATION' ? (
-                <span className="text-[9.5px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                  <span>Menunggu Verifikasi Dinsos</span>
-                </span>
-              ) : (
-                <span className="text-[9.5px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                  <span>Konsumen Reguler (Rescue Sale)</span>
-                </span>
-              )}
+              <span className="text-[9.5px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Konsumen Reguler • Akses Rescue Sale & Donasi Rp 0</span>
+              </span>
             </div>
             <h1 className="text-lg sm:text-2xl font-black text-[#1B3A5C] tracking-tight">
               Selamat Datang, {consumerName}
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-0.5 max-w-xl">
-              Hemat pengeluaran belanja dengan menyelamatkan makanan surplus berkualitas resto berstandar BPOM RI.
+              Hemat pengeluaran belanja dengan Rescue Sale dan selamatkan donasi makanan surplus Rp 0 berstandar BPOM RI.
             </p>
           </div>
 
@@ -309,7 +450,9 @@ export default function ConsumerBrowsePage() {
         <Card className="border-slate-200 shadow-2xs sm:shadow-xs bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5">
           <CardBody className="p-0 space-y-0.5 sm:space-y-1">
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 block truncate">Total Hemat Belanja</span>
-            <strong className="text-base sm:text-xl font-black text-emerald-600 font-mono block">Rp 45.000</strong>
+            <strong className="text-base sm:text-xl font-black text-emerald-600 font-mono block">
+              Rp {totalSavings.toLocaleString('id-ID')}
+            </strong>
             <span className="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-1">
               <span>Diskon ~65%</span>
             </span>
@@ -319,10 +462,12 @@ export default function ConsumerBrowsePage() {
         <Card className="border-slate-200 shadow-2xs sm:shadow-xs bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5">
           <CardBody className="p-0 space-y-0.5 sm:space-y-1">
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 block truncate">Makanan Diselamatkan</span>
-            <strong className="text-base sm:text-xl font-black text-[#1B3A5C] font-mono block">{completedClaimsCount} Porsi</strong>
+            <strong className="text-base sm:text-xl font-black text-[#1B3A5C] font-mono block">
+              {totalSavedPortions} Porsi
+            </strong>
             <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold flex items-center gap-1">
               <CheckIcon size={10} className="text-emerald-600" />
-              <span>~1.8 kg CO2 Dicegah</span>
+              <span>~{(totalSavedPortions * 0.9).toFixed(1)} kg CO2 Dicegah</span>
             </span>
           </CardBody>
         </Card>
@@ -330,23 +475,35 @@ export default function ConsumerBrowsePage() {
         <Card className="border-slate-200 shadow-2xs sm:shadow-xs bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5">
           <CardBody className="p-0 space-y-0.5 sm:space-y-1">
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 block truncate">Klaim Aktif</span>
-            <strong className="text-base sm:text-xl font-black text-[#D4A843] font-mono block">{activeClaimsCount} Pesanan</strong>
+            <strong className="text-base sm:text-xl font-black text-[#D4A843] font-mono block">
+              {activeClaimsCount} Pesanan
+            </strong>
             <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold flex items-center gap-1">
               <ClockIcon size={10} />
-              <span>Siap Diambil di Gerai</span>
+              <span>{activeClaimsCount > 0 ? 'Siap Diambil di Gerai' : 'Belum Ada Klaim Aktif'}</span>
             </span>
           </CardBody>
         </Card>
 
-        <Card className="border-slate-200 shadow-2xs sm:shadow-xs bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5">
+        <Card
+          onClick={() => setIsStatusExplanationModalOpen(true)}
+          className="border-slate-200 shadow-2xs sm:shadow-xs bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 hover:border-[#1B3A5C]/40 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+        >
+          <div className="absolute top-2 right-2.5 opacity-80 group-hover:opacity-100 transition-opacity">
+            <span className="text-[8.5px] sm:text-[9px] font-bold text-[#1B3A5C] bg-slate-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+              <Info size={10} /> Info
+            </span>
+          </div>
           <CardBody className="p-0 space-y-0.5 sm:space-y-1">
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 block truncate">Status Akun Konsumen</span>
             <strong className="text-xs sm:text-sm font-black text-slate-800 block truncate">
-              {consumerStatus === 'BENEFICIARY_VERIFIED' ? 'Penerima Bantuan' : 'Konsumen Rescue'}
+              Konsumen Reguler
             </strong>
             <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold flex items-center gap-1">
               <ShieldCheckIcon size={10} className="text-emerald-600" />
-              <span>Standar Higienis BPOM</span>
+              <span className="truncate">
+                Rescue Sale & Donasi Rp 0 Bebas Biaya
+              </span>
             </span>
           </CardBody>
         </Card>
@@ -363,16 +520,14 @@ export default function ConsumerBrowsePage() {
               <h3 className="text-base sm:text-xl font-black text-[#1B3A5C]">
                 Rekomendasi Paling Cocok Untuk Anda
               </h3>
-              {syncRadius && (
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-black rounded-md self-start sm:self-auto">
-                  Radius: &lt; {syncRadius} km
-                </span>
-              )}
+              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-black rounded-md self-start sm:self-auto">
+                Radius: &lt; {syncRadius} km
+              </span>
             </div>
           </div>
           <span className="text-[10px] sm:text-xs font-bold text-slate-500 flex items-center gap-1">
             <MapPinIcon size={12} className="text-slate-400" />
-            Radius &lt; {syncRadius || 1.5} km
+            Radius &lt; {syncRadius} km
           </span>
         </div>
 
@@ -443,15 +598,34 @@ export default function ConsumerBrowsePage() {
         </div>
       </section>
 
-      {/* Main Food Explorer Grid */}
+      {/* Main Food Explorer Grid with Pagination */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <h3 className="text-lg font-black text-[#1B3A5C]">Semua Katalog Makanan Surplus Aktif</h3>
-          <span className="text-xs text-slate-500 font-medium">{foods.length} Makanan Siap Selamatkan</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-[#1B3A5C]">
+              Semua Katalog Makanan Surplus Aktif
+            </h3>
+            <p className="text-xs text-slate-500 font-medium">
+              Menampilkan {foods.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, foods.length)} dari total {foods.length} makanan siap diselamatkan
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Link href="/dashboard/explore">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs font-bold text-[#1B3A5C] border-slate-300 hover:bg-slate-50 rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Lihat Semua di Eksplor Pangan</span>
+                <ExternalLink size={13} className="text-[#1B3A5C]" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <FoodGrid
-          foods={foods}
+          foods={paginatedFoods}
           onClaim={handleClaim}
           onDetail={(id) => {
             const item = foods.find((f) => f.id === id);
@@ -460,7 +634,79 @@ export default function ConsumerBrowsePage() {
               setIsModalOpen(true);
             }
           }}
+          onAddToCart={handleAddToCart}
         />
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 order-2 sm:order-1">
+              Halaman <strong className="text-slate-800 font-black">{currentPage}</strong> dari <strong className="text-slate-800 font-black">{totalPages}</strong>
+            </span>
+
+            <div className="flex items-center gap-1.5 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl border-slate-300 disabled:opacity-40 cursor-pointer flex items-center gap-1"
+              >
+                <ChevronLeft size={14} />
+                <span>Sebelumnya</span>
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      pageNum === currentPage
+                        ? 'bg-[#1B3A5C] text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl border-slate-300 disabled:opacity-40 cursor-pointer flex items-center gap-1"
+              >
+                <span>Selanjutnya</span>
+                <ChevronRight size={14} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Explore Pangan Full Banner Call-Out */}
+        <div className="bg-gradient-to-r from-slate-900 to-[#1B3A5C] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-2 shadow-sm">
+          <div className="space-y-1 text-center sm:text-left">
+            <h4 className="text-sm sm:text-base font-black flex items-center gap-2 justify-center sm:justify-start">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Ingin Filter Kategori Lengkap & Peta Interaktif?</span>
+            </h4>
+            <p className="text-xs text-slate-300 max-w-xl font-medium">
+              Akses seluruh katalog makanan surplus, filter kategori, donasi Rp 0 panti asuhan, dan geofencing GPS di halaman Eksplor Pangan.
+            </p>
+          </div>
+          <Link href="/dashboard/explore" className="shrink-0 w-full sm:w-auto">
+            <Button
+              variant="gold"
+              size="sm"
+              className="w-full sm:w-auto font-black text-xs text-slate-950 px-5 py-2.5 rounded-xl cursor-pointer shadow-md"
+            >
+              Buka Eksplor Pangan Lengkap →
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Food Detail Modal */}
@@ -470,8 +716,61 @@ export default function ConsumerBrowsePage() {
           onClose={() => setIsModalOpen(false)}
           food={selectedFood}
           onClaim={handleClaim}
+          onAddToCart={handleAddToCart}
         />
       )}
+
+      {/* Modal Penjelasan Status Akun Konsumen (Seragam Tanpa SKTM) */}
+      <Modal
+        isOpen={isStatusExplanationModalOpen}
+        onClose={() => setIsStatusExplanationModalOpen(false)}
+        title="Informasi Status Akun Konsumen"
+      >
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 text-[#1B3A5C] font-black text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Semua Akun Konsumen: Konsumen Reguler</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Di Replate, seluruh akun konsumen diseragamkan menjadi <strong>Konsumen Reguler</strong>. Anda tidak perlu mengunggah surat keterangan SKTM atau kartu bansos.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl border bg-amber-50/70 border-amber-300 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-black text-slate-900">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#D4A843]"></span>
+                <span>1. Akses Rescue Sale (Diskon s/d 70%)</span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed pl-4">
+                Beli surplus makanan siap santap berkualitas hotel/resto ternama dengan potongan harga besar untuk menghemat belanja dan mencegah food waste.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl border bg-emerald-50/70 border-emerald-300 space-y-1">
+              <div className="flex items-center gap-2 text-xs font-black text-slate-900">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                <span>2. Akses Donasi Food Rescue Rp 0 (Bebas Biaya)</span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed pl-4">
+                Konsumen reguler juga berhak langsung mengklaim makanan donasi gratis (Rp 0) yang dialokasikan oleh gerai mitra tanpa perlu verifikasi dokumen.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-200 flex justify-end">
+            <Button
+              variant="gold"
+              size="sm"
+              onClick={() => setIsStatusExplanationModalOpen(false)}
+              className="text-xs font-black px-5 py-2 rounded-xl text-slate-950 shadow-xs cursor-pointer"
+            >
+              Mengerti & Siap Menjelajah
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
 
 

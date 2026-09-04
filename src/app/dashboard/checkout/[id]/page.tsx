@@ -261,7 +261,10 @@ export default function CheckoutPage() {
     totalAmount: isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0),
     deliveryMethod,
     method: deliveryMethod,
-    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : deliveryMethod === 'COURIER_DELIVERY' ? 'Diantar Armada Toko' : 'Dikirim Kurir Relawan Komunitas',
+    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
+    recipientName: recipientName || 'Budi Santoso',
+    recipientPhone: recipientPhone || '0812-3456-7890',
+    deliveryAddress: address,
     paymentMethod,
     address,
     status,
@@ -281,16 +284,18 @@ export default function CheckoutPage() {
 
   const handleCheckout = () => {
     if (!item) return;
-    if (deliveryMethod === 'COMMUNITY_DELIVERY' && quantity < 20) {
-      setToastState({ isOpen: true, message: 'Diantar komunitas memerlukan minimal 20 porsi.', type: 'error' });
-      return;
-    }
     const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
     const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
 
-    // If Free Item: instant confirmation & ready for pickup (no provider approval needed for Rp 0)
+    // If Free Item: instant confirmation & ready for pickup / waiting for store courier dispatch
     if (isFreeItem) {
-      processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_RESCUE_POOL');
+      processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH');
+      return;
+    }
+
+    // If COD: langsung terkonfirmasi tanpa verifikasi bukti transfer
+    if (paymentMethod === 'COD') {
+      processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH');
       return;
     }
 
@@ -303,7 +308,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    processDirectCheckout(resiCode, 'AWAITING_VERIFICATION');
+    processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH');
   };
 
   const processDirectCheckout = (forcedResi?: string, forcedStatus?: string) => {
@@ -312,7 +317,8 @@ export default function CheckoutPage() {
     setTimeout(() => {
       try {
         const resiCode = forcedResi || (isFreeItem ? genResiCode('YYS') : genResiCode('CNS'));
-        const status = forcedStatus || (isFreeItem ? (deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_RESCUE_POOL') : (paymentMethod === 'COD' ? 'AWAITING_VERIFICATION' : 'WAITING_PAYMENT_APPROVAL'));
+        const defaultStatus = deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH';
+        const status = forcedStatus || defaultStatus;
         const newClaim = buildClaim(resiCode, status);
         persistClaim(newClaim);
         setIsCheckingOut(false);
@@ -656,38 +662,42 @@ export default function CheckoutPage() {
               </div>
             </label>
 
-            <label
-              className={`p-4 rounded-2xl border-2 flex items-start gap-4 cursor-pointer transition-all ${
-                deliveryMethod === 'COMMUNITY_DELIVERY'
-                  ? 'bg-amber-50/50 border-[#D4A843] shadow-sm'
-                  : quantity < 20
-                  ? 'bg-slate-50 border-slate-200 opacity-50'
-                  : 'bg-white border-slate-200 hover:border-amber-200'
-              }`}
-            >
-              <input
-                type="radio"
-                name="deliveryMethodModal"
-                checked={deliveryMethod === 'COMMUNITY_DELIVERY'}
-                disabled={quantity < 20}
-                onChange={() => {
-                  if (quantity >= 20) {
-                    setDeliveryMethod('COMMUNITY_DELIVERY');
-                    setIsDeliveryModalOpen(false);
-                  }
-                }}
-                className="mt-0.5 w-4 h-4 text-[#1B3A5C]"
-              />
-              <div className="space-y-1 w-full">
-                <div className="flex justify-between w-full">
-                  <span className="font-extrabold text-slate-900 text-sm">Diantar Kurir Relawan Komunitas {quantity < 20 && <span className="text-red-500 text-[10px] ml-1">(Min. 20 porsi)</span>}</span>
-                  <span className="font-bold text-slate-900 text-sm">Rp 0</span>
+            {isBeneficiaryRole && (
+              <label
+                className={`p-4 rounded-2xl border-2 flex items-start gap-4 cursor-pointer transition-all ${
+                  deliveryMethod === 'COMMUNITY_DELIVERY'
+                    ? 'bg-amber-50/50 border-[#D4A843] shadow-sm'
+                    : quantity < 20
+                    ? 'bg-slate-50 border-slate-200 opacity-50'
+                    : 'bg-white border-slate-200 hover:border-amber-200'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="deliveryMethodModal"
+                  checked={deliveryMethod === 'COMMUNITY_DELIVERY'}
+                  disabled={quantity < 20}
+                  onChange={() => {
+                    if (quantity >= 20) {
+                      setDeliveryMethod('COMMUNITY_DELIVERY');
+                      setIsDeliveryModalOpen(false);
+                    }
+                  }}
+                  className="mt-0.5 w-4 h-4 text-[#1B3A5C]"
+                />
+                <div className="space-y-1 w-full">
+                  <div className="flex justify-between w-full">
+                    <span className="font-extrabold text-slate-900 text-sm">
+                      Diantar Kurir Relawan Komunitas (Khusus Skala Besar) {quantity < 20 && <span className="text-red-500 text-[10px] ml-1">(Min. 20 porsi)</span>}
+                    </span>
+                    <span className="font-bold text-slate-900 text-sm">Rp 0</span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Khusus penyaluran donasi skala besar ke panti asuhan/yayasan. Relawan food rescue siap antar.
+                  </p>
                 </div>
-                <p className="text-xs text-slate-500">
-                  Harus diverifikasi oleh komunitas terlebih dahulu apakah bersedia mengantar. Minimal jumlah orderan 20 porsi.
-                </p>
-              </div>
-            </label>
+              </label>
+            )}
           </div>
         </div>
       </Modal>

@@ -279,3 +279,27 @@ export const SHARED_PANTI_NEEDS: SharedPantiNeed[] = [
     ],
   },
 ];
+
+export function deduplicatePantiNeeds<T extends { id?: string; pantiName?: string; needTitle?: string; imageUrl?: string }>(items: T[]): T[] {
+  if (!Array.isArray(items)) return [];
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
+
+  return items.filter((item) => {
+    if (!item) return false;
+    const idKey = item.id ? String(item.id).trim().toLowerCase() : null;
+    
+    // Normalize name by removing generic prefixes and non-alphanumeric chars
+    const rawName = (item.pantiName || '').trim().toLowerCase();
+    const cleanName = rawName.replace(/panti\s*asuhan|yayasan|rumah\s*singgah|shelter/gi, '').replace(/[^a-z0-9]/g, '');
+    const nameKey = cleanName.length > 2 ? cleanName : rawName.replace(/[^a-z0-9]/g, '');
+
+    if (idKey && seenIds.has(idKey)) return false;
+    if (nameKey && seenNames.has(nameKey)) return false;
+
+    if (idKey) seenIds.add(idKey);
+    if (nameKey) seenNames.add(nameKey);
+    return true;
+  });
+}
+

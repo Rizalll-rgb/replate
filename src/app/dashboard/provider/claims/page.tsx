@@ -251,12 +251,12 @@ export default function ProviderClaimsPage() {
 
       if (allSavedClaims.length > 0) {
         const pending = allSavedClaims
-          .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP' || c.status === 'AWAITING_VERIFICATION' || c.status === 'WAITING_PAYMENT_APPROVAL')
+          .filter((c: any) => c.status === 'AWAITING_RESCUE_PICKUP' || c.status === 'READY_FOR_PICKUP' || c.status === 'PENDING PICKUP' || c.status === 'AWAITING_VERIFICATION' || c.status === 'WAITING_PAYMENT_APPROVAL' || c.status === 'WAITING_STORE_DISPATCH' || c.status === 'WAITING_RESCUE_POOL')
           .map((c: any) => ({
             code: c.claimCode || c.code || c.id,
             foodName: c.foodName || 'Paket Pangan Surplus',
-            userName: c.shelterName || c.userName || 'Penerima Bantuan',
-            recipientType: c.shelterType || 'Penerima Manfaat',
+            userName: c.recipientName || c.shelterName || c.userName || 'Konsumen Replate',
+            recipientType: c.shelterType || 'Konsumen Replate',
             quantity: formatClaimQuantity(c),
             status: c.status,
             deliveryMethod: c.deliveryMethod || 'RESCUE_COURIER',
@@ -268,6 +268,8 @@ export default function ProviderClaimsPage() {
             address: c.address || 'Kota Surabaya',
             time: c.readyTime || 'Hari ini',
             paymentProofUrl: c.paymentProof || c.paymentProofUrl,
+            paymentMethod: c.paymentMethod || 'COD',
+            totalAmount: c.totalAmount || 0,
           }));
 
         const inTransit = allSavedClaims
@@ -958,6 +960,16 @@ export default function ProviderClaimsPage() {
                                 <BikeIcon size={11} /> Kurir Menuju Toko
                               </span>
                             )}
+                            {tx.status === 'WAITING_STORE_DISPATCH' && (
+                              <span className="px-2 py-0.5 bg-amber-100 text-amber-950 border border-amber-300 text-[10px] font-black rounded-md flex items-center gap-1 shrink-0 animate-pulse">
+                                <TruckIcon size={11} /> Menunggu Plotting Toko
+                              </span>
+                            )}
+                            {tx.paymentMethod === 'COD' && (
+                              <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black rounded-md flex items-center gap-1 shrink-0">
+                                <span>COD (Tagih Rp {tx.totalAmount ? tx.totalAmount.toLocaleString('id-ID') : '10.000'})</span>
+                              </span>
+                            )}
                             {activeTab === 'IN_TRANSIT' && (
                               <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
                                 <TruckIcon size={11} /> OTW ke Panti/Penerima
@@ -970,7 +982,7 @@ export default function ProviderClaimsPage() {
                             <span>•</span>
                             <span className="text-slate-700 font-semibold">{tx.recipientPerson || tx.userName}</span>
                             <span>•</span>
-                            <span>{tx.deliveryMethod === 'SHELTER_PICKUP' ? 'Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' ? 'Diantar Toko' : 'Kurir Relawan'}</span>
+                            <span>{tx.deliveryMethod === 'SHELTER_PICKUP' || tx.deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' ? 'Diantar Kurir Toko' : 'Kurir Relawan'}</span>
                             {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status === 'AWAITING_RESCUE_PICKUP' && (
                               <span className="px-1.5 py-0.2 bg-purple-100 text-purple-900 rounded text-[9.5px] font-bold">
                                 Menunggu Driver
@@ -1031,7 +1043,7 @@ export default function ProviderClaimsPage() {
                       <span>Tiket QR</span>
                     </Button>
 
-                    {tx.deliveryMethod === 'PROVIDER_DIRECT' && (
+                    {(tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' || tx.status === 'WAITING_STORE_DISPATCH') && (
                       <Button
                         variant="outline"
                         size="sm"

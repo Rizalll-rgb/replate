@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/Card';
 import { QRGenerator } from '@/components/qr/QRGenerator';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +14,7 @@ import {
   ShieldCheckIcon,
   CheckIcon,
   CreditCardIcon,
+  BanknoteIcon,
   ClockIcon,
   SparklesIcon,
   CameraIcon,
@@ -26,6 +28,7 @@ import {
   ChatIcon,
   SearchIcon,
   BoltIcon,
+  TicketIcon,
 } from '@/components/ui/Icon';
 
 interface ClaimItem {
@@ -49,6 +52,9 @@ interface ClaimItem {
     | 'AWAITING_VERIFICATION'
     | 'WAITING_PAYMENT_APPROVAL'
     | 'READY_FOR_PICKUP'
+    | 'WAITING_STORE_DISPATCH'
+    | 'WAITING_STORE_COURIER'
+    | 'PICKED_UP'
     | 'IN_TRANSIT'
     | 'WAITING_RESCUE_POOL'
     | 'COMPLETED'
@@ -67,11 +73,13 @@ interface ClaimItem {
     name: string;
     phone: string;
     vehicle: string;
-    plateNumber: string;
+    plateNumber?: string;
   };
 }
 
 export default function MyClaimsPage() {
+  const { data: session } = useSession();
+  const [consumerName, setConsumerName] = useState('Budi Santoso');
   const [claims, setClaims] = useState<ClaimItem[]>([
     {
       id: 'RPL-CNS-2026-9812',
@@ -81,10 +89,13 @@ export default function MyClaimsPage() {
       providerAddress: 'Jl. Raya Gubeng No. 42, Gubeng, Surabaya',
       providerPhone: '0812-3456-7890',
       totalAmount: 10000,
-      paymentMethod: 'QRIS',
+      paymentMethod: 'COD',
       deliveryMethod: 'PICKUP',
       pickupMethod: 'PICKUP',
-      methodLabel: 'Ambil Sendiri di Gerai',
+      methodLabel: 'Ambil Mandiri di Gerai',
+      recipientName: 'Budi Santoso (Konsumen Replate)',
+      recipientPhone: '0812-3456-7890',
+      deliveryAddress: 'Jl. Ketintang No. 12, Gayungan, Surabaya',
       status: 'READY_FOR_PICKUP',
       createdAt: 'Hari ini, 19:15 WIB',
       pickupTime: 'Hari ini, 20:00 - 21:30 WIB',
@@ -119,6 +130,15 @@ export default function MyClaimsPage() {
 
   // Safety Confirmation Modal before completing
   const [confirmPickupModal, setConfirmPickupModal] = useState<{
+    isOpen: boolean;
+    claim: ClaimItem | null;
+  }>({
+    isOpen: false,
+    claim: null,
+  });
+
+  // Tiket QR Modal State (User Request 2)
+  const [qrModal, setQrModal] = useState<{
     isOpen: boolean;
     claim: ClaimItem | null;
   }>({
@@ -203,6 +223,27 @@ export default function MyClaimsPage() {
       }
     } catch (_) {}
 
+    let activeConsumerName = 'Budi Santoso';
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.entityName || parsed.contactPerson || parsed.name) {
+          activeConsumerName = parsed.entityName || parsed.contactPerson || parsed.name;
+        }
+      } else {
+        const reg = localStorage.getItem('replate_registered_user');
+        if (reg) {
+          const parsed = JSON.parse(reg);
+          if (parsed.name) activeConsumerName = parsed.name;
+        }
+      }
+      if (session?.user?.name) {
+        activeConsumerName = session.user.name;
+      }
+      setConsumerName(activeConsumerName);
+    } catch (_) {}
+
     try {
       const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';
       const saved = localStorage.getItem('replate_active_claims');
@@ -222,11 +263,11 @@ export default function MyClaimsPage() {
               providerAddress: item.providerAddress || item.address || 'Surabaya',
               providerPhone: item.providerPhone || '0812-3456-7890',
               totalAmount: item.totalAmount ?? 10000,
-              paymentMethod: item.paymentMethod || 'QRIS',
+              paymentMethod: item.paymentMethod || 'COD',
               deliveryMethod: item.deliveryMethod || item.pickupMethod || 'PICKUP',
               pickupMethod: item.pickupMethod || item.deliveryMethod || 'PICKUP',
-              methodLabel: item.methodLabel || ((item.deliveryMethod === 'DELIVERY' || item.pickupMethod === 'DELIVERY') ? 'Kurir Relawan Replate' : 'Ambil Sendiri di Gerai'),
-              recipientName: item.recipientName || 'Konsumen Terverifikasi',
+              methodLabel: item.methodLabel || ((item.deliveryMethod === 'DELIVERY' || item.pickupMethod === 'DELIVERY' || item.deliveryMethod === 'COURIER_DELIVERY') ? 'Diantar Armada Toko' : 'Ambil Mandiri di Gerai'),
+              recipientName: (item.recipientName && !item.recipientName.includes('Terverifikasi') && !item.recipientName.includes('Penerima')) ? item.recipientName : activeConsumerName,
               recipientPhone: item.recipientPhone || '',
               deliveryAddress: item.deliveryAddress || item.address || '',
               status: item.status || 'READY_FOR_PICKUP',
@@ -268,11 +309,11 @@ export default function MyClaimsPage() {
             providerAddress: item.providerAddress || item.address || 'Jl. Raya Gubeng No. 42, Gubeng, Surabaya',
             providerPhone: item.providerPhone || '0812-3456-7890',
             totalAmount: item.totalAmount ?? 10000,
-            paymentMethod: item.paymentMethod || 'QRIS',
+            paymentMethod: item.paymentMethod || 'COD',
             deliveryMethod: item.deliveryMethod || item.pickupMethod || 'PICKUP',
             pickupMethod: item.pickupMethod || item.deliveryMethod || 'PICKUP',
-            methodLabel: item.methodLabel || ((item.deliveryMethod === 'DELIVERY' || item.pickupMethod === 'DELIVERY') ? 'Kurir Relawan Replate' : 'Ambil Sendiri di Gerai'),
-            recipientName: item.recipientName || 'Konsumen Terverifikasi',
+            methodLabel: item.methodLabel || ((item.deliveryMethod === 'DELIVERY' || item.pickupMethod === 'DELIVERY' || item.deliveryMethod === 'COURIER_DELIVERY') ? 'Diantar Armada Toko' : 'Ambil Mandiri di Gerai'),
+            recipientName: (item.recipientName && !item.recipientName.includes('Terverifikasi') && !item.recipientName.includes('Penerima')) ? item.recipientName : activeConsumerName,
             recipientPhone: item.recipientPhone || '',
             deliveryAddress: item.deliveryAddress || item.address || '',
             status: item.status || 'READY_FOR_PICKUP',
@@ -295,7 +336,7 @@ export default function MyClaimsPage() {
         }
       }
     } catch (_) {}
-  }, []);
+  }, [session]);
 
   const handleUploadProof = () => {
     if (!uploadModal.claimId) return;
@@ -359,6 +400,48 @@ export default function MyClaimsPage() {
         handleOpenReview(targetClaim);
       }
     }, 1000);
+  };
+
+  // Handover Logic: Consumer menunjukkan barcode -> Kasir scan -> Status berubah ke 'PICKED_UP' (Telah Diambil Consumer)
+  const handleHandoverClaim = (claimId: string) => {
+    setActionLoader({
+      isOpen: true,
+      message: 'Memvalidasi Barcode di Kasir Outlet...',
+      submessage: 'Memproses konfirmasi serah terima fisik paket makanan',
+    });
+
+    setTimeout(() => {
+      let targetClaim: ClaimItem | null = null;
+      const updated = claims.map((c) => {
+        if (c.id === claimId || c.code === claimId) {
+          targetClaim = { ...c, status: 'PICKED_UP' as const, pickupTime: 'Telah Diambil di Gerai' };
+          return targetClaim;
+        }
+        return c;
+      });
+      setClaims(updated);
+
+      try {
+        const saved = localStorage.getItem('replate_active_claims');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const updatedStorage = parsed.map((c: any) =>
+            c.id === claimId || c.code === claimId
+              ? { ...c, status: 'PICKED_UP', pickupTime: 'Telah Diambil di Gerai' }
+              : c
+          );
+          localStorage.setItem('replate_active_claims', JSON.stringify(updatedStorage));
+        }
+      } catch (_) {}
+
+      setActionLoader({ isOpen: false, message: '' });
+      setQrModal({ isOpen: false, claim: null });
+      setToastState({
+        isOpen: true,
+        message: 'Barcode berhasil diverifikasi kasir! Paket makanan telah diserahkan. Silakan periksa porsi Anda.',
+        type: 'success',
+      });
+    }, 800);
   };
 
   const handleOpenReview = (claim: ClaimItem) => {
@@ -560,21 +643,32 @@ export default function MyClaimsPage() {
       ) : (
         <div className="space-y-4">
           {filteredClaims.map((claim) => {
-            const isPaymentPending = claim.status === 'AWAITING_PAYMENT';
-            const isVerificationPending =
-              claim.status === 'AWAITING_VERIFICATION' ||
-              claim.status === 'WAITING_PAYMENT_APPROVAL' ||
-              claim.status === 'PENDING_APPROVAL';
-            const isWaitingPool = claim.status === 'WAITING_RESCUE_POOL';
-            const isInTransit = claim.status === 'IN_TRANSIT';
-            const isReady = claim.status === 'READY_FOR_PICKUP';
-            const isDone = claim.status === 'COMPLETED';
-
+            const isCod = claim.paymentMethod === 'COD';
             const isCourier =
               claim.deliveryMethod === 'DELIVERY' ||
               claim.pickupMethod === 'DELIVERY' ||
               claim.deliveryMethod === 'COURIER_DELIVERY' ||
-              (claim.methodLabel || '').toLowerCase().includes('kurir');
+              (claim.methodLabel || '').toLowerCase().includes('kurir') ||
+              (claim.methodLabel || '').toLowerCase().includes('toko') ||
+              (claim.methodLabel || '').toLowerCase().includes('antar');
+
+            const isDone = claim.status === 'COMPLETED';
+            const isPickedUp = claim.status === 'PICKED_UP' || claim.status === 'TELAH_DIAMBIL';
+            const isInTransit = claim.status === 'IN_TRANSIT';
+            const isWaitingStoreDispatch =
+              claim.status === 'WAITING_STORE_DISPATCH' ||
+              claim.status === 'WAITING_STORE_COURIER';
+            const isWaitingPool = claim.status === 'WAITING_RESCUE_POOL';
+            const isPaymentPending = claim.status === 'AWAITING_PAYMENT' && !isCod;
+            const isVerificationPending =
+              !isCod &&
+              (claim.status === 'AWAITING_VERIFICATION' ||
+                claim.status === 'WAITING_PAYMENT_APPROVAL' ||
+                claim.status === 'PENDING_APPROVAL');
+            const isReady =
+              claim.status === 'READY_FOR_PICKUP' ||
+              (isCod && !isCourier && !isPickedUp && !isDone) ||
+              (!isCourier && !isPaymentPending && !isVerificationPending && !isPickedUp && !isDone && !isWaitingStoreDispatch);
 
             const outletAddress = claim.providerAddress || claim.address || 'Surabaya, Jawa Timur';
             const outletPhone = claim.providerPhone || '081234567890';
@@ -599,12 +693,16 @@ export default function MyClaimsPage() {
                       className={`text-[9.5px] font-black px-2.5 py-1 rounded-md shrink-0 flex items-center gap-1 ${
                         isDone
                           ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                          : isReady
-                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                          : isPickedUp
+                          ? 'bg-blue-100 text-blue-950 border border-blue-300 font-extrabold'
                           : isInTransit
-                          ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                          ? 'bg-blue-100 text-blue-900 border border-blue-300 animate-pulse'
+                          : isWaitingStoreDispatch
+                          ? 'bg-amber-100 text-amber-950 border border-amber-300 animate-pulse'
                           : isWaitingPool
                           ? 'bg-purple-100 text-purple-900 border border-purple-300 animate-pulse'
+                          : isReady
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                           : isPaymentPending
                           ? 'bg-red-100 text-red-900 border border-red-300 animate-pulse'
                           : 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse'
@@ -615,30 +713,40 @@ export default function MyClaimsPage() {
                           <CheckIcon size={11} />
                           <span>SELESAI</span>
                         </>
-                      ) : isReady ? (
+                      ) : isPickedUp ? (
                         <>
                           <PackageIcon size={11} />
-                          <span>SIAP DIAMBIL DI GERAI</span>
+                          <span>TELAH DIAMBIL CONSUMER</span>
                         </>
                       ) : isInTransit ? (
                         <>
                           <TruckIcon size={11} />
-                          <span>DALAM PENGIRIMAN KURIR</span>
+                          <span>DALAM PENGIRIMAN KURIR TOKO</span>
+                        </>
+                      ) : isWaitingStoreDispatch ? (
+                        <>
+                          <TruckIcon size={11} />
+                          <span>MENUNGGU PLOTTING ARMADA TOKO{isCod ? ' (COD)' : ''}</span>
                         </>
                       ) : isWaitingPool ? (
                         <>
                           <BoltIcon size={11} />
-                          <span>MENUNGGU RELAWAN</span>
+                          <span>MENUNGGU DI POOL SIAGA RELAWAN</span>
+                        </>
+                      ) : isReady ? (
+                        <>
+                          <PackageIcon size={11} />
+                          <span>SIAP DIAMBIL DI GERAI{isCod ? ' (COD)' : ''}</span>
                         </>
                       ) : isPaymentPending ? (
                         <>
                           <CreditCardIcon size={11} />
-                          <span>MENUNGGU PEMBAYARAN</span>
+                          <span>MENUNGGU PEMBAYARAN QRIS</span>
                         </>
                       ) : (
                         <>
                           <ClockIcon size={11} />
-                          <span>MENUNGGU APPROVAL KASIR</span>
+                          <span>VERIFIKASI BUKTI TRANSFER</span>
                         </>
                       )}
                     </span>
@@ -654,10 +762,16 @@ export default function MyClaimsPage() {
                 <div className="p-4 sm:p-6 space-y-4">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                     <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold rounded-md">
-                          {isCourier ? 'Pengantaran Kurir' : 'Ambil Sendiri'}
+                          {isCourier ? 'Diantar Armada Toko' : 'Ambil Mandiri di Gerai'}
                         </span>
+                        {isCod && (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black rounded-md flex items-center gap-1">
+                            <BanknoteIcon size={11} />
+                            <span>COD (Bayar di Tempat)</span>
+                          </span>
+                        )}
                         <span className="text-[10.5px] text-slate-500 font-semibold">
                           {claim.totalAmount === 0 ? (
                             <span className="text-emerald-700 font-bold">Donasi Makanan Gratis (Rp 0)</span>
@@ -686,7 +800,7 @@ export default function MyClaimsPage() {
                         {claim.pickupTime || 'Hari ini, 20:00 - 21:30 WIB'}
                       </strong>
                       <span className="text-[10.5px] text-slate-500 block">
-                        {isCourier ? 'Estimasi pengantaran kurir' : 'Harap ambil sebelum toko tutup'}
+                        {isCourier ? 'Estimasi pengantaran armada toko' : 'Harap ambil sebelum toko tutup'}
                       </span>
                     </div>
                   </div>
@@ -729,6 +843,52 @@ export default function MyClaimsPage() {
                     </div>
                   </div>
 
+                  {/* Status Banner Khusus COD (Point 3) */}
+                  {isCod && !isPickedUp && !isDone && (
+                    <div className="p-4 bg-amber-50/90 border-2 border-amber-300 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 text-amber-950 font-black text-xs">
+                          <BanknoteIcon size={16} className="text-amber-700 shrink-0" />
+                          <span>Metode Pembayaran: Bayar di Tempat (COD)</span>
+                        </div>
+                        <span className="text-[11px] font-black text-[#1B3A5C] bg-white px-2.5 py-1 rounded-lg border border-amber-200">
+                          Total Tagihan Tunai: Rp {claim.totalAmount.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-900 leading-relaxed font-medium">
+                        {isCourier
+                          ? `Pesanan Anda telah dikonfirmasi dan menunggu plotting kurir toko. Siapkan uang tunai pas sebesar Rp ${claim.totalAmount.toLocaleString('id-ID')} untuk diserahkan ke kurir toko saat makanan tiba di alamat Anda.`
+                          : `Pesanan Anda telah dikonfirmasi gerai. Tunjukkan Tiket QR di meja kasir ${claim.providerName} dan bayarkan uang tunai sebesar Rp ${claim.totalAmount.toLocaleString('id-ID')} saat serah terima makanan.`}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Status Waiting Store Dispatch (Point 1) */}
+                  {isWaitingStoreDispatch && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-2.5">
+                      <TruckIcon size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                      <div className="text-xs text-blue-900 space-y-0.5">
+                        <strong className="block font-black">Menunggu Plotting Armada Toko</strong>
+                        <p className="text-[11.5px] text-blue-800 leading-relaxed">
+                          Pihak gerai <strong>{claim.providerName}</strong> sedang menyiapkan pesanan dan mem-plotting driver/armada internal toko untuk mengantar ke alamat Anda.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Waiting Rescue Pool (Point 1) */}
+                  {isWaitingPool && (
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl flex items-start gap-2.5">
+                      <BoltIcon size={16} className="text-purple-600 shrink-0 mt-0.5" />
+                      <div className="text-xs text-purple-900 space-y-0.5">
+                        <strong className="block font-black">Menunggu di Pool Siaga Relawan Komunitas</strong>
+                        <p className="text-[11.5px] text-purple-800 leading-relaxed">
+                          Permintaan donasi pangan telah masuk ke pool siaga relawan logistik food rescue Replate (menunggu relawan mengambil penugasan pengantaran).
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Status Awaiting Payment (QRIS / VA) */}
                   {isPaymentPending && (
                     <div className="p-4 bg-red-50/70 border-2 border-red-200 rounded-2xl space-y-3">
@@ -760,7 +920,7 @@ export default function MyClaimsPage() {
                     </div>
                   )}
 
-                  {/* Status Waiting Verification */}
+                  {/* Status Waiting Verification (Only for non-COD QRIS/Transfer) */}
                   {isVerificationPending && (
                     <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 flex items-start gap-2.5">
                       <ClockIcon size={16} className="text-amber-600 shrink-0 mt-0.5" />
@@ -773,45 +933,41 @@ export default function MyClaimsPage() {
                     </div>
                   )}
 
-                  {/* Self-Pickup SOP & QR Code Handover Box */}
-                  {isReady && !isCourier && (
-                    <div className="space-y-4 pt-1">
-                      {/* Step-by-Step SOP Instruction Box */}
-                      <div className="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 space-y-2">
+                  {/* Self-Pickup SOP & Tombol Aksi Tiket QR */}
+                  {!isCourier && !isPickedUp && !isDone && (isReady || isCod) && (
+                    <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-xs font-black text-[#1B3A5C]">
                           <ShieldCheckIcon size={15} className="text-blue-600" />
-                          <span>SOP Pengambilan Makanan di Outlet Mitra:</span>
+                          <span>SOP Pengambilan Mandiri di Gerai:</span>
                         </div>
-                        <ol className="text-xs text-slate-700 space-y-1.5 list-decimal pl-4 font-medium">
-                          <li>
-                            Datang langsung ke kasir gerai <strong>{claim.providerName}</strong> sebelum jam operasional berakhir ({claim.pickupTime}).
-                          </li>
-                          <li>
-                            Tunjukkan Barcode QR Serah Terima di bawah ini kepada petugas kasir.
-                          </li>
-                          <li>
-                            Kasir akan memindai barcode untuk verifikasi sistem dan menyerahkan paket makanan higienis tersegel.
-                          </li>
-                          <li>
-                            Periksa kelengkapan porsi, lalu tekan tombol <strong>"Konfirmasi Selesai Diambil"</strong> di bawah.
-                          </li>
-                        </ol>
+                        <p className="text-xs text-slate-600 font-medium">
+                          Tunjukkan <strong>Tiket QR</strong> kepada petugas kasir di outlet <strong>{claim.providerName}</strong> untuk verifikasi serah terima paket makanan.
+                        </p>
                       </div>
 
-                      {/* Barcode QR Handover */}
-                      <QRGenerator
-                        value={`REPLATE-CNS-${claim.code || claim.id}`}
-                        codeTitle="Tiket QR Serah Terima Resmi"
-                        codeSubtitle="Tunjukkan kepada kasir outlet saat pengambilan makanan"
-                        foodName={claim.foodName}
-                        portions={
-                          claim.totalAmount > 0
-                            ? `Total: Rp ${claim.totalAmount.toLocaleString('id-ID')}`
-                            : 'Donasi Makanan Gratis'
-                        }
-                        providerName={claim.providerName}
-                        recipientName={claim.recipientName || 'Konsumen Terverifikasi'}
-                      />
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        leftIcon={<TicketIcon size={14} />}
+                        onClick={() => setQrModal({ isOpen: true, claim })}
+                        className="font-black text-xs py-2 px-4 rounded-xl shadow-xs cursor-pointer shrink-0 self-start sm:self-auto"
+                      >
+                        Buka Tiket QR
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Status Telah Diambil Consumer (User Request 1) */}
+                  {isPickedUp && (
+                    <div className="p-4 bg-blue-50/90 border border-blue-300 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-[#1B3A5C] font-black text-xs">
+                        <PackageIcon size={16} className="text-blue-600 shrink-0" />
+                        <span>Makanan Telah Diambil di Gerai ({claim.providerName})</span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-700 font-medium leading-relaxed">
+                        Kasir telah menyerahkan paket makanan surplus kepada Anda. Silakan periksa kelayakan dan porsi makanan. Jika sudah sesuai, klik tombol <strong>"Konfirmasi Selesai"</strong> di bawah. Jika terdapat ketidaksesuaian/kerusakan, klik tombol <strong>"Laporkan Kendala"</strong>.
+                      </p>
                     </div>
                   )}
 
@@ -873,9 +1029,9 @@ export default function MyClaimsPage() {
                   )}
                 </div>
 
-                {/* Card Footer: Action Buttons */}
+                {/* Card Footer: Action Buttons (User Request 1 & 2) */}
                 <div className="px-4 sm:px-6 pb-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="flex items-center gap-2 flex-1 flex-wrap">
                     {isCourier && (
                       <Button
                         variant="outline"
@@ -888,7 +1044,21 @@ export default function MyClaimsPage() {
                       </Button>
                     )}
 
-                    {isReady && (
+                    {/* Tombol Tiket QR */}
+                    {(isReady || isPickedUp || isCod) && !isCourier && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        leftIcon={<TicketIcon size={13} className="text-[#1B3A5C]" />}
+                        onClick={() => setQrModal({ isOpen: true, claim })}
+                        className="text-xs font-black py-2 px-3.5 rounded-xl border-slate-300 text-[#1B3A5C] hover:bg-slate-50 cursor-pointer"
+                      >
+                        Tiket QR
+                      </Button>
+                    )}
+
+                    {/* Tombol Konfirmasi Selesai (User Request 1) */}
+                    {(isReady || isPickedUp) && (
                       <Button
                         variant="gold"
                         size="sm"
@@ -896,12 +1066,13 @@ export default function MyClaimsPage() {
                         onClick={() => setConfirmPickupModal({ isOpen: true, claim })}
                         className="font-black text-xs text-slate-950 shadow-xs py-2 px-4 rounded-xl cursor-pointer"
                       >
-                        Konfirmasi Selesai Diambil
+                        Konfirmasi Selesai
                       </Button>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2 justify-end">
+                    {/* Tombol Laporkan Jika Tidak Sesuai (User Request 1) */}
                     <button
                       type="button"
                       onClick={() =>
@@ -981,6 +1152,88 @@ export default function MyClaimsPage() {
         </Modal>
       )}
 
+      {/* Tiket QR Modal (User Request 2) */}
+      {qrModal.isOpen && qrModal.claim && (
+        <Modal
+          isOpen={qrModal.isOpen}
+          onClose={() => setQrModal({ isOpen: false, claim: null })}
+          title="Tiket QR Serah Terima Resmi"
+          size="md"
+        >
+          <div className="space-y-4 text-xs text-slate-700">
+            <div className="p-4 bg-gradient-to-r from-[#1B3A5C] to-[#2C5A8F] text-white rounded-2xl flex items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-[#D4A843] font-black uppercase tracking-wider block">
+                  NOMOR TIKET KLAIM RESMI
+                </span>
+                <p className="text-xl font-black font-mono tracking-tight text-white">
+                  {qrModal.claim.code || qrModal.claim.id}
+                </p>
+                <p className="text-[11px] text-slate-200">
+                  Outlet: <strong>{qrModal.claim.providerName}</strong>
+                </p>
+              </div>
+              <div className="px-3 py-1.5 bg-white/10 backdrop-blur-xs rounded-xl border border-white/20 text-center shrink-0">
+                <span className="text-[10px] text-slate-200 block">Jadwal Ambil</span>
+                <span className="text-xs font-bold text-amber-300 block">{qrModal.claim.pickupTime || 'Hari ini'}</span>
+              </div>
+            </div>
+
+            {/* QR Code Handover Generator */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <QRGenerator
+                value={`REPLATE-CNS-${qrModal.claim.code || qrModal.claim.id}`}
+                codeTitle="Barcode Serah Terima Kasir"
+                codeSubtitle="Tunjukkan barcode ini kepada petugas kasir di outlet"
+                foodName={qrModal.claim.foodName}
+                portions={
+                  qrModal.claim.totalAmount > 0
+                    ? `Total: Rp ${qrModal.claim.totalAmount.toLocaleString('id-ID')}`
+                    : 'Donasi Makanan Gratis'
+                }
+                providerName={qrModal.claim.providerName}
+                recipientName={
+                  qrModal.claim.recipientName && !qrModal.claim.recipientName.includes('Terverifikasi') && !qrModal.claim.recipientName.includes('Penerima')
+                    ? qrModal.claim.recipientName
+                    : consumerName || 'Budi Santoso'
+                }
+              />
+            </div>
+
+            {/* Simulation Button for Testing Handover */}
+            <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-black text-amber-900 uppercase block">Simulasi Kasir Scan:</span>
+                  <p className="text-[11px] text-amber-800">
+                    Klik tombol ini untuk mensimulasikan kasir telah scan barcode dan menyerahkan makanan.
+                  </p>
+                </div>
+                <Button
+                  variant="gold"
+                  size="sm"
+                  onClick={() => handleHandoverClaim(qrModal.claim!.id)}
+                  className="font-black text-xs text-slate-950 shrink-0 shadow-xs cursor-pointer"
+                >
+                  Tandai Telah Diambil →
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQrModal({ isOpen: false, claim: null })}
+                className="cursor-pointer font-bold text-xs"
+              >
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* Live Tracking Modal for Couriers */}
       {trackingModal && (
         <Modal
@@ -1004,7 +1257,9 @@ export default function MyClaimsPage() {
                 {trackingModal.status === 'COMPLETED'
                   ? 'Tiba & Diterima'
                   : trackingModal.status === 'IN_TRANSIT'
-                  ? 'Sedang Diantar Kurir'
+                  ? 'Sedang Diantar Kurir Toko'
+                  : trackingModal.status === 'WAITING_STORE_DISPATCH'
+                  ? 'Menunggu Plotting Kurir Toko'
                   : 'Menyiapkan Penjemputan'}
               </span>
             </div>
@@ -1017,13 +1272,13 @@ export default function MyClaimsPage() {
                 </div>
                 <div>
                   <span className="text-[10px] font-black uppercase text-purple-700 block">
-                    KURIR RESMI REPLATE LOGISTICS
+                    ARMADA KURIR TOKO ({trackingModal.providerName})
                   </span>
                   <strong className="text-sm font-extrabold text-slate-900 block">
-                    {trackingModal.driver?.name || 'Rudi Hartono (Driver #RC-881)'}
+                    {trackingModal.driver?.name || 'Rudi Hartono (Driver Toko Mitra)'}
                   </strong>
                   <span className="text-xs text-slate-600">
-                    {trackingModal.driver?.vehicle || 'Motor Box Cooler Steril'} · {trackingModal.driver?.plateNumber || 'L 8912 RC'}
+                    {trackingModal.driver?.vehicle || 'Motor Box Cooler'} · {trackingModal.driver?.plateNumber || 'L 8912 RC'}
                   </span>
                 </div>
               </div>
@@ -1052,10 +1307,12 @@ export default function MyClaimsPage() {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 block uppercase">Titik Antar (Alamat Anda):</span>
                 <strong className="text-xs text-emerald-800 block">
-                  {trackingModal.recipientName || 'Konsumen Penerima'}
+                  {trackingModal.recipientName && !trackingModal.recipientName.includes('Terverifikasi') && !trackingModal.recipientName.includes('Penerima')
+                    ? trackingModal.recipientName
+                    : consumerName || 'Budi Santoso'}
                 </strong>
                 <p className="text-[11px] text-slate-600 truncate">
-                  {trackingModal.deliveryAddress || 'Alamat Domisili Pengiriman Terdaftar'}
+                  {trackingModal.deliveryAddress || trackingModal.address || 'Alamat Domisili Pengiriman Terdaftar'}
                 </p>
               </div>
             </div>

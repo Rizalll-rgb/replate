@@ -1845,14 +1845,36 @@ export default function DashboardProfilePage() {
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-left space-y-2 text-xs">
-                <div className="flex justify-between text-slate-600">
-                  <span>Status Legalitas:</span>
-                  <span className="font-black text-emerald-600"> Lolos Audit NIB & BPOM</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Wilayah Operasi:</span>
-                  <strong className="text-slate-800">Cakupan Nasional (Indonesia)</strong>
-                </div>
+                {isConsumer ? (
+                  <>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Status Akun:</span>
+                      <span className="font-black text-emerald-600 flex items-center gap-1">
+                        <CheckIcon size={11} />
+                        <span>Konsumen Terverifikasi</span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Tipe Akses:</span>
+                      <strong className="text-slate-800">Rescue Sale & Donasi Pangan</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Standar Keamanan:</span>
+                      <span className="font-bold text-slate-700">Audit Higienitas BPOM RI</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Status Legalitas:</span>
+                      <span className="font-black text-emerald-600"> Lolos Audit NIB & BPOM</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Wilayah Operasi:</span>
+                      <strong className="text-slate-800">Cakupan Nasional (Indonesia)</strong>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
 
