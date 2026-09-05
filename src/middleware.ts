@@ -23,6 +23,7 @@ export default auth((req) => {
         '/account-rejected',
         '/account-suspended',
         '/track-status',
+        '/intelligence',
     ];
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
     const isOnboardingRoute = nextUrl.pathname.startsWith('/onboarding');
@@ -38,6 +39,12 @@ export default auth((req) => {
 
     // Protected dashboard routes
     if (nextUrl.pathname.startsWith('/dashboard')) {
+        // Special allowance: Replate Intelligence Hub & 5 Pillars Module
+        // Accessible by all roles and for testing
+        if (nextUrl.pathname.startsWith('/dashboard/intelligence')) {
+            return NextResponse.next();
+        }
+
         if (!isLoggedIn) {
             return NextResponse.redirect(new URL('/login', nextUrl));
         }
@@ -80,7 +87,8 @@ export default auth((req) => {
             nextUrl.pathname.startsWith('/dashboard/checkout') ||
             nextUrl.pathname.startsWith('/dashboard/how-it-works') ||
             nextUrl.pathname.startsWith('/dashboard/faq') ||
-            nextUrl.pathname.startsWith('/dashboard/tracking');
+            nextUrl.pathname.startsWith('/dashboard/tracking') ||
+            nextUrl.pathname.startsWith('/dashboard/intelligence');
 
         // Ensure users can only access their role's dashboard (or shared dashboard routes)
         if (userRole && userRole !== 'ADMIN' && !isSharedDashboardRoute) {
