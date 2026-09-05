@@ -60,8 +60,22 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   const providerPhone = food.provider?.phone || '081234567891';
   const providerOrg = food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis';
 
-  const latitude = food.lat || -7.2575;
-  const longitude = food.lng || 112.7521;
+  let latitude = food.lat;
+  let longitude = food.lng;
+  if (!latitude || !longitude) {
+    const lowerAddr = (food.address || '').toLowerCase();
+    if (lowerAddr.includes('sarangan') || lowerAddr.includes('plaosan')) {
+      latitude = -7.6749; longitude = 111.2201;
+    } else if (lowerAddr.includes('sidorejo')) {
+      latitude = -7.65737; longitude = 111.27939;
+    } else if (lowerAddr.includes('magetan')) {
+      latitude = -7.6508; longitude = 111.3283;
+    } else if (lowerAddr.includes('madiun')) {
+      latitude = -7.6298; longitude = 111.5239;
+    } else {
+      latitude = -7.2575; longitude = 112.7521;
+    }
+  }
 
   const modalFooter = (
     <div className="flex justify-end gap-3 w-full">

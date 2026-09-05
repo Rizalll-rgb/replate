@@ -176,9 +176,22 @@ export default function ProviderSettingsPage() {
           const lower = parsed.address.toLowerCase();
           if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan')) {
             setDistrict(parsed.district ? `Kec. ${parsed.district}, Kab. Magetan` : 'Kabupaten Magetan');
+            if (lower.includes('plaosan') || lower.includes('sarangan')) {
+              setLat(-7.6749); setLng(111.2201);
+            } else if (lower.includes('sidorejo')) {
+              setLat(-7.65737); setLng(111.27939);
+            } else {
+              setLat(-7.6508); setLng(111.3283);
+            }
           } else if (parsed.district) {
             setDistrict(parsed.district);
           }
+        }
+        if (parsed.lat || parsed.latitude) {
+          setLat(parsed.lat || parsed.latitude);
+        }
+        if (parsed.lng || parsed.longitude) {
+          setLng(parsed.lng || parsed.longitude);
         }
         if (parsed.contactPerson) setAccountHolder(parsed.contactPerson);
         if (parsed.category) setBusinessCategory(parsed.category);

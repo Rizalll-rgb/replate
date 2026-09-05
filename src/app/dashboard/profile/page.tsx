@@ -1505,6 +1505,8 @@ export default function DashboardProfilePage() {
         let resolvedProvince = onbProfile?.province || prev.province;
         let resolvedCity = onbProfile?.city || prev.city;
         let resolvedDistrict = onbProfile?.district || prev.district;
+        let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat;
+        let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng;
 
         // Auto-deteksi cerdas jika alamat mencantumkan Magetan, Sarangan, Plaosan, dll.
         if (resolvedAddress) {
@@ -1512,13 +1514,48 @@ export default function DashboardProfilePage() {
           if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan')) {
             resolvedProvince = 'Jawa Timur';
             resolvedCity = 'Kabupaten Magetan';
-            if (lower.includes('plaosan') || lower.includes('sarangan')) resolvedDistrict = 'Plaosan';
-            else if (lower.includes('sidorejo')) resolvedDistrict = 'Sidorejo';
+            if (lower.includes('plaosan') || lower.includes('sarangan')) {
+              resolvedDistrict = 'Plaosan';
+              resolvedLat = -7.6749;
+              resolvedLng = 111.2201;
+            } else if (lower.includes('sidorejo')) {
+              resolvedDistrict = 'Sidorejo';
+              resolvedLat = -7.65737;
+              resolvedLng = 111.27939;
+            } else {
+              resolvedLat = -7.6508;
+              resolvedLng = 111.3283;
+            }
+          } else if (lower.includes('madiun')) {
+            resolvedProvince = 'Jawa Timur';
+            resolvedCity = 'Kota Madiun';
+            resolvedLat = -7.6298;
+            resolvedLng = 111.5239;
+          } else if (lower.includes('ngawi')) {
+            resolvedProvince = 'Jawa Timur';
+            resolvedCity = 'Kabupaten Ngawi';
+            resolvedLat = -7.4042;
+            resolvedLng = 111.4461;
+          } else if (lower.includes('ponorogo')) {
+            resolvedProvince = 'Jawa Timur';
+            resolvedCity = 'Kabupaten Ponorogo';
+            resolvedLat = -7.8683;
+            resolvedLng = 111.4622;
           } else if (lower.includes('surabaya')) {
             resolvedProvince = 'Jawa Timur';
             resolvedCity = 'Kota Surabaya';
-            if (lower.includes('gubeng')) resolvedDistrict = 'Gubeng';
-            else if (lower.includes('genteng')) resolvedDistrict = 'Genteng';
+            if (lower.includes('gubeng')) {
+              resolvedDistrict = 'Gubeng';
+              resolvedLat = -7.2754;
+              resolvedLng = 112.7541;
+            } else if (lower.includes('genteng')) {
+              resolvedDistrict = 'Genteng';
+              resolvedLat = -7.2589;
+              resolvedLng = 112.7478;
+            } else {
+              resolvedLat = -7.2575;
+              resolvedLng = 112.7521;
+            }
           }
         }
 
@@ -1537,6 +1574,8 @@ export default function DashboardProfilePage() {
           province: resolvedProvince,
           city: resolvedCity,
           district: resolvedDistrict,
+          lat: resolvedLat,
+          lng: resolvedLng,
           operationalCoverage: resolvedCoverage,
         };
       });
@@ -1585,6 +1624,10 @@ export default function DashboardProfilePage() {
           qrisBank: profileData.qrisBank,
           qrisAccountNo: profileData.qrisAccountNo,
           operationalCoverage: profileData.operationalCoverage,
+          lat: profileData.lat,
+          lng: profileData.lng,
+          latitude: profileData.lat,
+          longitude: profileData.lng,
         };
         localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
         setActionLoader({ isOpen: false, message: '' });
