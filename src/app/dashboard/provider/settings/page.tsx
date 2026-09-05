@@ -174,13 +174,18 @@ export default function ProviderSettingsPage() {
         if (parsed.address) {
           setAddress(parsed.address);
           const lower = parsed.address.toLowerCase();
-          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan')) {
-            setDistrict(parsed.district ? `Kec. ${parsed.district}, Kab. Magetan` : 'Kabupaten Magetan');
-            if (lower.includes('plaosan') || lower.includes('sarangan')) {
+          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('sidorejo') || lower.includes('kwarigan')) {
+            if (lower.includes('kwarigan') || lower.includes('sidorejo')) {
+              setDistrict('Kec. Sidorejo, Kab. Magetan');
+              setLat(-7.65569); setLng(111.27984);
+            } else if (lower.includes('plaosan') || lower.includes('telaga sarangan')) {
+              setDistrict('Kec. Plaosan, Kab. Magetan');
               setLat(-7.6749); setLng(111.2201);
-            } else if (lower.includes('sidorejo')) {
-              setLat(-7.65737); setLng(111.27939);
+            } else if (lower.includes('sarangan')) {
+              setDistrict('Kec. Plaosan, Kab. Magetan');
+              setLat(-7.6749); setLng(111.2201);
             } else {
+              setDistrict(parsed.district ? `Kec. ${parsed.district}, Kab. Magetan` : 'Kabupaten Magetan');
               setLat(-7.6508); setLng(111.3283);
             }
           } else if (parsed.district) {

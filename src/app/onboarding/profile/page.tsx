@@ -99,18 +99,22 @@ export default function OnboardingProfilePage() {
     let detectedLat = formData.lat || -7.6749;
     let detectedLng = formData.lng || 111.2201;
 
-    // Smart auto-detect Magetan, Plaosan, Sarangan & Sidorejo
-    if (lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('magetan')) {
+    // Smart auto-detect Magetan, Kwarigan, Sidorejo, Plaosan & Sarangan
+    if (lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('magetan') || lower.includes('sidorejo') || lower.includes('kwarigan')) {
       detectedProvince = 'Jawa Timur';
       detectedCity = 'Kabupaten Magetan';
-      if (lower.includes('plaosan') || lower.includes('sarangan')) {
+      if (lower.includes('kwarigan') || lower.includes('sidorejo')) {
+        detectedDistrict = 'Sidorejo';
+        detectedLat = -7.65569;
+        detectedLng = 111.27984;
+      } else if (lower.includes('plaosan') || lower.includes('telaga sarangan')) {
         detectedDistrict = 'Plaosan';
         detectedLat = -7.6749;
         detectedLng = 111.2201;
-      } else if (lower.includes('sidorejo')) {
-        detectedDistrict = 'Sidorejo';
-        detectedLat = -7.65737;
-        detectedLng = 111.27939;
+      } else if (lower.includes('sarangan')) {
+        detectedDistrict = 'Plaosan';
+        detectedLat = -7.6749;
+        detectedLng = 111.2201;
       } else {
         detectedDistrict = 'Magetan';
         detectedLat = -7.6508;

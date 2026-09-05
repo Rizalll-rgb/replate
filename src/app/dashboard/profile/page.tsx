@@ -275,26 +275,38 @@ const INDONESIAN_LOCATION_DIRECTORY: LocationDirectoryItem[] = [
     lng: 112.7389,
   },
 
-  // Magetan, Madiun, Sidorejo & Gerai Kuliner RA Chicken
+  // Magetan, Madiun, Sidorejo, Kwarigan & Gerai Kuliner RA Chicken
+  {
+    name: 'Dusun Kwarigan, Sidorejo, Magetan (Jl. Raya Sarangan)',
+    detail: 'Dusun Kwarigan, Desa Sidorejo, Kec. Sidorejo, Kab. Magetan, Jawa Timur (Akses Utama Jalur Magetan - Sarangan)',
+    category: 'Sidorejo, Magetan',
+    keywords: [
+      'kwarigan', 'dusun kwarigan', 'kwarigan sidorejo', 'jl raya sarangan kwarigan',
+      'jl. raya sarangan, kwarigan, sidorejo, magetan', 'jl raya sarangan', 'kwarigan, sidorejo',
+      'sidorejo', 'magetan', 'sarangan'
+    ],
+    lat: -7.65569,
+    lng: 111.27984,
+  },
   {
     name: 'RA Chicken - Outlet Sidorejo (Magetan)',
-    detail: 'Jl. Raya Magetan - Sarangan, Kec. Sidorejo, Kab. Magetan, Jawa Timur (Gerai Kuliner Ayam Goreng Crispy)',
-    category: 'Magetan, Jawa Timur',
+    detail: 'Jl. Raya Magetan - Sarangan, Dusun Kwarigan, Kec. Sidorejo, Kab. Magetan, Jawa Timur (Gerai Kuliner Ayam Goreng Crispy)',
+    category: 'Sidorejo, Magetan',
     keywords: [
       'ra chicken', 'chicken', 'sidorejo', 'outlet sidorejo', 'otulet sidorejo',
       'ra chicken sidorejo', 'ra chicken - outlet sidorejo', 'ra chicken otulet sidorejo',
-      'magetan', 'sidorejo magetan', 'sarangan', 'plaosan', 'jawa timur'
+      'kwarigan', 'dusun kwarigan', 'magetan', 'sidorejo magetan', 'sarangan', 'plaosan', 'jawa timur'
     ],
-    lat: -7.65737,
-    lng: 111.27939,
+    lat: -7.65569,
+    lng: 111.27984,
   },
   {
     name: 'Kecamatan Sidorejo, Kabupaten Magetan',
     detail: 'Kabupaten Magetan, Jawa Timur (Jalur Wisata Telaga Sarangan / Lereng Gunung Lawu)',
     category: 'Magetan, Jawa Timur',
-    keywords: ['sidorejo', 'sidorejo magetan', 'magetan', 'kecamatan sidorejo', 'sarangan'],
-    lat: -7.65737,
-    lng: 111.27939,
+    keywords: ['sidorejo', 'sidorejo magetan', 'magetan', 'kecamatan sidorejo', 'sarangan', 'kwarigan'],
+    lat: -7.65569,
+    lng: 111.27984,
   },
   {
     name: 'Pusat Kota & Alun-Alun Kabupaten Magetan',
@@ -983,7 +995,8 @@ export default function DashboardProfilePage() {
     const normalizedRaw = raw.replace(/\botulet\b/gi, 'outlet');
     const clean = normalizedRaw.toLowerCase();
 
-    // Specific detection for Sidorejo / Magetan / RA Chicken
+    // Specific detection for Kwarigan / Sidorejo / Magetan / RA Chicken
+    const isKwarigan = clean.includes('kwarigan');
     const isSidorejo = clean.includes('sidorejo');
     const isMagetan = clean.includes('magetan');
     const isRaChicken = clean.includes('ra chicken') || clean.includes('chicken');
@@ -1001,15 +1014,20 @@ export default function DashboardProfilePage() {
     let instantLng = profileData.lng;
     let instantCategory = 'Outlet / Lokasi Anda';
 
-    if (isRaChicken && isSidorejo) {
-      instantDetail = 'Jl. Raya Magetan - Sarangan, Kec. Sidorejo, Kab. Magetan, Jawa Timur (Gerai Kuliner Ayam Crispy)';
-      instantLat = -7.65737;
-      instantLng = 111.27939;
+    if (isKwarigan || (isSidorejo && (clean.includes('sarangan') || isMagetan || isRaChicken))) {
+      instantDetail = 'Dusun Kwarigan, Jl. Raya Sarangan, Kec. Sidorejo, Kab. Magetan, Jawa Timur';
+      instantLat = -7.65569;
+      instantLng = 111.27984;
+      instantCategory = 'Sidorejo, Magetan';
+    } else if (isRaChicken && isSidorejo) {
+      instantDetail = 'Jl. Raya Magetan - Sarangan, Dusun Kwarigan, Kec. Sidorejo, Kab. Magetan, Jawa Timur';
+      instantLat = -7.65569;
+      instantLng = 111.27984;
       instantCategory = 'Magetan, Jawa Timur';
     } else if (isSidorejo && isMagetan) {
       instantDetail = 'Kecamatan Sidorejo, Kabupaten Magetan, Jawa Timur';
-      instantLat = -7.65737;
-      instantLng = 111.27939;
+      instantLat = -7.65569;
+      instantLng = 111.27984;
       instantCategory = 'Magetan, Jawa Timur';
     } else if (isSidorejo && clean.includes('krian')) {
       instantDetail = 'Desa Sidorejo, Kec. Krian, Kab. Sidoarjo, Jawa Timur';
@@ -1022,10 +1040,10 @@ export default function DashboardProfilePage() {
       instantLng = 110.5050;
       instantCategory = 'Salatiga, Jawa Tengah';
     } else if (isSidorejo) {
-      // Default sidorejo to Magetan (user's preferred store location)
-      instantDetail = 'Kecamatan Sidorejo, Kabupaten Magetan, Jawa Timur (Sentra Outlet RA Chicken)';
-      instantLat = -7.65737;
-      instantLng = 111.27939;
+      // Default sidorejo to Magetan
+      instantDetail = 'Dusun Kwarigan, Kec. Sidorejo, Kab. Magetan, Jawa Timur';
+      instantLat = -7.65569;
+      instantLng = 111.27984;
       instantCategory = 'Magetan, Jawa Timur';
     }
 
@@ -1508,21 +1526,27 @@ export default function DashboardProfilePage() {
         let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat;
         let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng;
 
-        // Auto-deteksi cerdas jika alamat mencantumkan Magetan, Sarangan, Plaosan, dll.
+        // Auto-deteksi cerdas jika alamat mencantumkan Kwarigan, Sidorejo, Magetan, Sarangan, Plaosan, dll.
         if (resolvedAddress) {
           const lower = resolvedAddress.toLowerCase();
-          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan')) {
+          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('sidorejo') || lower.includes('kwarigan')) {
             resolvedProvince = 'Jawa Timur';
             resolvedCity = 'Kabupaten Magetan';
-            if (lower.includes('plaosan') || lower.includes('sarangan')) {
+            if (lower.includes('kwarigan') || lower.includes('sidorejo')) {
+              // Prioritaskan Sidorejo & Dusun Kwarigan meski nama jalannya memuat "Sarangan"
+              resolvedDistrict = 'Sidorejo';
+              resolvedLat = -7.65569;
+              resolvedLng = 111.27984;
+            } else if (lower.includes('plaosan') || lower.includes('telaga sarangan')) {
               resolvedDistrict = 'Plaosan';
               resolvedLat = -7.6749;
               resolvedLng = 111.2201;
-            } else if (lower.includes('sidorejo')) {
-              resolvedDistrict = 'Sidorejo';
-              resolvedLat = -7.65737;
-              resolvedLng = 111.27939;
+            } else if (lower.includes('sarangan')) {
+              resolvedDistrict = 'Plaosan';
+              resolvedLat = -7.6749;
+              resolvedLng = 111.2201;
             } else {
+              resolvedDistrict = 'Magetan';
               resolvedLat = -7.6508;
               resolvedLng = 111.3283;
             }

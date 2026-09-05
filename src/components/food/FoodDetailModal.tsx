@@ -64,10 +64,10 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   let longitude = food.lng;
   if (!latitude || !longitude) {
     const lowerAddr = (food.address || '').toLowerCase();
-    if (lowerAddr.includes('sarangan') || lowerAddr.includes('plaosan')) {
+    if (lowerAddr.includes('kwarigan') || lowerAddr.includes('sidorejo')) {
+      latitude = -7.65569; longitude = 111.27984;
+    } else if (lowerAddr.includes('sarangan') || lowerAddr.includes('plaosan')) {
       latitude = -7.6749; longitude = 111.2201;
-    } else if (lowerAddr.includes('sidorejo')) {
-      latitude = -7.65737; longitude = 111.27939;
     } else if (lowerAddr.includes('magetan')) {
       latitude = -7.6508; longitude = 111.3283;
     } else if (lowerAddr.includes('madiun')) {
