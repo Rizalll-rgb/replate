@@ -213,7 +213,7 @@ export default function CheckoutCartPage() {
     if (hasOutOfStock) {
       setToastState({
         isOpen: true,
-        message: 'Terdapat item dengan porsi habis (0 porsi) di tas klaim Anda. Hapus item tersebut sebelum melanjutkan.',
+        message: 'Ada menu yang stok porsinya sudah habis di tas klaim Anda. Silakan hapus menu tersebut terlebih dahulu sebelum melanjutkan checkout ya.',
         type: 'error',
       });
       return;
@@ -245,7 +245,7 @@ export default function CheckoutCartPage() {
         setIsCheckingOut(false);
         setSuccessModal({ isOpen: true, claim: newClaim });
       } catch (err) {
-        setToastState({ isOpen: true, message: 'Gagal memproses pesanan.', type: 'error' });
+        setToastState({ isOpen: true, message: 'Mohon maaf, pesanan belum berhasil diproses. Silakan coba beberapa saat lagi ya.', type: 'error' });
         setIsCheckingOut(false);
         setActionLoader({ isOpen: false, message: '' });
       }
@@ -262,7 +262,7 @@ export default function CheckoutCartPage() {
   // Poin 7: After proof uploaded → save claim as WAITING_PAYMENT_APPROVAL
   const handleUploadProof = () => {
     if (!proofImageName) {
-      setToastState({ isOpen: true, message: 'Harap pilih file bukti pembayaran terlebih dahulu.', type: 'error' });
+      setToastState({ isOpen: true, message: 'Silakan pilih foto atau file bukti transfer pembayaran Anda terlebih dahulu ya.', type: 'error' });
       return;
     }
     setActionLoader({ isOpen: true, message: 'Mengirim Bukti Pembayaran...', submessage: 'Menunggu verifikasi dari provider toko' });
@@ -274,7 +274,7 @@ export default function CheckoutCartPage() {
         setSuccessModal({ isOpen: true, claim: newClaim });
       } catch (err) {
         setActionLoader({ isOpen: false, message: '' });
-        setToastState({ isOpen: true, message: 'Gagal mengunggah bukti.', type: 'error' });
+        setToastState({ isOpen: true, message: 'Mohon maaf, bukti pembayaran belum berhasil dikirim. Silakan periksa koneksi dan coba unggah kembali.', type: 'error' });
       }
     }, 1000);
   };

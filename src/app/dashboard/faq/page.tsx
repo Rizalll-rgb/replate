@@ -49,6 +49,18 @@ export default function DashboardFAQPage() {
       q: 'Berapa lama waktu respon tim Helpdesk Replate?',
       a: 'Tim Helpdesk Replate Surabaya siap memberikan dukungan 24/7 dengan waktu respon rata-rata di bawah 15 menit melalui Live Helpdesk aplikasi dan WhatsApp resmi.',
     },
+    {
+      q: 'Bagaimana jejaring penyelamatan pangan Replate menjangkau 8 kota utama Indonesia?',
+      a: 'Replate mengintegrasikan mitra restoran, bakery, perhotelan, panti asuhan, dan armada relawan di berbagai kota besar (Surabaya, Jakarta, Bandung, Yogyakarta, Medan, Semarang, Bali, Makassar) untuk membentuk sabuk pengaman pangan (food safety belt) perkotaan yang tangguh.',
+    },
+    {
+      q: 'Apakah mitra pendonor mendapatkan fasilitas pemotongan pajak (PP No. 93/2010)?',
+      a: 'Ya, berdasarkan regulasi PP No. 93/2010 dan perpajakan RI, donasi makanan untuk yayasan sosial dan penanggulangan kemiskinan diakui secara sah sebagai biaya pengurang penghasilan bruto (tax deduction) bagi wajib pajak badan.',
+    },
+    {
+      q: 'Bagaimana SOP rantai dingin (cold-chain) & kotak boks termal menjaga mutu makanan?',
+      a: 'Pengantaran kurir toko dan armada relawan menggunakan boks isolasi berinsulasi food-grade bersuhu dingin (<4°C) atau panas (>60°C) guna menjaga kestabilan higienitas makanan dan mencegah perkembangbiakan mikroba patogen.',
+    },
   ];
 
   const filteredFaqs = faqs.filter(

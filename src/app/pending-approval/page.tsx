@@ -75,15 +75,26 @@ export default function PendingApprovalPage() {
   const handleGoToDashboard = async () => {
     setLoading(true);
     try {
-      let demoEmail = 'bakso.pak.kumis@replate.id';
-      if (targetDashboard.includes('yayasan')) demoEmail = 'panti.kasih.ibu@replate.id';
-      else if (targetDashboard.includes('rescue-partner')) demoEmail = 'foodbank.surabaya@replate.id';
-      else if (targetDashboard.includes('consumer')) demoEmail = 'budi.santoso@gmail.com';
-      else if (targetDashboard.includes('admin')) demoEmail = 'admin@replate.id';
+      let registeredUser: any = null;
+      try {
+        const raw = localStorage.getItem('replate_registered_user');
+        if (raw) registeredUser = JSON.parse(raw);
+      } catch (_) {}
+
+      let loginEmail = registeredUser?.email;
+      let loginPassword = registeredUser?.password || 'password123';
+
+      if (!loginEmail) {
+        if (targetDashboard.includes('yayasan')) loginEmail = 'panti.kasih.ibu@replate.id';
+        else if (targetDashboard.includes('rescue-partner')) loginEmail = 'foodbank.surabaya@replate.id';
+        else if (targetDashboard.includes('consumer')) loginEmail = 'budi.santoso@gmail.com';
+        else if (targetDashboard.includes('admin')) loginEmail = 'admin@replate.id';
+        else loginEmail = 'bakso.pak.kumis@replate.id';
+      }
 
       await signIn('credentials', {
-        email: demoEmail,
-        password: 'password123',
+        email: loginEmail,
+        password: loginPassword,
         callbackUrl: targetDashboard,
       });
     } catch (_) {

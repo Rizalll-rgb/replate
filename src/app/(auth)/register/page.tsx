@@ -9,6 +9,7 @@ import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
 import { OTPVerificationModal } from '@/components/auth/OTPVerificationModal';
 import { getAllDemoEmails, getAllDemoPhones } from '@/lib/mockDatabase';
+import { Eye, EyeOff } from 'lucide-react';
 
 type Role = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER';
 
@@ -24,6 +25,8 @@ export default function RegisterPage() {
     address: '',
     organizationName: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,7 +39,12 @@ export default function RegisterPage() {
     setSuccess('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Password tidak cocok! Mohon periksa kembali.');
+      setError('Kata sandi dan konfirmasi kata sandi belum sama. Mohon pastikan keduanya cocok ya.');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Kata sandi harus memiliki minimal 8 karakter demi keamanan akun Anda.');
       return;
     }
 
@@ -58,9 +66,16 @@ export default function RegisterPage() {
     const isEmailTaken = demoEmails.includes(cleanEmail) || localUsers.some((u: any) => (u.email || '').trim().toLowerCase() === cleanEmail);
     const isPhoneTaken = demoPhones.includes(cleanPhone) || localUsers.some((u: any) => (u.phone || '').replace(/\D/g, '') === cleanPhone);
 
-    if (isEmailTaken || isPhoneTaken) {
+    if (isEmailTaken) {
       setError(
-        `⚠️ Pendaftaran Dibatalkan: Alamat Email "${formData.email}" atau No. WhatsApp "${formData.phone}" sudah terdaftar dalam sistem Replate! Satu email dan nomor WhatsApp hanya dapat digunakan untuk 1 akun. Silakan gunakan data lain atau langsung Masuk ke akun Anda.`
+        `Alamat email "${formData.email}" sudah terdaftar sebelumnya. Silakan gunakan email lain atau langsung masuk (login) ke akun Anda.`
+      );
+      return;
+    }
+
+    if (isPhoneTaken) {
+      setError(
+        `Nomor WhatsApp "${formData.phone}" sudah terdaftar dalam sistem Replate. Silakan gunakan nomor lain atau langsung masuk (login).`
       );
       return;
     }
@@ -121,14 +136,14 @@ export default function RegisterPage() {
         localStorage.removeItem('replate_panti_requests');
       } catch (_) {}
 
-      setSuccess(' Nomor WhatsApp Berhasil Diverifikasi! Mengalihkan ke pengisian profil...');
+      setSuccess('Pendaftaran akun berhasil diverifikasi! Kami sedang mengarahkan Anda ke pengisian profil...');
 
       setTimeout(() => {
         // All 4 roles go through onboarding profile setup!
         router.push(`/onboarding/profile?role=${formData.role}`);
       }, 1200);
     } catch {
-      setError('Terjadi kesalahan, coba lagi.');
+      setError('Mohon maaf, terjadi kendala saat memproses pendaftaran. Silakan periksa koneksi Anda dan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -242,6 +257,11 @@ export default function RegisterPage() {
               required
               minLength={2}
             />
+            <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+              {isConsumer
+                ? 'Nama lengkap Anda untuk verifikasi identitas dan tiket klaim makanan.'
+                : 'Nama penanggung jawab resmi yang dapat dihubungi terkait operasional makanan.'}
+            </p>
           </div>
 
           <div className={styles.formRow}>
@@ -255,6 +275,11 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
+              <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+                {isConsumer
+                  ? 'Email aktif untuk konfirmasi tiket dan notifikasi.'
+                  : 'Email resmi lembaga untuk administrasi & bukti CSR.'}
+              </p>
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>{phoneLabel}</label>
@@ -266,32 +291,63 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
               />
+              <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+                Format: 08xxxxxxxxxx (Aktif WhatsApp untuk verifikasi).
+              </p>
             </div>
           </div>
 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Kata Sandi</label>
-              <input
-                type="password"
-                className={styles.formInput}
-                placeholder="Min. 8 karakter"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                minLength={8}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className={`${styles.formInput} pr-11`}
+                  placeholder="Min. 8 karakter"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4A843] transition-colors p-1.5 rounded-lg flex items-center justify-center cursor-pointer"
+                  title={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                  aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+                Minimal 8 karakter kombinasi huruf & angka.
+              </p>
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Konfirmasi Kata Sandi</label>
-              <input
-                type="password"
-                className={styles.formInput}
-                placeholder="Ulangi password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  className={`${styles.formInput} pr-11`}
+                  placeholder="Ulangi kata sandi"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4A843] transition-colors p-1.5 rounded-lg flex items-center justify-center cursor-pointer"
+                  title={showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                  aria-label={showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+                Ketik ulang kata sandi yang sama persis.
+              </p>
             </div>
           </div>
 

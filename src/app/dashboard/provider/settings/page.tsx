@@ -156,14 +156,36 @@ export default function ProviderSettingsPage() {
 
   React.useEffect(() => {
     try {
+      let regUser: any = null;
+      const rawReg = localStorage.getItem('replate_registered_user');
+      if (rawReg) {
+        try { regUser = JSON.parse(rawReg); } catch (_) {}
+      }
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
         if (parsed.entityName) setOrgName(parsed.entityName);
+        else if (regUser?.name) setOrgName(regUser.name);
         if (parsed.phone) setPhone(parsed.phone);
-        if (parsed.address) setAddress(parsed.address);
+        else if (regUser?.phone) setPhone(regUser.phone);
+        if (parsed.email) setEmail(parsed.email);
+        else if (regUser?.email) setEmail(regUser.email);
+        if (parsed.address) {
+          setAddress(parsed.address);
+          const lower = parsed.address.toLowerCase();
+          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan')) {
+            setDistrict(parsed.district ? `Kec. ${parsed.district}, Kab. Magetan` : 'Kabupaten Magetan');
+          } else if (parsed.district) {
+            setDistrict(parsed.district);
+          }
+        }
         if (parsed.contactPerson) setAccountHolder(parsed.contactPerson);
         if (parsed.category) setBusinessCategory(parsed.category);
+      } else if (regUser) {
+        if (regUser.name) setOrgName(regUser.name);
+        if (regUser.email) setEmail(regUser.email);
+        if (regUser.phone) setPhone(regUser.phone);
       }
 
       const isFresh = localStorage.getItem('replate_is_fresh_account') === 'true';

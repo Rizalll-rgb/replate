@@ -301,7 +301,7 @@ export default function CheckoutPage() {
     if (isItemOutOfStock) {
       setToastState({
         isOpen: true,
-        message: 'Maaf, porsi makanan ini telah habis (0 porsi). Anda tidak dapat melakukan checkout.',
+        message: 'Mohon maaf, porsi makanan ini saat ini sedang habis. Silakan pilih menu surplus lezat lainnya ya!',
         type: 'error',
       });
       return;
@@ -348,7 +348,7 @@ export default function CheckoutPage() {
         setActionLoader({ isOpen: false, message: '' });
         setSuccessModal({ isOpen: true, claim: newClaim });
       } catch (err) {
-        setToastState({ isOpen: true, message: 'Gagal memproses pesanan.', type: 'error' });
+        setToastState({ isOpen: true, message: 'Mohon maaf, pesanan belum berhasil diproses. Silakan coba beberapa saat lagi ya.', type: 'error' });
         setIsCheckingOut(false);
         setActionLoader({ isOpen: false, message: '' });
       }
@@ -366,7 +366,7 @@ export default function CheckoutPage() {
 
   const handleUploadProof = () => {
     if (!proofImageName) {
-      setToastState({ isOpen: true, message: 'Harap pilih file bukti pembayaran.', type: 'error' });
+      setToastState({ isOpen: true, message: 'Silakan pilih foto atau file bukti transfer pembayaran Anda terlebih dahulu ya.', type: 'error' });
       return;
     }
     setActionLoader({ isOpen: true, message: 'Mengirim Bukti Pembayaran...', submessage: 'Menunggu verifikasi provider' });
@@ -379,7 +379,7 @@ export default function CheckoutPage() {
         setSuccessModal({ isOpen: true, claim: newClaim });
       } catch (err) {
         setActionLoader({ isOpen: false, message: '' });
-        setToastState({ isOpen: true, message: 'Gagal mengunggah bukti.', type: 'error' });
+        setToastState({ isOpen: true, message: 'Mohon maaf, bukti pembayaran belum berhasil dikirim. Silakan periksa koneksi dan coba unggah kembali.', type: 'error' });
       }
     }, 1000);
   };

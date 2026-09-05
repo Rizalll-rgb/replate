@@ -958,6 +958,7 @@ export default function DashboardProfilePage() {
     lng: 112.7541,
     waAlerts: true,
     autoMatchPanti: true,
+    operationalCoverage: 'Kec. Plaosan & Kab. Magetan (Radius 12 km)',
   });
 
   const [mapSearchQuery, setMapSearchQuery] = useState('');
@@ -1457,29 +1458,88 @@ export default function DashboardProfilePage() {
     try {
       const savedAvatar = localStorage.getItem('replate_user_avatar');
       if (savedAvatar) setProfileAvatar(savedAvatar);
-      if (session?.user) {
-        setProfileData((prev) => ({
-          ...prev,
-          name: session.user.name || prev.name,
-          email: session.user.email || prev.email,
-          role: session.user.role || prev.role,
-        }));
+
+      // 1. Cek akun terdaftar pengguna asli (Prioritas #1)
+      let regUser: any = null;
+      const rawReg = localStorage.getItem('replate_registered_user');
+      if (rawReg) {
+        try { regUser = JSON.parse(rawReg); } catch (_) {}
       }
 
+      // 2. Cek profil onboarding
+      let onbProfile: any = null;
       const saved = localStorage.getItem('replate_onboarding_profile');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        setProfileData((prev) => ({
-          ...prev,
-          entityName: parsed.entityName || prev.entityName,
-          name: parsed.name || parsed.entityName || prev.name,
-          phone: parsed.phone || prev.phone,
-          address: parsed.address || prev.address,
-          province: parsed.province || prev.province,
-          city: parsed.city || prev.city,
-          district: parsed.district || prev.district,
-        }));
+        try { onbProfile = JSON.parse(saved); } catch (_) {}
       }
+
+      setProfileData((prev) => {
+        const resolvedEmail =
+          regUser?.email ||
+          onbProfile?.email ||
+          (session?.user?.email && !session.user.email.includes('pak.kumis') ? session.user.email : prev.email);
+
+        const resolvedName =
+          onbProfile?.name ||
+          regUser?.name ||
+          (session?.user?.name && !session.user.name.includes('Pak Kumis') ? session.user.name : prev.name);
+
+        const resolvedEntity =
+          onbProfile?.entityName ||
+          onbProfile?.name ||
+          regUser?.name ||
+          prev.entityName;
+
+        const resolvedPhone =
+          regUser?.phone ||
+          onbProfile?.phone ||
+          prev.phone;
+
+        const resolvedRole =
+          regUser?.role ||
+          onbProfile?.role ||
+          session?.user?.role ||
+          prev.role;
+
+        let resolvedAddress = onbProfile?.address || prev.address;
+        let resolvedProvince = onbProfile?.province || prev.province;
+        let resolvedCity = onbProfile?.city || prev.city;
+        let resolvedDistrict = onbProfile?.district || prev.district;
+
+        // Auto-deteksi cerdas jika alamat mencantumkan Magetan, Sarangan, Plaosan, dll.
+        if (resolvedAddress) {
+          const lower = resolvedAddress.toLowerCase();
+          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan')) {
+            resolvedProvince = 'Jawa Timur';
+            resolvedCity = 'Kabupaten Magetan';
+            if (lower.includes('plaosan') || lower.includes('sarangan')) resolvedDistrict = 'Plaosan';
+            else if (lower.includes('sidorejo')) resolvedDistrict = 'Sidorejo';
+          } else if (lower.includes('surabaya')) {
+            resolvedProvince = 'Jawa Timur';
+            resolvedCity = 'Kota Surabaya';
+            if (lower.includes('gubeng')) resolvedDistrict = 'Gubeng';
+            else if (lower.includes('genteng')) resolvedDistrict = 'Genteng';
+          }
+        }
+
+        const resolvedCoverage =
+          onbProfile?.operationalCoverage ||
+          `${resolvedDistrict ? 'Kec. ' + resolvedDistrict + ', ' : ''}${resolvedCity || 'Kab. Magetan'} (Radius ${prev.maxRadiusKm || 12} km)`;
+
+        return {
+          ...prev,
+          name: resolvedName,
+          entityName: resolvedEntity,
+          email: resolvedEmail,
+          phone: resolvedPhone,
+          role: resolvedRole,
+          address: resolvedAddress,
+          province: resolvedProvince,
+          city: resolvedCity,
+          district: resolvedDistrict,
+          operationalCoverage: resolvedCoverage,
+        };
+      });
 
       const savedFleet = localStorage.getItem('replate_provider_fleet_list');
       if (savedFleet) {
@@ -1504,7 +1564,7 @@ export default function DashboardProfilePage() {
     setActionLoader({
       isOpen: true,
       message: 'Menyimpan Profil & Konfigurasi...',
-      submessage: 'Menyinkronkan data profil outlet dan rekening',
+      submessage: 'Menyinkronkan data profil outlet, alamat, dan wilayah jangkauan',
     });
 
     setTimeout(() => {
@@ -1524,12 +1584,13 @@ export default function DashboardProfilePage() {
           defaultPackaging: profileData.defaultPackaging,
           qrisBank: profileData.qrisBank,
           qrisAccountNo: profileData.qrisAccountNo,
+          operationalCoverage: profileData.operationalCoverage,
         };
         localStorage.setItem('replate_onboarding_profile', JSON.stringify(updated));
         setActionLoader({ isOpen: false, message: '' });
         setToastState({
           isOpen: true,
-          message: 'Seluruh konfigurasi profil, operasional outlet, dan rekening berhasil disimpan!',
+          message: 'Berhasil disimpan! Informasi profil, alamat, dan wilayah operasional outlet telah diperbarui.',
           type: 'success',
         });
       } catch (_) {
@@ -1869,9 +1930,16 @@ export default function DashboardProfilePage() {
                       <span>Status Legalitas:</span>
                       <span className="font-black text-emerald-600"> Lolos Audit NIB & BPOM</span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>Wilayah Operasi:</span>
-                      <strong className="text-slate-800">Cakupan Nasional (Indonesia)</strong>
+                    <div className="flex flex-col gap-1 text-slate-600 border-t border-slate-100 pt-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-slate-700">Wilayah Operasi Outlet:</span>
+                        <strong className="text-slate-900 font-bold text-right truncate max-w-[170px]" title={profileData.operationalCoverage}>
+                          {profileData.operationalCoverage || `${profileData.district ? 'Kec. ' + profileData.district + ', ' : ''}${profileData.city || 'Kab. Magetan'} (Radius ${profileData.maxRadiusKm || 12} km)`}
+                        </strong>
+                      </div>
+                      <span className="text-[10px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200 block mt-1 leading-snug">
+                        💡 <strong>Platform Replate:</strong> Berskala Nasional (Indonesia). Wilayah di atas adalah radius penjemputan & jangkauan khusus outlet Anda.
+                      </span>
                     </div>
                   </>
                 )}
@@ -2051,6 +2119,27 @@ export default function DashboardProfilePage() {
                     </div>
                   )}
                 </div>
+
+                {!isConsumer && (
+                  <div className="space-y-1.5 p-3.5 bg-amber-50/70 border border-amber-300/80 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <label className="font-extrabold text-slate-800 block text-xs">
+                        Wilayah Jangkauan Operasi Outlet:
+                      </label>
+                      <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded">
+                        Kustomisasi Provider
+                      </span>
+                    </div>
+                    <Input
+                      value={profileData.operationalCoverage}
+                      onChange={(e) => setProfileData({ ...profileData, operationalCoverage: e.target.value })}
+                      placeholder="Contoh: Kec. Plaosan & Kab. Magetan (Radius 12 km)"
+                    />
+                    <p className="text-[11px] text-slate-600 leading-tight">
+                      Platform Replate memiliki cakupan nasional. Anda dapat menentukan wilayah lokal spesifik tempat pembeli atau kurir menjangkau gerai/outlet Anda.
+                    </p>
+                  </div>
+                )}
 
                 {/* GPS Location & Visual Interactive Map Pin Picker (Skala Nasional Indonesia) */}
                 <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">

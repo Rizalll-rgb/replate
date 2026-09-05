@@ -8,6 +8,7 @@ import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
 import { isDemoAccount } from '@/lib/mockDatabase';
+import { Eye, EyeOff } from 'lucide-react';
 
 type RoleType = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER' | 'SUPER_ADMIN';
 
@@ -132,6 +133,17 @@ export default function LoginPage() {
 
       // Poin 5: Bedakan Akun Demo vs Akun Fresh Terdaftar
       const isDemo = isDemoAccount(emailVal);
+      let registeredUserRole: string | null = null;
+      try {
+        const rawReg = localStorage.getItem('replate_registered_user');
+        if (rawReg) {
+          const parsedReg = JSON.parse(rawReg);
+          if (parsedReg.email && parsedReg.email.toLowerCase() === emailVal.toLowerCase()) {
+            registeredUserRole = parsedReg.role;
+          }
+        }
+      } catch (_) {}
+
       try {
         if (isDemo) {
           localStorage.removeItem('replate_is_fresh_account');
@@ -146,16 +158,18 @@ export default function LoginPage() {
         }
       } catch (_) {}
 
-      if (emailVal.includes('panti') || emailVal.includes('yayasan')) {
+      // Tentukan target URL berdasarkan role terdaftar atau pilihan tab aktif
+      const effectiveRole = registeredUserRole || selectedRole;
+      if (effectiveRole === 'FOOD_BENEFICIARY' || effectiveRole === 'YAYASAN' || emailVal.includes('panti') || emailVal.includes('yayasan')) {
         targetUrl = '/dashboard/yayasan';
-      } else if (emailVal.includes('admin')) {
+      } else if (effectiveRole === 'SUPER_ADMIN' || effectiveRole === 'ADMIN' || emailVal.includes('admin')) {
         targetUrl = '/dashboard/admin';
-      } else if (emailVal.includes('foodbank') || emailVal.includes('volunteer')) {
+      } else if (effectiveRole === 'RESCUE_VOLUNTEER' || effectiveRole === 'RESCUE_PARTNER' || emailVal.includes('foodbank') || emailVal.includes('volunteer')) {
         targetUrl = '/dashboard/rescue-partner';
-      } else if (emailVal.includes('budi') || emailVal.includes('gmail') || emailVal.includes('consumer')) {
-        targetUrl = '/dashboard/consumer';
-      } else if (emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
+      } else if (effectiveRole === 'FOOD_PROVIDER' || effectiveRole === 'PROVIDER' || emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
         targetUrl = '/dashboard/provider';
+      } else if (effectiveRole === 'FOOD_CONSUMER' || effectiveRole === 'CONSUMER' || emailVal.includes('budi') || emailVal.includes('consumer')) {
+        targetUrl = '/dashboard/consumer';
       }
 
       const result = await signIn('credentials', {
@@ -165,7 +179,7 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        // Fallback for seamless demo testing
+        // Jika demo fallback atau pengguna offline, arahkan ke dashboard yang sesuai
         window.location.href = targetUrl;
       } else {
         window.location.href = targetUrl;
@@ -221,7 +235,12 @@ export default function LoginPage() {
         <h1 className={styles.authTitle}>Selamat Datang Kembali</h1>
         <p className={styles.authSubtitle}>Masuk ke Sistem Redistribusi Makanan Replate</p>
 
-        {error && <div className={`${styles.formAlert} ${styles.alertError}`}>{error}</div>}
+        {error && (
+          <div className="p-3.5 mb-4 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-200 text-xs font-medium flex items-start gap-2 shadow-sm text-left">
+            <span className="text-sm">ℹ️</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Unified 1-Click Quick Demo Login Presets & Role Selector */}
         <div className="mb-5 bg-[#0F1923] p-4 rounded-2xl border border-[#2C5A8F] space-y-3 text-left shadow-lg">
@@ -271,6 +290,9 @@ export default function LoginPage() {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
+            <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+              Gunakan email yang Anda daftarkan di platform Replate.
+            </p>
           </div>
 
           <div className={styles.formGroup}>
@@ -278,8 +300,8 @@ export default function LoginPage() {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className={`${styles.formInput} pr-10`}
-                placeholder="••••••••"
+                className={`${styles.formInput} pr-11`}
+                placeholder="Masukkan kata sandi Anda"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
@@ -288,11 +310,16 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4A843] transition-colors p-1.5 rounded-lg flex items-center justify-center cursor-pointer"
+                title={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
               >
-                {showPassword ? 'Sembunyikan' : 'Lihat'}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+              Kata sandi akun Anda (minimal 6 karakter).
+            </p>
           </div>
 
           <div className="flex items-center justify-between text-xs text-slate-300">

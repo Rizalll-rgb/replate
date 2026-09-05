@@ -26,23 +26,33 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Account name state
-  const [orgName, setOrgName] = useState(user?.name || 'Warung Bakso Pak Kumis');
+  // Account name & email state
+  const [orgName, setOrgName] = useState(user?.name || 'User Replate');
+  const [userEmail, setUserEmail] = useState(user?.email || 'mitra@replate.id');
 
   React.useEffect(() => {
     try {
+      let regUser: any = null;
+      const rawReg = localStorage.getItem('replate_registered_user');
+      if (rawReg) regUser = JSON.parse(rawReg);
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
-        const isRoleMatch = !user?.role || !parsed.role || user.role.includes(parsed.role) || parsed.role.includes(user.role);
-        const isEmailMatch = !user?.email || !parsed.email || parsed.email.toLowerCase() === user.email.toLowerCase();
-        if (isRoleMatch || isEmailMatch) {
-          if (parsed.entityName) setOrgName(parsed.entityName);
-          return;
-        }
+        if (parsed.entityName) setOrgName(parsed.entityName);
+        else if (parsed.name) setOrgName(parsed.name);
+        if (parsed.email) setUserEmail(parsed.email);
+        else if (regUser?.email) setUserEmail(regUser.email);
+        return;
+      }
+      if (regUser) {
+        if (regUser.name) setOrgName(regUser.name);
+        if (regUser.email) setUserEmail(regUser.email);
+        return;
       }
       if (user) {
         if (user.name) setOrgName(user.name);
+        if (user.email) setUserEmail(user.email);
       }
     } catch (_) {}
   }, [user]);
@@ -183,7 +193,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
                 {/* User Info Mini Header */}
                 <div className="px-4 py-3 border-b border-slate-100">
                   <p className="text-sm font-bold text-[#1B3A5C] truncate">{orgName}</p>
-                  <p className="text-[10px] text-slate-500 font-medium truncate">{user?.email || 'mitra@replate.id'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium truncate">{userEmail}</p>
                 </div>
 
                 {/* Settings Link → Redirect ke modul Profil & Pengaturan */}

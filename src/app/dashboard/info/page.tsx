@@ -192,6 +192,18 @@ export default function DashboardInfoHubPage() {
       q: 'Bagaimana cara mendapatkan Laporan CSR & Sertifikat Resmi Mitra?',
       a: 'Food Provider dan Yayasan dapat membuka menu Laporan Dampak di Dashboard untuk mengunduh Sertifikat Penyelamat Pangan resmi dan mencetak ringkasan CSR 1 halaman yang siap diaudit.',
     },
+    {
+      q: 'Bagaimana jejaring penyelamatan pangan Replate menjangkau 8 kota utama Indonesia?',
+      a: 'Replate mengintegrasikan mitra restoran, bakery, perhotelan, panti asuhan, dan armada relawan di berbagai kota besar (Surabaya, Jakarta, Bandung, Yogyakarta, Medan, Semarang, Bali, Makassar) untuk membentuk sabuk pengaman pangan (food safety belt) perkotaan yang tangguh.',
+    },
+    {
+      q: 'Apakah mitra pendonor mendapatkan fasilitas pemotongan pajak (PP No. 93/2010)?',
+      a: 'Ya, berdasarkan regulasi PP No. 93/2010 dan perpajakan RI, donasi makanan untuk yayasan sosial dan penanggulangan kemiskinan diakui secara sah sebagai biaya pengurang penghasilan bruto (tax deduction) bagi wajib pajak badan.',
+    },
+    {
+      q: 'Bagaimana SOP rantai dingin (cold-chain) & kotak boks termal menjaga mutu makanan?',
+      a: 'Pengantaran kurir toko dan armada relawan menggunakan boks isolasi berinsulasi food-grade bersuhu dingin (<4°C) atau panas (>60°C) guna menjaga kestabilan higienitas makanan dan mencegah perkembangbiakan mikroba patogen.',
+    },
   ];
 
   // Comprehensive Knowledge Index for Search
@@ -469,6 +481,36 @@ export default function DashboardInfoHubPage() {
       content: 'Food Provider dan Yayasan dapat membuka menu Laporan di Dashboard untuk mengunduh Sertifikat Penyelamat Pangan resmi dan ringkasan audit CSR.',
       tags: ['faq', 'laporan csr', 'sertifikat', 'audit', 'mitra berkelanjutan'],
     },
+    {
+      id: 'kb-faq-5',
+      category: 'FAQ',
+      categoryLabel: 'Jangkauan Nasional',
+      categoryBadgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      title: 'Jejaring Penyelamatan Pangan Nasional di 8 Kota Utama Indonesia',
+      subtitle: 'Surabaya, Jakarta, Bandung, Yogyakarta, Medan, Semarang, Bali, Makassar',
+      content: 'Replate mengintegrasikan mitra restoran, bakery, perhotelan, panti asuhan, dan armada relawan di berbagai kota besar untuk membentuk sabuk pengaman pangan (food safety belt) perkotaan.',
+      tags: ['nasional', 'surabaya', 'jakarta', 'bandung', 'medan', 'semarang', 'bali', 'makassar', 'jogja'],
+    },
+    {
+      id: 'kb-faq-6',
+      category: 'FAQ',
+      categoryLabel: 'Regulasi & Hukum',
+      categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      title: 'Insentif Pengurang Pajak Penghasilan Donasi Sosial (PP No. 93/2010)',
+      subtitle: 'Pengurangan Bruto Pajak Usaha bagi Mitra Pendonor Pangan',
+      content: 'Berdasarkan regulasi perpajakan RI, donasi makanan untuk yayasan sosial dan penanggulangan kemiskinan diakui sebagai biaya pengurang penghasilan bruto wajib pajak badan.',
+      tags: ['pajak', 'pp 93 2010', 'insentif', 'csr', 'donasi panti'],
+    },
+    {
+      id: 'kb-faq-7',
+      category: 'FAQ',
+      categoryLabel: 'Logistik Steril',
+      categoryBadgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
+      title: 'SOP Rantai Dingin (Cold-Chain) & Kotak Boks Termal Relawan',
+      subtitle: 'Menjaga Kestabilan Suhu Makanan Selama Pengantaran',
+      content: 'Pengantaran kurir toko dan armada relawan menggunakan boks isolasi berinsulasi food-grade bersuhu dingin (<4°C) atau panas (>60°C) guna mencegah perkembangbiakan bakteri patogen.',
+      tags: ['cold chain', 'rantai dingin', 'suhu', 'higienis', 'boks isolasi', 'kurir'],
+    },
   ], []);
 
   // Role-Aware Quick Search Keywords
@@ -529,10 +571,27 @@ export default function DashboardInfoHubPage() {
     if (item.roleTarget) {
       setSelectedRoleFlow(item.roleTarget);
     }
-    const el = document.getElementById('dashboard-info-content-container');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    setSearchQuery('');
+
+    // Jika kategori FAQ, cari indeks pertanyaan dan buka accordionnya secara langsung
+    if (item.category === 'FAQ') {
+      const matchIdx = faqs.findIndex(
+        (f) =>
+          f.q.toLowerCase().includes(item.title.toLowerCase().substring(0, 20)) ||
+          item.title.toLowerCase().includes(f.q.toLowerCase().substring(0, 20)) ||
+          f.a.toLowerCase().includes(item.content.toLowerCase().substring(0, 25))
+      );
+      if (matchIdx !== -1) {
+        setOpenFaqIndex(matchIdx);
+      }
     }
+
+    setTimeout(() => {
+      const el = document.getElementById(item.category === 'FAQ' ? `faq-item-${item.id}` : 'dashboard-info-content-container') || document.getElementById('dashboard-info-content-container');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 80);
   };
 
   const formatRoleLabel = (r: string) => {
@@ -1230,14 +1289,22 @@ export default function DashboardInfoHubPage() {
       {activeTab === 'FAQ' && (
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
-            <Card key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <Card
+              key={idx}
+              id={`faq-item-kb-faq-${idx + 1}`}
+              className={`rounded-2xl border transition-all overflow-hidden ${
+                openFaqIndex === idx
+                  ? 'border-[#D4A843] bg-amber-50/20 shadow-md ring-2 ring-[#D4A843]/30'
+                  : 'bg-white border-slate-200 shadow-xs'
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
                 className="w-full p-4 text-left flex items-center justify-between font-extrabold text-xs sm:text-sm text-[#1B3A5C] hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                <span>{faq.q}</span>
-                <span className="text-slate-400 font-mono text-base">
+                <span className="pr-4">{faq.q}</span>
+                <span className="text-slate-400 font-mono text-base shrink-0">
                   {openFaqIndex === idx ? '−' : '+'}
                 </span>
               </button>

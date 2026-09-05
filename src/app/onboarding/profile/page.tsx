@@ -17,11 +17,15 @@ export default function OnboardingProfilePage() {
   const [formData, setFormData] = useState({
     entityName: '',
     category: 'RESTAURANT',
+    province: 'Jawa Timur',
+    city: '',
+    district: '',
     address: '',
     contactPerson: '',
     phone: '',
     capacity: '',
     vehiclePlate: '',
+    operationalCoverage: 'Radius 5-10 Km Area Sekitar Outlet',
   });
 
   useEffect(() => {
@@ -58,58 +62,157 @@ export default function OnboardingProfilePage() {
       const initialName = reg?.name || '';
       const initialPhone = reg?.phone || '';
 
+      const defaultCapacity =
+        detectedRole === 'FOOD_CONSUMER'
+          ? 'Pribadi / Mahasiswa / Anak Kos'
+          : detectedRole === 'FOOD_BENEFICIARY'
+          ? '26 - 50 Jiwa'
+          : detectedRole === 'RESCUE_VOLUNTEER'
+          ? '16 - 30 Relawan'
+          : '31 - 50 Porsi / Hari';
+
       setFormData({
         entityName: initialName,
         category: defaultCategory,
+        province: 'Jawa Timur',
+        city: '',
+        district: '',
         address: '',
         contactPerson: initialName,
         phone: initialPhone,
-        capacity: detectedRole === 'FOOD_CONSUMER' ? 'Mahasiswa / Anak Kos' : '',
+        capacity: defaultCapacity,
         vehiclePlate: '',
+        operationalCoverage: '',
       });
     }
   }, []);
+
+  const handleAddressChange = (addr: string) => {
+    const lower = addr.toLowerCase();
+    let detectedProvince = formData.province || 'Jawa Timur';
+    let detectedCity = formData.city;
+    let detectedDistrict = formData.district;
+
+    // Smart auto-detect Magetan, Plaosan, Sarangan & Sidorejo
+    if (lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('magetan')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kabupaten Magetan';
+      if (lower.includes('plaosan') || lower.includes('sarangan')) {
+        detectedDistrict = 'Plaosan';
+      } else if (lower.includes('sidorejo')) {
+        detectedDistrict = 'Sidorejo';
+      }
+    } else if (lower.includes('surabaya')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kota Surabaya';
+      if (lower.includes('gubeng')) detectedDistrict = 'Gubeng';
+      else if (lower.includes('genteng')) detectedDistrict = 'Genteng';
+      else if (lower.includes('tegalsari')) detectedDistrict = 'Tegalsari';
+      else if (lower.includes('wonokromo')) detectedDistrict = 'Wonokromo';
+      else if (lower.includes('rungkut')) detectedDistrict = 'Rungkut';
+      else if (lower.includes('sukolilo')) detectedDistrict = 'Sukolilo';
+    } else if (lower.includes('madiun')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kota Madiun';
+    } else if (lower.includes('ngawi')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kabupaten Ngawi';
+    } else if (lower.includes('ponorogo')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kabupaten Ponorogo';
+    } else if (lower.includes('jakarta')) {
+      detectedProvince = 'DKI Jakarta';
+      if (lower.includes('selatan')) detectedCity = 'Jakarta Selatan';
+      else if (lower.includes('pusat')) detectedCity = 'Jakarta Pusat';
+      else if (lower.includes('barat')) detectedCity = 'Jakarta Barat';
+      else if (lower.includes('timur')) detectedCity = 'Jakarta Timur';
+      else if (lower.includes('utara')) detectedCity = 'Jakarta Utara';
+      else detectedCity = 'DKI Jakarta';
+    } else if (lower.includes('bandung')) {
+      detectedProvince = 'Jawa Barat';
+      detectedCity = 'Kota Bandung';
+    } else if (lower.includes('semarang')) {
+      detectedProvince = 'Jawa Tengah';
+      detectedCity = 'Kota Semarang';
+    } else if (lower.includes('jogja') || lower.includes('yogyakarta')) {
+      detectedProvince = 'DI Yogyakarta';
+      detectedCity = 'Kota Yogyakarta';
+    } else if (lower.includes('malang')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kota Malang';
+    } else if (lower.includes('sidoarjo')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kabupaten Sidoarjo';
+    } else if (lower.includes('gresik')) {
+      detectedProvince = 'Jawa Timur';
+      detectedCity = 'Kabupaten Gresik';
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      address: addr,
+      province: detectedProvince,
+      city: detectedCity,
+      district: detectedDistrict,
+    }));
+  };
 
   const handleQuickFillDemo = () => {
     if (role === 'FOOD_BENEFICIARY') {
       setFormData({
         entityName: 'Panti Asuhan Kasih Ibu Surabaya',
         category: 'YAYASAN_PANTI',
+        province: 'Jawa Timur',
+        city: 'Kota Surabaya',
+        district: 'Gubeng',
         address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
         contactPerson: 'Ibu Hajjah Maryam (Ketua Pengurus)',
         phone: '0812-3456-7890',
-        capacity: '80 Anak Asuh & Lansia',
+        capacity: '51 - 100 Jiwa',
         vehiclePlate: '',
+        operationalCoverage: 'Kota Surabaya & Sekitarnya',
       });
     } else if (role === 'RESCUE_VOLUNTEER') {
       setFormData({
         entityName: 'Komunitas Foodbank Surabaya Center',
         category: 'COMMUNITY_ORGANIZATION',
+        province: 'Jawa Timur',
+        city: 'Kota Surabaya',
+        district: 'Genteng',
         address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat',
         contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
         phone: '0812-3456-7890',
-        capacity: '35 Kurir Relawan Aktif',
+        capacity: '16 - 30 Relawan',
         vehiclePlate: '',
+        operationalCoverage: 'Aglomerasi Surabaya Raya',
       });
     } else if (role === 'FOOD_CONSUMER') {
       setFormData({
         entityName: registeredUser?.name || 'Farhan Ramadhan',
         category: 'STUDENT',
+        province: 'Jawa Timur',
+        city: 'Kota Surabaya',
+        district: 'Gayungan',
         address: 'Jl. Ketintang No. 12, Gayungan, Surabaya',
         contactPerson: registeredUser?.name || 'Farhan Ramadhan',
         phone: registeredUser?.phone || '0812-3456-7890',
-        capacity: 'Mahasiswa / Anak Kos',
+        capacity: 'Pribadi / Mahasiswa / Anak Kos',
         vehiclePlate: '',
+        operationalCoverage: 'Radius 10 km dari Tempat Tinggal',
       });
     } else {
       setFormData({
         entityName: 'Warung Bakso Pak Kumis Surabaya',
         category: 'RESTAURANT',
+        province: 'Jawa Timur',
+        city: 'Kota Surabaya',
+        district: 'Gubeng',
         address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
         contactPerson: 'Mas Doni (Penanggung Jawab Outlet)',
         phone: '0812-3456-7890',
-        capacity: '50 Porsi / Hari',
+        capacity: '31 - 50 Porsi / Hari',
         vehiclePlate: '',
+        operationalCoverage: 'Kec. Gubeng & Kota Surabaya',
       });
     }
   };
@@ -123,8 +226,14 @@ export default function OnboardingProfilePage() {
       name: finalName,
       entityName: finalName,
       contactPerson: finalName,
-      email: registeredUser?.email || 'konsumen@replate.id',
+      email: registeredUser?.email || (role === 'FOOD_CONSUMER' ? 'konsumen@replate.id' : 'mitra@replate.id'),
       role,
+      province: formData.province || 'Jawa Timur',
+      city: formData.city || 'Kabupaten Magetan',
+      district: formData.district || 'Plaosan',
+      address: formData.address,
+      capacity: formData.capacity,
+      operationalCoverage: `${formData.district ? 'Kec. ' + formData.district + ', ' : ''}${formData.city || 'Kab. Magetan'} (Radius 12 km)`,
     };
 
     try {
@@ -133,7 +242,7 @@ export default function OnboardingProfilePage() {
 
     if (role === 'FOOD_CONSUMER') {
       setLoading(true);
-      setSuccessMessage(' Akun Food Consumer Anda Resmi Aktif! Mengalihkan ke Dashboard...');
+      setSuccessMessage('Selamat! Akun Food Consumer Anda berhasil diaktifkan. Mengalihkan ke Dashboard...');
 
       try {
         localStorage.setItem(
@@ -318,21 +427,58 @@ export default function OnboardingProfilePage() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                    4. Alamat Domisili Pengantaran / Penjemputan Makanan:
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                    placeholder="Contoh: Jl. Ketintang No. 12, Kel. Ketintang, Kec. Gayungan, Kota Surabaya, Jawa Timur"
-                    required
-                  />
-                  <span className="text-[10px] text-slate-300">
-                    Alamat ini tersinkronisasi otomatis dengan modul Checkout dan penentuan radius makanan terdekat.
-                  </span>
+                <div className="space-y-3 p-4 bg-[#142C47] rounded-xl border border-slate-700">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      4. Alamat Domisili Pengantaran / Penjemputan Makanan:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.address}
+                      onChange={(e) => handleAddressChange(e.target.value)}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      placeholder="Contoh: Jl. Raya Sarangan No. 45, Plaosan, Magetan / Jl. Ketintang No. 12, Surabaya..."
+                      required
+                    />
+                    <p className="text-[11px] text-amber-200/90 font-medium">
+                      💡 Ketik alamat Anda. Sistem otomatis mendeteksi Kota dan Kecamatan di bawah.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-slate-200 font-bold block">Provinsi:</label>
+                      <input
+                        type="text"
+                        value={formData.province}
+                        onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-slate-200 font-bold block">Kota / Kabupaten:</label>
+                      <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        placeholder="Contoh: Kabupaten Magetan"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-slate-200 font-bold block">Kecamatan:</label>
+                      <input
+                        type="text"
+                        value={formData.district}
+                        onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        placeholder="Contoh: Plaosan"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
@@ -344,8 +490,8 @@ export default function OnboardingProfilePage() {
                     {isBeneficiary
                       ? 'Panti Asuhan / Yayasan:'
                       : isVolunteer
-                      ? 'Organisasi / Komunitas Food Rescue:'
-                      : 'Restoran / Toko / Outlet:'}
+                      ? 'Komunitas / Organisasi Relawan Food Rescue:'
+                      : 'Outlet / Restoran / Badan Usaha:'}
                   </label>
                   <input
                     type="text"
@@ -354,9 +500,9 @@ export default function OnboardingProfilePage() {
                     className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
                     placeholder={
                       isBeneficiary
-                        ? 'Contoh: Panti Asuhan Kasih Ibu Surabaya'
+                        ? 'Contoh: Panti Asuhan Kasih Ibu'
                         : isVolunteer
-                        ? 'Contoh: Komunitas Garda Pangan Surabaya'
+                        ? 'Contoh: Garda Pangan Surabaya'
                         : 'Contoh: Warung Bakso Pak Kumis'
                     }
                     required
@@ -405,38 +551,106 @@ export default function OnboardingProfilePage() {
                         ? 'Jumlah Anggota Kurir Relawan Aktif:'
                         : 'Kapasitas Porsi / Hari:'}
                     </label>
-                    <input
-                      type="text"
-                      value={formData.capacity}
-                      onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                      placeholder={
-                        isBeneficiary
-                          ? 'Contoh: 80 Anak Asuh'
-                          : isVolunteer
-                          ? 'Contoh: 35 Kurir Relawan'
-                          : 'Contoh: 50 Porsi / Hari'
-                      }
-                      required
-                    />
+                    {isBeneficiary ? (
+                      <select
+                        value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer"
+                        required
+                      >
+                        <option value="">-- Pilih Jumlah Penerima Manfaat --</option>
+                        <option value="1 - 25 Jiwa">1 - 25 Jiwa (Panti Asuhan / Rumah Singgah Kecil)</option>
+                        <option value="26 - 50 Jiwa">26 - 50 Jiwa (Panti Asuhan Menengah)</option>
+                        <option value="51 - 100 Jiwa">51 - 100 Jiwa (Panti Asuhan Skala Besar / Asrama)</option>
+                        <option value="> 100 Jiwa">&gt; 100 Jiwa (Kompleks Panti Asuhan & Lansia)</option>
+                      </select>
+                    ) : isVolunteer ? (
+                      <select
+                        value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer"
+                        required
+                      >
+                        <option value="">-- Pilih Jumlah Tim Relawan --</option>
+                        <option value="1 - 5 Relawan">1 - 5 Kurir Relawan (Komunitas Perintis)</option>
+                        <option value="6 - 15 Relawan">6 - 15 Kurir Relawan (Tim Logistik Wilayah)</option>
+                        <option value="16 - 30 Relawan">16 - 30 Kurir Relawan (Armada Komunitas Aktif)</option>
+                        <option value="> 30 Relawan">&gt; 30 Kurir Relawan (Organisasi Logistik Skala Kota)</option>
+                      </select>
+                    ) : (
+                      <select
+                        value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer"
+                        required
+                      >
+                        <option value="">-- Pilih Kapasitas Porsi per Hari --</option>
+                        <option value="1 - 15 Porsi / Hari">1 - 15 Porsi / Hari (Usaha Mikro / Warung Kecil)</option>
+                        <option value="16 - 30 Porsi / Hari">16 - 30 Porsi / Hari (Warung Makan / Bakery Rumahan)</option>
+                        <option value="31 - 50 Porsi / Hari">31 - 50 Porsi / Hari (Restoran Menengah / Kafe)</option>
+                        <option value="51 - 100 Porsi / Hari">51 - 100 Porsi / Hari (Restoran Ramai / Bakery Besar)</option>
+                        <option value="101 - 250 Porsi / Hari">101 - 250 Porsi / Hari (Katering / Hotel / Resto Besar)</option>
+                        <option value="> 250 Porsi / Hari">&gt; 250 Porsi / Hari (Supermarket / Sentra Pangan)</option>
+                      </select>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                    4.{' '}
-                    {isVolunteer
-                      ? 'Alamat Posko Utama / Basecamp Logistik Komunitas di Indonesia:'
-                      : 'Alamat Lengkap Bangunan Operasional di Indonesia:'}
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                    placeholder="Contoh: Jl. Sudirman No. 45, Jakarta / Jl. Raya Gubeng No. 88, Surabaya / Jl. Dago No. 12, Bandung..."
-                    required
-                  />
+                <div className="space-y-3 p-4 bg-[#142C47] rounded-xl border border-slate-700">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      4.{' '}
+                      {isVolunteer
+                        ? 'Alamat Posko Utama / Basecamp Logistik Komunitas di Indonesia:'
+                        : 'Alamat Lengkap Bangunan Operasional di Indonesia:'}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.address}
+                      onChange={(e) => handleAddressChange(e.target.value)}
+                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      placeholder="Contoh: Jl. Raya Sarangan No. 45, Plaosan, Magetan / Jl. Raya Gubeng No. 88, Surabaya..."
+                      required
+                    />
+                    <p className="text-[11px] text-amber-200/90 font-medium">
+                      💡 Ketik alamat Anda. Sistem otomatis mendeteksi Kota dan Kecamatan di bawah.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-slate-200 font-bold block">Provinsi:</label>
+                      <input
+                        type="text"
+                        value={formData.province}
+                        onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-slate-200 font-bold block">Kota / Kabupaten:</label>
+                      <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        placeholder="Contoh: Kabupaten Magetan"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-slate-200 font-bold block">Kecamatan:</label>
+                      <input
+                        type="text"
+                        value={formData.district}
+                        onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        placeholder="Contoh: Plaosan"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
