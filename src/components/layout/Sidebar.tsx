@@ -10,6 +10,13 @@ export interface SidebarProps {
   role?: string;
 }
 
+export interface NavLinkItem {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  badge?: string;
+}
+
 const HomeIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -283,7 +290,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
     },
   ];
 
-  const commonLinks = [
+  const commonLinks: Array<{ href: string; label: string; icon: React.ReactNode; badge?: string }> = [
+    {
+      href: '/dashboard/intelligence',
+      label: 'Replate AI & Logistik',
+      badge: '5 Pilar',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+        </svg>
+      ),
+    },
     {
       href: '/dashboard/info',
       label: 'Pusat Informasi & SOP',
@@ -312,7 +329,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   if (roleUp.includes('RESCUE') || roleUp.includes('VOLUNTEER') || roleUp.includes('PARTNER')) links = partnerLinks;
   if (roleUp.includes('ADMIN')) links = adminLinks;
 
-  const allLinks = [
+  const allLinks: NavLinkItem[] = [
     ...links,
     ...commonLinks.filter((c) => !links.some((l) => l.label === c.label || l.href === c.href)),
   ];
@@ -387,14 +404,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpenMobile(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
                       ? 'bg-[#D4A843] text-white shadow-md'
                       : 'text-slate-200 hover:bg-[#142C47] hover:text-white'
                   }`}
                 >
-                  <span>{link.icon}</span>
-                  <span className="truncate">{link.label}</span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span>{link.icon}</span>
+                    <span className="truncate">{link.label}</span>
+                  </div>
+                  {link.badge && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider shrink-0 ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                    }`}>
+                      {link.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}

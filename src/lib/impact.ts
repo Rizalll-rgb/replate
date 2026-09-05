@@ -46,3 +46,14 @@ export function calculateImpactMetrics(foodWeightKg: number, peopleFed?: number)
     carKmEquivalent,
   };
 }
+
+// Re-export Pilar 5 IPCC & Bappenas ESG Carbon Engine
+export {
+  calculateIppcEsgImpact,
+  generatePrintableEsgCertificate,
+  IPCC_DEFAULT_PARAMS,
+} from './esgCarbonEngine';
+export type {
+  EsgImpactReport,
+  PrintableEsgCertificate,
+} from './esgCarbonEngine';

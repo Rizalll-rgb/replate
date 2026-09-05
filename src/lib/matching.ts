@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { calculateDistance } from '@/lib/utils';
 import { MATCHING_WEIGHTS, MATCHING_CONFIG } from '@/lib/constants';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { calculateThermalDecayRUI, FoodSafetyCategory } from '@/lib/thermalRescueEngine';
 import type { SurplusFood, User } from '@prisma/client';
 
 // ============================================
@@ -234,14 +235,36 @@ function calculateUrgencyScore(food: SurplusFood) {
         return { raw: 0, normalized: 0, weighted: 0 };
     }
 
-    // Higher score when closer to deadline (more urgent)
-    const urgencyRatio = 1 - (remainingHours / Math.max(totalHours, 1));
-    const normalized = Math.min(Math.max(urgencyRatio, 0), 1);
+    // Map food category to BPOM FoodSafetyCategory
+    let safetyCat: FoodSafetyCategory = 'COOKED_MEALS';
+    const rawCat = (food.foodCategory || '').toUpperCase();
+    if (rawCat.includes('SOUP') || rawCat.includes('KUAH') || rawCat.includes('SOTO') || rawCat.includes('RAWON')) {
+        safetyCat = 'COOKED_HOT_GRAVY';
+    } else if (rawCat.includes('BAKERY') || rawCat.includes('ROTI') || rawCat.includes('PASTRY') || rawCat.includes('KUE')) {
+        safetyCat = 'BAKERY_PASTRY';
+    } else if (rawCat.includes('DAIRY') || rawCat.includes('SUSU') || rawCat.includes('COLD')) {
+        safetyCat = 'DAIRY_COLD';
+    } else if (rawCat.includes('PRODUCE') || rawCat.includes('SAYUR') || rawCat.includes('BUAH')) {
+        safetyCat = 'FRESH_PRODUCE';
+    } else if (rawCat.includes('DRY') || rawCat.includes('CANNED') || rawCat.includes('KERING')) {
+        safetyCat = 'DRY_BAKERY_CANNED';
+    }
+
+    const ruiResult = calculateThermalDecayRUI({
+        category: safetyCat,
+        cookedOrPackedTime: food.createdAt,
+        portions: food.remainingQuantity,
+    });
+
+    // Blend traditional deadline ratio with microbiological RUI urgency
+    const traditionalUrgency = Math.min(Math.max(1 - (remainingHours / Math.max(totalHours, 1)), 0), 1);
+    const ruiNormalized = ruiResult.rescueUrgencyIndex / 100;
+    const combinedNormalized = Math.min(1.0, (traditionalUrgency * 0.4) + (ruiNormalized * 0.6));
 
     return {
         raw: remainingHours,
-        normalized,
-        weighted: normalized * MATCHING_WEIGHTS.urgency,
+        normalized: combinedNormalized,
+        weighted: combinedNormalized * MATCHING_WEIGHTS.urgency,
     };
 }
 
