@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardBody, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin, Clock, Flame, ShieldCheck, Thermometer } from 'lucide-react';
+import { calculateThermalDecayRUI, FoodSafetyCategory } from '@/lib/thermalRescueEngine';
 
 export interface FoodCardProps {
   id: string;
@@ -86,6 +87,31 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
   const discountPrice = props.discountPrice !== undefined && props.discountPrice !== null ? props.discountPrice : (props.price || 0);
   const originalPrice = props.originalPrice || undefined;
 
+  // Pilar 3 BPOM Thermal RUI calculation
+  let safetyCat: FoodSafetyCategory = 'COOKED_MEALS';
+  const rawCat = (category || props.foodCategory || '').toUpperCase();
+  const rawTitle = (title || '').toUpperCase();
+  if (rawCat.includes('SOUP') || rawCat.includes('KUAH') || rawTitle.includes('BAKSO') || rawTitle.includes('SOTO') || rawTitle.includes('RAWON')) {
+    safetyCat = 'COOKED_HOT_GRAVY';
+  } else if (rawCat.includes('BAKERY') || rawCat.includes('ROTI') || rawCat.includes('PASTRY') || rawCat.includes('KUE')) {
+    safetyCat = 'BAKERY_PASTRY';
+  } else if (rawCat.includes('DAIRY') || rawCat.includes('SUSU') || rawCat.includes('COLD')) {
+    safetyCat = 'DAIRY_COLD';
+  } else if (rawCat.includes('PRODUCE') || rawCat.includes('SAYUR') || rawCat.includes('BUAH')) {
+    safetyCat = 'FRESH_PRODUCE';
+  } else if (rawCat.includes('DRY') || rawCat.includes('CANNED') || rawCat.includes('KERING')) {
+    safetyCat = 'DRY_BAKERY_CANNED';
+  }
+
+  const ruiResult = useMemo(() => {
+    return calculateThermalDecayRUI({
+      category: safetyCat,
+      ambientTemperatureC: 31,
+      portions: rawQtyNum,
+      cookedOrPackedTime: (props as any).createdAt || new Date(),
+    });
+  }, [safetyCat, rawQtyNum, (props as any).createdAt]);
+
   let pickupTimeStr = props.pickupTime || 'Hari ini';
   if (!props.pickupTime && props.pickupDeadline) {
     try {
@@ -158,6 +184,29 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
           }`}>
             {quantityStr}
           </span>
+          {/* BPOM Rescue Urgency Index Badge */}
+          {!isOutOfStock && (
+            <span
+              className={`text-[8.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg backdrop-blur-xs flex items-center gap-0.5 sm:gap-1 ${
+                ruiResult.rescueUrgencyIndex >= 70
+                  ? 'bg-rose-600/90 text-white border border-rose-400/50 shadow-xs'
+                  : 'bg-emerald-900/85 text-emerald-200 border border-emerald-400/30'
+              }`}
+              title={`Rescue Urgency Index BPOM: ${ruiResult.rescueUrgencyIndex}/100. ${ruiResult.recommendedDispatchAction}`}
+            >
+              {ruiResult.rescueUrgencyIndex >= 70 ? (
+                <>
+                  <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300 fill-amber-300 animate-pulse shrink-0" />
+                  <span>RUI {ruiResult.rescueUrgencyIndex} • Urgen</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400 shrink-0" />
+                  <span>BPOM {Math.max(0, Math.round(ruiResult.remainingSafeMinutes / 60))}j Aman</span>
+                </>
+              )}
+            </span>
+          )}
         </div>
         {props.distance && (
           <span className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 text-[8.5px] sm:text-[10px] bg-slate-900/80 text-amber-300 font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs flex items-center gap-0.5 sm:gap-1 z-20">
@@ -180,6 +229,11 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
           <p className="text-[9.5px] sm:text-[11px] text-slate-500 font-medium truncate flex items-center gap-1">
             <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400 shrink-0" />
             <span>{isOutOfStock ? 'Porsi telah habis terbagi' : pickupTimeStr}</span>
+            {!isOutOfStock && (
+              <span className="text-slate-400 text-[9px] font-semibold">
+                (Batas aman: ~{ruiResult.effectiveMaxHours}j)
+              </span>
+            )}
           </p>
         </div>
 

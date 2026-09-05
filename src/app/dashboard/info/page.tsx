@@ -4,6 +4,13 @@ import React, { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import {
+  calculateThermalDecayRUI,
+  FOOD_CATEGORY_PROFILES,
+  FoodSafetyCategory,
+} from '@/lib/thermalRescueEngine';
+import { calculateIppcEsgImpact } from '@/lib/esgCarbonEngine';
+import { Thermometer, ShieldAlert, CheckCircle2, AlertTriangle, Flame, ShieldCheck } from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -33,17 +40,39 @@ export default function DashboardInfoHubPage() {
   const [simulatedPortions, setSimulatedPortions] = useState<number>(50);
 
   // 1 Porsi = 0.4 kg makanan siap santap
-  const calcWasteKg = (simulatedPortions * 0.4).toFixed(1);
-  // Bappenas 2000-2019: 1 ton FW = 4.051,5 kg CO2e (4.0515 kg CO2e / kg)
-  const calcCo2eKg = (Number(calcWasteKg) * 4.0515).toFixed(1);
-  // Bappenas Kerugian Ekonomi: Rp 107-346 Triliun / th (~Rp 12.500 / kg)
-  const calcEconomicRp = Math.round(Number(calcWasteKg) * 12500);
-  // Bappenas Energi Nutrisi: 618-989 kkal/kapita (~840 kkal/kg pangan, ~336 kkal/porsi)
+  const calcWasteKgNum = Number((simulatedPortions * 0.4).toFixed(1));
+  const ippcReport = useMemo(() => calculateIppcEsgImpact(calcWasteKgNum), [calcWasteKgNum]);
+  const calcWasteKg = calcWasteKgNum.toFixed(1);
+  // Bappenas & IPCC Tier 2
+  const calcCo2eKg = ippcReport.totalNetCo2eSavedKg.toFixed(1);
+  const calcEconomicRp = Math.round(calcWasteKgNum * 12500);
   const calcEnergyKcal = Math.round(simulatedPortions * 336);
-  // Metana TPA
-  const calcCh4Kg = (Number(calcWasteKg) * 0.07).toFixed(2);
-  // Ekuivalensi Jarak Mobil Bensin (0.192 kg CO2/km)
+  const calcCh4Kg = ippcReport.methaneAvoidedKg.toFixed(2);
   const calcCarKm = Math.round(Number(calcCo2eKg) / 0.192);
+
+  // Pilar 3: Interactive BPOM Thermal Decay & Sensory Inspection State
+  const [bpomCategory, setBpomCategory] = useState<FoodSafetyCategory>('COOKED_HOT_GRAVY');
+  const [bpomTemp, setBpomTemp] = useState<number>(32);
+  const [bpomElapsedHours, setBpomElapsedHours] = useState<number>(2.0);
+  const [bpomHasCoolBox, setBpomHasCoolBox] = useState<boolean>(false);
+  const [bpomChecklist, setBpomChecklist] = useState({
+    odorNormal: true,
+    textureNormal: true,
+    colorNormal: true,
+    noSlimeOrFroth: true,
+  });
+
+  const bpomRuiResult = useMemo(() => {
+    return calculateThermalDecayRUI({
+      category: bpomCategory,
+      ambientTemperatureC: bpomTemp,
+      cookedOrPackedTime: new Date(Date.now() - bpomElapsedHours * 3600 * 1000),
+      isUsingCoolbox: bpomHasCoolBox,
+      portions: 50,
+    });
+  }, [bpomCategory, bpomTemp, bpomElapsedHours, bpomHasCoolBox]);
+
+  const isOrganolepticPass = bpomChecklist.odorNormal && bpomChecklist.textureNormal && bpomChecklist.colorNormal && bpomChecklist.noSlimeOrFroth;
 
   const roleWorkflows = {
     PROVIDER: {
@@ -1280,6 +1309,210 @@ export default function DashboardInfoHubPage() {
                   <p className="text-[11px] text-slate-600 font-medium">{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Interactive BPOM Thermal Decay & RUI Simulation Engine */}
+          <div className="p-6 sm:p-8 bg-[#0F1D2E] text-white rounded-3xl border-2 border-[#D4A843]/50 shadow-xl space-y-6">
+            <div className="space-y-1.5 border-b border-slate-700/60 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                  Pilar 3 BPOM Safety Standard
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">Model Arrhenius (25°C - 38°C)</span>
+              </div>
+              <h3 className="text-xl font-black text-white flex items-center gap-2">
+                <Thermometer className="w-5 h-5 text-amber-400" />
+                <span>Simulasi Peluruhan Termal Tropis & Rescue Urgency Index (RUI)</span>
+              </h3>
+              <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                Uji coba langsung bagaimana suhu udara lingkungan dan kotak pendingin insulated mempengaruhi jendela keselamatan konsumsi makanan surplus olahan:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column: Interactive Parameters */}
+              <div className="lg:col-span-7 space-y-4">
+                {/* Category Select */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-slate-300 block">Kategori Pangan Olahan:</label>
+                  <select
+                    value={bpomCategory}
+                    onChange={(e) => setBpomCategory(e.target.value as FoodSafetyCategory)}
+                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-[#D4A843]"
+                  >
+                    {Object.entries(FOOD_CATEGORY_PROFILES).map(([key, prof]) => (
+                      <option key={key} value={key}>
+                        {prof.nameIndo} (Batas dasar: {prof.maxSafeHours} jam)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Temperature Slider */}
+                <div className="space-y-1.5 p-3.5 bg-slate-900/80 rounded-2xl border border-slate-800">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-extrabold text-slate-300">Suhu Udara Lingkungan Tropis:</span>
+                    <span className="font-mono font-black text-amber-400 text-sm">{bpomTemp} °C</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="25"
+                    max="38"
+                    step="1"
+                    value={bpomTemp}
+                    onChange={(e) => setBpomTemp(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#D4A843]"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                    <span>25°C (Ruang AC)</span>
+                    <span>31°C (Suhu Rata-rata)</span>
+                    <span>38°C (Siang Terik Panas)</span>
+                  </div>
+                </div>
+
+                {/* Elapsed Hours Slider */}
+                <div className="space-y-1.5 p-3.5 bg-slate-900/80 rounded-2xl border border-slate-800">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-extrabold text-slate-300">Waktu Berlalu Sejak Selesai Dimasak:</span>
+                    <span className="font-mono font-black text-cyan-400 text-sm">{bpomElapsedHours.toFixed(1)} Jam</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="10"
+                    step="0.5"
+                    value={bpomElapsedHours}
+                    onChange={(e) => setBpomElapsedHours(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                    <span>0.5 Jam (Baru Masak)</span>
+                    <span>3 Jam (Batas Kuah)</span>
+                    <span>8 Jam (Batas Kue)</span>
+                    <span>10 Jam</span>
+                  </div>
+                </div>
+
+                {/* Cooler Box Checkbox */}
+                <label className="flex items-center gap-3 p-3.5 bg-slate-900/80 rounded-2xl border border-slate-800 cursor-pointer hover:border-emerald-500/50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={bpomHasCoolBox}
+                    onChange={(e) => setBpomHasCoolBox(e.target.checked)}
+                    className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+                  />
+                  <div className="text-xs">
+                    <strong className="text-white block font-bold">Gunakan Insulated Cooler Box / Kotak Rantai Dingin</strong>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Meredam akselerasi termal sebesar 45% dan memperpanjang toleransi aman konsumsi.
+                    </span>
+                  </div>
+                </label>
+
+                {/* Organoleptic Sensory Checklist */}
+                <div className="space-y-2 p-3.5 bg-slate-900/80 rounded-2xl border border-slate-800">
+                  <span className="text-xs font-extrabold text-[#D4A843] block">
+                    4-Step Uji Sensorik Lapangan (Organoleptik BPOM):
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={bpomChecklist.odorNormal}
+                        onChange={(e) => setBpomChecklist(prev => ({ ...prev, odorNormal: e.target.checked }))}
+                        className="rounded text-emerald-500 cursor-pointer"
+                      />
+                      <span>Aroma Segar (Bebas Asam)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={bpomChecklist.textureNormal}
+                        onChange={(e) => setBpomChecklist(prev => ({ ...prev, textureNormal: e.target.checked }))}
+                        className="rounded text-emerald-500 cursor-pointer"
+                      />
+                      <span>Tekstur Normal (Kenyal)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={bpomChecklist.colorNormal}
+                        onChange={(e) => setBpomChecklist(prev => ({ ...prev, colorNormal: e.target.checked }))}
+                        className="rounded text-emerald-500 cursor-pointer"
+                      />
+                      <span>Warna Visual Asli</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={bpomChecklist.noSlimeOrFroth}
+                        onChange={(e) => setBpomChecklist(prev => ({ ...prev, noSlimeOrFroth: e.target.checked }))}
+                        className="rounded text-emerald-500 cursor-pointer"
+                      />
+                      <span>Bebas Lendir & Busa</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Dynamic Results */}
+              <div className="lg:col-span-5 flex flex-col justify-between p-5 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                    STATUS KELAYAKAN BPOM REAL-TIME
+                  </span>
+
+                  {/* Urgency Gauge Card */}
+                  <div className={`p-4 rounded-2xl border text-center space-y-1 ${
+                    bpomRuiResult.urgencyLevel === 'CRITICAL_RESCUE'
+                      ? 'bg-rose-950/70 border-rose-600/70 text-rose-200'
+                      : bpomRuiResult.urgencyLevel === 'HIGH_PRIORITY'
+                      ? 'bg-orange-950/70 border-orange-600/70 text-orange-200'
+                      : bpomRuiResult.urgencyLevel === 'MODERATE'
+                      ? 'bg-amber-950/70 border-amber-600/70 text-amber-200'
+                      : 'bg-emerald-950/70 border-emerald-600/70 text-emerald-200'
+                  }`}>
+                    <span className="text-[10px] font-black uppercase tracking-widest block">
+                      RESCUE URGENCY INDEX (RUI)
+                    </span>
+                    <span className="text-4xl font-black font-mono block">
+                      {bpomRuiResult.rescueUrgencyIndex.toFixed(1)} / 100
+                    </span>
+                    <span className="text-xs font-black uppercase tracking-wider block">
+                      {bpomRuiResult.urgencyLabelIndo}
+                    </span>
+                  </div>
+
+                  {/* Safe Window & Thermal Specs */}
+                  <div className="space-y-2 text-xs font-medium text-slate-300 pt-1">
+                    <div className="flex justify-between py-1 border-b border-slate-800">
+                      <span>Batas Aman Efektif:</span>
+                      <strong className="text-white font-mono">{bpomRuiResult.effectiveMaxHours} Jam</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-800">
+                      <span>Sisa Toleransi Waktu:</span>
+                      <strong className={`font-mono ${bpomRuiResult.remainingSafeMinutes <= 0 ? 'text-rose-400 font-black' : 'text-emerald-400'}`}>
+                        {bpomRuiResult.remainingSafeMinutes <= 0 ? '0 Menit (Kedaluwarsa)' : `${Math.round(bpomRuiResult.remainingSafeMinutes)} Menit (~${(bpomRuiResult.remainingSafeMinutes / 60).toFixed(1)} Jam)`}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-800">
+                      <span>Uji Organoleptik:</span>
+                      <strong className={isOrganolepticPass ? 'text-emerald-400' : 'text-rose-400'}>
+                        {isOrganolepticPass ? ' Lolos Syarat Sensorik' : ' Ditolak (Ada Kerusakan)'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendation Box */}
+                <div className="p-3.5 bg-slate-800/80 rounded-xl border border-slate-700 text-xs space-y-1">
+                  <strong className="text-[#D4A843] block font-extrabold">Rekomendasi Tindakan:</strong>
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                    {bpomRuiResult.recommendedDispatchAction}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

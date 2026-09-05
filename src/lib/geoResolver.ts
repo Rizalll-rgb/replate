@@ -11,6 +11,9 @@
  * 5. Supports real-time OSM Nominatim / Photon geocoding with intelligent query cleaning.
  */
 
+import { parseIndonesianAddressSemantic } from './geoAiParser';
+import { searchKemendagriRegion } from './kemendagriDirectory';
+
 export interface ResolvedAddressResult {
   rawAddress: string;
   province?: string;
@@ -820,11 +823,36 @@ export function resolveIndonesianAddress(rawInput: string): ResolvedAddressResul
     precision = 'province';
     confidence = 0.6;
   } else {
-    // Intelligent contextual fallback (default to regional hub: Magetan / Surabaya)
-    resolvedLat = -7.65569;
-    resolvedLng = 111.27984;
-    precision = 'fallback';
-    confidence = 0.4;
+    // Intelligent contextual fallback using Pilar 2: Kemendagri Fuzzy Phonetic Directory
+    try {
+      const kemendagriMatches = searchKemendagriRegion(raw, { maxResults: 1 });
+      if (kemendagriMatches.length > 0 && kemendagriMatches[0].similarity >= 0.65) {
+        const best = kemendagriMatches[0];
+        resolvedLat = best.region.lat;
+        resolvedLng = best.region.lng;
+        precision = 'city';
+        confidence = Math.max(0.7, best.similarity);
+        matchedRegency = {
+          name: best.region.name,
+          type: best.region.type === 'Kota' ? 'Kota' : 'Kabupaten',
+          province: best.region.provinceName,
+          lat: best.region.lat,
+          lng: best.region.lng,
+          districts: {},
+        };
+      } else {
+        // Default to regional hub: Magetan / Surabaya
+        resolvedLat = -7.65569;
+        resolvedLng = 111.27984;
+        precision = 'fallback';
+        confidence = 0.4;
+      }
+    } catch (_) {
+      resolvedLat = -7.65569;
+      resolvedLng = 111.27984;
+      precision = 'fallback';
+      confidence = 0.4;
+    }
   }
 
   // Canonical Formatted Hierarchy Assembly
@@ -998,6 +1026,21 @@ export function extractIndonesianAddressMicroTokens(input: string): MicroAddress
     houseNumber = houseMatch[0].toLowerCase().startsWith('blok') ? `Blok ${rawVal.toUpperCase()}` : `No. ${rawVal.toUpperCase()}`;
     text = text.replace(houseMatch[0], ' ');
   }
+
+  // Complement with Pilar 1 AI Indonesian Semantic Parser & Slang Lexicon
+  try {
+    const aiParsed = parseIndonesianAddressSemantic(input);
+    if (!houseNumber && aiParsed.houseNumber) {
+      houseNumber = aiParsed.houseNumber;
+    }
+    if (!rtRw && aiParsed.rtRwFormatted) {
+      rtRw = aiParsed.rtRwFormatted;
+    }
+    if (!landmark) {
+      const parts = [aiParsed.primaryLandmark, aiParsed.microLandmark].filter(Boolean);
+      if (parts.length > 0) landmark = parts.join(' - ');
+    }
+  } catch (_) {}
 
   const cleanedBase = text
     .replace(/\s*,\s*,+/g, ', ')

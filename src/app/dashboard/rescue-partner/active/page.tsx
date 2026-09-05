@@ -22,6 +22,14 @@ import {
   TruckIcon
 } from '@/components/ui/Icon';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import {
+  optimizeClusterRoute,
+  FLEET_SPECS,
+  FleetType,
+  RouteWaypoint,
+  OptimizedClusterPlan,
+} from '@/lib/clusterRoutingEngine';
+import { Navigation, Fuel, TrendingDown, Sparkles } from 'lucide-react';
 
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
@@ -76,6 +84,53 @@ export default function PartnerActivePickupsPage() {
 
   const [activePickups, setActivePickups] = useState<any[]>(defaultActivePickups);
   const [completedPickups, setCompletedPickups] = useState<any[]>(defaultCompletedPickups);
+
+  // Pilar 4: 2-Opt Multi-Hop Routing State
+  const [selectedFleet, setSelectedFleet] = useState<FleetType>('MOTORCYCLE_COOLBOX');
+  const [showRouteOptimizer, setShowRouteOptimizer] = useState<boolean>(true);
+
+  const { pickupsList, dropoffsList } = React.useMemo(() => {
+    const picks: RouteWaypoint[] = [];
+    const drops: RouteWaypoint[] = [];
+    activePickups.forEach((pickup, idx) => {
+      picks.push({
+        id: `pick-${pickup.code}`,
+        name: `${pickup.providerName} (${pickup.foodName})`,
+        address: pickup.providerAddress || 'Surabaya Pusat',
+        type: 'PICKUP',
+        lat: -7.2600 + (idx * 0.012),
+        lng: 112.7450 + (idx * 0.008),
+        weightKg: 15,
+        portions: 30,
+        rescueUrgencyIndex: pickup.status === 'IN_TRANSIT' ? 88 : 74,
+      });
+      drops.push({
+        id: `drop-${pickup.code}`,
+        name: `${pickup.shelterName} (Penerima)`,
+        address: pickup.shelterAddress || 'Kota Surabaya',
+        type: 'DROPOFF',
+        lat: -7.2750 + (idx * 0.015),
+        lng: 112.7550 + (idx * 0.012),
+        weightKg: 15,
+        portions: 30,
+        rescueUrgencyIndex: 60,
+      });
+    });
+    return { pickupsList: picks, dropoffsList: drops };
+  }, [activePickups]);
+
+  const optimizedPlan: OptimizedClusterPlan | null = React.useMemo(() => {
+    if (pickupsList.length === 0) return null;
+    const depot: RouteWaypoint = {
+      id: 'depot-surabaya',
+      lat: -7.2575,
+      lng: 112.7521,
+      name: 'Hub Relawan Replate Surabaya',
+      type: 'DEPOT',
+      address: 'Genteng, Surabaya',
+    };
+    return optimizeClusterRoute(depot, pickupsList, dropoffsList, selectedFleet);
+  }, [selectedFleet, pickupsList, dropoffsList]);
 
   // Sync with localStorage replate_claims
   useEffect(() => {
@@ -354,7 +409,108 @@ export default function PartnerActivePickupsPage() {
               </Link>
             </div>
           ) : (
-            activePickups.map((item) => (
+            <>
+              {/* Pilar 4: 2-Opt TSP Multi-Hop Consolidated Route Plan */}
+              {optimizedPlan && (
+                <div className="p-5 bg-[#14263B] text-white rounded-3xl border-2 border-[#D4A843]/60 shadow-lg space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-[#D4A843] text-slate-950 flex items-center justify-center font-black shadow-md shrink-0">
+                        <Navigation className="w-5 h-5 text-slate-950" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                            Pilar 4: Heuristic 2-Opt TSP
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-bold">
+                            Hemat {optimizedPlan.efficiencyGainPercent.toFixed(1)}% BBM & Waktu
+                          </span>
+                        </div>
+                        <h4 className="text-sm sm:text-base font-black text-white">
+                          Rekomendasi Rute Multi-Hop Konsolidasi Terpendek
+                        </h4>
+                      </div>
+                    </div>
+
+                    {/* Fleet Selector */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-slate-400 font-semibold hidden sm:inline">Armada:</span>
+                      <select
+                        value={selectedFleet}
+                        onChange={(e) => setSelectedFleet(e.target.value as FleetType)}
+                        className="bg-slate-900 border border-slate-700 text-xs font-bold text-white rounded-xl p-2 focus:ring-2 focus:ring-[#D4A843]"
+                      >
+                        <option value="MOTORCYCLE_COOLBOX">Motor Box Cooler (25 kg)</option>
+                        <option value="CAR_STERILE_BOX">Mobil Steril (150 kg)</option>
+                        <option value="VAN_LOGISTICS">Van Logistik (500 kg)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Savings Cards Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 text-center space-y-0.5">
+                      <span className="text-[10px] text-slate-400 block font-bold">Jarak Terpangkas</span>
+                      <strong className="text-sm sm:text-base font-black text-emerald-400 font-mono">
+                        {optimizedPlan.distanceSavedKm} km
+                      </strong>
+                      <span className="text-[9px] text-slate-500 block">Dari {optimizedPlan.unoptimizedDistanceKm} km</span>
+                    </div>
+                    <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 text-center space-y-0.5">
+                      <span className="text-[10px] text-slate-400 block font-bold">Waktu Terhemat</span>
+                      <strong className="text-sm sm:text-base font-black text-cyan-400 font-mono">
+                        {optimizedPlan.timeSavedMinutes} Menit
+                      </strong>
+                      <span className="text-[9px] text-slate-500 block">Estimasi {optimizedPlan.optimizedDurationMinutes} m</span>
+                    </div>
+                    <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 text-center space-y-0.5">
+                      <span className="text-[10px] text-slate-400 block font-bold">BBM Terhemat</span>
+                      <strong className="text-sm sm:text-base font-black text-amber-300 font-mono">
+                        {optimizedPlan.fuelSavedLiters} L
+                      </strong>
+                      <span className="text-[9px] text-slate-500 block">Rp {optimizedPlan.fuelCostSavedRp.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 text-center space-y-0.5">
+                      <span className="text-[10px] text-slate-400 block font-bold">Kapasitas Muat</span>
+                      <strong className="text-sm sm:text-base font-black text-purple-300 font-mono">
+                        {optimizedPlan.capacityUtilizationPercent}%
+                      </strong>
+                      <span className="text-[9px] text-slate-500 block">{optimizedPlan.totalRescuedWeightKg} kg / {optimizedPlan.fleetSpec.maxWeightKg} kg</span>
+                    </div>
+                  </div>
+
+                  {/* Stops sequence strip */}
+                  <div className="p-3 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-2">
+                    <span className="text-[10px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
+                      Urutan Rute Penjemputan & Pengantaran (Multi-Stop):
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {optimizedPlan.orderedStops.map((wp: RouteWaypoint, idx: number) => (
+                        <React.Fragment key={wp.id}>
+                          <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 shadow-xs ${
+                            wp.type === 'DEPOT'
+                              ? 'bg-slate-800 text-slate-300 border border-slate-700'
+                              : wp.type === 'PICKUP'
+                              ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
+                              : 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40'
+                          }`}>
+                            <span className="w-4 h-4 rounded-full bg-white/10 text-[10px] font-black flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <span className="truncate max-w-[140px] sm:max-w-[200px]">{wp.name}</span>
+                          </span>
+                          {idx < optimizedPlan.orderedStops.length - 1 && (
+                            <span className="text-slate-500 font-bold">→</span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activePickups.map((item) => (
               <Card key={item.code} className="border-slate-200 shadow-xs hover:shadow-md transition-all">
                 <CardBody className="p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -426,7 +582,8 @@ export default function PartnerActivePickupsPage() {
                   </div>
                 </CardBody>
               </Card>
-            ))
+            ))}
+            </>
           )
         ) : (
           completedPickups.length === 0 ? (
