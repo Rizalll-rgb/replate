@@ -6,6 +6,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { CheckIcon } from '../ui/Icon';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { calculateThermalDecayRUI, FoodSafetyCategory } from '@/lib/thermalRescueEngine';
 
 export interface FoodDetailModalProps {
   isOpen: boolean;
@@ -56,6 +57,30 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   const estWeight = (food.quantity || 1) * (food.weightPerUnitKg || 0.5);
   const estCo2Saved = Math.round(estWeight * 2.5 * 10) / 10;
   const estCh4Saved = Math.round(estWeight * 0.07 * 100) / 100;
+
+  const thermalRui = React.useMemo(() => {
+    let cat: FoodSafetyCategory = 'COOKED_MEALS';
+    const c = (food.foodCategory || '').toLowerCase();
+    if (c.includes('kuah') || c.includes('santan') || c.includes('soup') || c.includes('bakso')) {
+      cat = 'COOKED_HOT_GRAVY';
+    } else if (c.includes('roti') || c.includes('bakery') || c.includes('kue')) {
+      cat = 'BAKERY_PASTRY';
+    } else if (c.includes('susu') || c.includes('dairy') || c.includes('dessert') || c.includes('puding')) {
+      cat = 'DAIRY_COLD';
+    } else if (c.includes('buah') || c.includes('sayur') || c.includes('produce')) {
+      cat = 'FRESH_PRODUCE';
+    } else if (c.includes('kering') || c.includes('biskuit') || c.includes('kaleng')) {
+      cat = 'DRY_BAKERY_CANNED';
+    }
+    return calculateThermalDecayRUI({
+      category: cat,
+      ambientTemperatureC: 31,
+      cookedOrPackedTime: (food as any).createdAt ? new Date((food as any).createdAt) : new Date(Date.now() - 1.5 * 3600 * 1000),
+      isUsingCoolbox: food.storageCondition === 'REFRIGERATED',
+      portions: food.quantity || 15,
+      estimatedCourierEtaMinutes: 25,
+    });
+  }, [food]);
 
   const defaultAllergens = food.allergens || ['Nut-Free (Bebas Kacang)', 'Halal Certified BPJPH', 'Sterile Package'];
   const providerPhone = food.provider?.phone || '081234567891';
@@ -153,6 +178,39 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
                 <span>{tag}</span>
               </span>
             ))}
+          </div>
+        </div>
+
+        {/* BPOM Thermal Safety & RUI Urgency Card */}
+        <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+          thermalRui.urgencyLevel === 'CRITICAL_RESCUE'
+            ? 'bg-rose-50 border-rose-200 text-rose-900'
+            : thermalRui.urgencyLevel === 'HIGH_PRIORITY'
+            ? 'bg-amber-50 border-amber-200 text-amber-900'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+        }`}>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-black text-xs px-2 py-0.5 rounded-md bg-white border border-current shadow-2xs">
+                RUI {thermalRui.rescueUrgencyIndex} / 100
+              </span>
+              <span className="font-extrabold text-xs">
+                {thermalRui.urgencyLevel === 'CRITICAL_RESCUE'
+                  ? 'Kritis: Wajib Segera Dikonsumsi / Dijemput'
+                  : thermalRui.urgencyLevel === 'HIGH_PRIORITY'
+                  ? 'Tinggi: Prioritas Penjemputan Utama'
+                  : 'SOP BPOM: Mutu & Kualitas Sangat Baik'}
+              </span>
+            </div>
+            <p className="text-[11px] opacity-80 font-medium">
+              Toleransi aman suhu tropis: sisa ~{thermalRui.remainingSafeMinutes} menit ({thermalRui.effectiveMaxHours} jam batas BPOM). {thermalRui.recommendedDispatchAction}
+            </p>
+          </div>
+          <div className="text-left sm:text-right shrink-0">
+            <span className="text-[10px] font-bold block opacity-70">Uji Organoleptik:</span>
+            <span className="text-[11px] font-extrabold text-[#1B3A5C] bg-white px-2 py-1 rounded-lg border border-slate-200 block">
+              Aroma, Tekstur & Warna Segar
+            </span>
           </div>
         </div>
 

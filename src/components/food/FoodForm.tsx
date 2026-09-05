@@ -14,6 +14,7 @@ import {
 } from '../ui/Icon';
 import { RescueReadinessForm, RescueReadinessChecklist, FormValidationSignals } from './RescueReadinessForm';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { calculateIppcEsgImpact } from '@/lib/esgCarbonEngine';
 
 export interface FoodFormData {
   foodName: string;
@@ -125,6 +126,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     longitude: 112.7521,
     pickupDeadline: formatLocalDateTime(new Date(Date.now() + 4 * 3600000)),
   });
+
+  const estTotalWeight = Number(((Number(formData.quantity) || 1) * (Number(formData.weightPerUnitKg) || 0.5)).toFixed(1));
+  const liveIppc = useMemo(() => calculateIppcEsgImpact(estTotalWeight), [estTotalWeight]);
 
   // Quick Preset Date Time Handler (Local Timezone Corrected)
   const handleQuickPresetTime = (hoursFromNow: number, setFixedHour?: number) => {
@@ -543,6 +547,28 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 <option value="PLASTIC_WRAP">Mika / Wrap Rapat</option>
                 <option value="BULK">Wadah Bersama / Prasmanan</option>
               </select>
+            </div>
+
+            {/* Live BPOM & IPCC Intelligence Hint */}
+            <div className="md:col-span-2 p-3.5 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5 font-black text-[#1B3A5C]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Dampak Nyata & Panduan Keamanan BPOM:</span>
+                </div>
+                <p className="text-[11px] text-slate-600 font-medium">
+                  Donasi {estTotalWeight} kg ini mencegah <strong>{liveIppc.methaneAvoidedKg.toFixed(2)} kg metana (CH4)</strong> dan <strong>{liveIppc.totalNetCo2eSavedKg.toFixed(1)} kg CO2e</strong> (IPCC Vol 5).
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="px-2.5 py-1 bg-white rounded-lg border border-slate-200 text-[10.5px] font-bold text-slate-700 shadow-2xs">
+                  🛡️ Batas BPOM: {
+                    formData.foodCategory === 'BEVERAGES' ? '6 Jam' :
+                    formData.foodCategory === 'BAKERY' ? '8 Jam' :
+                    formData.foodCategory === 'PRODUCE' ? '24 Jam' : '4 Jam (Suhu Ruang)'
+                  }
+                </span>
+              </div>
             </div>
           </div>
 
