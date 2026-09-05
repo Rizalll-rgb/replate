@@ -5,6 +5,7 @@ import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { CheckIcon } from '../ui/Icon';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export interface FoodDetailModalProps {
   isOpen: boolean;
@@ -60,22 +61,11 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   const providerPhone = food.provider?.phone || '081234567891';
   const providerOrg = food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis';
 
-  let latitude = food.lat;
-  let longitude = food.lng;
-  if (!latitude || !longitude) {
-    const lowerAddr = (food.address || '').toLowerCase();
-    if (lowerAddr.includes('kwarigan') || lowerAddr.includes('sidorejo')) {
-      latitude = -7.65569; longitude = 111.27984;
-    } else if (lowerAddr.includes('sarangan') || lowerAddr.includes('plaosan')) {
-      latitude = -7.6749; longitude = 111.2201;
-    } else if (lowerAddr.includes('magetan')) {
-      latitude = -7.6508; longitude = 111.3283;
-    } else if (lowerAddr.includes('madiun')) {
-      latitude = -7.6298; longitude = 111.5239;
-    } else {
-      latitude = -7.2575; longitude = 112.7521;
-    }
-  }
+  const resolvedCoords = (!food.lat || !food.lng) && food.address
+    ? resolveIndonesianAddress(food.address)
+    : null;
+  const latitude = food.lat || resolvedCoords?.lat || -7.65569;
+  const longitude = food.lng || resolvedCoords?.lng || 111.27984;
 
   const modalFooter = (
     <div className="flex justify-end gap-3 w-full">

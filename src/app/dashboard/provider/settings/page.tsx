@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
   BikeIcon,
   TruckIcon,
@@ -173,24 +174,18 @@ export default function ProviderSettingsPage() {
         else if (regUser?.email) setEmail(regUser.email);
         if (parsed.address) {
           setAddress(parsed.address);
-          const lower = parsed.address.toLowerCase();
-          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('sidorejo') || lower.includes('kwarigan')) {
-            if (lower.includes('kwarigan') || lower.includes('sidorejo')) {
-              setDistrict('Kec. Sidorejo, Kab. Magetan');
-              setLat(-7.65569); setLng(111.27984);
-            } else if (lower.includes('plaosan') || lower.includes('telaga sarangan')) {
-              setDistrict('Kec. Plaosan, Kab. Magetan');
-              setLat(-7.6749); setLng(111.2201);
-            } else if (lower.includes('sarangan')) {
-              setDistrict('Kec. Plaosan, Kab. Magetan');
-              setLat(-7.6749); setLng(111.2201);
-            } else {
-              setDistrict(parsed.district ? `Kec. ${parsed.district}, Kab. Magetan` : 'Kabupaten Magetan');
-              setLat(-7.6508); setLng(111.3283);
-            }
+          const resolved = resolveIndonesianAddress(parsed.address);
+          if (resolved.district && resolved.city) {
+            setDistrict(`Kec. ${resolved.district}, ${resolved.city}`);
+          } else if (resolved.district) {
+            setDistrict(`Kec. ${resolved.district}`);
+          } else if (resolved.city) {
+            setDistrict(resolved.city);
           } else if (parsed.district) {
             setDistrict(parsed.district);
           }
+          setLat(parsed.lat || parsed.latitude || resolved.lat);
+          setLng(parsed.lng || parsed.longitude || resolved.lng);
         }
         if (parsed.lat || parsed.latitude) {
           setLat(parsed.lat || parsed.latitude);

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
 import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 interface FleetVehicle {
   id: string;
@@ -995,12 +996,6 @@ export default function DashboardProfilePage() {
     const normalizedRaw = raw.replace(/\botulet\b/gi, 'outlet');
     const clean = normalizedRaw.toLowerCase();
 
-    // Specific detection for Kwarigan / Sidorejo / Magetan / RA Chicken
-    const isKwarigan = clean.includes('kwarigan');
-    const isSidorejo = clean.includes('sidorejo');
-    const isMagetan = clean.includes('magetan');
-    const isRaChicken = clean.includes('ra chicken') || clean.includes('chicken');
-
     // 1. Immediate local directory match (0ms instant response)
     const localMatches = INDONESIAN_LOCATION_DIRECTORY.filter((item) =>
       item.keywords.some((k) => k.includes(clean) || clean.includes(k)) ||
@@ -1008,47 +1003,15 @@ export default function DashboardProfilePage() {
       item.detail.toLowerCase().includes(clean)
     );
 
-    // 2. Instant Custom POI item (Never keeps the user waiting!)
-    let instantDetail = `Lokasi Usaha/Toko Anda (${profileData.address || 'Titik Kustom'})`;
-    let instantLat = profileData.lat;
-    let instantLng = profileData.lng;
-    let instantCategory = 'Outlet / Lokasi Anda';
-
-    if (isKwarigan || (isSidorejo && (clean.includes('sarangan') || isMagetan || isRaChicken))) {
-      instantDetail = 'Dusun Kwarigan, Jl. Raya Sarangan, Kec. Sidorejo, Kab. Magetan, Jawa Timur';
-      instantLat = -7.65569;
-      instantLng = 111.27984;
-      instantCategory = 'Sidorejo, Magetan';
-    } else if (isRaChicken && isSidorejo) {
-      instantDetail = 'Jl. Raya Magetan - Sarangan, Dusun Kwarigan, Kec. Sidorejo, Kab. Magetan, Jawa Timur';
-      instantLat = -7.65569;
-      instantLng = 111.27984;
-      instantCategory = 'Magetan, Jawa Timur';
-    } else if (isSidorejo && isMagetan) {
-      instantDetail = 'Kecamatan Sidorejo, Kabupaten Magetan, Jawa Timur';
-      instantLat = -7.65569;
-      instantLng = 111.27984;
-      instantCategory = 'Magetan, Jawa Timur';
-    } else if (isSidorejo && clean.includes('krian')) {
-      instantDetail = 'Desa Sidorejo, Kec. Krian, Kab. Sidoarjo, Jawa Timur';
-      instantLat = -7.4092;
-      instantLng = 112.5935;
-      instantCategory = 'Sidoarjo, Jawa Timur';
-    } else if (isSidorejo && clean.includes('salatiga')) {
-      instantDetail = 'Kecamatan Sidorejo, Kota Salatiga, Jawa Tengah';
-      instantLat = -7.3210;
-      instantLng = 110.5050;
-      instantCategory = 'Salatiga, Jawa Tengah';
-    } else if (isSidorejo) {
-      // Default sidorejo to Magetan
-      instantDetail = 'Dusun Kwarigan, Kec. Sidorejo, Kab. Magetan, Jawa Timur';
-      instantLat = -7.65569;
-      instantLng = 111.27984;
-      instantCategory = 'Magetan, Jawa Timur';
-    }
+    // 2. Instant Custom POI item (Generalized algorithmic parsing - 0ms response)
+    const resolvedInstant = resolveIndonesianAddress(raw);
+    const instantDetail = resolvedInstant.formattedAddress || `Lokasi Usaha/Toko Anda (${profileData.address || 'Titik Kustom'})`;
+    const instantLat = resolvedInstant.lat;
+    const instantLng = resolvedInstant.lng;
+    const instantCategory = resolvedInstant.city || 'Outlet / Lokasi Anda';
 
     const instantCustomItem: LocationDirectoryItem = {
-      name: ` ${raw}`,
+      name: `📍 ${raw}`,
       detail: instantDetail,
       category: instantCategory,
       keywords: [clean],
@@ -1089,9 +1052,12 @@ export default function DashboardProfilePage() {
           }
         });
 
-        // If user is searching sidorejo, also query Sidorejo Magetan
-        if (clean.includes('sidorejo') && !queryTerms.includes('Sidorejo Magetan')) {
-          queryTerms.push('Sidorejo Magetan');
+        // Add structured search term from the resolved administrative units
+        if (resolvedInstant.district && resolvedInstant.cityNameOnly) {
+          const structuredTerm = `${resolvedInstant.district} ${resolvedInstant.cityNameOnly}`;
+          if (!queryTerms.includes(structuredTerm)) {
+            queryTerms.push(structuredTerm);
+          }
         }
 
         const apiResults: LocationDirectoryItem[] = [];
@@ -1526,61 +1492,14 @@ export default function DashboardProfilePage() {
         let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat;
         let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng;
 
-        // Auto-deteksi cerdas jika alamat mencantumkan Kwarigan, Sidorejo, Magetan, Sarangan, Plaosan, dll.
+        // Auto-deteksi cerdas hierarkis untuk alamat Indonesia
         if (resolvedAddress) {
-          const lower = resolvedAddress.toLowerCase();
-          if (lower.includes('magetan') || lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('sidorejo') || lower.includes('kwarigan')) {
-            resolvedProvince = 'Jawa Timur';
-            resolvedCity = 'Kabupaten Magetan';
-            if (lower.includes('kwarigan') || lower.includes('sidorejo')) {
-              // Prioritaskan Sidorejo & Dusun Kwarigan meski nama jalannya memuat "Sarangan"
-              resolvedDistrict = 'Sidorejo';
-              resolvedLat = -7.65569;
-              resolvedLng = 111.27984;
-            } else if (lower.includes('plaosan') || lower.includes('telaga sarangan')) {
-              resolvedDistrict = 'Plaosan';
-              resolvedLat = -7.6749;
-              resolvedLng = 111.2201;
-            } else if (lower.includes('sarangan')) {
-              resolvedDistrict = 'Plaosan';
-              resolvedLat = -7.6749;
-              resolvedLng = 111.2201;
-            } else {
-              resolvedDistrict = 'Magetan';
-              resolvedLat = -7.6508;
-              resolvedLng = 111.3283;
-            }
-          } else if (lower.includes('madiun')) {
-            resolvedProvince = 'Jawa Timur';
-            resolvedCity = 'Kota Madiun';
-            resolvedLat = -7.6298;
-            resolvedLng = 111.5239;
-          } else if (lower.includes('ngawi')) {
-            resolvedProvince = 'Jawa Timur';
-            resolvedCity = 'Kabupaten Ngawi';
-            resolvedLat = -7.4042;
-            resolvedLng = 111.4461;
-          } else if (lower.includes('ponorogo')) {
-            resolvedProvince = 'Jawa Timur';
-            resolvedCity = 'Kabupaten Ponorogo';
-            resolvedLat = -7.8683;
-            resolvedLng = 111.4622;
-          } else if (lower.includes('surabaya')) {
-            resolvedProvince = 'Jawa Timur';
-            resolvedCity = 'Kota Surabaya';
-            if (lower.includes('gubeng')) {
-              resolvedDistrict = 'Gubeng';
-              resolvedLat = -7.2754;
-              resolvedLng = 112.7541;
-            } else if (lower.includes('genteng')) {
-              resolvedDistrict = 'Genteng';
-              resolvedLat = -7.2589;
-              resolvedLng = 112.7478;
-            } else {
-              resolvedLat = -7.2575;
-              resolvedLng = 112.7521;
-            }
-          }
+          const res = resolveIndonesianAddress(resolvedAddress);
+          resolvedProvince = onbProfile?.province || res.province || prev.province || 'Jawa Timur';
+          resolvedCity = onbProfile?.city || res.city || prev.city;
+          resolvedDistrict = onbProfile?.district || res.district || prev.district;
+          resolvedLat = onbProfile?.lat || onbProfile?.latitude || res.lat;
+          resolvedLng = onbProfile?.lng || onbProfile?.longitude || res.lng;
         }
 
         const resolvedCoverage =

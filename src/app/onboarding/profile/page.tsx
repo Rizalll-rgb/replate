@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Check } from 'lucide-react';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
@@ -92,147 +93,16 @@ export default function OnboardingProfilePage() {
   }, []);
 
   const handleAddressChange = (addr: string) => {
-    const lower = addr.toLowerCase();
-    let detectedProvince = formData.province || 'Jawa Timur';
-    let detectedCity = formData.city;
-    let detectedDistrict = formData.district;
-    let detectedLat = formData.lat || -7.6749;
-    let detectedLng = formData.lng || 111.2201;
-
-    // Smart auto-detect Magetan, Kwarigan, Sidorejo, Plaosan & Sarangan
-    if (lower.includes('sarangan') || lower.includes('plaosan') || lower.includes('magetan') || lower.includes('sidorejo') || lower.includes('kwarigan')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kabupaten Magetan';
-      if (lower.includes('kwarigan') || lower.includes('sidorejo')) {
-        detectedDistrict = 'Sidorejo';
-        detectedLat = -7.65569;
-        detectedLng = 111.27984;
-      } else if (lower.includes('plaosan') || lower.includes('telaga sarangan')) {
-        detectedDistrict = 'Plaosan';
-        detectedLat = -7.6749;
-        detectedLng = 111.2201;
-      } else if (lower.includes('sarangan')) {
-        detectedDistrict = 'Plaosan';
-        detectedLat = -7.6749;
-        detectedLng = 111.2201;
-      } else {
-        detectedDistrict = 'Magetan';
-        detectedLat = -7.6508;
-        detectedLng = 111.3283;
-      }
-    } else if (lower.includes('surabaya')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kota Surabaya';
-      if (lower.includes('gubeng')) {
-        detectedDistrict = 'Gubeng';
-        detectedLat = -7.2754;
-        detectedLng = 112.7541;
-      } else if (lower.includes('genteng')) {
-        detectedDistrict = 'Genteng';
-        detectedLat = -7.2589;
-        detectedLng = 112.7478;
-      } else if (lower.includes('tegalsari')) {
-        detectedDistrict = 'Tegalsari';
-        detectedLat = -7.2628;
-        detectedLng = 112.7381;
-      } else if (lower.includes('wonokromo')) {
-        detectedDistrict = 'Wonokromo';
-        detectedLat = -7.2982;
-        detectedLng = 112.7381;
-      } else if (lower.includes('rungkut')) {
-        detectedDistrict = 'Rungkut';
-        detectedLat = -7.3197;
-        detectedLng = 112.7818;
-      } else if (lower.includes('sukolilo')) {
-        detectedDistrict = 'Sukolilo';
-        detectedLat = -7.2892;
-        detectedLng = 112.7966;
-      } else {
-        detectedLat = -7.2575;
-        detectedLng = 112.7521;
-      }
-    } else if (lower.includes('madiun')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kota Madiun';
-      detectedLat = -7.6298;
-      detectedLng = 111.5239;
-    } else if (lower.includes('ngawi')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kabupaten Ngawi';
-      detectedLat = -7.4042;
-      detectedLng = 111.4461;
-    } else if (lower.includes('ponorogo')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kabupaten Ponorogo';
-      detectedLat = -7.8683;
-      detectedLng = 111.4622;
-    } else if (lower.includes('jakarta')) {
-      detectedProvince = 'DKI Jakarta';
-      if (lower.includes('selatan')) {
-        detectedCity = 'Jakarta Selatan';
-        detectedLat = -6.2615;
-        detectedLng = 106.8106;
-      } else if (lower.includes('pusat')) {
-        detectedCity = 'Jakarta Pusat';
-        detectedLat = -6.1818;
-        detectedLng = 106.8223;
-      } else if (lower.includes('barat')) {
-        detectedCity = 'Jakarta Barat';
-        detectedLat = -6.1683;
-        detectedLng = 106.7589;
-      } else if (lower.includes('timur')) {
-        detectedCity = 'Jakarta Timur';
-        detectedLat = -6.2250;
-        detectedLng = 106.9004;
-      } else if (lower.includes('utara')) {
-        detectedCity = 'Jakarta Utara';
-        detectedLat = -6.1384;
-        detectedLng = 106.8640;
-      } else {
-        detectedCity = 'DKI Jakarta';
-        detectedLat = -6.2088;
-        detectedLng = 106.8456;
-      }
-    } else if (lower.includes('bandung')) {
-      detectedProvince = 'Jawa Barat';
-      detectedCity = 'Kota Bandung';
-      detectedLat = -6.9175;
-      detectedLng = 107.6191;
-    } else if (lower.includes('semarang')) {
-      detectedProvince = 'Jawa Tengah';
-      detectedCity = 'Kota Semarang';
-      detectedLat = -6.9667;
-      detectedLng = 110.4167;
-    } else if (lower.includes('jogja') || lower.includes('yogyakarta')) {
-      detectedProvince = 'DI Yogyakarta';
-      detectedCity = 'Kota Yogyakarta';
-      detectedLat = -7.7956;
-      detectedLng = 110.3695;
-    } else if (lower.includes('malang')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kota Malang';
-      detectedLat = -7.9797;
-      detectedLng = 112.6304;
-    } else if (lower.includes('sidoarjo')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kabupaten Sidoarjo';
-      detectedLat = -7.4478;
-      detectedLng = 112.7183;
-    } else if (lower.includes('gresik')) {
-      detectedProvince = 'Jawa Timur';
-      detectedCity = 'Kabupaten Gresik';
-      detectedLat = -7.1566;
-      detectedLng = 112.6555;
-    }
+    const res = resolveIndonesianAddress(addr);
 
     setFormData((prev) => ({
       ...prev,
       address: addr,
-      province: detectedProvince,
-      city: detectedCity,
-      district: detectedDistrict,
-      lat: detectedLat,
-      lng: detectedLng,
+      province: res.province || prev.province || 'Jawa Timur',
+      city: res.city || prev.city,
+      district: res.district || prev.district,
+      lat: res.lat,
+      lng: res.lng,
     }));
   };
 
@@ -308,8 +178,9 @@ export default function OnboardingProfilePage() {
     e.preventDefault();
 
     const finalName = role === 'FOOD_CONSUMER' ? (formData.entityName || formData.contactPerson) : formData.entityName;
-    const resolvedLat = formData.lat || (formData.address?.toLowerCase().includes('magetan') || formData.address?.toLowerCase().includes('sarangan') ? -7.6749 : -7.2754);
-    const resolvedLng = formData.lng || (formData.address?.toLowerCase().includes('magetan') || formData.address?.toLowerCase().includes('sarangan') ? 111.2201 : 112.7541);
+    const resolvedGeo = resolveIndonesianAddress(formData.address || '');
+    const resolvedLat = formData.lat || resolvedGeo.lat;
+    const resolvedLng = formData.lng || resolvedGeo.lng;
 
     const finalProfile = {
       ...formData,
@@ -318,9 +189,9 @@ export default function OnboardingProfilePage() {
       contactPerson: finalName,
       email: registeredUser?.email || (role === 'FOOD_CONSUMER' ? 'konsumen@replate.id' : 'mitra@replate.id'),
       role,
-      province: formData.province || 'Jawa Timur',
-      city: formData.city || 'Kabupaten Magetan',
-      district: formData.district || 'Plaosan',
+      province: formData.province || resolvedGeo.province || 'Jawa Timur',
+      city: formData.city || resolvedGeo.city || 'Kabupaten Magetan',
+      district: formData.district || resolvedGeo.district || 'Sidorejo',
       address: formData.address,
       capacity: formData.capacity,
       operationalCoverage: `${formData.district ? 'Kec. ' + formData.district + ', ' : ''}${formData.city || 'Kab. Magetan'} (Radius 12 km)`,
