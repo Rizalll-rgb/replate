@@ -18,7 +18,10 @@ export interface ResolvedAddressResult {
   cityNameOnly?: string;  // e.g. "Magetan" or "Surabaya"
   district?: string;      // e.g. "Sidorejo" or "Gubeng"
   village?: string;       // e.g. "Kwarigan" or "Ketintang"
-  street?: string;        // e.g. "Jl. Raya Sarangan No. 45"
+  street?: string;        // e.g. "Jl. Raya Sarangan"
+  houseNumber?: string;   // e.g. "No. 45" or "Blok B-12"
+  rtRw?: string;          // e.g. "RT 03 / RW 05"
+  landmark?: string;      // e.g. "Sebelah Puskesmas, Pagar Hitam"
   formattedAddress: string;
   lat: number;
   lng: number;
@@ -833,14 +836,32 @@ export function resolveIndonesianAddress(rawInput: string): ResolvedAddressResul
   const villageName = matchedVillage?.name;
   const provinceName = matchedProvince?.name || (matchedRegency ? matchedRegency.province : 'Jawa Timur');
 
+  const microTokens = extractIndonesianAddressMicroTokens(raw);
+
   const formattedParts: string[] = [];
-  if (identifiedStreet) formattedParts.push(identifiedStreet);
+  if (identifiedStreet) {
+    let thoroughfare = identifiedStreet;
+    if (microTokens.houseNumber && !thoroughfare.toLowerCase().includes(microTokens.houseNumber.toLowerCase())) {
+      thoroughfare = `${thoroughfare} ${microTokens.houseNumber}`;
+    }
+    if (microTokens.rtRw && !thoroughfare.toLowerCase().includes(microTokens.rtRw.toLowerCase())) {
+      thoroughfare = `${thoroughfare}, ${microTokens.rtRw}`;
+    }
+    formattedParts.push(thoroughfare);
+  } else {
+    if (microTokens.houseNumber) formattedParts.push(microTokens.houseNumber);
+    if (microTokens.rtRw) formattedParts.push(microTokens.rtRw);
+  }
+
   if (villageName) formattedParts.push(villageName);
   if (districtName) formattedParts.push(`Kec. ${districtName}`);
   if (cityName) formattedParts.push(cityName);
   if (provinceName) formattedParts.push(provinceName);
 
-  const formattedAddress = formattedParts.length > 0 ? formattedParts.join(', ') : raw;
+  let formattedAddress = formattedParts.length > 0 ? formattedParts.join(', ') : raw;
+  if (microTokens.landmark && !formattedAddress.toLowerCase().includes(microTokens.landmark.toLowerCase())) {
+    formattedAddress = `${formattedAddress} (Patokan: ${microTokens.landmark})`;
+  }
 
   return {
     rawAddress: raw,
@@ -850,6 +871,9 @@ export function resolveIndonesianAddress(rawInput: string): ResolvedAddressResul
     district: districtName,
     village: villageName,
     street: identifiedStreet,
+    houseNumber: microTokens.houseNumber,
+    rtRw: microTokens.rtRw,
+    landmark: microTokens.landmark,
     formattedAddress,
     lat: resolvedLat,
     lng: resolvedLng,
@@ -917,9 +941,181 @@ export async function geocodeOnlineAddress(query: string): Promise<{
   return results;
 }
 
+export interface MicroAddressTokens {
+  houseNumber?: string;
+  rtRw?: string;
+  landmark?: string;
+  cleanedBase: string;
+}
+
+/**
+ * Extracts Indonesian micro-address components (RT/RW, House/Building Number, and Landmarks/Patokan).
+ */
+export function extractIndonesianAddressMicroTokens(input: string): MicroAddressTokens {
+  let text = (input || '').trim();
+  let houseNumber: string | undefined;
+  let rtRw: string | undefined;
+  let landmark: string | undefined;
+
+  // 1. Extract Landmark / Patokan: e.g. "(sebelah puskesmas)", "patokan: depan gerbang merah", "(patokan: samping alfamart)"
+  const landmarkRegex = /(?:\((?:patokan:?\s*)?([^)]+)\)|(?:patokan|sebelah|samping|depan|dekat|belakang)\s*:\s*([^,]+))/i;
+  const landmarkMatch = text.match(landmarkRegex);
+  if (landmarkMatch) {
+    landmark = (landmarkMatch[1] || landmarkMatch[2] || '').trim();
+    text = text.replace(landmarkMatch[0], ' ');
+  }
+
+  // 2. Extract RT & RW (Composite first: RT 03 / RW 05, RT 03 RW 05, RT.02/RW.01, RT 03/05)
+  const compositeRtRwRegex = /\brt\.?\s*(\d{1,4})\s*(?:[\/,-]|\s+dan\s+|\s+)\s*(?:rw\.?\s*)(\d{1,4})\b/i;
+  const slashRtRwRegex = /\brt\.?\s*(\d{1,4})\s*\/\s*(\d{1,4})\b/i;
+  const singleRtRegex = /\brt\.?\s*(\d{1,4})\b/i;
+  const singleRwRegex = /\brw\.?\s*(\d{1,4})\b/i;
+
+  const compMatch = text.match(compositeRtRwRegex) || text.match(slashRtRwRegex);
+  if (compMatch) {
+    rtRw = `RT ${compMatch[1]} / RW ${compMatch[2]}`;
+    text = text.replace(compMatch[0], ' ');
+  } else {
+    const rtMatch = text.match(singleRtRegex);
+    const rwMatch = text.match(singleRwRegex);
+    if (rtMatch && rwMatch) {
+      rtRw = `RT ${rtMatch[1]} / RW ${rwMatch[1]}`;
+      text = text.replace(rtMatch[0], ' ').replace(rwMatch[0], ' ');
+    } else if (rtMatch) {
+      rtRw = `RT ${rtMatch[1]}`;
+      text = text.replace(rtMatch[0], ' ');
+    } else if (rwMatch) {
+      rtRw = `RW ${rwMatch[1]}`;
+      text = text.replace(rwMatch[0], ' ');
+    }
+  }
+
+  // 3. Extract House / Building Number: e.g. "No. 45", "No. 12A", "Nomor 88", "Blok B-12"
+  const houseRegex = /\b(?:no\.?|nomor|blok)\s*([a-z0-9\/-]+)\b/i;
+  const houseMatch = text.match(houseRegex);
+  if (houseMatch) {
+    const rawVal = houseMatch[1].trim();
+    houseNumber = houseMatch[0].toLowerCase().startsWith('blok') ? `Blok ${rawVal.toUpperCase()}` : `No. ${rawVal.toUpperCase()}`;
+    text = text.replace(houseMatch[0], ' ');
+  }
+
+  const cleanedBase = text
+    .replace(/\s*,\s*,+/g, ', ')
+    .replace(/\s+,\s*/g, ', ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\s*,\s*|\s*,\s*$/g, '')
+    .trim();
+
+  return { houseNumber, rtRw, landmark, cleanedBase };
+}
+
+export interface MergeAddressParams {
+  baseAddress?: string;
+  street?: string;
+  houseNumber?: string;
+  rtRw?: string;
+  landmark?: string;
+  village?: string;
+  district?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+}
+
+/**
+ * Intelligently fuses administrative geographic reverse geocoding with user-specified micro details
+ * (Nomor Bangunan, RT / RW, Patokan Khusus) to create a clean, comprehensive Indonesian address.
+ */
+export function mergeAddressWithLocalDetails(params: MergeAddressParams): string {
+  const {
+    baseAddress = '',
+    street,
+    houseNumber,
+    rtRw,
+    landmark,
+    village,
+    district,
+    city,
+    province,
+    postalCode,
+  } = params;
+
+  const micro = extractIndonesianAddressMicroTokens(baseAddress);
+  const finalHouseNumber = (houseNumber !== undefined && houseNumber !== '' ? houseNumber : micro.houseNumber || '').trim();
+  const finalRtRw = (rtRw !== undefined && rtRw !== '' ? rtRw : micro.rtRw || '').trim();
+  const finalLandmark = (landmark !== undefined && landmark !== '' ? landmark : micro.landmark || '').trim();
+
+  let mainStreet = (street || '').trim();
+  if (!mainStreet && baseAddress) {
+    mainStreet = baseAddress.split(',')[0].trim();
+  }
+
+  if (mainStreet) {
+    const stClean = extractIndonesianAddressMicroTokens(mainStreet).cleanedBase;
+    mainStreet = stClean;
+    if (
+      !mainStreet.toLowerCase().startsWith('jl') &&
+      !mainStreet.toLowerCase().startsWith('jalan') &&
+      mainStreet.length > 0 &&
+      !mainStreet.toLowerCase().startsWith('desa') &&
+      !mainStreet.toLowerCase().startsWith('kec')
+    ) {
+      mainStreet = `Jl. ${mainStreet}`;
+    }
+  }
+
+  // Build first block: [Jalan] [No. XX] [RT XX / RW XX]
+  let thoroughfare = mainStreet;
+  if (finalHouseNumber && !thoroughfare.toLowerCase().includes(finalHouseNumber.toLowerCase())) {
+    thoroughfare = thoroughfare ? `${thoroughfare} ${finalHouseNumber}` : finalHouseNumber;
+  }
+  if (finalRtRw && !thoroughfare.toLowerCase().includes(finalRtRw.toLowerCase())) {
+    thoroughfare = thoroughfare ? `${thoroughfare}, ${finalRtRw}` : finalRtRw;
+  }
+
+  const parts: string[] = [];
+  if (thoroughfare) parts.push(thoroughfare);
+
+  // Administrative hierarchy
+  if (village && !parts.some(p => p.toLowerCase().includes(village.toLowerCase()))) {
+    parts.push(village.toLowerCase().startsWith('desa') || village.toLowerCase().startsWith('kel') ? village : `Desa/Kel. ${village}`);
+  }
+  if (district && !parts.some(p => p.toLowerCase().includes(district.toLowerCase()))) {
+    parts.push(district.toLowerCase().startsWith('kec') ? district : `Kec. ${district}`);
+  }
+  if (city && !parts.some(p => p.toLowerCase().includes(city.toLowerCase()))) {
+    parts.push(city);
+  }
+  if (province && province !== city && !parts.some(p => p.toLowerCase().includes(province.toLowerCase()))) {
+    parts.push(province);
+  }
+  if (postalCode && !parts.some(p => p.includes(postalCode))) {
+    parts.push(postalCode);
+  }
+
+  let merged = parts.join(', ');
+
+  // If baseAddress had extra admin segments that weren't in params, merge them
+  if (baseAddress && parts.length <= 1) {
+    const existingParts = baseAddress.split(',').map(s => s.trim()).filter(Boolean);
+    if (existingParts.length > 1) {
+      merged = [thoroughfare, ...existingParts.slice(1)].join(', ');
+    }
+  }
+
+  if (finalLandmark && !merged.toLowerCase().includes(finalLandmark.toLowerCase())) {
+    merged = `${merged} (Patokan: ${finalLandmark})`;
+  }
+
+  return merged || baseAddress;
+}
+
 export interface ReverseGeocodeResult {
   formattedAddress: string;
   street?: string;
+  houseNumber?: string;
+  rtRw?: string;
+  landmark?: string;
   village?: string;
   district?: string;
   city?: string;
@@ -977,6 +1173,13 @@ export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): 
           street = `Jl. ${street}`;
         }
 
+        let houseNumber: string | undefined = addr.house_number ? `No. ${addr.house_number}` : undefined;
+        let rtRw: string | undefined;
+        if (addr.neighbourhood && /\b(rt|rw)\b/i.test(addr.neighbourhood)) {
+          const m = extractIndonesianAddressMicroTokens(addr.neighbourhood);
+          if (m.rtRw) rtRw = m.rtRw;
+        }
+
         const rawVillage = addr.village || addr.suburb || addr.hamlet || addr.neighbourhood || addr.quarter || '';
         const village = rawVillage ? rawVillage.replace(/^(desa|kelurahan|dusun)\s+/i, '').trim() : '';
 
@@ -1001,7 +1204,12 @@ export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): 
 
         // Build clean and natural Indonesian address
         const parts: string[] = [];
-        if (street) parts.push(street);
+        if (street) {
+          parts.push(houseNumber ? `${street} ${houseNumber}` : street);
+        } else if (houseNumber) {
+          parts.push(houseNumber);
+        }
+        if (rtRw) parts.push(rtRw);
         if (village) parts.push(`Desa/Kel. ${village}`);
         if (district) parts.push(`Kec. ${district}`);
         if (fullCity) parts.push(fullCity);
@@ -1015,6 +1223,8 @@ export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): 
         return {
           formattedAddress,
           street: street || undefined,
+          houseNumber,
+          rtRw,
           village: village || undefined,
           district: district || undefined,
           city: fullCity || undefined,
@@ -1047,6 +1257,7 @@ export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): 
         if (street && !street.toLowerCase().startsWith('jl') && !street.toLowerCase().startsWith('jalan')) {
           street = `Jl. ${street}`;
         }
+        const houseNumber = p.housenumber ? `No. ${p.housenumber}` : undefined;
         const district = p.district || p.suburb || p.locality || '';
         const rawCity = p.city || p.county || '';
         const cityNameOnly = rawCity.replace(/^(kabupaten|kab\.|kota)\s+/i, '').trim();
@@ -1054,8 +1265,10 @@ export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): 
         const fullCity = regencyMatch ? `${regencyMatch.type} ${regencyMatch.name}` : (rawCity ? `Kabupaten ${cityNameOnly}` : '');
         const province = p.state || regencyMatch?.province || 'Jawa Timur';
 
+        const thoroughfare = [street, houseNumber].filter(Boolean).join(' ');
+
         const parts = [
-          street,
+          thoroughfare,
           district ? `Kec. ${district}` : '',
           fullCity,
           province,
@@ -1065,6 +1278,7 @@ export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): 
         return {
           formattedAddress: parts.join(', ') || `Titik Lokasi (${roundedLat}, ${roundedLng})`,
           street: street || undefined,
+          houseNumber,
           district: district || undefined,
           city: fullCity || undefined,
           cityNameOnly: cityNameOnly || undefined,

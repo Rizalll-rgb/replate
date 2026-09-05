@@ -6,7 +6,12 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Check } from 'lucide-react';
-import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords } from '@/lib/geoResolver';
+import {
+  resolveIndonesianAddress,
+  reverseGeocodeIndonesianCoords,
+  mergeAddressWithLocalDetails,
+  extractIndonesianAddressMicroTokens,
+} from '@/lib/geoResolver';
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
@@ -22,6 +27,9 @@ export default function OnboardingProfilePage() {
     city: '',
     district: '',
     address: '',
+    houseNumber: '',
+    rtRw: '',
+    landmark: '',
     contactPerson: '',
     phone: '',
     capacity: '',
@@ -81,6 +89,9 @@ export default function OnboardingProfilePage() {
         city: '',
         district: '',
         address: '',
+        houseNumber: '',
+        rtRw: '',
+        landmark: '',
         contactPerson: initialName,
         phone: initialPhone,
         capacity: defaultCapacity,
@@ -93,17 +104,43 @@ export default function OnboardingProfilePage() {
   }, []);
 
   const handleAddressChange = (addr: string) => {
+    const extracted = extractIndonesianAddressMicroTokens(addr);
     const res = resolveIndonesianAddress(addr);
 
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       address: addr,
+      ...(extracted.houseNumber ? { houseNumber: extracted.houseNumber } : {}),
+      ...(extracted.rtRw ? { rtRw: extracted.rtRw } : {}),
+      ...(extracted.landmark ? { landmark: extracted.landmark } : {}),
       province: res.province || prev.province || 'Jawa Timur',
       city: res.city || prev.city,
       district: res.district || prev.district,
       lat: res.lat,
       lng: res.lng,
     }));
+  };
+
+  const handleMicroDetailChange = (field: 'houseNumber' | 'rtRw' | 'landmark', value: string) => {
+    setFormData((prev: any) => {
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
+      const merged = mergeAddressWithLocalDetails({
+        baseAddress: prev.address,
+        houseNumber: field === 'houseNumber' ? value : prev.houseNumber,
+        rtRw: field === 'rtRw' ? value : prev.rtRw,
+        landmark: field === 'landmark' ? value : prev.landmark,
+        city: prev.city,
+        district: prev.district,
+        province: prev.province,
+      });
+      return {
+        ...updated,
+        address: merged,
+      };
+    });
   };
 
   const handleQuickFillDemo = () => {
@@ -114,7 +151,10 @@ export default function OnboardingProfilePage() {
         province: 'Jawa Timur',
         city: 'Kota Surabaya',
         district: 'Gubeng',
-        address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
+        address: 'Jl. Raya Gubeng No. 88, RT 03 / RW 05, Gubeng, Surabaya Pusat (Patokan: Sebelah RS Siloam Gubeng)',
+        houseNumber: 'No. 88',
+        rtRw: 'RT 03 / RW 05',
+        landmark: 'Sebelah RS Siloam Gubeng',
         contactPerson: 'Ibu Hajjah Maryam (Ketua Pengurus)',
         phone: '0812-3456-7890',
         capacity: '51 - 100 Jiwa',
@@ -130,7 +170,10 @@ export default function OnboardingProfilePage() {
         province: 'Jawa Timur',
         city: 'Kota Surabaya',
         district: 'Genteng',
-        address: 'Jl. Pemuda No. 45, Genteng, Surabaya Pusat',
+        address: 'Jl. Pemuda No. 45, RT 02 / RW 01, Genteng, Surabaya Pusat (Patokan: Depan Balai Pemuda)',
+        houseNumber: 'No. 45',
+        rtRw: 'RT 02 / RW 01',
+        landmark: 'Depan Balai Pemuda',
         contactPerson: 'Mas Rizky Multazam (Ketua Komunitas Logistik)',
         phone: '0812-3456-7890',
         capacity: '16 - 30 Relawan',
@@ -146,7 +189,10 @@ export default function OnboardingProfilePage() {
         province: 'Jawa Timur',
         city: 'Kota Surabaya',
         district: 'Gayungan',
-        address: 'Jl. Ketintang No. 12, Gayungan, Surabaya',
+        address: 'Jl. Ketintang No. 12, RT 04 / RW 02, Gayungan, Surabaya (Patokan: Dekat Kampus Unesa)',
+        houseNumber: 'No. 12',
+        rtRw: 'RT 04 / RW 02',
+        landmark: 'Dekat Kampus Unesa',
         contactPerson: registeredUser?.name || 'Farhan Ramadhan',
         phone: registeredUser?.phone || '0812-3456-7890',
         capacity: 'Pribadi / Mahasiswa / Anak Kos',
@@ -162,7 +208,10 @@ export default function OnboardingProfilePage() {
         province: 'Jawa Timur',
         city: 'Kota Surabaya',
         district: 'Gubeng',
-        address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya Pusat',
+        address: 'Jl. Raya Gubeng No. 88, RT 03 / RW 05, Gubeng, Surabaya Pusat (Patokan: Sebelah Apotek Kimia Farma)',
+        houseNumber: 'No. 88',
+        rtRw: 'RT 03 / RW 05',
+        landmark: 'Sebelah Apotek Kimia Farma, Pagar Hijau',
         contactPerson: 'Mas Doni (Penanggung Jawab Outlet)',
         phone: '0812-3456-7890',
         capacity: '31 - 50 Porsi / Hari',
@@ -577,8 +626,49 @@ export default function OnboardingProfilePage() {
                       placeholder="Contoh: Jl. Raya Sarangan No. 45, Plaosan, Magetan / Jl. Raya Gubeng No. 88, Surabaya..."
                       required
                     />
+
+                    {/* Micro-Location Details: No. Bangunan, RT / RW, & Patokan Kurir */}
+                    <div className="p-3 bg-white/10 backdrop-blur-xs border border-amber-300/40 rounded-xl space-y-2.5">
+                      <div className="flex items-center justify-between text-[11px] text-amber-300 font-bold">
+                        <span>🏷️ Detail Tambahan (Nomor, RT/RW, Patokan):</span>
+                        <span className="text-[10px] text-slate-300">Otomatis gabung ke alamat</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <div className="space-y-1">
+                          <label className="text-[10.5px] text-slate-200 font-semibold block">Nomor Bangunan / Rumah:</label>
+                          <input
+                            type="text"
+                            value={formData.houseNumber || ''}
+                            onChange={(e) => handleMicroDetailChange('houseNumber', e.target.value)}
+                            className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                            placeholder="Contoh: No. 45 / Blok B-12"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10.5px] text-slate-200 font-semibold block">RT / RW:</label>
+                          <input
+                            type="text"
+                            value={formData.rtRw || ''}
+                            onChange={(e) => handleMicroDetailChange('rtRw', e.target.value)}
+                            className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                            placeholder="Contoh: RT 03 / RW 05"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10.5px] text-slate-200 font-semibold block">Patokan / Catatan Kurir:</label>
+                          <input
+                            type="text"
+                            value={formData.landmark || ''}
+                            onChange={(e) => handleMicroDetailChange('landmark', e.target.value)}
+                            className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                            placeholder="Contoh: Sebelah Apotek, Pagar Putih"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <p className="text-[11px] text-amber-200/90 font-medium">
-                      💡 Ketik alamat Anda. Sistem otomatis mendeteksi Kota dan Kecamatan di bawah.
+                      💡 Ketik alamat Anda atau sesuaikan Nomor, RT/RW, dan Patokan di atas untuk akurasi pengantaran kurir.
                     </p>
                   </div>
 
@@ -643,9 +733,23 @@ export default function OnboardingProfilePage() {
                         try {
                           const res = await reverseGeocodeIndonesianCoords(newLat, newLng);
                           if (res.formattedAddress) {
+                            const merged = mergeAddressWithLocalDetails({
+                              baseAddress: res.formattedAddress,
+                              street: res.street,
+                              houseNumber: formData.houseNumber || res.houseNumber,
+                              rtRw: formData.rtRw || res.rtRw,
+                              landmark: formData.landmark,
+                              village: res.village,
+                              district: res.district,
+                              city: res.city,
+                              province: res.province,
+                              postalCode: res.postalCode,
+                            });
                             setFormData((prev: any) => ({
                               ...prev,
-                              address: res.formattedAddress,
+                              address: merged,
+                              ...(res.houseNumber && !prev.houseNumber ? { houseNumber: res.houseNumber } : {}),
+                              ...(res.rtRw && !prev.rtRw ? { rtRw: res.rtRw } : {}),
                               city: res.city || prev.city,
                               district: res.district || prev.district,
                               province: res.province || prev.province,

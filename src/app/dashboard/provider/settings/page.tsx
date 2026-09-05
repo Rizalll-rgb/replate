@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords } from '@/lib/geoResolver';
+import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords, mergeAddressWithLocalDetails } from '@/lib/geoResolver';
 import {
   BikeIcon,
   TruckIcon,
@@ -1061,11 +1061,20 @@ export default function ProviderSettingsPage() {
                     try {
                       const res = await reverseGeocodeIndonesianCoords(newLat, newLng);
                       if (res.formattedAddress) {
-                        setAddress(res.formattedAddress);
+                        const fused = mergeAddressWithLocalDetails({
+                          baseAddress: res.formattedAddress,
+                          street: res.street,
+                          village: res.village,
+                          district: res.district,
+                          city: res.city,
+                          province: res.province,
+                          postalCode: res.postalCode,
+                        });
+                        setAddress(fused);
                         if (res.district) setDistrict(res.district);
                         setToastState({
                           isOpen: true,
-                          message: `Titik peta disinkronkan! Alamat otomatis: "${res.formattedAddress}"`,
+                          message: `Titik peta disinkronkan! Alamat otomatis: "${fused}"`,
                           type: 'success',
                         });
                       }

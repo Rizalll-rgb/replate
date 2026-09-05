@@ -13,7 +13,12 @@ import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
 import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
-import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords } from '@/lib/geoResolver';
+import {
+  resolveIndonesianAddress,
+  reverseGeocodeIndonesianCoords,
+  mergeAddressWithLocalDetails,
+  extractIndonesianAddressMicroTokens,
+} from '@/lib/geoResolver';
 
 interface FleetVehicle {
   id: string;
@@ -953,7 +958,10 @@ export default function DashboardProfilePage() {
     province: 'Jawa Timur',
     city: 'Kota Surabaya',
     district: 'Gubeng',
-    address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+    address: 'Jl. Raya Gubeng No. 88, RT 03 / RW 05, Gubeng, Surabaya',
+    houseNumber: 'No. 88',
+    rtRw: 'RT 03 / RW 05',
+    landmark: 'Sebelah Apotek Kimia Farma, Pagar Hijau',
     entityName: 'Warung Bakso Pak Kumis Surabaya',
     isVerified: true,
     nib: 'NIB-9120481023912',
@@ -1224,6 +1232,46 @@ export default function DashboardProfilePage() {
     });
   };
 
+  const handleMicroDetailChange = (field: 'houseNumber' | 'rtRw' | 'landmark', value: string) => {
+    setProfileData((prev) => {
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
+      const newAddress = mergeAddressWithLocalDetails({
+        baseAddress: prev.address,
+        houseNumber: field === 'houseNumber' ? value : prev.houseNumber,
+        rtRw: field === 'rtRw' ? value : prev.rtRw,
+        landmark: field === 'landmark' ? value : prev.landmark,
+        city: prev.city,
+        district: prev.district,
+        province: prev.province,
+      });
+      return {
+        ...updated,
+        address: newAddress,
+      };
+    });
+  };
+
+  const handleAddressInputChange = (newAddressText: string) => {
+    const extracted = extractIndonesianAddressMicroTokens(newAddressText);
+    const resolved = resolveIndonesianAddress(newAddressText);
+
+    setProfileData((prev) => ({
+      ...prev,
+      address: newAddressText,
+      ...(extracted.houseNumber ? { houseNumber: extracted.houseNumber } : {}),
+      ...(extracted.rtRw ? { rtRw: extracted.rtRw } : {}),
+      ...(extracted.landmark ? { landmark: extracted.landmark } : {}),
+      ...(resolved.city ? { city: resolved.city } : {}),
+      ...(resolved.district ? { district: resolved.district } : {}),
+      ...(resolved.province ? { province: resolved.province } : {}),
+      lat: resolved.lat,
+      lng: resolved.lng,
+    }));
+  };
+
   const reverseGeocodeCoordinate = async (lat: number, lng: number) => {
     suppressDropdownRef.current = true;
     setShowMapDropdown(false);
@@ -1240,21 +1288,37 @@ export default function DashboardProfilePage() {
     try {
       const resolved = await reverseGeocodeIndonesianCoords(lat, lng);
 
+      // Intelligently fuse the newly pinned coordinates with user's micro details (houseNumber, rtRw, landmark)
+      const fusedAddress = mergeAddressWithLocalDetails({
+        baseAddress: resolved.formattedAddress,
+        street: resolved.street,
+        houseNumber: profileData.houseNumber || resolved.houseNumber,
+        rtRw: profileData.rtRw || resolved.rtRw,
+        landmark: profileData.landmark,
+        village: resolved.village,
+        district: resolved.district,
+        city: resolved.city,
+        province: resolved.province,
+        postalCode: resolved.postalCode,
+      });
+
       setProfileData((prev) => ({
         ...prev,
         lat: resolved.lat,
         lng: resolved.lng,
-        address: resolved.formattedAddress,
+        address: fusedAddress,
+        ...(resolved.houseNumber && !prev.houseNumber ? { houseNumber: resolved.houseNumber } : {}),
+        ...(resolved.rtRw && !prev.rtRw ? { rtRw: resolved.rtRw } : {}),
         ...(resolved.city ? { city: resolved.city } : {}),
         ...(resolved.district ? { district: resolved.district } : {}),
         ...(resolved.province ? { province: resolved.province } : {}),
       }));
 
-      setMapSearchQuery(resolved.formattedAddress);
+      setMapSearchQuery(fusedAddress);
 
       setToastState({
         isOpen: true,
-        message: `Titik peta disinkronkan! Alamat otomatis: "${resolved.formattedAddress}"`,
+        message: `Titik peta disinkronkan! Alamat otomatis: "${fusedAddress}"`,
         type: 'success',
       });
     } catch (_) {
@@ -1489,6 +1553,10 @@ export default function DashboardProfilePage() {
         let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat;
         let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng;
 
+        let resolvedHouseNumber = onbProfile?.houseNumber || prev.houseNumber;
+        let resolvedRtRw = onbProfile?.rtRw || prev.rtRw;
+        let resolvedLandmark = onbProfile?.landmark || prev.landmark;
+
         // Auto-deteksi cerdas hierarkis untuk alamat Indonesia
         if (resolvedAddress) {
           const res = resolveIndonesianAddress(resolvedAddress);
@@ -1497,6 +1565,9 @@ export default function DashboardProfilePage() {
           resolvedDistrict = onbProfile?.district || res.district || prev.district;
           resolvedLat = onbProfile?.lat || onbProfile?.latitude || res.lat;
           resolvedLng = onbProfile?.lng || onbProfile?.longitude || res.lng;
+          if (res.houseNumber && !resolvedHouseNumber) resolvedHouseNumber = res.houseNumber;
+          if (res.rtRw && !resolvedRtRw) resolvedRtRw = res.rtRw;
+          if (res.landmark && !resolvedLandmark) resolvedLandmark = res.landmark;
         }
 
         const resolvedCoverage =
@@ -1511,6 +1582,9 @@ export default function DashboardProfilePage() {
           phone: resolvedPhone,
           role: resolvedRole,
           address: resolvedAddress,
+          houseNumber: resolvedHouseNumber,
+          rtRw: resolvedRtRw,
+          landmark: resolvedLandmark,
           province: resolvedProvince,
           city: resolvedCity,
           district: resolvedDistrict,
@@ -1555,6 +1629,9 @@ export default function DashboardProfilePage() {
           entityName: profileData.entityName,
           phone: profileData.phone,
           address: profileData.address,
+          houseNumber: profileData.houseNumber,
+          rtRw: profileData.rtRw,
+          landmark: profileData.landmark,
           province: profileData.province,
           city: profileData.city,
           district: profileData.district,
@@ -2087,10 +2164,65 @@ export default function DashboardProfilePage() {
                   <textarea
                     rows={2}
                     value={profileData.address}
-                    onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                    onChange={(e) => handleAddressInputChange(e.target.value)}
                     placeholder={isConsumer ? 'Nama Jalan, Nomor Rumah, RT/RW, Kelurahan, Patokan Lokasi (untuk pengantaran makanan)...' : 'Nama Jalan, Nomor Bangunan, Kelurahan, Patokan Lokasi...'}
                     className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#D4A843]"
                   />
+
+                  {/* Micro-Location Details: No. Bangunan, RT / RW, & Patokan Kurir */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="text-[11px] font-black text-slate-700 flex items-center gap-1.5">
+                        <span>🏷️ Rincian Mikro Lokasi (Nomor, RT/RW & Patokan)</span>
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-semibold bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                        Otomatis Terintegrasi ke Alamat & Kurir
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600 block">
+                          Nomor Bangunan / Rumah:
+                        </label>
+                        <Input
+                          value={profileData.houseNumber || ''}
+                          onChange={(e) => handleMicroDetailChange('houseNumber', e.target.value)}
+                          placeholder="Contoh: No. 45 / Blok B-12"
+                          className="bg-white"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600 block">
+                          RT / RW:
+                        </label>
+                        <Input
+                          value={profileData.rtRw || ''}
+                          onChange={(e) => handleMicroDetailChange('rtRw', e.target.value)}
+                          placeholder="Contoh: RT 03 / RW 05"
+                          className="bg-white"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-600 block">
+                          Patokan Khusus / Catatan Kurir:
+                        </label>
+                        <Input
+                          value={profileData.landmark || ''}
+                          onChange={(e) => handleMicroDetailChange('landmark', e.target.value)}
+                          placeholder="Contoh: Sebelah Apotek, Pagar Hijau"
+                          className="bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[10.5px] text-slate-500 leading-tight">
+                      💡 <strong>Mengapa rincian ini penting?</strong> Satelit GPS peta hanya memetakan nama jalan dan kelurahan. Rincian Nomor, RT/RW, dan Patokan akan otomatis digabungkan ke alamat lengkap agar kurir dan relawan penjemput makanan dapat menemukan lokasi Anda secara presisi tanpa tersesat.
+                    </p>
+                  </div>
+
                   {/* Kecamatan / Kota mismatch warning for consumer */}
                   {isConsumer && profileData.city && profileData.address &&
                     !profileData.address.toLowerCase().includes(profileData.city.toLowerCase().split(' ').pop()?.substring(0, 4) || '') && (
