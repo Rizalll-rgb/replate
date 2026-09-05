@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { surplusFormSchema } from '@/lib/validators';
 import { findConsumerMatches, findPartnerMatches, saveMatchResults } from '@/lib/matching';
 import { generateClaimCode } from '@/lib/utils';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 // GET - List surplus foods (with filters)
 export async function GET(request: Request) {
@@ -117,6 +118,14 @@ export async function POST(request: Request) {
 
         const data = validation.data;
 
+        let finalLat = data.latitude;
+        let finalLng = data.longitude;
+        if ((!finalLat || !finalLng) && data.address) {
+            const geo = resolveIndonesianAddress(data.address);
+            finalLat = geo.lat;
+            finalLng = geo.lng;
+        }
+
         // Create the surplus food entry
         const surplus = await prisma.surplusFood.create({
             data: {
@@ -134,8 +143,8 @@ export async function POST(request: Request) {
                 photos: Array.isArray(body.photos)
                     ? body.photos.map((p: any) => (typeof p === 'string' && p.length > 500000 ? p.slice(0, 500000) : p))
                     : [],
-                latitude: data.latitude,
-                longitude: data.longitude,
+                latitude: finalLat,
+                longitude: finalLng,
                 address: data.address,
                 distributionType: data.distributionType,
                 price: data.price || 0,

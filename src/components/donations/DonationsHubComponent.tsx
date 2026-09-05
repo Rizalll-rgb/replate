@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 import { Bike, Building, Truck, Utensils, Search, Users, Landmark, HeartHandshake, MapPin, AlertTriangle, MessageSquare, Check, X, ShieldAlert, ExternalLink } from 'lucide-react';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 // Human-Readable Indonesian Status Label Helper for ALL Recipient Types (Panti, Shelter, Yayasan, Individu)
 const getHumanReadableStatusLabel = (statusCode: string) => {
@@ -731,44 +732,51 @@ export function DonationsHubComponent() {
               <span> Hubungi WhatsApp Penerima / Perwakilan (Koordinasi Direct)</span>
             </a>
 
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS</h4>
-                <span className="text-[10px] font-mono font-bold text-slate-500">
-                  GPS: {selectedShelterProfile.lat}, {selectedShelterProfile.lng}
-                </span>
-              </div>
+            {(() => {
+              const shelterGeo = resolveIndonesianAddress(selectedShelterProfile.address || selectedShelterProfile.location || '');
+              const sLat = selectedShelterProfile.lat || shelterGeo.lat;
+              const sLng = selectedShelterProfile.lng || shelterGeo.lng;
+              return (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS ({shelterGeo.cityNameOnly || 'Indonesia'})</h4>
+                    <span className="text-[10px] font-mono font-bold text-slate-500">
+                      GPS: {sLat.toFixed(5)}, {sLng.toFixed(5)}
+                    </span>
+                  </div>
 
-              <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
-                <iframe
-                  title="Shelter Location Map"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}&z=15&output=embed`}
-                  className="w-full h-full filter saturate-150"
-                />
-                <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                  Titik Lokasi: {selectedShelterProfile.shelterName}
+                  <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+                    <iframe
+                      title="Shelter Location Map"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      src={`https://maps.google.com/maps?q=${sLat},${sLng}&z=15&output=embed`}
+                      className="w-full h-full filter saturate-150"
+                    />
+                    <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
+                      Titik Lokasi: {selectedShelterProfile.shelterName} ({shelterGeo.district ? `${shelterGeo.district}, ` : ''}{shelterGeo.cityNameOnly})
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] text-slate-500 truncate max-w-[70%]">
+                      {selectedShelterProfile.address}
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${sLat},${sLng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline shrink-0 ml-2"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Buka di Google Maps
+                    </a>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-slate-500 truncate max-w-[70%]">
-                  {selectedShelterProfile.address}
-                </span>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline shrink-0 ml-2"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Buka di Google Maps
-                </a>
-              </div>
-            </div>
+              );
+            })()}
 
             <div className="flex justify-end pt-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>

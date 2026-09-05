@@ -22,6 +22,7 @@ import {
   CreditCardIcon,
 } from '@/components/ui/Icon';
 import Link from 'next/link';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 interface TrackingManifest {
   id: string;
@@ -158,7 +159,48 @@ export default function WorkspaceLiveTrackingPage() {
           (m) => m.trackingCode === activeClaim.claimCode || m.trackingCode === activeClaim.code
         );
         if (matchedManifest) {
-          setActiveTracking(matchedManifest);
+          const resolvedSrc = resolveIndonesianAddress(matchedManifest.sourceAddress);
+          const resolvedDst = resolveIndonesianAddress(matchedManifest.destinationAddress);
+          const activeCoord = matchedManifest.currentStep >= 3 ? resolvedDst : resolvedSrc;
+          setActiveTracking({
+            ...matchedManifest,
+            lat: activeCoord.lat,
+            lng: activeCoord.lng,
+          });
+        } else {
+          // Custom claim from user registration / activity!
+          const srcAddr = activeClaim.address || activeClaim.providerAddress || 'Jl. Raya Sarangan, Kwarigan, Sidorejo, Magetan';
+          const dstAddr = activeClaim.destinationAddress || activeClaim.shelterAddress || 'Dusun Kwarigan, Sidorejo, Magetan';
+          const resolvedSrc = resolveIndonesianAddress(srcAddr);
+          const resolvedDst = resolveIndonesianAddress(dstAddr);
+          const activeCoord = activeClaim.status === 'IN_TRANSIT_TO_SHELTER' ? resolvedDst : resolvedSrc;
+          setActiveTracking({
+            id: activeClaim.id || 'TRK-DYN',
+            trackingCode: activeClaim.claimCode || activeClaim.code || 'RPL-DON-AUTO',
+            foodName: activeClaim.foodName || 'Menu Surplus Terjadwal',
+            quantity: `${activeClaim.quantity || 15} Porsi`,
+            sourceName: activeClaim.providerName || 'Mitra Provider Replate',
+            sourceAddress: srcAddr,
+            destinationName: activeClaim.shelterName || activeClaim.recipientName || 'Lokasi Penerima',
+            destinationAddress: dstAddr,
+            deliveryType: activeClaim.deliveryMethod || 'RESCUE_COURIER',
+            driverName: activeClaim.courierName || 'Relawan Rescue Logistik',
+            driverPhone: activeClaim.courierPhone || '0812-3456-7890',
+            driverVehicle: activeClaim.courierVehicle || 'Motor Box Cooler Replate',
+            driverOrg: 'Komunitas Food Rescue Replate',
+            currentStep: activeClaim.status === 'IN_TRANSIT_TO_SHELTER' ? 4 : 3,
+            statusText: 'Dalam Perjalanan Pengantaran GPS',
+            estimatedArrival: 'Estimasi ~15 Menit',
+            temperatureC: 64.2,
+            lat: activeClaim.lat || activeCoord.lat,
+            lng: activeClaim.lng || activeCoord.lng,
+            history: [
+              { time: '18:00 WIB', title: 'Alokasi Terjadwal', desc: 'Permintaan bantuan makanan disetujui.', done: true },
+              { time: '18:30 WIB', title: 'Pemeriksaan Higienitas 8-Poin BPOM Lolos', desc: 'Suhu makanan aman & kemasan tersegel.', done: true },
+              { time: '19:00 WIB', title: 'Kurir Bergerak ke Lokasi', desc: 'Armada logistik dalam perjalanan.', done: true },
+              { time: 'Estimasi Tiba', title: 'Serah Terima di Tujuan', desc: 'Penerima memindai QR Surat Jalan.', done: false },
+            ],
+          });
         }
       }
       // Otherwise: stay clean, no active tracking displayed
@@ -547,7 +589,7 @@ export default function WorkspaceLiveTrackingPage() {
                 <div className="flex items-center justify-between">
                   <h4 className="font-black text-sm text-[#1B3A5C] flex items-center gap-1.5">
                     <MapIcon size={16} />
-                    <span>Peta GPS Rute Pengantaran Surabaya</span>
+                    <span>Peta GPS Rute Pengantaran {resolveIndonesianAddress(activeTracking.destinationAddress || activeTracking.sourceAddress).cityNameOnly || 'Wilayah Operasional'}</span>
                   </h4>
                   <span className="text-[11px] font-mono font-bold text-slate-500">
                     Koordinat: {activeTracking.lat}, {activeTracking.lng}

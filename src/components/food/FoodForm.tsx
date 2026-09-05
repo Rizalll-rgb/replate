@@ -13,6 +13,7 @@ import {
   MapPinIcon,
 } from '../ui/Icon';
 import { RescueReadinessForm, RescueReadinessChecklist, FormValidationSignals } from './RescueReadinessForm';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export interface FoodFormData {
   foodName: string;
@@ -40,7 +41,7 @@ export interface FoodFormProps {
 }
 
 export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false }) => {
-  const defaultAddress = 'Jl. Genteng Kali No. 45, Genteng, Surabaya';
+  const [defaultAddress, setDefaultAddress] = useState('Jl. Raya Sarangan, Kwarigan, Sidorejo, Magetan');
   const [useDefaultAddress, setUseDefaultAddress] = useState(true);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'
@@ -81,6 +82,23 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     } catch (_) {
       setAllowDirectFleet(true);
     }
+
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.address) {
+          const resolved = resolveIndonesianAddress(parsed.address);
+          setDefaultAddress(parsed.address);
+          setFormData((prev) => ({
+            ...prev,
+            address: parsed.address,
+            latitude: parsed.lat || parsed.latitude || resolved.lat,
+            longitude: parsed.lng || parsed.longitude || resolved.lng,
+          }));
+        }
+      }
+    } catch (_) {}
   }, []);
 
   // Helper to format local Date into YYYY-MM-DDTHH:mm input string
@@ -287,6 +305,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
     const finalDistributionType: 'SALE' | 'FREE' =
       pricingScheme === 'RESCUE_SALE' ? 'SALE' : 'FREE';
 
+    const finalAddress = useDefaultAddress ? defaultAddress : (formData.address || defaultAddress);
+    const resolvedGeo = resolveIndonesianAddress(finalAddress);
+
     const payload: FoodFormData = {
       foodName: formData.foodName || '',
       description: formData.description || '',
@@ -300,9 +321,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       pricingScheme,
       price: pricingScheme === 'RESCUE_SALE' ? Number(formData.price || 5000) : 0,
       weightPerUnitKg: Number(formData.weightPerUnitKg || 0.5),
-      address: useDefaultAddress ? defaultAddress : formData.address || defaultAddress,
-      latitude: formData.latitude || -7.2575,
-      longitude: formData.longitude || 112.7521,
+      address: finalAddress,
+      latitude: formData.latitude || resolvedGeo.lat,
+      longitude: formData.longitude || resolvedGeo.lng,
       photos: previewPhoto ? [previewPhoto] : [],
       rescueReadiness: checklistData,
     };

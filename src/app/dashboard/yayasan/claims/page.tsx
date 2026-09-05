@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
 import { QRGenerator } from '@/components/qr/QRGenerator';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
   CheckIcon,
   ClockIcon,
@@ -455,7 +456,7 @@ export default function YayasanClaimsPage() {
         beneficiariesCount: parseInt(pantiCapacity.replace(/\D/g, '')) || 45,
         urgency: reqUrgency.includes('Mendesak') || reqUrgency.includes('Tinggi') ? ('HIGH' as const) : ('MEDIUM' as const),
         urgencyLabel: reqUrgency.toUpperCase(),
-        location: pantiAddress.includes('Surabaya') ? pantiAddress : `${pantiAddress} (Surabaya)`,
+        location: resolveIndonesianAddress(pantiAddress).formattedAddress || pantiAddress,
         address: pantiAddress,
         contactPerson: contactPerson,
         contactPhone: pantiPhone,
@@ -470,8 +471,8 @@ export default function YayasanClaimsPage() {
         preferredDelivery: reqDeliveryMethod.includes('Ambil') ? ('SHELTER_PICKUP' as const) : ('RESCUE_COURIER' as const),
         deliveryLabel: reqDeliveryMethod,
         deliveryDesc: reqDeliveryMethod,
-        lat: -7.2710,
-        lng: 112.7580,
+        lat: resolveIndonesianAddress(pantiAddress).lat,
+        lng: resolveIndonesianAddress(pantiAddress).lng,
         reasons: ['Permintaan resmi diajukan oleh pengurus panti terdaftar'],
         breakdown: [],
       };

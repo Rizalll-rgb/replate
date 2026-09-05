@@ -30,6 +30,7 @@ import {
   BoltIcon,
   TicketIcon,
 } from '@/components/ui/Icon';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 interface ClaimItem {
   id: string;
@@ -38,6 +39,8 @@ interface ClaimItem {
   providerName: string;
   providerAddress?: string;
   providerPhone?: string;
+  providerLat?: number;
+  providerLng?: number;
   totalAmount: number;
   paymentMethod?: string;
   address?: string;
@@ -673,7 +676,12 @@ export default function MyClaimsPage() {
             const outletAddress = claim.providerAddress || claim.address || 'Surabaya, Jawa Timur';
             const outletPhone = claim.providerPhone || '081234567890';
             const cleanPhone = outletPhone.replace(/\D/g, '');
-            const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${claim.providerName} ${outletAddress}`)}`;
+            const outletGeo = resolveIndonesianAddress(outletAddress);
+            const gmapsUrl = (claim.providerLat && claim.providerLng)
+              ? `https://www.google.com/maps/search/?api=1&query=${claim.providerLat},${claim.providerLng}`
+              : outletGeo.lat && outletGeo.lng
+                ? `https://www.google.com/maps/search/?api=1&query=${outletGeo.lat},${outletGeo.lng}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${claim.providerName} ${outletGeo.formattedAddress || outletAddress}`)}`;
             const waUrl = `https://wa.me/${cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(
               `Halo ${claim.providerName}, saya konsumen Replate pemegang Kode Klaim #${claim.code || claim.id}. Ingin konfirmasi mengenai pesanan ${claim.foodName}.`
             )}`;

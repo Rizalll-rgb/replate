@@ -11,6 +11,7 @@ import { QRGenerator } from '@/components/qr/QRGenerator';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
 import { SHARED_PANTI_NEEDS } from '@/lib/pantiData';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
   PlusIcon,
   MinusIcon,
@@ -37,6 +38,7 @@ export default function ProviderOverviewPage() {
   const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(3);
   const [totalRescuedKg, setTotalRescuedKg] = useState<number>(42.5);
   const [providerName, setProviderName] = useState<string>('Warung Bakso Pak Kumis');
+  const [providerAddress, setProviderAddress] = useState<string>('Surabaya');
   const [todayFormatted, setTodayFormatted] = useState<string>('');
 
   // Available Surplus Products from Provider Catalog
@@ -113,6 +115,7 @@ export default function ProviderOverviewPage() {
       if (p) {
         const parsed = JSON.parse(p);
         if (parsed.entityName) setProviderName(parsed.entityName);
+        if (parsed.address) setProviderAddress(parsed.address);
       }
     } catch (_) {}
 
@@ -879,71 +882,84 @@ export default function ProviderOverviewPage() {
               </div>
             )}
 
-            {/* Tab 2: Peta GPS & Rute Surabaya */}
-            {shelterModalTab === 'MAP' && (
-              <div className="space-y-2.5">
-                <div className="relative w-full h-48 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
-                  <iframe
-                    title="Shelter Location Map"
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    scrolling="no"
-                    src={`https://maps.google.com/maps?q=${selectedShelterProfile.lat},${selectedShelterProfile.lng}&z=15&output=embed`}
-                    className="w-full h-full filter saturate-150"
-                  />
-                  <div className="absolute top-2.5 left-2.5 bg-[#1B3A5C] text-white px-2.5 py-1 rounded-lg text-[10px] font-black shadow-md">
-                    Titik: {selectedShelterProfile.pantiName}
+            {/* Tab 2: Peta GPS & Rute Pengantaran */}
+            {shelterModalTab === 'MAP' && (() => {
+              const shelterGeo = resolveIndonesianAddress(selectedShelterProfile.address || selectedShelterProfile.location || '');
+              const sLat = selectedShelterProfile.lat || shelterGeo.lat;
+              const sLng = selectedShelterProfile.lng || shelterGeo.lng;
+              return (
+                <div className="space-y-2.5">
+                  <div className="relative w-full h-48 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+                    <iframe
+                      title="Shelter Location Map"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      src={`https://maps.google.com/maps?q=${sLat},${sLng}&z=15&output=embed`}
+                      className="w-full h-full filter saturate-150"
+                    />
+                    <div className="absolute top-2.5 left-2.5 bg-[#1B3A5C] text-white px-2.5 py-1 rounded-lg text-[10px] font-black shadow-md">
+                      Titik: {selectedShelterProfile.pantiName} ({shelterGeo.cityNameOnly || selectedShelterProfile.location})
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-[10.5px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span className="font-medium">Koordinat GPS Lembaga:</span>
+                    <span className="font-mono font-bold text-slate-700">{sLat.toFixed(5)}, {sLng.toFixed(5)}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-[10.5px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                  <span className="font-medium">Koordinat GPS:</span>
-                  <span className="font-mono font-bold text-slate-700">{selectedShelterProfile.lat}, {selectedShelterProfile.lng}</span>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Sticky Action Footer Bar */}
-            <div className="pt-3 border-t border-slate-200 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={`https://wa.me/${selectedShelterProfile.contactPhone.replace(/^0/, '62')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                >
-                  <ChatIcon size={14} />
-                  <span>WhatsApp PIC</span>
-                </a>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&origin=-7.2754,112.7541&destination=${selectedShelterProfile.lat},${selectedShelterProfile.lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="py-2.5 px-3 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                >
-                  <MapPinIcon size={14} />
-                  <span>Buka Rute GPS</span>
-                </a>
-              </div>
+            {(() => {
+              const shelterGeo = resolveIndonesianAddress(selectedShelterProfile.address || selectedShelterProfile.location || '');
+              const sLat = selectedShelterProfile.lat || shelterGeo.lat;
+              const sLng = selectedShelterProfile.lng || shelterGeo.lng;
+              const providerGeo = resolveIndonesianAddress(providerAddress || 'Surabaya');
+              return (
+                <div className="pt-3 border-t border-slate-200 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={`https://wa.me/${selectedShelterProfile.contactPhone.replace(/^0/, '62')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                    >
+                      <ChatIcon size={14} />
+                      <span>WhatsApp PIC</span>
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${providerGeo.lat},${providerGeo.lng}&destination=${sLat},${sLng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-2.5 px-3 bg-[#1B3A5C] hover:bg-[#142C47] text-[#D4A843] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                    >
+                      <MapPinIcon size={14} />
+                      <span>Buka Rute GPS</span>
+                    </a>
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)} className="w-1/3">
-                  Tutup
-                </Button>
-                <Button
-                  variant="gold"
-                  size="sm"
-                  className="flex-1 font-black text-slate-950"
-                  onClick={() => {
-                    const target = selectedShelterProfile;
-                    setSelectedShelterProfile(null);
-                    handleOpenAllocationModal(target);
-                  }}
-                >
-                  Sanggupi Bantuan Panti 
-                </Button>
-              </div>
-            </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)} className="w-1/3">
+                      Tutup
+                    </Button>
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      className="flex-1 font-black text-slate-950"
+                      onClick={() => {
+                        const target = selectedShelterProfile;
+                        setSelectedShelterProfile(null);
+                        handleOpenAllocationModal(target);
+                      }}
+                    >
+                      Sanggupi Bantuan Panti 
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </Modal>

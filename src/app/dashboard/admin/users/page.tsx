@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
@@ -163,6 +164,7 @@ export default function AdminUsersPage() {
     e.preventDefault();
     if (!newUser.name || !newUser.email) return;
 
+    const resolvedGeo = resolveIndonesianAddress(newUser.address || 'Surabaya');
     const created = {
       id: String(Date.now()),
       name: newUser.name,
@@ -171,11 +173,11 @@ export default function AdminUsersPage() {
       status: 'APPROVED',
       org: newUser.org || newUser.name,
       phone: newUser.phone || '081200000000',
-      address: newUser.address || 'Surabaya',
+      address: newUser.address || resolvedGeo.formattedAddress || 'Surabaya',
       nib: 'NIB-GEN-' + Math.floor(Math.random() * 900000),
       joinedAt: new Date().toISOString().split('T')[0],
-      lat: -7.2575,
-      lng: 112.7521,
+      lat: resolvedGeo.lat,
+      lng: resolvedGeo.lng,
       photo: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
     };
 
@@ -333,23 +335,31 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Visual Maps Coordinates & Address */}
-          <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100 space-y-2">
-            <span className="font-extrabold text-[#1B3A5C] text-sm block"> Titik Geografis & Alamat Penjemputan:</span>
-            <p className="font-bold text-slate-800 leading-snug">{selectedUser?.address}</p>
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-mono text-slate-600 font-bold">
-                GPS Pins: {selectedUser?.lat}, {selectedUser?.lng}
-              </span>
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(selectedUser?.address || `${selectedUser?.lat},${selectedUser?.lng}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-1 bg-[#1B3A5C] text-white rounded-lg text-[11px] font-bold hover:bg-[#2C5A8F] transition-colors inline-flex items-center gap-1"
-              >
-                Buka di Google Maps
-              </a>
-            </div>
-          </div>
+          {(() => {
+            const displayGeo = selectedUser?.address ? resolveIndonesianAddress(selectedUser.address) : null;
+            const userLat = selectedUser?.lat || displayGeo?.lat || -7.65569;
+            const userLng = selectedUser?.lng || displayGeo?.lng || 111.27984;
+
+            return (
+              <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100 space-y-2">
+                <span className="font-extrabold text-[#1B3A5C] text-sm block"> Titik Geografis & Alamat Penjemputan:</span>
+                <p className="font-bold text-slate-800 leading-snug">{selectedUser?.address || displayGeo?.formattedAddress}</p>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-mono text-slate-600 font-bold">
+                    GPS Pins: {userLat}, {userLng}
+                  </span>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(selectedUser?.address || `${userLat},${userLng}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1 bg-[#1B3A5C] text-white rounded-lg text-[11px] font-bold hover:bg-[#2C5A8F] transition-colors inline-flex items-center gap-1"
+                  >
+                    Buka di Google Maps
+                  </a>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="flex justify-end pt-2 border-t border-slate-200">
             <Button variant="primary" size="sm" onClick={() => setIsDetailOpen(false)}>

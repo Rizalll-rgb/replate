@@ -17,6 +17,7 @@ import { CheckIcon } from '@/components/ui/Icon';
 import { MapPin, Utensils } from 'lucide-react';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed, deduplicatePantiNeeds } from '@/lib/pantiData';
 import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 interface FoodItem {
   id: string;
@@ -762,43 +763,51 @@ export default function ExplorePage() {
             </a>
 
             {/* Embed Google Maps GPS */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS</h4>
-                <span className="text-[10px] font-mono font-bold text-slate-500">
-                  GPS: {selectedShelterProfile.lat}, {selectedShelterProfile.lng}
-                </span>
-              </div>
+            {(() => {
+              const resGeo = selectedShelterProfile.address ? resolveIndonesianAddress(selectedShelterProfile.address) : null;
+              const sLat = selectedShelterProfile.lat || resGeo?.lat || -7.65569;
+              const sLng = selectedShelterProfile.lng || resGeo?.lng || 111.27984;
 
-              <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
-                <iframe
-                  title="Shelter Location Map"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}&z=15&output=embed`}
-                  className="w-full h-full filter saturate-150"
-                />
-                <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                  Titik Lokasi: {selectedShelterProfile.pantiName}
+              return (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-extrabold text-xs text-[#1B3A5C]">Titik Koordinat Lokasi Peta GPS</h4>
+                    <span className="text-[10px] font-mono font-bold text-slate-500">
+                      GPS: {sLat}, {sLng}
+                    </span>
+                  </div>
+
+                  <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-xs">
+                    <iframe
+                      title="Shelter Location Map"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      src={`https://maps.google.com/maps?q=${sLat},${sLng}&z=15&output=embed`}
+                      className="w-full h-full filter saturate-150"
+                    />
+                    <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
+                      Titik Lokasi: {selectedShelterProfile.pantiName}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-slate-500 font-medium truncate max-w-[70%]">
+                      Alamat: {selectedShelterProfile.address || resGeo?.formattedAddress}
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${sLat},${sLng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
+                    >
+                      Buka di Google Maps ↗
+                    </a>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[10px] text-slate-500 font-medium truncate max-w-[70%]">
-                  Alamat: {selectedShelterProfile.address}
-                </span>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedShelterProfile.address || `${selectedShelterProfile.lat},${selectedShelterProfile.lng}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
-                >
-                  Buka di Google Maps ↗
-                </a>
-              </div>
-            </div>
+              );
+            })()}
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>

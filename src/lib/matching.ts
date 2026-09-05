@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { calculateDistance } from '@/lib/utils';
 import { MATCHING_WEIGHTS, MATCHING_CONFIG } from '@/lib/constants';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import type { SurplusFood, User } from '@prisma/client';
 
 // ============================================
@@ -39,16 +40,20 @@ export async function findMatches(food: SurplusFood): Promise<MatchCandidate[]> 
             where: {
                 role: 'CONSUMER',
                 status: 'APPROVED',
-                latitude: { not: null },
-                longitude: { not: null },
+                OR: [
+                    { latitude: { not: null }, longitude: { not: null } },
+                    { address: { not: null } },
+                ],
             },
         }),
         prisma.user.findMany({
             where: {
                 role: 'RESCUE_PARTNER',
                 status: 'APPROVED',
-                latitude: { not: null },
-                longitude: { not: null },
+                OR: [
+                    { latitude: { not: null }, longitude: { not: null } },
+                    { address: { not: null } },
+                ],
             },
         }),
     ]);
@@ -84,8 +89,10 @@ export async function findConsumerMatches(food: SurplusFood): Promise<MatchCandi
         where: {
             role: 'CONSUMER',
             status: 'APPROVED',
-            latitude: { not: null },
-            longitude: { not: null },
+            OR: [
+                { latitude: { not: null }, longitude: { not: null } },
+                { address: { not: null } },
+            ],
         },
     });
 
@@ -110,8 +117,10 @@ export async function findPartnerMatches(food: SurplusFood): Promise<MatchCandid
         where: {
             role: 'RESCUE_PARTNER',
             status: 'APPROVED',
-            latitude: { not: null },
-            longitude: { not: null },
+            OR: [
+                { latitude: { not: null }, longitude: { not: null } },
+                { address: { not: null } },
+            ],
         },
     });
 
@@ -176,15 +185,32 @@ async function scoreCandidate(
  * Uses Haversine formula, normalized against max distance
  */
 function calculateDistanceScore(food: SurplusFood, user: User) {
-    if (!user.latitude || !user.longitude) {
+    let userLat = user.latitude;
+    let userLng = user.longitude;
+    let foodLat = food.latitude;
+    let foodLng = food.longitude;
+
+    if ((!userLat || !userLng) && user.address) {
+        const userGeo = resolveIndonesianAddress(user.address);
+        userLat = userGeo.lat;
+        userLng = userGeo.lng;
+    }
+
+    if ((!foodLat || !foodLng) && (food as any).address) {
+        const foodGeo = resolveIndonesianAddress((food as any).address);
+        foodLat = foodGeo.lat;
+        foodLng = foodGeo.lng;
+    }
+
+    if (!userLat || !userLng || !foodLat || !foodLng) {
         return { raw: MATCHING_CONFIG.maxDistanceKm, normalized: 0, weighted: 0 };
     }
 
     const distance = calculateDistance(
-        food.latitude,
-        food.longitude,
-        user.latitude,
-        user.longitude
+        foodLat,
+        foodLng,
+        userLat,
+        userLng
     );
 
     const normalized = Math.max(0, 1 - distance / MATCHING_CONFIG.maxDistanceKm);
@@ -328,7 +354,27 @@ async function calculatePartnerCapacity(user: User) {
  * Route Efficiency: Check if there are other pickups nearby
  */
 async function calculateRouteEfficiency(food: SurplusFood, user: User) {
-    if (!user.latitude || !user.longitude) {
+    let userLat = user.latitude;
+    let userLng = user.longitude;
+    if ((!userLat || !userLng) && user.address) {
+        const userGeo = resolveIndonesianAddress(user.address);
+        userLat = userGeo.lat;
+        userLng = userGeo.lng;
+    }
+
+    if (!userLat || !userLng) {
+        return { raw: 0, normalized: 0.5, weighted: 0.5 * MATCHING_WEIGHTS.routeEfficiency };
+    }
+
+    let foodLat = food.latitude;
+    let foodLng = food.longitude;
+    if ((!foodLat || !foodLng) && (food as any).address) {
+        const foodGeo = resolveIndonesianAddress((food as any).address);
+        foodLat = foodGeo.lat;
+        foodLng = foodGeo.lng;
+    }
+
+    if (!foodLat || !foodLng) {
         return { raw: 0, normalized: 0.5, weighted: 0.5 * MATCHING_WEIGHTS.routeEfficiency };
     }
 
@@ -337,8 +383,8 @@ async function calculateRouteEfficiency(food: SurplusFood, user: User) {
         where: {
             id: { not: food.id },
             status: 'AVAILABLE',
-            latitude: { gte: food.latitude - 0.02, lte: food.latitude + 0.02 },
-            longitude: { gte: food.longitude - 0.02, lte: food.longitude + 0.02 },
+            latitude: { gte: foodLat - 0.02, lte: foodLat + 0.02 },
+            longitude: { gte: foodLng - 0.02, lte: foodLng + 0.02 },
         },
     });
 

@@ -14,6 +14,7 @@ import { QRGenerator } from '@/components/qr/QRGenerator';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed, deduplicatePantiNeeds } from '@/lib/pantiData';
 import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 interface FoodItem {
   id: string;
@@ -297,8 +298,8 @@ export default function WorkspaceExplorePage() {
     packagingType: item.packagingType || 'PACKAGED',
     weightPerUnitKg: item.weightPerUnitKg || 0.4,
     allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
-    lat: item.lat || item.latitude || -7.2575,
-    lng: item.lng || item.longitude || 112.7521,
+    lat: item.lat || item.latitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lat,
+    lng: item.lng || item.longitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lng,
     status: item.status,
   });
 
@@ -1241,25 +1242,37 @@ export default function WorkspaceExplorePage() {
             </a>
 
             {/* Embedded Live GPS Map */}
-            <div className="space-y-1.5">
-              <span className="font-extrabold text-slate-800 block text-xs">
-                Titik Jemput & Posisi Real-Time Yayasan:
-              </span>
-              <div className="relative w-full h-56 rounded-2xl overflow-hidden border border-slate-300 shadow-inner bg-slate-100">
-                <iframe
-                  title="Peta Lokasi Shelter Panti"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  src={`https://maps.google.com/maps?q=${selectedShelterProfile.lat},${selectedShelterProfile.lng}&z=15&output=embed`}
-                  className="w-full h-full filter saturate-150"
-                />
-                <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
-                  Titik Lokasi: {selectedShelterProfile.pantiName}
+            {(() => {
+              const shelterGeo = resolveIndonesianAddress(selectedShelterProfile.address || selectedShelterProfile.location || '');
+              const sLat = selectedShelterProfile.lat || shelterGeo.lat;
+              const sLng = selectedShelterProfile.lng || shelterGeo.lng;
+              return (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-slate-800 block text-xs">
+                      Titik Jemput & Posisi Real-Time Yayasan:
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono font-bold">
+                      GPS: {sLat.toFixed(5)}, {sLng.toFixed(5)}
+                    </span>
+                  </div>
+                  <div className="relative w-full h-56 rounded-2xl overflow-hidden border border-slate-300 shadow-inner bg-slate-100">
+                    <iframe
+                      title="Peta Lokasi Shelter Panti"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      src={`https://maps.google.com/maps?q=${sLat},${sLng}&z=15&output=embed`}
+                      className="w-full h-full filter saturate-150"
+                    />
+                    <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
+                      Titik Lokasi: {selectedShelterProfile.pantiName} ({shelterGeo.cityNameOnly || selectedShelterProfile.location})
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedShelterProfile(null)}>

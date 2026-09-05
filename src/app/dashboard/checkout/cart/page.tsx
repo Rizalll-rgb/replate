@@ -8,6 +8,7 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { QRGenerator } from '@/components/qr/QRGenerator';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
   MapPinIcon,
   TruckIcon,
@@ -153,30 +154,43 @@ export default function CheckoutCartPage() {
   const totalAmount = subtotal + deliveryFee;
   const isFree = subtotal === 0;
 
-  const buildNewClaim = (resiCode: string, status: string, proofUrl?: string) => ({
-    id: resiCode,
-    code: resiCode,
-    foodName: items.map(i => `${i.foodName || i.title} (${i.quantity}x)`).join(', '),
-    providerName: items[0]?.providerName || 'Provider Replate',
-    provider: items[0]?.providerName || 'Provider Replate',
-    totalAmount,
-    quantity: `${totalItemsCount} Porsi`,
-    deliveryMethod,
-    method: deliveryMethod,
-    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
-    recipientName: recipientName || 'Budi Santoso',
-    recipientPhone: recipientPhone || '0812-3456-7890',
-    deliveryAddress: address,
-    paymentMethod,
-    address,
-    status,
-    paymentProof: proofUrl || null,
-    createdAt: new Date().toISOString(),
-    claimedAt: 'Hari ini',
-    pickupTime: items[0]?.pickupTime || 'Hari ini 21:00 WIB',
-    items,
-    hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
-  });
+  const buildNewClaim = (resiCode: string, status: string, proofUrl?: string) => {
+    const resolvedDest = resolveIndonesianAddress(address);
+    const resolvedProv = resolveIndonesianAddress(items[0]?.providerAddress || items[0]?.address || '');
+
+    return {
+      id: resiCode,
+      code: resiCode,
+      foodName: items.map(i => `${i.foodName || i.title} (${i.quantity}x)`).join(', '),
+      providerName: items[0]?.providerName || 'Provider Replate',
+      provider: items[0]?.providerName || 'Provider Replate',
+      providerAddress: items[0]?.providerAddress || items[0]?.address,
+      providerLat: items[0]?.lat || items[0]?.latitude || resolvedProv.lat,
+      providerLng: items[0]?.lng || items[0]?.longitude || resolvedProv.lng,
+      totalAmount,
+      quantity: `${totalItemsCount} Porsi`,
+      deliveryMethod,
+      method: deliveryMethod,
+      methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
+      recipientName: recipientName || 'Budi Santoso',
+      recipientPhone: recipientPhone || '0812-3456-7890',
+      deliveryAddress: address,
+      destinationAddress: address,
+      lat: resolvedDest.lat,
+      lng: resolvedDest.lng,
+      destinationLat: resolvedDest.lat,
+      destinationLng: resolvedDest.lng,
+      paymentMethod,
+      address,
+      status,
+      paymentProof: proofUrl || null,
+      createdAt: new Date().toISOString(),
+      claimedAt: 'Hari ini',
+      pickupTime: items[0]?.pickupTime || 'Hari ini 21:00 WIB',
+      items,
+      hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
+    };
+  };
 
   const saveClaimAndRedirect = (resiCode: string, status: string, proofUrl?: string) => {
     const newClaim = buildNewClaim(resiCode, status, proofUrl);

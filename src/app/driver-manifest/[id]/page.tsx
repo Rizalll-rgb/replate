@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export default function DriverManifestNoLoginPage() {
   const params = useParams();
@@ -160,38 +161,70 @@ export default function DriverManifestNoLoginPage() {
             </p>
           </div>
 
-          <div className="p-3.5 bg-[#1B3A5C] text-white rounded-2xl shadow-xs space-y-1">
-            <span className="text-amber-400 font-extrabold text-[10px] uppercase tracking-wider block"> Alamat Pengantaran Tujuan:</span>
-            <p className="text-white font-bold leading-relaxed text-xs">{claimData.address}</p>
-          </div>
+          {(() => {
+            const destGeo = resolveIndonesianAddress(claimData.address || '');
+            const lat = claimData.destinationLat || destGeo.lat;
+            const lng = claimData.destinationLng || destGeo.lng;
+            return (
+              <div className="space-y-3">
+                <div className="p-3.5 bg-[#1B3A5C] text-white rounded-2xl shadow-xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-amber-400 font-extrabold text-[10px] uppercase tracking-wider block">
+                      📍 Alamat Pengantaran Tujuan:
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-300 font-bold">
+                      GPS: {lat.toFixed(5)}, {lng.toFixed(5)}
+                    </span>
+                  </div>
+                  <p className="text-white font-bold leading-relaxed text-xs">{claimData.address}</p>
+                </div>
 
-          {/* Quick Action Large Touch Buttons */}
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <a
-              href={`https://wa.me/${claimData.recipientPhone.replace(/[^0-9]/g, '')}?text=Halo%20${encodeURIComponent(claimData.recipientPerson)},%20saya%20${encodeURIComponent(claimData.driverName)}%20dari%20${encodeURIComponent(claimData.storeName)}%20sedang%20mengantar%20makanan%20surplus%20Replate%20ke%20lokasi%20Anda.`}
-              target="_blank"
-              rel="noreferrer"
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-center shadow-md flex items-center justify-center gap-1.5 transition-all text-xs"
-            >
-              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                <path d="M12.031 2c-5.514 0-9.999 4.486-9.999 10.001 0 1.761.459 3.475 1.332 4.996l-1.364 4.986 5.105-1.338c1.468.802 3.125 1.226 4.807 1.226 5.514 0 9.999-4.486 9.999-10.001 0-5.515-4.485-10.001-9.999-10.001z"/>
-              </svg>
-              <span>Hubungi WA</span>
-            </a>
+                {/* Embedded Live Map Preview for Driver */}
+                <div className="relative w-full h-36 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 shadow-inner">
+                  <iframe
+                    title="Peta Alamat Pengantaran"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    scrolling="no"
+                    src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
+                    className="w-full h-full filter saturate-150"
+                  />
+                  <div className="absolute top-2 left-2 bg-[#1B3A5C] text-white px-2 py-0.5 rounded text-[9px] font-bold shadow">
+                    Tujuan: {destGeo.cityNameOnly || 'Lokasi Penerima'}
+                  </div>
+                </div>
 
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(claimData.address)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-center shadow-md flex items-center justify-center gap-1.5 transition-all text-xs"
-            >
-              <svg className="w-4 h-4 stroke-current shrink-0" fill="none" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>Buka Maps</span>
-            </a>
-          </div>
+                {/* Quick Action Large Touch Buttons */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <a
+                    href={`https://wa.me/${claimData.recipientPhone.replace(/[^0-9]/g, '')}?text=Halo%20${encodeURIComponent(claimData.recipientPerson)},%20saya%20${encodeURIComponent(claimData.driverName)}%20dari%20${encodeURIComponent(claimData.storeName)}%20sedang%20mengantar%20makanan%20surplus%20Replate%20ke%20lokasi%20Anda.`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-center shadow-md flex items-center justify-center gap-1.5 transition-all text-xs"
+                  >
+                    <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M12.031 2c-5.514 0-9.999 4.486-9.999 10.001 0 1.761.459 3.475 1.332 4.996l-1.364 4.986 5.105-1.338c1.468.802 3.125 1.226 4.807 1.226 5.514 0 9.999-4.486 9.999-10.001 0-5.515-4.485-10.001-9.999-10.001z"/>
+                    </svg>
+                    <span>Hubungi WA</span>
+                  </a>
+
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-center shadow-md flex items-center justify-center gap-1.5 transition-all text-xs"
+                  >
+                    <svg className="w-4 h-4 stroke-current shrink-0" fill="none" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Buka Maps</span>
+                  </a>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Card 3: Form Foto Bukti Serah Terima & Tombol Selesai */}

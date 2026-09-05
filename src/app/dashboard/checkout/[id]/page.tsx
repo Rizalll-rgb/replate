@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { QRGenerator } from '@/components/qr/QRGenerator';
 import Image from 'next/image';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
   MapPinIcon,
   TruckIcon,
@@ -45,6 +46,9 @@ interface FoodItem {
   category: string;
   isFree: boolean;
   imageUrl: string;
+  providerAddress?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export default function CheckoutPage() {
@@ -265,28 +269,41 @@ export default function CheckoutPage() {
   }
   const isItemOutOfStock = rawItemQty <= 0 || (item as any)?.status === 'OUT_OF_STOCK' || (item as any)?.status === 'SOLD_OUT';
 
-  const buildClaim = (resiCode: string, status: string, proofUrl?: string) => ({
-    id: resiCode,
-    code: resiCode,
-    foodName: `${item?.title} (${quantity}x)`,
-    providerName: item?.providerName,
-    provider: item?.providerName,
-    totalAmount: isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0),
-    deliveryMethod,
-    method: deliveryMethod,
-    methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
-    recipientName: recipientName || 'Budi Santoso',
-    recipientPhone: recipientPhone || '0812-3456-7890',
-    deliveryAddress: address,
-    paymentMethod,
-    address,
-    status,
-    paymentProof: proofUrl || null,
-    createdAt: new Date().toISOString(),
-    pickupTime: item?.pickupTime,
-    items: [{ ...item, quantity }],
-    hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
-  });
+  const buildClaim = (resiCode: string, status: string, proofUrl?: string) => {
+    const resolvedDest = resolveIndonesianAddress(address);
+    const resolvedProv = resolveIndonesianAddress(item?.providerAddress || (item as any)?.address || '');
+
+    return {
+      id: resiCode,
+      code: resiCode,
+      foodName: `${item?.title} (${quantity}x)`,
+      providerName: item?.providerName,
+      provider: item?.providerName,
+      providerAddress: item?.providerAddress || (item as any)?.address,
+      providerLat: item?.lat || (item as any)?.latitude || resolvedProv.lat,
+      providerLng: item?.lng || (item as any)?.longitude || resolvedProv.lng,
+      totalAmount: isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0),
+      deliveryMethod,
+      method: deliveryMethod,
+      methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
+      recipientName: recipientName || 'Budi Santoso',
+      recipientPhone: recipientPhone || '0812-3456-7890',
+      deliveryAddress: address,
+      destinationAddress: address,
+      lat: resolvedDest.lat,
+      lng: resolvedDest.lng,
+      destinationLat: resolvedDest.lat,
+      destinationLng: resolvedDest.lng,
+      paymentMethod,
+      address,
+      status,
+      paymentProof: proofUrl || null,
+      createdAt: new Date().toISOString(),
+      pickupTime: item?.pickupTime,
+      items: [{ ...item, quantity }],
+      hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
+    };
+  };
 
   const persistClaim = (claim: any) => {
     const ex = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');

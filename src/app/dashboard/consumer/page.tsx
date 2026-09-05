@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Info, CheckCircle2 } from 'lucide-react';
 import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export default function ConsumerBrowsePage() {
   const router = useRouter();
@@ -149,8 +150,8 @@ export default function ConsumerBrowsePage() {
     packagingType: item.packagingType || 'PACKAGED',
     weightPerUnitKg: Number(item.weightPerUnitKg || 0.4),
     allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Wadah Steril'],
-    lat: item.lat || item.latitude || -7.2575,
-    lng: item.lng || item.longitude || 112.7521,
+    lat: item.lat || item.latitude || (item.address || item.pickupAddress || item.providerAddress ? resolveIndonesianAddress(item.address || item.pickupAddress || item.providerAddress).lat : -7.65569),
+    lng: item.lng || item.longitude || (item.address || item.pickupAddress || item.providerAddress ? resolveIndonesianAddress(item.address || item.pickupAddress || item.providerAddress).lng : 111.27984),
     status: item.status || 'AVAILABLE',
   });
 

@@ -21,6 +21,7 @@ import {
   ShieldCheckIcon,
   TruckIcon
 } from '@/components/ui/Icon';
+import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
@@ -718,6 +719,40 @@ export default function PartnerActivePickupsPage() {
                   <p className="text-[11px] text-slate-600">{claim.shelterAddress || 'Jl. Raya Gubeng No 88, Surabaya'}</p>
                 </div>
               </div>
+
+              {/* Embedded Live GPS Map Preview */}
+              {(() => {
+                const destGeo = resolveIndonesianAddress(claim.shelterAddress || claim.destinationAddress || 'Surabaya');
+                const destLat = claim.shelterLat || claim.destinationLat || destGeo.lat;
+                const destLng = claim.shelterLng || claim.destinationLng || destGeo.lng;
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-extrabold text-[#1B3A5C] flex items-center gap-1">
+                        <MapPinIcon size={14} className="text-emerald-600" />
+                        <span>Peta GPS Rute Pengantaran ({destGeo.cityNameOnly || 'Tujuan'})</span>
+                      </span>
+                      <span className="text-[10.5px] font-mono font-bold text-slate-500">
+                        GPS: {destLat.toFixed(5)}, {destLng.toFixed(5)}
+                      </span>
+                    </div>
+                    <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-slate-300 shadow-inner bg-slate-100">
+                      <iframe
+                        title="Peta Live Tracking Relawan"
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        src={`https://maps.google.com/maps?q=${destLat},${destLng}&z=15&output=embed`}
+                        className="w-full h-full filter saturate-150"
+                      />
+                      <div className="absolute top-2.5 left-2.5 bg-[#1B3A5C] text-white px-2.5 py-1 rounded-lg text-[10px] font-black shadow-md">
+                        Tujuan: {pantiName} ({destGeo.cityNameOnly})
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Checkpoint Timeline */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
