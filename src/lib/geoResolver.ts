@@ -916,3 +916,204 @@ export async function geocodeOnlineAddress(query: string): Promise<{
 
   return results;
 }
+
+export interface ReverseGeocodeResult {
+  formattedAddress: string;
+  street?: string;
+  village?: string;
+  district?: string;
+  city?: string;
+  cityNameOnly?: string;
+  province?: string;
+  postalCode?: string;
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Reverse Geocoding for Indonesian Coordinates (Click-to-Pin on Map)
+ * Accurately determines the street, village, district, regency, and province for any given (lat, lng) point.
+ * Tier 1: OpenStreetMap Nominatim Reverse Geocoding (high precision street/village)
+ * Tier 2: Komoot Photon Reverse Geocoding
+ * Tier 3: Offline Hierarchical Indonesian Regency & District Centroid matcher
+ */
+export async function reverseGeocodeIndonesianCoords(lat: number, lng: number): Promise<ReverseGeocodeResult> {
+  const roundedLat = Number(lat.toFixed(5));
+  const roundedLng = Number(lng.toFixed(5));
+
+  // Helper to lookup regency type from directory
+  const lookupRegency = (cityName: string) => {
+    const cleanCity = cityName.toLowerCase().replace(/^(kabupaten|kab\.|kota)\s+/i, '').trim();
+    const found = INDONESIA_REGENCY_DIRECTORY.find(
+      r => r.name.toLowerCase() === cleanCity || (r.aliases && r.aliases.some(a => a.includes(cleanCity)))
+    );
+    return found ? { type: found.type, name: found.name, province: found.province } : null;
+  };
+
+  // Tier 1: Try OpenStreetMap Nominatim Reverse
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${roundedLat}&lon=${roundedLng}&zoom=18&addressdetails=1`,
+      {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Replate-FoodBridge/1.0',
+          'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
+        },
+      }
+    );
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.address) {
+        const addr = data.address;
+
+        let street = addr.road || addr.pedestrian || addr.footway || addr.path || addr.street || '';
+        if (street && !street.toLowerCase().startsWith('jl') && !street.toLowerCase().startsWith('jalan')) {
+          street = `Jl. ${street}`;
+        }
+
+        const rawVillage = addr.village || addr.suburb || addr.hamlet || addr.neighbourhood || addr.quarter || '';
+        const village = rawVillage ? rawVillage.replace(/^(desa|kelurahan|dusun)\s+/i, '').trim() : '';
+
+        const rawDistrict = addr.municipality || addr.city_district || addr.subdistrict || addr.district || '';
+        const district = rawDistrict ? rawDistrict.replace(/^(kecamatan|kec\.)\s+/i, '').trim() : '';
+
+        const rawCity = addr.city || addr.county || addr.regency || addr.town || '';
+        let cityNameOnly = rawCity.replace(/^(kabupaten|kab\.|kota)\s+/i, '').trim();
+        let fullCity = rawCity;
+        let province = addr.state || addr.province || 'Jawa Timur';
+
+        const regencyMatch = lookupRegency(cityNameOnly || rawCity);
+        if (regencyMatch) {
+          fullCity = `${regencyMatch.type} ${regencyMatch.name}`;
+          cityNameOnly = regencyMatch.name;
+          if (!province || province === 'Indonesia') province = regencyMatch.province;
+        } else if (rawCity && !rawCity.toLowerCase().startsWith('kab') && !rawCity.toLowerCase().startsWith('kota')) {
+          fullCity = `Kabupaten ${rawCity}`;
+        }
+
+        const postalCode = addr.postcode || '';
+
+        // Build clean and natural Indonesian address
+        const parts: string[] = [];
+        if (street) parts.push(street);
+        if (village) parts.push(`Desa/Kel. ${village}`);
+        if (district) parts.push(`Kec. ${district}`);
+        if (fullCity) parts.push(fullCity);
+        if (province && province !== fullCity) parts.push(province);
+        if (postalCode) parts.push(postalCode);
+
+        const formattedAddress = parts.length > 0
+          ? parts.join(', ')
+          : (data.display_name || `Titik Koordinat (${roundedLat}, ${roundedLng})`);
+
+        return {
+          formattedAddress,
+          street: street || undefined,
+          village: village || undefined,
+          district: district || undefined,
+          city: fullCity || undefined,
+          cityNameOnly: cityNameOnly || undefined,
+          province: province || undefined,
+          postalCode: postalCode || undefined,
+          lat: roundedLat,
+          lng: roundedLng,
+        };
+      }
+    }
+  } catch (_) {
+    // If Nominatim fails or times out, proceed to Tier 2
+  }
+
+  // Tier 2: Try Komoot Photon Reverse
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    const res = await fetch(`https://photon.komoot.io/reverse?lat=${roundedLat}&lon=${roundedLng}`, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const data = await res.json();
+      const feat = data?.features?.[0];
+      if (feat && feat.properties) {
+        const p = feat.properties;
+        let street = p.street || p.name || '';
+        if (street && !street.toLowerCase().startsWith('jl') && !street.toLowerCase().startsWith('jalan')) {
+          street = `Jl. ${street}`;
+        }
+        const district = p.district || p.suburb || p.locality || '';
+        const rawCity = p.city || p.county || '';
+        const cityNameOnly = rawCity.replace(/^(kabupaten|kab\.|kota)\s+/i, '').trim();
+        const regencyMatch = lookupRegency(cityNameOnly || rawCity);
+        const fullCity = regencyMatch ? `${regencyMatch.type} ${regencyMatch.name}` : (rawCity ? `Kabupaten ${cityNameOnly}` : '');
+        const province = p.state || regencyMatch?.province || 'Jawa Timur';
+
+        const parts = [
+          street,
+          district ? `Kec. ${district}` : '',
+          fullCity,
+          province,
+          p.postcode,
+        ].filter(Boolean);
+
+        return {
+          formattedAddress: parts.join(', ') || `Titik Lokasi (${roundedLat}, ${roundedLng})`,
+          street: street || undefined,
+          district: district || undefined,
+          city: fullCity || undefined,
+          cityNameOnly: cityNameOnly || undefined,
+          province: province || undefined,
+          postalCode: p.postcode || undefined,
+          lat: roundedLat,
+          lng: roundedLng,
+        };
+      }
+    }
+  } catch (_) {
+    // Proceed to Tier 3
+  }
+
+  // Tier 3: Offline Hierarchical District & Regency Centroid Matcher
+  let closestRegency: RegencyData | null = null;
+  let closestDistrict: DistrictData | null = null;
+  let minDistance = Infinity;
+
+  for (const regency of INDONESIA_REGENCY_DIRECTORY) {
+    for (const dKey in regency.districts) {
+      const d = regency.districts[dKey];
+      const dist = Math.pow(d.lat - roundedLat, 2) + Math.pow(d.lng - roundedLng, 2);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestRegency = regency;
+        closestDistrict = d;
+      }
+    }
+  }
+
+  if (closestRegency && closestDistrict) {
+    const fullCity = `${closestRegency.type} ${closestRegency.name}`;
+    const formattedAddress = `Kec. ${closestDistrict.name}, ${fullCity}, ${closestRegency.province} (Titik GPS: ${roundedLat}, ${roundedLng})`;
+
+    return {
+      formattedAddress,
+      district: closestDistrict.name,
+      city: fullCity,
+      cityNameOnly: closestRegency.name,
+      province: closestRegency.province,
+      lat: roundedLat,
+      lng: roundedLng,
+    };
+  }
+
+  return {
+    formattedAddress: `Titik Lokasi GPS (${roundedLat}, ${roundedLng})`,
+    lat: roundedLat,
+    lng: roundedLng,
+  };
+}

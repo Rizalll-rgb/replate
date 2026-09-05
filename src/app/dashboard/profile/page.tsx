@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
 import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
-import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords } from '@/lib/geoResolver';
 
 interface FleetVehicle {
   id: string;
@@ -977,13 +977,33 @@ export default function DashboardProfilePage() {
   const [mapSearchQuery, setMapSearchQuery] = useState('');
   const [showMapDropdown, setShowMapDropdown] = useState(false);
   const [isSearchingMap, setIsSearchingMap] = useState(false);
+  const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
   const [mapSuggestions, setMapSuggestions] = useState<LocationDirectoryItem[]>([]);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [mapZoom, setMapZoom] = useState(15);
   const [activeIslandTab, setActiveIslandTab] = useState<'SEMUA' | 'JABODETABEK' | 'JATENG_DIY' | 'JATIM' | 'SUMATERA' | 'BALI_NUSA' | 'KALIMANTAN' | 'SULAWESI_PAPUA'>('SEMUA');
 
+  const suppressDropdownRef = React.useRef<boolean>(false);
+  const searchContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // Click-outside listener to ensure dropdown always closes
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowMapDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Fully automatic ultra-fast live geocoding (Photon Komoot + OpenStreetMap + Instant POI)
   useEffect(() => {
+    if (suppressDropdownRef.current) {
+      setShowMapDropdown(false);
+      return;
+    }
+
     const raw = mapSearchQuery.trim();
     if (!raw) {
       setMapSuggestions([]);
@@ -1152,10 +1172,15 @@ export default function DashboardProfilePage() {
   }, [mapSearchQuery]);
 
   const handleMapQueryChange = (val: string) => {
+    suppressDropdownRef.current = false;
     setMapSearchQuery(val);
   };
 
   const handleSelectSuggestion = (item: LocationDirectoryItem) => {
+    suppressDropdownRef.current = true;
+    setShowMapDropdown(false);
+    setMapSuggestions([]);
+
     const cleanName = item.name
       .replace(/^\s*/, '')
       .replace(/^Tambah Lokasi Spesifik:\s*/i, '')
@@ -1182,7 +1207,6 @@ export default function DashboardProfilePage() {
     }
 
     setMapSearchQuery(cleanName);
-    setShowMapDropdown(false);
 
     setProfileData((prev) => ({
       ...prev,
@@ -1201,82 +1225,55 @@ export default function DashboardProfilePage() {
   };
 
   const reverseGeocodeCoordinate = async (lat: number, lng: number) => {
-    // 1. Check if close to known directory locations (< 3.5 km)
-    let closestItem: LocationDirectoryItem | null = null;
-    let minDistance = 0.035;
+    suppressDropdownRef.current = true;
+    setShowMapDropdown(false);
+    setMapSuggestions([]);
+    setIsReverseGeocoding(true);
 
-    for (const loc of INDONESIAN_LOCATION_DIRECTORY) {
-      const dLat = Math.abs(loc.lat - lat);
-      const dLng = Math.abs(loc.lng - lng);
-      const dist = Math.sqrt(dLat * dLat + dLng * dLng);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestItem = loc;
-      }
-    }
-
-    if (closestItem) {
-      const cleanName = closestItem.name.replace(/^\s*/, '').replace(/^Tambah Lokasi Spesifik:\s*/i, '').trim();
-      const fullAddress = `${cleanName}, ${closestItem.detail}`;
-      const distMatch = closestItem.detail.match(/Kec(?:amatan|\.)\s+([^,]+)/i);
-      const cityMatch = closestItem.detail.match(/(?:Kota|Kab(?:upaten|\.)?)\s+([^,]+)/i);
-
-      setProfileData((prev) => ({
-        ...prev,
-        lat,
-        lng,
-        address: fullAddress,
-        ...(cityMatch ? { city: cityMatch[0].trim() } : {}),
-        ...(distMatch ? { district: distMatch[1].trim() } : {}),
-      }));
-      setMapSearchQuery(cleanName);
-      setToastState({ isOpen: true, message: `Alamat disinkronkan ke ${cleanName}!`, type: 'success' });
-      return;
-    }
-
-    // 2. Online reverse geocoding via Photon Komoot
-    try {
-      const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
-      if (res.ok) {
-        const text = await res.text();
-        if (text.startsWith('{')) {
-          const data = JSON.parse(text);
-          const feat = data?.features?.[0];
-          if (feat && feat.properties) {
-            const p = feat.properties;
-            const street = p.street || p.name || '';
-            const district = p.district || p.suburb || p.locality || '';
-            const city = p.city || p.county || '';
-            const state = p.state || '';
-            const parts = [street, district, city, state].filter(Boolean);
-            if (parts.length > 0) {
-              const fullAddress = parts.join(', ');
-              setProfileData((prev) => ({
-                ...prev,
-                lat,
-                lng,
-                address: fullAddress,
-                ...(city ? { city } : {}),
-                ...(district ? { district } : {}),
-              }));
-              setMapSearchQuery(fullAddress);
-              setToastState({ isOpen: true, message: `Alamat disinkronkan ke ${fullAddress}!`, type: 'success' });
-              return;
-            }
-          }
-        }
-      }
-    } catch (_) {}
-
-    // Fallback: update coordinates and address
-    const fallbackAddr = `Titik Lokasi GPS (${lat}, ${lng})`;
+    // Immediate coordinate update for 0ms visual responsiveness on map pin
     setProfileData((prev) => ({
       ...prev,
       lat,
       lng,
-      address: fallbackAddr,
     }));
-    setToastState({ isOpen: true, message: `Pin dipindahkan ke (${lat}, ${lng})!`, type: 'success' });
+
+    try {
+      const resolved = await reverseGeocodeIndonesianCoords(lat, lng);
+
+      setProfileData((prev) => ({
+        ...prev,
+        lat: resolved.lat,
+        lng: resolved.lng,
+        address: resolved.formattedAddress,
+        ...(resolved.city ? { city: resolved.city } : {}),
+        ...(resolved.district ? { district: resolved.district } : {}),
+        ...(resolved.province ? { province: resolved.province } : {}),
+      }));
+
+      setMapSearchQuery(resolved.formattedAddress);
+
+      setToastState({
+        isOpen: true,
+        message: `Titik peta disinkronkan! Alamat otomatis: "${resolved.formattedAddress}"`,
+        type: 'success',
+      });
+    } catch (_) {
+      const fallbackAddr = `Titik Lokasi GPS (${lat}, ${lng})`;
+      setProfileData((prev) => ({
+        ...prev,
+        lat,
+        lng,
+        address: fallbackAddr,
+      }));
+      setMapSearchQuery(fallbackAddr);
+      setToastState({
+        isOpen: true,
+        message: `Pin dipindahkan ke (${lat}, ${lng})!`,
+        type: 'success',
+      });
+    } finally {
+      setIsReverseGeocoding(false);
+    }
   };
 
   const executeMapSearch = async (targetQuery: string) => {
@@ -2178,16 +2175,16 @@ export default function DashboardProfilePage() {
                   </div>
 
                   {/* Search Bar with Autocomplete Dropdown for Indonesian Cities & Districts */}
-                  <div className="relative">
+                  <div ref={searchContainerRef} className="relative">
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <input
                           type="text"
-                          placeholder="Ketik nama daerah, kecamatan, atau kota (contoh: Wonokromo, Gubeng, Tunjungan, Dago, Malioboro, Kuta)..."
+                          placeholder="Ketik nama jalan, desa, kecamatan, atau kota (contoh: Jl. Raya Sarangan, Sidorejo, Magetan)..."
                           value={mapSearchQuery}
                           onChange={(e) => handleMapQueryChange(e.target.value)}
                           onFocus={() => {
-                            if (mapSearchQuery.trim().length > 0 && mapSuggestions.length > 0) {
+                            if (mapSearchQuery.trim().length > 0 && mapSuggestions.length > 0 && !suppressDropdownRef.current) {
                               setShowMapDropdown(true);
                             }
                           }}
@@ -2209,13 +2206,14 @@ export default function DashboardProfilePage() {
                           <button
                             type="button"
                             onClick={() => {
+                              suppressDropdownRef.current = true;
                               setMapSearchQuery('');
                               setMapSuggestions([]);
                               setShowMapDropdown(false);
                             }}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-black cursor-pointer"
                           >
-                            
+                            ✕
                           </button>
                         )}
                       </div>
@@ -2224,7 +2222,7 @@ export default function DashboardProfilePage() {
                         onClick={() => executeMapSearch(mapSearchQuery)}
                         className="px-4 py-2.5 bg-[#1B3A5C] text-white font-black text-xs rounded-xl hover:bg-[#142C47] transition-all cursor-pointer shrink-0"
                       >
-                         Cari Lokasi
+                        🔍 Cari Lokasi
                       </button>
                     </div>
 
@@ -2281,6 +2279,10 @@ export default function DashboardProfilePage() {
                   {/* Visual Large Click-to-Pin Map Viewport (Spacious on Laptop) */}
                   <div
                     onClick={(e) => {
+                      suppressDropdownRef.current = true;
+                      setShowMapDropdown(false);
+                      setMapSuggestions([]);
+
                       const rect = e.currentTarget.getBoundingClientRect();
                       const x = e.clientX - rect.left;
                       const y = e.clientY - rect.top;
@@ -2310,10 +2312,10 @@ export default function DashboardProfilePage() {
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="flex flex-col items-center -translate-y-4">
                         <div className="px-2.5 py-1 bg-slate-950/90 text-[#D4A843] rounded-lg font-mono text-[10px] font-black shadow-lg whitespace-nowrap mb-1 border border-slate-700">
-                           {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
+                          {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
                         </div>
                         <div className="w-9 h-9 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-sm font-black animate-bounce">
-                          
+                          📍
                         </div>
                         <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
                       </div>
@@ -2322,8 +2324,16 @@ export default function DashboardProfilePage() {
                     {/* Top Left Helper Overlay Badge */}
                     <div className="absolute top-3 left-3 bg-[#1B3A5C]/95 backdrop-blur-xs text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-md flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      <span> Klik di titik manapun pada peta untuk memindahkan pin outlet</span>
+                      <span> Klik di titik manapun pada peta untuk memindahkan pin & deteksi alamat</span>
                     </div>
+
+                    {/* Active Reverse Geocoding Loading Indicator */}
+                    {isReverseGeocoding && (
+                      <div className="absolute top-12 left-3 z-20 bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-black shadow-lg flex items-center gap-2 animate-pulse border border-amber-600">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>📍 Mendeteksi alamat dari titik peta...</span>
+                      </div>
+                    )}
 
                     {/* Bottom Right Zoom & Control Buttons */}
                     <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-slate-900/85 backdrop-blur-xs p-1.5 rounded-xl shadow-lg">
@@ -2365,6 +2375,37 @@ export default function DashboardProfilePage() {
                     </div>
                   </div>
 
+                  {/* Live Address & Precision Status Banner */}
+                  <div className="p-3.5 bg-emerald-50 rounded-xl border-2 border-emerald-300 flex items-start gap-2.5">
+                    <MapPinIcon size={16} className="text-emerald-700 shrink-0 mt-0.5" />
+                    <div className="text-xs space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <strong className="text-emerald-950 font-black flex items-center gap-1.5">
+                          <span>Alamat Terdeteksi Sesuai Titik Ini:</span>
+                          <span className="px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded text-[9.5px] font-black uppercase">
+                            Sinkron Presisi
+                          </span>
+                        </strong>
+                        {isReverseGeocoding && (
+                          <span className="text-[10px] font-bold text-amber-700 animate-pulse flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin inline" />
+                            <span>Mendeteksi alamat...</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-slate-800 font-bold text-xs leading-relaxed break-words">
+                        {profileData.address || 'Memuat alamat titik...'}
+                      </p>
+                      <div className="flex items-center gap-2 pt-0.5 text-[10px] font-bold text-emerald-800 flex-wrap">
+                        <span>Kecamatan: {profileData.district || '-'}</span>
+                        <span>•</span>
+                        <span>Kota/Kab: {profileData.city || '-'}</span>
+                        <span>•</span>
+                        <span className="font-mono">Koordinat GPS: {profileData.lat}, {profileData.lng}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Directional Precision Nudge Controls */}
                   <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-0.5">
@@ -2380,8 +2421,8 @@ export default function DashboardProfilePage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setProfileData(prev => ({ ...prev, lat: Number((prev.lat + 0.0012).toFixed(5)) }));
-                          setToastState({ isOpen: true, message: 'Pin digeser ke Utara (+100m)', type: 'success' });
+                          const newLat = Number((profileData.lat + 0.0012).toFixed(5));
+                          reverseGeocodeCoordinate(newLat, profileData.lng);
                         }}
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
@@ -2390,8 +2431,8 @@ export default function DashboardProfilePage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setProfileData(prev => ({ ...prev, lat: Number((prev.lat - 0.0012).toFixed(5)) }));
-                          setToastState({ isOpen: true, message: 'Pin digeser ke Selatan (-100m)', type: 'success' });
+                          const newLat = Number((profileData.lat - 0.0012).toFixed(5));
+                          reverseGeocodeCoordinate(newLat, profileData.lng);
                         }}
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
@@ -2400,8 +2441,8 @@ export default function DashboardProfilePage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setProfileData(prev => ({ ...prev, lng: Number((prev.lng - 0.0012).toFixed(5)) }));
-                          setToastState({ isOpen: true, message: 'Pin digeser ke Barat (-100m)', type: 'success' });
+                          const newLng = Number((profileData.lng - 0.0012).toFixed(5));
+                          reverseGeocodeCoordinate(profileData.lat, newLng);
                         }}
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
@@ -2410,8 +2451,8 @@ export default function DashboardProfilePage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setProfileData(prev => ({ ...prev, lng: Number((prev.lng + 0.0012).toFixed(5)) }));
-                          setToastState({ isOpen: true, message: 'Pin digeser ke Timur (+100m)', type: 'success' });
+                          const newLng = Number((profileData.lng + 0.0012).toFixed(5));
+                          reverseGeocodeCoordinate(profileData.lat, newLng);
                         }}
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 text-xs font-black cursor-pointer shadow-2xs inline-flex items-center gap-1"
                       >
@@ -3067,6 +3108,10 @@ export default function DashboardProfilePage() {
             {/* Gigantic Interactive Canvas for Laptop */}
             <div
               onClick={(e) => {
+                suppressDropdownRef.current = true;
+                setShowMapDropdown(false);
+                setMapSuggestions([]);
+
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
@@ -3091,14 +3136,32 @@ export default function DashboardProfilePage() {
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="flex flex-col items-center -translate-y-4">
                   <div className="px-3 py-1 bg-slate-950/95 text-[#D4A843] rounded-lg font-mono text-xs font-black shadow-2xl mb-1 border border-slate-700">
-                     {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
+                    {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-base font-black animate-bounce">
-                    
+                    📍
                   </div>
                   <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
                 </div>
               </div>
+
+              {/* Active Reverse Geocoding Loading Indicator */}
+              {isReverseGeocoding && (
+                <div className="absolute top-4 left-4 z-20 bg-amber-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-black shadow-2xl flex items-center gap-2 animate-pulse border border-amber-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>📍 Mendeteksi alamat dari titik peta...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Live Address Display Inside Fullscreen Modal */}
+            <div className="p-3 bg-slate-100 rounded-xl border border-slate-300 flex items-center justify-between text-xs">
+              <span className="font-extrabold text-slate-800 truncate max-w-[70%]">
+                📍 Alamat Saat Ini: <span className="font-bold text-slate-900">{profileData.address || 'Belum dipilih'}</span>
+              </span>
+              <span className="font-mono text-[11px] font-bold text-slate-500">
+                {profileData.lat}, {profileData.lng}
+              </span>
             </div>
 
             <div className="flex justify-between items-center pt-2">

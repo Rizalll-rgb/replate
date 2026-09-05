@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords } from '@/lib/geoResolver';
 import {
   BikeIcon,
   TruckIcon,
@@ -1047,7 +1047,32 @@ export default function ProviderSettingsPage() {
                   />
                 </div>
 
-                <div className="relative w-full h-44 rounded-xl border border-slate-300 overflow-hidden bg-slate-200 flex items-center justify-center shadow-xs">
+                <div
+                  onClick={async (e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const xPercent = (x / rect.width) - 0.5;
+                    const yPercent = (y / rect.height) - 0.5;
+                    const newLng = Number((lng + (xPercent * 0.012)).toFixed(5));
+                    const newLat = Number((lat - (yPercent * 0.012)).toFixed(5));
+                    setLat(newLat);
+                    setLng(newLng);
+                    try {
+                      const res = await reverseGeocodeIndonesianCoords(newLat, newLng);
+                      if (res.formattedAddress) {
+                        setAddress(res.formattedAddress);
+                        if (res.district) setDistrict(res.district);
+                        setToastState({
+                          isOpen: true,
+                          message: `Titik peta disinkronkan! Alamat otomatis: "${res.formattedAddress}"`,
+                          type: 'success',
+                        });
+                      }
+                    } catch (_) {}
+                  }}
+                  className="relative w-full h-48 rounded-xl border-2 border-slate-300 overflow-hidden bg-slate-200 flex items-center justify-center shadow-xs cursor-crosshair group"
+                >
                   <iframe
                     title="Google Maps Location Preview"
                     width="100%"
@@ -1055,12 +1080,17 @@ export default function ProviderSettingsPage() {
                     frameBorder="0"
                     scrolling="no"
                     src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
-                    className="w-full h-full filter saturate-150"
+                    className="w-full h-full filter saturate-150 pointer-events-none"
                   />
                   <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span>Titik Penjemputan Toko: {lat}, {lng}</span>
+                    <span>Titik Penjemputan Toko: {lat}, {lng} (Klik untuk memindahkan pin)</span>
                   </div>
+                </div>
+
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-950 font-medium">
+                  <span>📍 Alamat Aktif: <strong>{address}</strong></span>
+                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded">Sinkron GPS</span>
                 </div>
               </div>
 

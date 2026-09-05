@@ -6,7 +6,7 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Check } from 'lucide-react';
-import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords } from '@/lib/geoResolver';
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
@@ -614,6 +614,62 @@ export default function OnboardingProfilePage() {
                         placeholder="Contoh: Plaosan"
                         required
                       />
+                    </div>
+                  </div>
+
+                  {/* Visual Click-to-Pin Interactive Mini Map for Onboarding */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-amber-300 font-bold flex items-center gap-1.5">
+                        <span>📍 Peta Penanda Titik Lokasi GPS:</span>
+                      </span>
+                      <span className="text-[10.5px] font-mono text-slate-300 font-bold">
+                        GPS: {formData.lat || -7.2754}, {formData.lng || 112.7541}
+                      </span>
+                    </div>
+
+                    <div
+                      onClick={async (e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const xPercent = (x / rect.width) - 0.5;
+                        const yPercent = (y / rect.height) - 0.5;
+                        const currentLat = formData.lat || -7.2754;
+                        const currentLng = formData.lng || 112.7541;
+                        const newLng = Number((currentLng + (xPercent * 0.012)).toFixed(5));
+                        const newLat = Number((currentLat - (yPercent * 0.012)).toFixed(5));
+                        setFormData((prev: any) => ({ ...prev, lat: newLat, lng: newLng }));
+                        try {
+                          const res = await reverseGeocodeIndonesianCoords(newLat, newLng);
+                          if (res.formattedAddress) {
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              address: res.formattedAddress,
+                              city: res.city || prev.city,
+                              district: res.district || prev.district,
+                              province: res.province || prev.province,
+                              lat: newLat,
+                              lng: newLng,
+                            }));
+                          }
+                        } catch (_) {}
+                      }}
+                      className="relative w-full h-36 rounded-xl border-2 border-amber-400 overflow-hidden bg-slate-900 shadow-inner cursor-crosshair group"
+                    >
+                      <iframe
+                        title="Onboarding Location Pinpoint"
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        src={`https://maps.google.com/maps?q=${formData.lat || -7.2754},${formData.lng || 112.7541}&z=15&output=embed`}
+                        className="w-full h-full filter saturate-150 pointer-events-none"
+                      />
+                      <div className="absolute top-2 left-2 bg-[#1B3A5C]/90 text-white px-2.5 py-1 rounded-lg text-[9.5px] font-black shadow-md flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>Klik peta untuk menggeser pin & isi otomatis alamat</span>
+                      </div>
                     </div>
                   </div>
                 </div>
