@@ -25,9 +25,23 @@ export async function POST(request: Request) {
 
         if (existingUser) {
             return NextResponse.json(
-                { success: false, error: 'Email sudah terdaftar' },
+                { success: false, error: 'Email sudah terdaftar dalam sistem Replate' },
                 { status: 409 }
             );
+        }
+
+        // Check if WhatsApp phone number already exists
+        if (phone) {
+            const existingPhone = await prisma.user.findFirst({
+                where: { phone },
+            });
+
+            if (existingPhone) {
+                return NextResponse.json(
+                    { success: false, error: 'Nomor WhatsApp sudah terdaftar dalam sistem Replate' },
+                    { status: 409 }
+                );
+            }
         }
 
         // Hash password

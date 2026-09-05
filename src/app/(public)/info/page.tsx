@@ -474,6 +474,36 @@ export default function PublicInfoHubPage() {
       content: 'Food Provider dan Yayasan dapat membuka menu Laporan di Dashboard untuk mengunduh Sertifikat Penyelamat Pangan resmi dan ringkasan audit CSR.',
       tags: ['faq', 'laporan csr', 'sertifikat', 'audit', 'mitra berkelanjutan'],
     },
+    {
+      id: 'kb-faq-5',
+      category: 'FAQ',
+      categoryLabel: 'Jangkauan Nasional',
+      categoryBadgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      title: 'Jejaring Penyelamatan Pangan Nasional di 8 Kota Utama Indonesia',
+      subtitle: 'Surabaya, Jakarta, Bandung, Yogyakarta, Medan, Semarang, Bali, Makassar',
+      content: 'Replate mengintegrasikan mitra restoran, bakery, perhotelan, panti asuhan, dan armada relawan di berbagai kota besar untuk membentuk sabuk pengaman pangan (food safety belt) perkotaan.',
+      tags: ['nasional', 'surabaya', 'jakarta', 'bandung', 'medan', 'semarang', 'bali', 'makassar', 'jogja'],
+    },
+    {
+      id: 'kb-faq-6',
+      category: 'FAQ',
+      categoryLabel: 'Regulasi & Hukum',
+      categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      title: 'Insentif Pengurang Pajak Penghasilan Donasi Sosial (PP No. 93/2010)',
+      subtitle: 'Pengurangan Bruto Pajak Usaha bagi Mitra Pendonor Pangan',
+      content: 'Berdasarkan regulasi perpajakan RI, donasi makanan untuk yayasan sosial dan penanggulangan kemiskinan diakui sebagai biaya pengurang penghasilan bruto wajib pajak badan.',
+      tags: ['pajak', 'pp 93 2010', 'insentif', 'csr', 'donasi panti'],
+    },
+    {
+      id: 'kb-faq-7',
+      category: 'FAQ',
+      categoryLabel: 'Logistik Steril',
+      categoryBadgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
+      title: 'SOP Rantai Dingin (Cold-Chain) & Kotak Boks Termal Relawan',
+      subtitle: 'Menjaga Kestabilan Suhu Makanan Selama Pengantaran',
+      content: 'Pengantaran kurir toko dan armada relawan menggunakan boks isolasi berinsulasi food-grade bersuhu dingin (<4°C) atau panas (>60°C) guna mencegah perkembangbiakan bakteri patogen.',
+      tags: ['cold chain', 'rantai dingin', 'suhu', 'higienis', 'boks isolasi', 'kurir'],
+    },
   ], []);
 
   const quickKeywords = [

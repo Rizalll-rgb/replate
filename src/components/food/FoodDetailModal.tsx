@@ -39,6 +39,8 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   if (!food) return null;
 
   const isFree = !food.price || food.price === 0;
+  const isOutOfStock = (food.quantity !== undefined && food.quantity <= 0);
+
   const deadlineDate = new Date(food.pickupDeadline);
   const formattedDeadline = !isNaN(deadlineDate.getTime())
     ? deadlineDate.toLocaleString('id-ID', {
@@ -63,14 +65,14 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
 
   const modalFooter = (
     <div className="flex justify-end gap-3 w-full">
-      <Button variant="outline" size="sm" onClick={onClose} className="font-bold">
+      <Button variant="outline" size="sm" onClick={onClose} className="font-bold cursor-pointer">
         Tutup
       </Button>
-      {onAddToCart && (
+      {onAddToCart && !isOutOfStock && (
         <Button
           variant="outline"
           size="sm"
-          className="font-black text-[#1B3A5C] shadow-sm flex items-center gap-1.5 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3"
+          className="font-black text-[#1B3A5C] shadow-sm flex items-center gap-1.5 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3 cursor-pointer"
           title="Masukkan Tas Klaim"
           onClick={() => {
             onAddToCart(food.id);
@@ -86,13 +88,20 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         <Button
           variant="gold"
           size="sm"
-          className="font-black text-slate-950 shadow-md flex-1"
+          disabled={isOutOfStock}
+          className={`font-black shadow-md flex-1 ${
+            isOutOfStock
+              ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
+              : 'text-slate-950 cursor-pointer'
+          }`}
           onClick={() => {
-            onClaim(food.id);
-            onClose();
+            if (!isOutOfStock) {
+              onClaim(food.id);
+              onClose();
+            }
           }}
         >
-          {isFree ? 'Beli Langsung ' : 'Beli Langsung '}
+          {isOutOfStock ? 'Porsi Makanan Habis (0 Porsi)' : 'Beli Langsung '}
         </Button>
       )}
     </div>

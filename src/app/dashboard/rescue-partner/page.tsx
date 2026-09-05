@@ -82,7 +82,7 @@ export default function PartnerOverviewPage() {
               <span>Tugas Penjemputan Logistik & Optimasi Rute Hari Ini</span>
             </div>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">
-              2 Kurir Relawan Siap Jalan
+              {isFreshAccount ? '0 Kurir Relawan Siap Jalan' : '2 Kurir Relawan Siap Jalan'}
             </span>
           </CardTitle>
         </CardHeader>

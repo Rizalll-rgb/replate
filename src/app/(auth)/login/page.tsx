@@ -7,6 +7,7 @@ import Link from 'next/link';
 import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
+import { isDemoAccount } from '@/lib/mockDatabase';
 
 type RoleType = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER' | 'SUPER_ADMIN';
 
@@ -129,13 +130,19 @@ export default function LoginPage() {
       const selectedRole = chosenRole || activeRoleTab;
       let targetUrl = roleConfigs[selectedRole].targetUrl;
 
-      // Always clear fresh account flag when logging into demo presets
+      // Poin 5: Bedakan Akun Demo vs Akun Fresh Terdaftar
+      const isDemo = isDemoAccount(emailVal);
       try {
-        localStorage.removeItem('replate_is_fresh_account');
-        localStorage.setItem('replate_is_fresh_account', 'false');
-        localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
-        if (selectedRole === 'FOOD_CONSUMER') {
-          localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+        if (isDemo) {
+          localStorage.removeItem('replate_is_fresh_account');
+          localStorage.setItem('replate_is_fresh_account', 'false');
+          localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
+          if (selectedRole === 'FOOD_CONSUMER') {
+            localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+          }
+        } else {
+          // Akun buatan baru/fresh: jaga flag fresh tetap 'true'
+          localStorage.setItem('replate_is_fresh_account', 'true');
         }
       } catch (_) {}
 
@@ -165,7 +172,6 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('Login error:', err);
-      // Even if network or NextAuth threw, allow demo entry to dashboard
       const selectedRole = chosenRole || activeRoleTab;
       window.location.href = roleConfigs[selectedRole].targetUrl;
     }
@@ -340,7 +346,7 @@ export default function LoginPage() {
 
         <div className={`${styles.authFooter} space-y-2 pt-4 border-t border-slate-800`}>
           <div>
-            Belum mendaftarkan usaha / instansi?{' '}
+            {activeRoleTab === 'FOOD_CONSUMER' ? 'Belum memiliki akun konsumen? ' : 'Belum mendaftarkan usaha / instansi? '}
             <Link href={`/register?role=${activeRoleTab}`} className="font-extrabold text-[#D4A843] hover:underline">
               Daftar Akun Baru 
             </Link>

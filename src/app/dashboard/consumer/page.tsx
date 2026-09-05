@@ -189,7 +189,7 @@ export default function ConsumerBrowsePage() {
           const active = parsedClaims.filter((c: any) => c.status !== 'COMPLETED').length;
           const completed = parsedClaims.filter((c: any) => c.status === 'COMPLETED');
           setActiveClaimsCount(active);
-          const totalCompleted = completed.length > 0 ? completed.length : 2;
+          const totalCompleted = completed.length > 0 ? completed.length : (isFresh ? 0 : 2);
           setCompletedClaimsCount(totalCompleted);
           setTotalSavedPortions(totalCompleted);
 
@@ -199,8 +199,18 @@ export default function ConsumerBrowsePage() {
             const estOriginal = amt === 0 ? 25000 : amt * 2.5;
             computedSavings += (estOriginal - amt);
           });
-          setTotalSavings(computedSavings > 0 ? computedSavings : 45000);
+          setTotalSavings(computedSavings > 0 ? computedSavings : (isFresh ? 0 : 45000));
+        } else if (isFresh) {
+          setActiveClaimsCount(0);
+          setCompletedClaimsCount(0);
+          setTotalSavedPortions(0);
+          setTotalSavings(0);
         }
+      } else if (isFresh) {
+        setActiveClaimsCount(0);
+        setCompletedClaimsCount(0);
+        setTotalSavedPortions(0);
+        setTotalSavings(0);
       }
     } catch (_) { }
 

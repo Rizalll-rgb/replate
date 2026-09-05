@@ -252,6 +252,19 @@ export default function CheckoutPage() {
   // Poin 6 & 7: Standardized resi + QRIS flow
   const isFreeItem = item?.isFree ?? false;
 
+  // Out of Stock detection
+  let rawItemQty = 1;
+  if (typeof item?.quantity === 'number') {
+    rawItemQty = item.quantity;
+  } else if (typeof item?.quantity === 'string') {
+    const match = item.quantity.match(/\d+/);
+    rawItemQty = match ? parseInt(match[0], 10) : 1;
+    if (item.quantity.toLowerCase().includes('0 porsi') || item.quantity.trim() === '0') {
+      rawItemQty = 0;
+    }
+  }
+  const isItemOutOfStock = rawItemQty <= 0 || (item as any)?.status === 'OUT_OF_STOCK' || (item as any)?.status === 'SOLD_OUT';
+
   const buildClaim = (resiCode: string, status: string, proofUrl?: string) => ({
     id: resiCode,
     code: resiCode,
@@ -284,6 +297,16 @@ export default function CheckoutPage() {
 
   const handleCheckout = () => {
     if (!item) return;
+
+    if (isItemOutOfStock) {
+      setToastState({
+        isOpen: true,
+        message: 'Maaf, porsi makanan ini telah habis (0 porsi). Anda tidak dapat melakukan checkout.',
+        type: 'error',
+      });
+      return;
+    }
+
     const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
     const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
 
@@ -588,13 +611,30 @@ export default function CheckoutPage() {
               </div>
             </div>
             
+            {isItemOutOfStock && (
+              <div className="p-3.5 mb-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-900 space-y-1">
+                <strong className="block font-black text-rose-950">Porsi Makanan Ini Telah Habis</strong>
+                <p className="text-[11px] text-rose-800">
+                  Seluruh kuota porsi makanan ini sudah tersalurkan atau habis diklaim. Silakan pilih menu surplus lainnya di katalog.
+                </p>
+              </div>
+            )}
+
             <Button
               variant="gold"
-              className="w-full font-black py-3 text-sm shadow-md text-slate-950"
+              className={`w-full font-black py-3 text-sm shadow-md ${
+                isItemOutOfStock
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
+                  : 'text-slate-950'
+              }`}
               onClick={handleCheckout}
-              disabled={isCheckingOut}
+              disabled={isCheckingOut || isItemOutOfStock}
             >
-              {isCheckingOut ? 'Memproses...' : (paymentMethod === 'QRIS' && !isFreeItem ? 'Lanjut Bayar QRIS' : 'Selesaikan Pesanan')}
+              {isItemOutOfStock
+                ? 'Porsi Makanan Habis (0 Porsi)'
+                : isCheckingOut
+                ? 'Memproses...'
+                : (paymentMethod === 'QRIS' && !isFreeItem ? 'Lanjut Bayar QRIS' : 'Selesaikan Pesanan')}
             </Button>
           </div>
         </div>

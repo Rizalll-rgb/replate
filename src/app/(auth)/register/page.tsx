@@ -8,6 +8,7 @@ import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
 import { TOSModal } from '@/components/auth/TOSModal';
 import { OTPVerificationModal } from '@/components/auth/OTPVerificationModal';
+import { getAllDemoEmails, getAllDemoPhones } from '@/lib/mockDatabase';
 
 type Role = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER';
 
@@ -36,6 +37,31 @@ export default function RegisterPage() {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Password tidak cocok! Mohon periksa kembali.');
+      return;
+    }
+
+    const cleanEmail = formData.email.trim().toLowerCase();
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+
+    // Poin 4: Validasi pembatasan nomor WhatsApp dan email unik
+    const demoEmails = getAllDemoEmails();
+    const demoPhones = getAllDemoPhones();
+
+    let localUsers: any[] = [];
+    try {
+      const stored = localStorage.getItem('replate_users_list');
+      if (stored) localUsers = JSON.parse(stored);
+      const single = localStorage.getItem('replate_registered_user');
+      if (single) localUsers.push(JSON.parse(single));
+    } catch (_) {}
+
+    const isEmailTaken = demoEmails.includes(cleanEmail) || localUsers.some((u: any) => (u.email || '').trim().toLowerCase() === cleanEmail);
+    const isPhoneTaken = demoPhones.includes(cleanPhone) || localUsers.some((u: any) => (u.phone || '').replace(/\D/g, '') === cleanPhone);
+
+    if (isEmailTaken || isPhoneTaken) {
+      setError(
+        `⚠️ Pendaftaran Dibatalkan: Alamat Email "${formData.email}" atau No. WhatsApp "${formData.phone}" sudah terdaftar dalam sistem Replate! Satu email dan nomor WhatsApp hanya dapat digunakan untuk 1 akun. Silakan gunakan data lain atau langsung Masuk ke akun Anda.`
+      );
       return;
     }
 
@@ -69,16 +95,30 @@ export default function RegisterPage() {
       }
 
       try {
-        localStorage.setItem(
-          'replate_registered_user',
-          JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            role: formData.role,
-            password: formData.password,
-          })
-        );
+        const newUser = {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          role: formData.role,
+          password: formData.password,
+        };
+
+        localStorage.setItem('replate_registered_user', JSON.stringify(newUser));
+
+        // Append to registered users list for duplicate prevention
+        const stored = localStorage.getItem('replate_users_list');
+        const list = stored ? JSON.parse(stored) : [];
+        list.push(newUser);
+        localStorage.setItem('replate_users_list', JSON.stringify(list));
+
+        // Poin 5: Pastikan akun baru terdaftar berstatus FRESH (semua statistik mulai dari 0)
+        localStorage.setItem('replate_is_fresh_account', 'true');
+        localStorage.removeItem('replate_active_claims');
+        localStorage.removeItem('replate_claims');
+        localStorage.removeItem('replate_cart');
+        localStorage.removeItem('replate_tas_klaim');
+        localStorage.removeItem('replate_local_surplus');
+        localStorage.removeItem('replate_panti_requests');
       } catch (_) {}
 
       setSuccess(' Nomor WhatsApp Berhasil Diverifikasi! Mengalihkan ke pengisian profil...');
@@ -134,6 +174,14 @@ export default function RegisterPage() {
     },
   ];
 
+  // Poin 3: Diksi dinamis berdasarkan peran
+  const isConsumer = formData.role === 'FOOD_CONSUMER';
+  const nameLabel = isConsumer ? 'Nama Lengkap Anda' : 'Nama Lengkap PIC / Penanggung Jawab';
+  const namePlaceholder = isConsumer ? 'Contoh: Farhan Ramadhan' : 'Nama lengkap penanggung jawab';
+  const emailLabel = isConsumer ? 'Alamat Email Pribadi' : 'Email Resmi Operasional';
+  const emailPlaceholder = isConsumer ? 'nama@gmail.com' : 'nama@domain.id';
+  const phoneLabel = isConsumer ? 'No. WhatsApp Anda (OTP Verified)' : 'No. WhatsApp PIC Operasional (OTP Verified)';
+
   return (
     <div className={styles.authPage}>
       <div className={styles.authBg} />
@@ -146,7 +194,11 @@ export default function RegisterPage() {
         </div>
 
         <h1 className={styles.authTitle}>Bergabung dengan Replate</h1>
-        <p className={styles.authSubtitle}>Pilih Peran & Mulaikan Pendaftaran Akun Platform</p>
+        <p className={styles.authSubtitle}>
+          {isConsumer
+            ? 'Daftar Akun Pribadi Konsumen & Nikmati Makanan Hemat Berkualitas'
+            : 'Pilih Peran Lembaga & Daftarkan Akun Resmi Platform'}
+        </p>
 
         {error && <div className={`${styles.formAlert} ${styles.alertError}`}>{error}</div>}
         {success && <div className={`${styles.formAlert} ${styles.alertSuccess}`}>{success}</div>}
@@ -180,11 +232,11 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Nama Lengkap Penanggung Jawab</label>
+            <label className={styles.formLabel}>{nameLabel}</label>
             <input
               type="text"
               className={styles.formInput}
-              placeholder="Nama lengkap kamu"
+              placeholder={namePlaceholder}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
@@ -194,18 +246,18 @@ export default function RegisterPage() {
 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Email Resmi Operasional</label>
+              <label className={styles.formLabel}>{emailLabel}</label>
               <input
                 type="email"
                 className={styles.formInput}
-                placeholder="nama@domain.id"
+                placeholder={emailPlaceholder}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>No. WhatsApp (OTP Verified)</label>
+              <label className={styles.formLabel}>{phoneLabel}</label>
               <input
                 type="tel"
                 className={styles.formInput}

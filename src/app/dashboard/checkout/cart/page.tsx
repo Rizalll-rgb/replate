@@ -198,6 +198,27 @@ export default function CheckoutCartPage() {
   const handleCheckout = () => {
     if (items.length === 0) return;
 
+    // Check if any item is out of stock (0 portion)
+    const hasOutOfStock = items.some((it: any) => {
+      let qNum = 1;
+      if (typeof it.quantity === 'number') qNum = it.quantity;
+      else if (typeof it.quantity === 'string') {
+        const m = it.quantity.match(/\d+/);
+        qNum = m ? parseInt(m[0], 10) : 1;
+        if (it.quantity.toLowerCase().includes('0 porsi') || it.quantity.trim() === '0') qNum = 0;
+      }
+      return qNum <= 0 || it.status === 'OUT_OF_STOCK' || it.status === 'SOLD_OUT';
+    });
+
+    if (hasOutOfStock) {
+      setToastState({
+        isOpen: true,
+        message: 'Terdapat item dengan porsi habis (0 porsi) di tas klaim Anda. Hapus item tersebut sebelum melanjutkan.',
+        type: 'error',
+      });
+      return;
+    }
+
     // If QRIS and paid order — show QRIS QR first
     if (paymentMethod === 'QRIS' && !isFree) {
       setQrisModal(true);

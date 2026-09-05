@@ -190,20 +190,27 @@ export default function OnboardingProfilePage() {
             <Logo variant="light" size="lg" />
           </div>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md">
-            <span>LANGKAH 2 DARI 4 — SETUP PROFIL ENTITAS VERIFIKASI</span>
+            <span>
+              {isConsumer
+                ? 'LANGKAH 2 DARI 2 — SETUP PROFIL KONSUMEN PRIBADI'
+                : 'LANGKAH 2 DARI 4 — SETUP PROFIL ENTITAS OPERASIONAL'}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Lengkapi Profil Operasional{' '}
-            {isBeneficiary
-              ? 'Food Beneficiary (Panti / Yayasan)'
-              : isVolunteer
-              ? 'Food Rescue Volunteer (Organisasi / Komunitas)'
-              : isConsumer
-              ? 'Food Consumer (Pembeli Rescue Sale)'
-              : 'Food Provider (Restoran / Hotel / Catering / Supermarket)'}
+            {isConsumer
+              ? 'Lengkapi Profil Akun Food Consumer (Pribadi)'
+              : `Lengkapi Profil Operasional ${
+                  isBeneficiary
+                    ? 'Food Beneficiary (Panti / Yayasan)'
+                    : isVolunteer
+                    ? 'Food Rescue Volunteer (Organisasi / Komunitas)'
+                    : 'Food Provider (Restoran / Hotel / Supermarket)'
+                }`}
           </h1>
           <p className="text-xs text-slate-300 font-medium max-w-md mx-auto">
-            Informasi identitas dan kontak ini akan terintegrasi langsung pada surat jalan logistik & sertifikat transparansi IPCC.
+            {isConsumer
+              ? 'Informasi nama dan alamat ini digunakan untuk tiket klaim QR serta penentuan radius restoran terdekat dari tempat tinggal Anda.'
+              : 'Informasi identitas dan kontak ini akan terintegrasi langsung pada surat jalan logistik & sertifikat transparansi IPCC.'}
           </p>
         </div>
 
@@ -211,7 +218,7 @@ export default function OnboardingProfilePage() {
         <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
           <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <span>Detail Identitas Operasional Resmi</span>
+              <span>{isConsumer ? 'Detail Profil Pribadi Konsumen' : 'Detail Identitas Operasional Resmi'}</span>
             </h3>
             <div className="flex items-center gap-2">
               <button
