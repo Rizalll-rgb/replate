@@ -69,12 +69,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 throw new Error('Akun Anda telah dinonaktifkan');
                             }
 
+                            let effectiveStatus = user.status;
+                            // Akun yang berhasil login dengan kredensial sah otomatis diaktifkan (APPROVED) agar dapat langsung masuk ke dashboard
+                            if (effectiveStatus === 'PENDING') {
+                                try {
+                                    await prisma.user.update({
+                                        where: { id: user.id },
+                                        data: { status: 'APPROVED' },
+                                    });
+                                } catch (_) {}
+                                effectiveStatus = 'APPROVED';
+                            }
+
                             return {
                                 id: user.id,
                                 email: user.email,
                                 name: user.name,
                                 role: user.role,
-                                status: user.status,
+                                status: effectiveStatus,
                                 image: user.profileImage,
                             };
                         }

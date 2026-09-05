@@ -63,40 +63,68 @@ export default function PendingApprovalPage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleSimulateApprove = () => {
+  const handleSimulateApprove = async () => {
     try {
       const d = localStorage.getItem('replate_onboarding_docs') || '{}';
       const parsed = JSON.parse(d);
       localStorage.setItem('replate_onboarding_docs', JSON.stringify({ ...parsed, status: 'APPROVED_ACTIVE' }));
     } catch (_) {}
-    setIsApproved(true);
-  };
 
-  const handleGoToDashboard = async () => {
-    setLoading(true);
     try {
       let registeredUser: any = null;
       try {
         const raw = localStorage.getItem('replate_registered_user');
         if (raw) registeredUser = JSON.parse(raw);
       } catch (_) {}
-
-      let loginEmail = registeredUser?.email;
-      let loginPassword = registeredUser?.password || 'password123';
-
-      if (!loginEmail) {
-        if (targetDashboard.includes('yayasan')) loginEmail = 'panti.kasih.ibu@replate.id';
-        else if (targetDashboard.includes('rescue-partner')) loginEmail = 'foodbank.surabaya@replate.id';
-        else if (targetDashboard.includes('consumer')) loginEmail = 'budi.santoso@gmail.com';
-        else if (targetDashboard.includes('admin')) loginEmail = 'admin@replate.id';
-        else loginEmail = 'bakso.pak.kumis@replate.id';
+      const email = registeredUser?.email;
+      if (email) {
+        fetch('/api/auth/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }).catch(() => {});
       }
+    } catch (_) {}
 
+    setIsApproved(true);
+  };
+
+  const handleGoToDashboard = async () => {
+    setLoading(true);
+    let registeredUser: any = null;
+    try {
+      const raw = localStorage.getItem('replate_registered_user');
+      if (raw) registeredUser = JSON.parse(raw);
+    } catch (_) {}
+
+    let loginEmail = registeredUser?.email;
+    let loginPassword = registeredUser?.password || 'password123';
+
+    if (!loginEmail) {
+      if (targetDashboard.includes('yayasan')) loginEmail = 'panti.kasih.ibu@replate.id';
+      else if (targetDashboard.includes('rescue-partner')) loginEmail = 'foodbank.surabaya@replate.id';
+      else if (targetDashboard.includes('consumer')) loginEmail = 'budi.santoso@gmail.com';
+      else if (targetDashboard.includes('admin')) loginEmail = 'admin@replate.id';
+      else loginEmail = 'bakso.pak.kumis@replate.id';
+    }
+
+    // Pastikan status akun menjadi APPROVED di database
+    try {
+      await fetch('/api/auth/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail }),
+      });
+    } catch (_) {}
+
+    try {
       await signIn('credentials', {
         email: loginEmail,
         password: loginPassword,
-        callbackUrl: targetDashboard,
+        redirect: false,
       });
+
+      window.location.href = targetDashboard;
     } catch (_) {
       window.location.href = targetDashboard;
     }
