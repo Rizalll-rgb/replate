@@ -1111,6 +1111,49 @@ export default function ProviderClaimsPage() {
                           </div>
                         )}
 
+                        {/* Compact Driver Toko Strip (Jika sudah di-plot) */}
+                        {(tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' || tx.status === 'WAITING_STORE_DISPATCH') && (tx.courierName || tx.driverName) && (
+                          <div className="p-2 bg-blue-50/90 rounded-xl border border-blue-200 flex items-center justify-between gap-2 text-xs mt-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="relative shrink-0">
+                                <img
+                                  src={tx.driverInfo?.photo || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80'}
+                                  alt={tx.courierName || tx.driverName}
+                                  className="w-8 h-8 rounded-full object-cover border-2 border-blue-500 shadow-2xs shrink-0"
+                                />
+                                <span className="absolute -bottom-1 -right-1 p-0.5 bg-blue-700 text-white rounded-full border border-white shadow-xs">
+                                  <CheckIcon size={8} strokeWidth={4} />
+                                </span>
+                              </div>
+                              <div className="min-w-0 leading-tight">
+                                <div className="flex items-center gap-1.5">
+                                  <strong className="text-blue-950 font-bold text-xs truncate">
+                                    {tx.courierName || tx.driverName}
+                                  </strong>
+                                  <span className="text-[9px] bg-blue-200 text-blue-900 font-bold px-1 rounded shrink-0">
+                                    Driver Toko
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-blue-800 truncate block">
+                                  {tx.courierVehicle || 'Armada Internal'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <a
+                              href={`https://wa.me/${(tx.courierPhone || tx.driverPhone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(
+                                `Halo Mas ${tx.courierName || tx.driverName}, tolong segera meluncur ke toko untuk mengambil paket resi ${tx.code}.`
+                              )}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-2xs transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                            >
+                              <ChatIcon size={12} />
+                              <span>Hubungi</span>
+                            </a>
+                          </div>
+                        )}
+
                         {/* ACTION FOOTER BAR: Clean side-by-side layout (Secondary on Left, Primary on Right) */}
                         <div className="flex items-center justify-between gap-2 w-full pt-2.5 mt-1 border-t border-slate-200/80 shrink-0">
                           {/* Left Side: Contextual Secondary Actions (Tiket QR, Surat Jalan, Audit Log) */}
@@ -1128,16 +1171,21 @@ export default function ProviderClaimsPage() {
                             {/* Poin 9: Tombol Plot Driver Toko HANYA muncul pada tab Siap Handover (PENDING_PICKUP) */}
                             {activeTab === 'PENDING_PICKUP' && (tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' || tx.status === 'WAITING_STORE_DISPATCH') && (
                               <Button
-                                variant="outline"
+                                variant={tx.courierName ? "secondary" : "outline"}
                                 size="sm"
-                                className="font-black text-xs border-blue-300 text-blue-900 bg-blue-50/80 hover:bg-blue-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                                className={`font-black text-xs flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer ${
+                                  tx.courierName 
+                                    ? "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200" 
+                                    : "border-blue-300 text-blue-900 bg-blue-50/80 hover:bg-blue-100"
+                                }`}
                                 onClick={() => {
                                   setPlotDriverModal({ isOpen: true, claim: tx });
-                                  setSelectedPlotDriverId(storeDriversList[0].id);
+                                  const existingDriver = storeDriversList.find(d => d.name === tx.courierName);
+                                  setSelectedPlotDriverId(existingDriver ? existingDriver.id : storeDriversList[0].id);
                                 }}
                               >
-                                <TruckIcon size={13} className="text-blue-700" />
-                                <span>Plot Driver Toko</span>
+                                <TruckIcon size={13} className={tx.courierName ? "text-slate-500" : "text-blue-700"} />
+                                <span>{tx.courierName ? 'Ubah Driver Toko' : 'Plot Driver Toko'}</span>
                               </Button>
                             )}
 

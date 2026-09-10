@@ -11,28 +11,7 @@ import { calculateThermalDecayRUI, FoodSafetyCategory } from '@/lib/thermalRescu
 export interface FoodDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  food?: {
-    id: string;
-    foodName: string;
-    description?: string | null;
-    foodCategory: string;
-    quantity: number;
-    quantityUnit: string;
-    price?: number | null;
-    pickupDeadline: string;
-    address: string;
-    storageCondition: string;
-    packagingType: string;
-    weightPerUnitKg?: number;
-    allergens?: string[];
-    lat?: number;
-    lng?: number;
-    provider?: {
-      name: string;
-      organizationName?: string | null;
-      phone?: string | null;
-    } | null;
-  } | null;
+  food?: any; // Changed to any to support both DB objects and explore list objects
   onClaim?: (id: string) => void;
   onAddToCart?: (id: string) => void;
 }
@@ -40,10 +19,35 @@ export interface FoodDetailModalProps {
 export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClose, food, onClaim, onAddToCart }) => {
   if (!food) return null;
 
-  const isFree = !food.price || food.price === 0;
-  const isOutOfStock = (food.quantity !== undefined && food.quantity <= 0);
+  const foodName = food.foodName || food.title || 'Makanan Surplus';
+  const description = food.description || 'Makanan surplus segar dan higienis hasil redistribusi resmi dengan standar keamanan pangan BPOM RI.';
+  const category = food.foodCategory || food.category || 'MAKANAN_BERAT';
+  
+  let qtyVal = 1;
+  let qtyUnit = 'Porsi';
+  if (typeof food.quantity === 'number') {
+    qtyVal = food.quantity;
+    qtyUnit = food.quantityUnit || 'Porsi';
+  } else if (typeof food.quantity === 'string') {
+    const parts = food.quantity.split(' ');
+    qtyVal = parseInt(parts[0], 10) || 1;
+    qtyUnit = parts.slice(1).join(' ') || 'Porsi';
+  }
 
-  const deadlineDate = new Date(food.pickupDeadline);
+  const price = food.price ?? food.discountPrice ?? 0;
+  const isFree = !price || price === 0 || food.isFree;
+  const isOutOfStock = (qtyVal <= 0);
+
+  const pickupDeadline = food.pickupDeadline || food.pickupTime || 'Hari ini 21:00 WIB';
+  const storageCondition = food.storageCondition || 'ROOM_TEMP';
+  const packagingType = food.packagingType || 'PACKAGED';
+  const weightPerUnitKg = food.weightPerUnitKg || 0.5;
+
+  const providerOrg = food.provider?.organizationName || food.provider?.name || food.providerName || 'Mitra Penyedia';
+  const providerPhone = food.provider?.phone || '081234567891';
+  const address = food.address || 'Surabaya';
+
+  const deadlineDate = new Date(pickupDeadline);
   const formattedDeadline = !isNaN(deadlineDate.getTime())
     ? deadlineDate.toLocaleString('id-ID', {
         day: 'numeric',
@@ -52,15 +56,15 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         hour: '2-digit',
         minute: '2-digit',
       })
-    : food.pickupDeadline || 'Hari ini 21:00 WIB';
+    : pickupDeadline;
 
-  const estWeight = (food.quantity || 1) * (food.weightPerUnitKg || 0.5);
+  const estWeight = qtyVal * weightPerUnitKg;
   const estCo2Saved = Math.round(estWeight * 2.5 * 10) / 10;
   const estCh4Saved = Math.round(estWeight * 0.07 * 100) / 100;
 
   const thermalRui = React.useMemo(() => {
     let cat: FoodSafetyCategory = 'COOKED_MEALS';
-    const c = (food.foodCategory || '').toLowerCase();
+    const c = (category || '').toLowerCase();
     if (c.includes('kuah') || c.includes('santan') || c.includes('soup') || c.includes('bakso')) {
       cat = 'COOKED_HOT_GRAVY';
     } else if (c.includes('roti') || c.includes('bakery') || c.includes('kue')) {
@@ -76,18 +80,16 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
       category: cat,
       ambientTemperatureC: 31,
       cookedOrPackedTime: (food as any).createdAt ? new Date((food as any).createdAt) : new Date(Date.now() - 1.5 * 3600 * 1000),
-      isUsingCoolbox: food.storageCondition === 'REFRIGERATED',
-      portions: food.quantity || 15,
+      isUsingCoolbox: storageCondition === 'REFRIGERATED',
+      portions: qtyVal || 15,
       estimatedCourierEtaMinutes: 25,
     });
-  }, [food]);
+  }, [food, category, storageCondition, qtyVal]);
 
   const defaultAllergens = food.allergens || ['Nut-Free (Bebas Kacang)', 'Halal Certified BPJPH', 'Sterile Package'];
-  const providerPhone = food.provider?.phone || '081234567891';
-  const providerOrg = food.provider?.organizationName || food.provider?.name || 'Warung Bakso Pak Kumis';
 
-  const resolvedCoords = (!food.lat || !food.lng) && food.address
-    ? resolveIndonesianAddress(food.address)
+  const resolvedCoords = (!food.lat || !food.lng) && address
+    ? resolveIndonesianAddress(address)
     : null;
   const latitude = food.lat || resolvedCoords?.lat || -7.65569;
   const longitude = food.lng || resolvedCoords?.lng || 111.27984;
@@ -140,7 +142,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Spesifikasi Makanan & Lokasi: ${food.foodName}`}
+      title={`Spesifikasi Makanan & Lokasi: ${foodName}`}
       size="lg"
       footer={modalFooter}
     >
@@ -148,21 +150,21 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         {/* Header Badges */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="primary">{food.foodCategory}</Badge>
+            <Badge variant="primary">{category}</Badge>
             <Badge variant="success" size="sm">
               VERIFIKASI SOP BPOM 100%
             </Badge>
           </div>
           <span className="text-base font-black text-[#1B3A5C]">
-            {isFree ? 'DONASI Rp 0' : `Rp ${food.price?.toLocaleString('id-ID')}`}
+            {isFree ? 'DONASI Rp 0' : `Rp ${price?.toLocaleString('id-ID')}`}
           </span>
         </div>
 
         {/* Product Description */}
         <div className="space-y-1">
-          <h4 className="font-black text-base text-[#1B3A5C]">{food.foodName}</h4>
+          <h4 className="font-black text-base text-[#1B3A5C]">{foodName}</h4>
           <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            {food.description || 'Makanan surplus segar dan higienis hasil redistribusi resmi dengan standar keamanan pangan BPOM RI.'}
+            {description}
           </p>
         </div>
 
@@ -226,14 +228,14 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
           <div>
             <span className="text-slate-500 block font-medium">Sisa Stok Kuantitas:</span>
-            <span className="font-black text-[#1B3A5C] text-sm">{food.quantity} {food.quantityUnit}</span>
+            <span className="font-black text-[#1B3A5C] text-sm">{qtyVal} {qtyUnit}</span>
           </div>
           <div>
             <span className="text-slate-500 block font-medium">Kondisi Penyimpanan:</span>
             <span className="font-bold text-slate-800">
-              {food.storageCondition === 'ROOM_TEMP'
+              {storageCondition === 'ROOM_TEMP'
                 ? 'Suhu Ruangan (>60°C / Hangat)'
-                : food.storageCondition === 'REFRIGERATED'
+                : storageCondition === 'REFRIGERATED'
                 ? 'Pendingin Chiller (<4°C)'
                 : 'Beku Freezer'}
             </span>
@@ -241,7 +243,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
           <div>
             <span className="text-slate-500 block font-medium">Kemasan Produk:</span>
             <span className="font-bold text-slate-800">
-              {food.packagingType === 'PACKAGED' ? 'Terkemas Utuh & Tersegel' : 'Wadah Steril Food Grade'}
+              {packagingType === 'PACKAGED' ? 'Terkemas Utuh & Tersegel' : 'Wadah Steril Food Grade'}
             </span>
           </div>
           <div>
@@ -275,12 +277,12 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <span className="text-slate-500 block font-medium">Alamat Lengkap Outlet:</span>
-              <span className="font-bold text-slate-800">{food.address}</span>
+              <span className="font-bold text-slate-800">{address}</span>
             </div>
           </div>
 
           <a
-            href={`https://wa.me/${providerPhone.replace(/^0/, '62')}?text=Halo%20Admin%20${encodeURIComponent(providerOrg)},%20saya%20tertarik%20mengklaim%20surplus%20${encodeURIComponent(food.foodName)}%20via%20Replate`}
+            href={`https://wa.me/${providerPhone.replace(/^0/, '62')}?text=Halo%20Admin%20${encodeURIComponent(providerOrg)},%20saya%20tertarik%20mengklaim%20surplus%20${encodeURIComponent(foodName)}%20via%20Replate`}
             target="_blank"
             rel="noreferrer"
             className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
@@ -305,7 +307,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
               height="100%"
               frameBorder="0"
               scrolling="no"
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(food.address || `${latitude},${longitude}`)}&z=15&output=embed`}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(address || `${latitude},${longitude}`)}&z=15&output=embed`}
               className="w-full h-full filter saturate-150"
             />
             <div className="absolute top-3 left-3 bg-[#1B3A5C] text-white px-3 py-1 rounded-lg text-[10px] font-black shadow-md uppercase tracking-wider">
@@ -315,10 +317,10 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-[10px] text-slate-500 font-medium truncate max-w-[70%]">
-              Alamat: {food.address}
+              Alamat: {address}
             </span>
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(food.address || `${latitude},${longitude}`)}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || `${latitude},${longitude}`)}`}
               target="_blank"
               rel="noreferrer"
               className="text-[10px] font-black text-blue-600 hover:underline shrink-0"

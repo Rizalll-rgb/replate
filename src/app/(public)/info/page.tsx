@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 
 interface KnowledgeItem {
   id: string;
@@ -22,10 +23,11 @@ export default function PublicInfoHubPage() {
   const [activeTab, setActiveTab] = useState<'LATAR_BELAKANG' | 'KALKULATOR' | 'CARA_KERJA' | 'BPOM' | 'FAQ'>('LATAR_BELAKANG');
   const [selectedRoleFlow, setSelectedRoleFlow] = useState<'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER'>('PROVIDER');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [selectedKnowledgeItem, setSelectedKnowledgeItem] = useState<KnowledgeItem | null>(null);
 
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSearchCategory, setSelectedSearchCategory] = useState<string>('ALL');
+  const [selectedSearchCategory, setSelectedSearchCategory] = useState<'ALL' | 'LATAR_BELAKANG' | 'KALKULATOR' | 'CARA_KERJA' | 'BPOM' | 'FAQ'>('ALL');
   const [searchPage, setSearchPage] = useState<number>(1);
   const searchItemsPerPage = 4; // 4 cards per page: neat 2x2 grid, eliminates endless scroll
 
@@ -573,14 +575,15 @@ export default function PublicInfoHubPage() {
   };
 
   const handleJumpToTopic = (item: KnowledgeItem) => {
-    setActiveTab(item.category);
-    if (item.roleTarget) {
-      setSelectedRoleFlow(item.roleTarget);
-    }
-    setSearchQuery('');
-
-    // Jika kategori FAQ, cari indeks pertanyaan dan buka accordionnya secara langsung
     if (item.category === 'FAQ') {
+      setActiveTab(item.category);
+      if (item.roleTarget) {
+        setSelectedRoleFlow(item.roleTarget);
+      }
+      setSearchQuery('');
+      setSelectedKnowledgeItem(null);
+
+      // Jika kategori FAQ, cari indeks pertanyaan dan buka accordionnya secara langsung
       const matchIdx = faqs.findIndex(
         (f) =>
           f.q.toLowerCase().includes(item.title.toLowerCase().substring(0, 20)) ||
@@ -590,10 +593,30 @@ export default function PublicInfoHubPage() {
       if (matchIdx !== -1) {
         setOpenFaqIndex(matchIdx);
       }
-    }
 
+      setTimeout(() => {
+        const el = document.getElementById(`faq-item-${item.id}`) || document.getElementById('info-content-container');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 80);
+    } else {
+      setSelectedKnowledgeItem(item);
+    }
+  };
+
+  const handleJumpFromModal = () => {
+    if (!selectedKnowledgeItem) return;
+    const item = selectedKnowledgeItem;
+    setActiveTab(item.category as any);
+    if (item.roleTarget) {
+      setSelectedRoleFlow(item.roleTarget);
+    }
+    setSearchQuery('');
+    setSelectedKnowledgeItem(null);
+    
     setTimeout(() => {
-      const el = document.getElementById(item.category === 'FAQ' ? `faq-item-${item.id}` : 'info-content-container') || document.getElementById('info-content-container');
+      const el = document.getElementById('info-content-container');
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
       }
@@ -1397,6 +1420,65 @@ export default function PublicInfoHubPage() {
           </div>
         )}
       </main>
+
+      {/* Modal Detail Materi */}
+      <Modal
+        isOpen={!!selectedKnowledgeItem}
+        onClose={() => setSelectedKnowledgeItem(null)}
+        title="Detail Materi Replate"
+        size="md"
+        footer={
+          <div className="flex gap-3 justify-end w-full">
+            <Button variant="outline" size="sm" onClick={() => setSelectedKnowledgeItem(null)} className="font-bold">
+              Tutup
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleJumpFromModal} className="font-bold flex items-center gap-1">
+              <span>Ke Halaman Tab {selectedKnowledgeItem?.categoryLabel}</span>
+              <span>→</span>
+            </Button>
+          </div>
+        }
+      >
+        {selectedKnowledgeItem && (
+          <div className="space-y-4">
+            <div className="space-y-2 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${selectedKnowledgeItem.categoryBadgeColor}`}>
+                  {selectedKnowledgeItem.categoryLabel}
+                </span>
+                {selectedKnowledgeItem.roleTarget && (
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
+                    Peran: {selectedKnowledgeItem.roleTarget}
+                  </span>
+                )}
+              </div>
+              <h3 className="text-lg font-black text-[#1B3A5C] leading-snug">
+                {selectedKnowledgeItem.title}
+              </h3>
+              {selectedKnowledgeItem.subtitle && (
+                <span className="text-xs font-bold text-amber-700 block">
+                  {selectedKnowledgeItem.subtitle}
+                </span>
+              )}
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                {selectedKnowledgeItem.content}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 pt-2">
+              <span className="text-xs font-bold text-slate-500 mr-2 block w-full">Kata Kunci:</span>
+              {selectedKnowledgeItem.tags.map((tag, idx) => (
+                <span key={idx} className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 font-bold px-2 py-1 rounded-md">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Footer />
     </div>

@@ -723,7 +723,7 @@ export default function PartnerActivePickupsPage() {
                     </span>
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       {optimizedPlan.orderedStops.map((wp: RouteWaypoint, idx: number) => (
-                        <React.Fragment key={wp.id}>
+                        <React.Fragment key={`${wp.id}-${idx}`}>
                           <span className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 shadow-xs ${
                             wp.type === 'DEPOT'
                               ? 'bg-slate-800 text-slate-300 border border-slate-700'

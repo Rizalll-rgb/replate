@@ -166,21 +166,15 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
         </div>
 
         {/* QR Code Container */}
-        <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#1B3A5C]/30 shadow-xs relative">
+        <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#1B3A5C]/30 shadow-xs flex flex-col items-center justify-center">
           <QRCodeSVG
-            value={JSON.stringify({
-              ticket: value,
-              food: foodName,
-              recipient: recipientName,
-              portions,
-              time: expiryTime,
-            })}
+            value={typeof window !== 'undefined' ? `${window.location.origin}/track/${value}` : `https://replate.id/track/${value}`}
             size={180}
-            level="H"
+            level="M"
             includeMargin={true}
-            fgColor="#1B3A5C"
+            fgColor="#000000"
           />
-          <div className="absolute inset-x-0 bottom-1 text-[8px] font-mono text-slate-400 font-bold uppercase tracking-widest">
+          <div className="mt-1 text-[8px] font-mono text-slate-400 font-bold uppercase tracking-widest">
             SISTEM KEAMANAN PANGAN
           </div>
         </div>

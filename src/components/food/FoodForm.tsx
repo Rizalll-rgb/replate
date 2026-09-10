@@ -734,7 +734,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 </p>
               </div>
               <a
-                href="/dashboard/provider/settings"
+                href="/dashboard/profile"
                 className="px-3 py-1.5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-[11px] rounded-xl transition-all shrink-0 shadow-xs flex items-center gap-1"
               >
                 <span>Ubah di Pengaturan Toko </span>

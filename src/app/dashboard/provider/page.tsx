@@ -824,9 +824,9 @@ export default function ProviderOverviewPage() {
 
                     {/* Urgent Need Box & Quota Fulfillment Progress Bar */}
                     <div className="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="p-1.5 bg-amber-100 text-amber-900 rounded-lg shrink-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
+                        <div className="flex items-start sm:items-center gap-2 min-w-0">
+                          <span className="p-1.5 bg-amber-100 text-amber-900 rounded-lg shrink-0 mt-0.5 sm:mt-0">
                             <PackageIcon size={15} />
                           </span>
                           <div className="min-w-0">
@@ -839,7 +839,7 @@ export default function ProviderOverviewPage() {
                           </div>
                         </div>
 
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 border ${
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 border w-fit sm:w-auto ${
                           panti.urgency === 'HIGH'
                             ? 'bg-rose-50 text-rose-800 border-rose-200'
                             : 'bg-amber-50 text-amber-900 border-amber-200'
@@ -850,7 +850,7 @@ export default function ProviderOverviewPage() {
 
                       {/* Progress Bar of Target vs Fulfilled */}
                       <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-bold gap-1 sm:gap-0">
                           <span className="text-slate-600">
                             Terpenuhi: <strong className="text-[#1B3A5C]">{fulfilledQty}</strong> dari <strong>{targetQty} Porsi</strong>
                           </span>
@@ -867,12 +867,12 @@ export default function ProviderOverviewPage() {
                       </div>
 
                       {/* Logistics Delivery Chip */}
-                      <div className="flex items-center justify-between text-[11px] pt-1 text-slate-600 border-t border-slate-200/60">
-                        <span className="flex items-center gap-1.5 font-semibold text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200/60">
-                          <BikeIcon size={13} className="text-purple-700" />
-                          <span className="truncate max-w-[220px]">{panti.deliveryLabel}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-0 text-[11px] pt-1.5 sm:pt-1 text-slate-600 border-t border-slate-200/60">
+                        <span className="flex items-center gap-1.5 font-semibold text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200/60 w-fit">
+                          <BikeIcon size={13} className="text-purple-700 shrink-0" />
+                          <span className="truncate max-w-[200px] sm:max-w-[220px]">{panti.deliveryLabel}</span>
                         </span>
-                        <span className="text-[10.5px] text-slate-500 font-medium">
+                        <span className="text-[10.5px] text-slate-500 font-medium ml-0.5 sm:ml-0">
                           Kontak PIC: <strong className="text-slate-800">{panti.contactPerson}</strong>
                         </span>
                       </div>
@@ -920,25 +920,25 @@ export default function ProviderOverviewPage() {
                     </div>
 
                     {/* Right: Action Buttons (Detail & Sanggupi Donasi) */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-row sm:items-center gap-2 w-full sm:w-auto pt-1 sm:pt-0">
                       <button
                         type="button"
                         onClick={() => setSelectedShelterProfile(panti)}
-                        className="py-2 px-3 bg-white hover:bg-slate-100 text-[#1B3A5C] font-extrabold text-xs rounded-xl border border-slate-300 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        className="flex-1 sm:flex-none py-2 px-3 bg-white hover:bg-slate-100 text-[#1B3A5C] font-extrabold text-[11px] sm:text-xs rounded-xl border border-slate-300 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                         title="Lihat profil detail lembaga dan peta lokasi GPS"
                       >
-                        <MapPinIcon size={13} />
-                        <span>Profil & Peta</span>
+                        <MapPinIcon size={13} className="shrink-0" />
+                        <span className="truncate">Profil & Peta</span>
                       </button>
 
                       <Button
                         variant="gold"
                         size="sm"
                         onClick={() => handleOpenAllocationModal(panti)}
-                        className="font-black text-xs text-slate-950 py-2 px-4 shadow-sm bg-amber-400 hover:bg-amber-500 border border-amber-500 cursor-pointer flex items-center gap-1.5"
+                        className="flex-1 sm:flex-none font-black text-[11px] sm:text-xs text-slate-950 py-2 px-3 sm:px-4 shadow-sm bg-amber-400 hover:bg-amber-500 border border-amber-500 cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        <PackageIcon size={13} />
-                        <span>Sanggupi Donasi</span>
+                        <PackageIcon size={13} className="shrink-0" />
+                        <span className="truncate">Sanggupi Donasi</span>
                       </Button>
                     </div>
                   </div>

@@ -40,6 +40,7 @@ interface FoodItem {
   lat?: number;
   lng?: number;
   status?: string;
+  providerId?: string;
 }
 
 export default function WorkspaceExplorePage() {
@@ -319,6 +320,7 @@ export default function WorkspaceExplorePage() {
       lat: item.lat || item.latitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lat,
       lng: item.lng || item.longitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lng,
       status: item.status || 'AVAILABLE',
+      providerId: item.providerId || item.provider?.id || item.userId || '',
     };
   };
 
@@ -1006,6 +1008,20 @@ export default function WorkspaceExplorePage() {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
             {filteredFoods.map((item) => {
               const isProvider = session?.user?.role?.toUpperCase().includes('PROVIDER');
+              const profile = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('replate_onboarding_profile') || '{}') : {};
+              const currentProviderName = profile.entityName || profile.name || '';
+              
+              const isOwnProduct = isProvider && (
+                (session?.user?.id && item.providerId === session.user.id) || 
+                (currentProviderName && item.providerName === currentProviderName) ||
+                // Fallback for demo mock data if provider hasn't set up profile properly
+                (!currentProviderName && item.providerName === 'Warung Bakso Pak Kumis Surabaya') ||
+                (!currentProviderName && item.providerName === 'Warung Bakso Pak Kumis')
+              );
+              
+              const showManage = isProvider && isOwnProduct;
+              const showClaim = !isProvider || (isProvider && !isOwnProduct);
+
               return (
                 <FoodCard
                   key={item.id}
@@ -1021,9 +1037,9 @@ export default function WorkspaceExplorePage() {
                   distance={item.distance}
                   imageUrl={item.imageUrl}
                   onDetail={() => handleOpenFoodDetail(item)}
-                  onManage={isProvider ? () => router.push('/dashboard/provider/my-listings') : undefined}
-                  onClaim={!isProvider ? () => handleBuyNow(item) : undefined}
-                  onAddToCart={!isProvider ? () => handleClaimFood(item) : undefined}
+                  onManage={showManage ? () => router.push('/dashboard/provider/my-listings') : undefined}
+                  onClaim={showClaim ? () => handleBuyNow(item) : undefined}
+                  onAddToCart={showClaim ? () => handleClaimFood(item) : undefined}
                 />
               );
             })}

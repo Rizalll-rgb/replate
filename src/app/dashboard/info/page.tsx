@@ -2,8 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import {
   calculateThermalDecayRUI,
   FOOD_CATEGORY_PROFILES,
@@ -31,6 +33,7 @@ export default function DashboardInfoHubPage() {
   const [activeTab, setActiveTab] = useState<'LATAR_BELAKANG' | 'KALKULATOR' | 'CARA_KERJA' | 'BPOM' | 'FAQ'>('LATAR_BELAKANG');
   const [selectedRoleFlow, setSelectedRoleFlow] = useState<'PROVIDER' | 'BENEFICIARY' | 'CONSUMER' | 'VOLUNTEER'>('PROVIDER');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [selectedKnowledgeItem, setSelectedKnowledgeItem] = useState<KnowledgeItem | null>(null);
 
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -596,14 +599,14 @@ export default function DashboardInfoHubPage() {
   };
 
   const handleJumpToTopic = (item: KnowledgeItem) => {
-    setActiveTab(item.category);
-    if (item.roleTarget) {
-      setSelectedRoleFlow(item.roleTarget);
-    }
-    setSearchQuery('');
-
-    // Jika kategori FAQ, cari indeks pertanyaan dan buka accordionnya secara langsung
     if (item.category === 'FAQ') {
+      setActiveTab(item.category);
+      if (item.roleTarget) {
+        setSelectedRoleFlow(item.roleTarget as any);
+      }
+      setSearchQuery('');
+      setSelectedKnowledgeItem(null);
+
       const matchIdx = faqs.findIndex(
         (f) =>
           f.q.toLowerCase().includes(item.title.toLowerCase().substring(0, 20)) ||
@@ -613,10 +616,30 @@ export default function DashboardInfoHubPage() {
       if (matchIdx !== -1) {
         setOpenFaqIndex(matchIdx);
       }
-    }
 
+      setTimeout(() => {
+        const el = document.getElementById(`faq-item-${item.id}`) || document.getElementById('dashboard-info-content-container');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 80);
+    } else {
+      setSelectedKnowledgeItem(item);
+    }
+  };
+
+  const handleJumpFromModal = () => {
+    if (!selectedKnowledgeItem) return;
+    const item = selectedKnowledgeItem;
+    setActiveTab(item.category as any);
+    if (item.roleTarget) {
+      setSelectedRoleFlow(item.roleTarget as any);
+    }
+    setSearchQuery('');
+    setSelectedKnowledgeItem(null);
+    
     setTimeout(() => {
-      const el = document.getElementById(item.category === 'FAQ' ? `faq-item-${item.id}` : 'dashboard-info-content-container') || document.getElementById('dashboard-info-content-container');
+      const el = document.getElementById('dashboard-info-content-container');
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
       }

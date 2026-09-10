@@ -45,7 +45,7 @@ export default function TrackRegistrationStatusPage() {
     } catch (_) {}
   }, []);
 
-  const executeSearch = (targetQuery: string) => {
+  const executeSearch = async (targetQuery: string) => {
     setErrorMessage('');
     const cleanQuery = targetQuery.trim();
     if (!cleanQuery) {
@@ -57,18 +57,61 @@ export default function TrackRegistrationStatusPage() {
     setSearchQuery(cleanQuery);
 
     try {
-      // Load stored onboarding data from localStorage
+      const res = await fetch(`/api/tracker?q=${encodeURIComponent(cleanQuery)}`);
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        const user = data.data;
+        setProfile({
+          entityName: user.organizationName || user.name || 'Nama Pengguna',
+          email: user.email,
+          phone: user.phone || '-',
+          contactPerson: user.name,
+          address: user.address || '-',
+          category: user.organizationType || 'Umum',
+          role: user.role,
+        });
+
+        let resolvedDocsStatus = 'DOCS_SUBMITTED_PENDING_REVIEW';
+        if (user.status === 'APPROVED') resolvedDocsStatus = 'APPROVED_ACTIVE';
+        if (user.status === 'REJECTED') resolvedDocsStatus = 'REJECTED';
+        if (user.status === 'SUSPENDED') resolvedDocsStatus = 'SUSPENDED';
+
+        setDocsStatus(resolvedDocsStatus);
+
+        const dateObj = new Date(user.createdAt);
+        setSubmittedTime(dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }));
+
+        const isApprovedStatus = user.status === 'APPROVED';
+
+        setStepFlags({
+          step1_registered: true,
+          step2_profileFilled: !!user.address,
+          step3_docsUploaded: user.status === 'PENDING' || user.status === 'APPROVED' || user.status === 'REJECTED',
+          step4_audited: isApprovedStatus || user.status === 'REJECTED',
+          step5_activated: isApprovedStatus,
+        });
+
+        setIsSearched(true);
+        return;
+      }
+    } catch (err) {
+      console.error('API Tracker error:', err);
+    }
+
+    // Fallback to localStorage if API fails or user not found in DB
+    try {
       const storedProfile = localStorage.getItem('replate_onboarding_profile');
       const storedDocs = localStorage.getItem('replate_onboarding_docs');
 
       let resolvedProfile: any = {
-        entityName: 'Warung Bakso Pak Kumis Surabaya',
-        email: 'bakso.pak.kumis@replate.id',
-        phone: '0812-3456-7890',
-        contactPerson: 'Mas Doni',
-        address: 'Jl. Raya Gubeng No. 88, Surabaya',
-        category: 'RESTAURANT',
-        role: 'FOOD_PROVIDER',
+        entityName: 'Data Belum Lengkap',
+        email: cleanQuery.includes('@') ? cleanQuery : 'Belum ada email',
+        phone: '-',
+        contactPerson: '-',
+        address: '-',
+        category: '-',
+        role: '-',
       };
 
       let profileFromStorage = false;
@@ -82,13 +125,8 @@ export default function TrackRegistrationStatusPage() {
         } catch (_) {}
       }
 
-      if (cleanQuery.includes('@')) {
-        resolvedProfile.email = cleanQuery;
-      }
-
       setProfile(resolvedProfile);
 
-      // --- Dynamic step evaluation ---
       let resolvedDocsStatus = 'DOCS_SUBMITTED_PENDING_REVIEW';
       let resolvedSubmittedTime = '';
       let hasDocFiles = false;
@@ -101,7 +139,6 @@ export default function TrackRegistrationStatusPage() {
             const dateObj = new Date(parsedDocs.submittedAt);
             resolvedSubmittedTime = dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
           }
-          // Check if docs actually uploaded
           hasDocFiles = !!(parsedDocs.nib || parsedDocs.ktp || parsedDocs.photo || parsedDocs.docs);
         } catch (_) {}
       }
@@ -110,18 +147,10 @@ export default function TrackRegistrationStatusPage() {
       setSubmittedTime(resolvedSubmittedTime);
 
       const isApprovedStatus = resolvedDocsStatus === 'APPROVED_ACTIVE';
-
-      // Step 1: registered if profile was found in localStorage OR if the query matches a known code
       const step1 = profileFromStorage || !!storedProfile || cleanQuery.length > 5;
-
-      // Step 2: profile filled if address and entityName are real (not just defaults)
-      const hasAddress = !!(resolvedProfile.address && resolvedProfile.address !== 'Jl. Raya Gubeng No. 88, Surabaya' || profileFromStorage);
+      const hasAddress = !!(resolvedProfile.address && resolvedProfile.address !== '-' || profileFromStorage);
       const step2 = step1 && (profileFromStorage || hasAddress);
-
-      // Step 3: docs uploaded if storedDocs exists with file fields
       const step3 = !!storedDocs && (hasDocFiles || !!storedDocs);
-
-      // Step 4 & 5: only when approved
       const step4 = isApprovedStatus;
       const step5 = isApprovedStatus;
 

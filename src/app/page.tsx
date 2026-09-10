@@ -43,7 +43,7 @@ export default function HomePage() {
   const [isTrackerSearched, setIsTrackerSearched] = useState(false);
   const [trackerError, setTrackerError] = useState('');
 
-  const executeTrackerSearch = (targetQuery: string) => {
+  const executeTrackerSearch = async (targetQuery: string) => {
     setTrackerError('');
     const cleanQuery = targetQuery.trim();
     if (!cleanQuery) {
@@ -52,59 +52,64 @@ export default function HomePage() {
     }
 
     const upperQuery = cleanQuery.toUpperCase();
-    const queryLower = cleanQuery.toLowerCase();
 
+    try {
+      const res = await fetch(`/api/tracker?q=${encodeURIComponent(cleanQuery)}`);
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        const user = data.data;
+        let resolvedStatus = 'DOCS_SUBMITTED_PENDING_REVIEW';
+        if (user.status === 'APPROVED') resolvedStatus = 'APPROVED_ACTIVE';
+        if (user.status === 'REJECTED') resolvedStatus = 'REJECTED';
+        if (user.status === 'SUSPENDED') resolvedStatus = 'SUSPENDED';
+
+        const dateObj = new Date(user.createdAt);
+        const resolvedTime = dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+        setTrackerResult({
+          regId: upperQuery,
+          profile: {
+            entityName: user.organizationName || user.name || 'Nama Pengguna',
+            email: user.email,
+            phone: user.phone || '-',
+            contactPerson: user.name,
+            address: user.address || '-',
+            category: user.organizationType || 'Umum',
+            role: user.role,
+          },
+          docsStatus: resolvedStatus,
+          submittedTime: resolvedTime,
+        });
+        setIsTrackerSearched(true);
+        return;
+      }
+    } catch (err) {
+      console.error('API Tracker error:', err);
+    }
+
+    // Fallback to localStorage
     try {
       const storedProfile = localStorage.getItem('replate_onboarding_profile');
       const storedDocs = localStorage.getItem('replate_onboarding_docs');
 
-      const isPanti = queryLower.includes('panti') || queryLower.includes('yayasan') || queryLower.includes('kasih');
-
-      let resolvedProfile = isPanti
-        ? {
-            entityName: 'Panti Asuhan Kasih Ibu Surabaya',
-            email: cleanQuery.includes('@') ? cleanQuery : 'panti.kasih.ibu@replate.id',
-            phone: '0812-9876-5432',
-            contactPerson: 'Ibu Hajjah Maryam',
-            address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
-            category: 'SHELTER_ORPHANAGE',
-            role: 'FOOD_BENEFICIARY',
-          }
-        : {
-            entityName: 'Warung Bakso Pak Kumis Surabaya',
-            email: cleanQuery.includes('@') ? cleanQuery : 'bakso.pak.kumis@replate.id',
-            phone: '0812-3456-7890',
-            contactPerson: 'Mas Doni',
-            address: 'Jl. Raya Gubeng No. 88, Surabaya',
-            category: 'RESTAURANT',
-            role: 'FOOD_PROVIDER',
-          };
+      let resolvedProfile = {
+        entityName: 'Data Belum Lengkap',
+        email: cleanQuery.includes('@') ? cleanQuery : 'Belum ada email',
+        phone: '-',
+        contactPerson: '-',
+        address: '-',
+        category: '-',
+        role: '-',
+      };
 
       if (storedProfile) {
         try {
           const parsed = JSON.parse(storedProfile);
           if (parsed && typeof parsed === 'object') {
-            const isStoredProfilePanti =
-              parsed.role === 'FOOD_BENEFICIARY' ||
-              parsed.role === 'YAYASAN' ||
-              parsed.entityName?.toLowerCase().includes('panti') ||
-              parsed.entityName?.toLowerCase().includes('yayasan');
-
-            if (isPanti) {
-              if (isStoredProfilePanti) {
-                resolvedProfile = { ...resolvedProfile, ...parsed };
-              }
-            } else {
-              if (!isStoredProfilePanti) {
-                resolvedProfile = { ...resolvedProfile, ...parsed };
-              }
-            }
+            resolvedProfile = { ...resolvedProfile, ...parsed };
           }
         } catch (_) {}
-      }
-
-      if (cleanQuery.includes('@')) {
-        resolvedProfile.email = cleanQuery;
       }
 
       let resolvedStatus = 'DOCS_SUBMITTED_PENDING_REVIEW';
@@ -279,11 +284,12 @@ export default function HomePage() {
             apiItems = data.data;
           }
 
+          let mappedApi: any[] = [];
           if (apiItems.length > 0) {
-            const mappedApi = apiItems.map((item: any) => ({
+            mappedApi = apiItems.map((item: any) => ({
               id: item.id || `food-${Math.random()}`,
               title: item.foodName || item.title || 'Makanan Surplus',
-              providerName: item.provider?.organizationName || item.provider?.name || item.providerName || 'Warung Bakso Pak Kumis',
+              providerName: item.provider?.organizationName || item.provider?.name || item.providerName || 'Mitra Penyedia',
               originalPrice: Number(item.originalPrice || item.price || 25000),
               discountPrice: Number(item.discountPrice !== undefined ? item.discountPrice : (item.distributionType === 'FREE' ? 0 : 8000)),
               quantity: typeof item.quantity === 'number' ? `${item.quantity} ${item.quantityUnit || 'Porsi'}` : item.quantity || '10 Porsi',
@@ -293,11 +299,19 @@ export default function HomePage() {
               isFree: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0,
               matchScore: item.matchScore || 96,
               imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
+              address: item.address,
+              lat: item.lat || item.latitude,
+              lng: item.lng || item.longitude,
             }));
-            setFoods([...mappedLocal, ...mappedApi]);
-          } else {
-            setFoods([...mappedLocal, ...exploreDefaultFoods]);
           }
+
+          const combined = [...mappedLocal, ...mappedApi];
+          // Filter out defaults that already exist in combined (by ID)
+          const defaultUnadded = exploreDefaultFoods.filter(
+            (df) => !combined.some((c) => c.id === df.id)
+          );
+          
+          setFoods([...combined, ...defaultUnadded]);
         })
         .catch(() => {
           setFoods([...mappedLocal, ...exploreDefaultFoods]);

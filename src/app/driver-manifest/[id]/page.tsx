@@ -42,32 +42,38 @@ export default function DriverManifestNoLoginPage() {
 
   useEffect(() => {
     try {
-      const savedClaimsStr = localStorage.getItem('replate_claims');
-      if (savedClaimsStr) {
-        const parsed = JSON.parse(savedClaimsStr);
-        const matched = parsed.find(
-          (c: any) =>
-            (c.claimCode && c.claimCode.toUpperCase() === cleanCode) ||
-            (c.code && c.code.toUpperCase() === cleanCode) ||
-            (c.id && c.id.toUpperCase() === cleanCode)
-        );
-        if (matched) {
-          setClaimData({
-            code: matched.claimCode || matched.code || cleanCode,
-            foodName: matched.foodName || 'Surplus Makanan Steril',
-            storeName: matched.storeName || 'Warung Bakso Pak Kumis Surabaya',
-            storePhone: matched.storePhone || '0812-3456-7890',
-            userName: matched.userName || matched.shelterName || 'Penerima Manfaat',
-            recipientPerson: matched.recipientPerson || matched.userName || 'Pengurus Penerima',
-            recipientPhone: matched.recipientPhone || matched.contactPhone || '0812-4455-6677',
-            address: matched.address || 'Kota Surabaya',
-            driverName: matched.courierName || matched.driverName || 'Driver Armada Toko',
-            status: matched.status || 'IN_TRANSIT',
-            time: matched.time || 'OTW Pengiriman',
-          });
-          if (matched.status === 'COMPLETED' || matched.status === 'VERIFIED') {
-            setIsCompleted(true);
-          }
+      const keys = ['replate_claims', 'replate_active_claims', 'replate_shelter_claims', 'replate_consumer_claims'];
+      let matched = null;
+      for (const key of keys) {
+        const savedStr = localStorage.getItem(key);
+        if (savedStr) {
+          const parsed = JSON.parse(savedStr);
+          matched = parsed.find(
+            (c: any) =>
+              (c.claimCode && c.claimCode.toUpperCase() === cleanCode) ||
+              (c.code && c.code.toUpperCase() === cleanCode) ||
+              (c.id && c.id.toUpperCase() === cleanCode)
+          );
+          if (matched) break;
+        }
+      }
+
+      if (matched) {
+        setClaimData({
+          code: matched.claimCode || matched.code || cleanCode,
+          foodName: matched.foodName || 'Surplus Makanan Steril',
+          storeName: matched.storeName || 'Warung Bakso Pak Kumis Surabaya',
+          storePhone: matched.storePhone || '0812-3456-7890',
+          userName: matched.userName || matched.shelterName || 'Penerima Manfaat',
+          recipientPerson: matched.recipientPerson || matched.userName || 'Pengurus Penerima',
+          recipientPhone: matched.recipientPhone || matched.contactPhone || '0812-4455-6677',
+          address: matched.address || 'Kota Surabaya',
+          driverName: matched.courierName || matched.driverName || 'Driver Armada Toko',
+          status: matched.status || 'IN_TRANSIT',
+          time: matched.time || 'OTW Pengiriman',
+        });
+        if (matched.status === 'COMPLETED' || matched.status === 'VERIFIED') {
+          setIsCompleted(true);
         }
       }
     } catch (_) {}
@@ -77,27 +83,37 @@ export default function DriverManifestNoLoginPage() {
     setIsCompleted(true);
 
     try {
-      const savedClaimsStr = localStorage.getItem('replate_claims');
-      const existing = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
-      const updated = existing.map((c: any) => {
-        const isMatch =
-          (c.claimCode && c.claimCode.toUpperCase() === cleanCode) ||
-          (c.code && c.code.toUpperCase() === cleanCode) ||
-          (c.id && c.id.toUpperCase() === cleanCode);
+      const keys = ['replate_claims', 'replate_active_claims', 'replate_shelter_claims', 'replate_consumer_claims'];
+      
+      for (const key of keys) {
+        const savedStr = localStorage.getItem(key);
+        if (savedStr) {
+          const parsed = JSON.parse(savedStr);
+          let updatedAny = false;
+          const updated = parsed.map((c: any) => {
+            const isMatch =
+              (c.claimCode && c.claimCode.toUpperCase() === cleanCode) ||
+              (c.code && c.code.toUpperCase() === cleanCode) ||
+              (c.id && c.id.toUpperCase() === cleanCode);
 
-        if (isMatch) {
-          return {
-            ...c,
-            status: 'COMPLETED',
-            time: 'Selesai Diantar Driver Toko',
-            handoverProof: proofPhoto,
-            deliveryNotes: deliveryNotes,
-          };
+            if (isMatch) {
+              updatedAny = true;
+              return {
+                ...c,
+                status: 'COMPLETED',
+                time: 'Selesai Diantar Driver Toko',
+                handoverProof: proofPhoto,
+                deliveryNotes: deliveryNotes,
+              };
+            }
+            return c;
+          });
+
+          if (updatedAny) {
+             localStorage.setItem(key, JSON.stringify(updated));
+          }
         }
-        return c;
-      });
-
-      localStorage.setItem('replate_claims', JSON.stringify(updated));
+      }
     } catch (_) {}
 
     setToastState({
