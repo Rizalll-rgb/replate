@@ -267,7 +267,7 @@ export default function AdminOverviewPage() {
                     variant="gold"
                     size="sm"
                     onClick={() => handleResolveIncident(inc.id)}
-                    className="font-black text-xs text-slate-950 py-1.5 px-3.5 bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs cursor-pointer flex items-center gap-1.5"
+                    className="font-black text-xs py-1.5 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer flex items-center gap-1.5"
                   >
                     <CheckIcon size={13} />
                     <span>Selesaikan Tiket</span>
