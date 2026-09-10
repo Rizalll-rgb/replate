@@ -81,6 +81,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState('Jl. Ketintang No. 12, Gayungan, Surabaya, Jawa Timur');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [tempAddress, setTempAddress] = useState(address);
+  const [orderNotes, setOrderNotes] = useState('');
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -307,6 +308,8 @@ export default function CheckoutPage() {
       paymentProof: proofUrl || null,
       createdAt: new Date().toISOString(),
       pickupTime: item?.pickupTime,
+      notes: orderNotes || 'Wadah steril food-grade',
+      customerNotes: orderNotes,
       items: [{ ...item, quantity }],
       hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
       courierName: deliveryMethod === 'SELF_PICKUP'
@@ -355,6 +358,22 @@ export default function CheckoutPage() {
         type: 'error',
       });
       return;
+    }
+
+    // Donasi Rp 0 dikhususkan untuk Beneficiary & Warga Rentan
+    if (item.isFree) {
+      const rawRole = (session?.user as any)?.role || (typeof window !== 'undefined' ? localStorage.getItem('replate_role') : '');
+      const isConsumer = String(rawRole).toUpperCase().includes('CONSUMER');
+      const isVerifiedBeneficiary = isBeneficiaryRole || (typeof window !== 'undefined' && localStorage.getItem('replate_consumer_verification_status') === 'BENEFICIARY_VERIFIED');
+
+      if (isConsumer && !isVerifiedBeneficiary) {
+        setToastState({
+          isOpen: true,
+          message: 'Donasi Bebas Biaya (Rp 0) dikhususkan untuk Panti Asuhan & Keluarga Rentan Terdaftar. Sebagai Konsumen Hemat, silakan pesan hidangan lezat di kategori Rescue Sale (Diskon 50-70%)!',
+          type: 'error',
+        });
+        return;
+      }
     }
 
     // Poin 3: Alert pencegahan jika memesan melebihi kapasitas porsi ready
@@ -623,9 +642,18 @@ export default function CheckoutPage() {
               </div>
             </div>
             
-            <div className="pt-2 flex items-center justify-between">
-              <div className="text-slate-500 font-medium text-xs">Pesan:</div>
-              <div className="text-slate-400 text-xs italic">Silakan tinggalkan pesan...</div>
+            <div className="pt-2 space-y-1.5 border-t border-slate-100">
+              <label className="text-slate-700 font-bold text-xs flex items-center justify-between">
+                <span>Catatan untuk Penjual / Petugas:</span>
+                <span className="text-[10px] text-slate-400 font-normal">Opsional</span>
+              </label>
+              <textarea
+                rows={2}
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value)}
+                placeholder="Tulis instruksi khusus (misal: saus dipisah, kemasan jangan ditumpuk, titip di resepsionis)..."
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] bg-slate-50 placeholder:text-slate-400 font-medium"
+              />
             </div>
           </div>
 

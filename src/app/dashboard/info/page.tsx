@@ -10,7 +10,7 @@ import {
   FoodSafetyCategory,
 } from '@/lib/thermalRescueEngine';
 import { calculateIppcEsgImpact } from '@/lib/esgCarbonEngine';
-import { Thermometer, ShieldAlert, CheckCircle2, AlertTriangle, Flame, ShieldCheck } from 'lucide-react';
+import { Thermometer, ShieldAlert, CheckCircle2, AlertTriangle, Flame, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -1537,8 +1537,8 @@ export default function DashboardInfoHubPage() {
                 className="w-full p-4 text-left flex items-center justify-between font-extrabold text-xs sm:text-sm text-[#1B3A5C] hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <span className="pr-4">{faq.q}</span>
-                <span className="text-slate-400 font-mono text-base shrink-0">
-                  {openFaqIndex === idx ? '−' : '+'}
+                <span className="text-slate-400 shrink-0 flex items-center">
+                  {openFaqIndex === idx ? <ChevronUp className="w-4 h-4 text-[#D4A843]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                 </span>
               </button>
               {openFaqIndex === idx && (

@@ -38,7 +38,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   const [downloaded, setDownloaded] = useState(false);
   const printAreaRef = useRef<HTMLDivElement>(null);
 
-  /** Download as PNG using canvas */
+  /** Download as high-res PNG image of the full digital manifest pass */
   const handleDownloadPNG = async () => {
     try {
       const svgEl = printAreaRef.current?.querySelector('svg');
@@ -48,24 +48,154 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
 
-      const img = new Image();
-      img.onload = () => {
+      const qrImg = new Image();
+      qrImg.onload = () => {
+        const width = 800;
+        const height = 1180;
         const canvas = document.createElement('canvas');
-        const scale = 3; // high res
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+
+        // Background
+        ctx.fillStyle = '#F8FAFC';
+        ctx.fillRect(0, 0, width, height);
+
+        // Card Border & Background
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.scale(scale, scale);
-        ctx.drawImage(img, 0, 0);
+        ctx.strokeStyle = '#CBD5E1';
+        ctx.lineWidth = 4;
+        const pad = 30;
+        ctx.beginPath();
+        ctx.roundRect(pad, pad, width - pad * 2, height - pad * 2, 28);
+        ctx.fill();
+        ctx.stroke();
+
+        // Top Header Banner
+        ctx.fillStyle = '#1B3A5C';
+        ctx.beginPath();
+        ctx.roundRect(pad, pad, width - pad * 2, 110, [28, 28, 0, 0]);
+        ctx.fill();
+
+        // Brand Text
+        ctx.fillStyle = '#D4A843';
+        ctx.font = 'bold 30px sans-serif';
+        ctx.fillText('REPLATE 2.0', pad + 30, pad + 65);
+
+        ctx.fillStyle = '#E2E8F0';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('DIGITAL FOOD RESCUE MANIFEST & QR PASS', pad + 30, pad + 92);
+
+        // BPOM Pill
+        ctx.fillStyle = '#059669';
+        ctx.beginPath();
+        ctx.roundRect(width - pad - 210, pad + 40, 180, 36, 18);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText('✓ BPOM VERIFIED', width - pad - 185, pad + 63);
+
+        // Subtitle
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(codeTitle || 'SURAT JALAN & SERAH TERIMA PANGAN', width / 2, 195);
+
+        ctx.fillStyle = '#64748B';
+        ctx.font = '15px sans-serif';
+        ctx.fillText('Tunjukkan QR Code ini kepada kasir toko atau kurir saat serah terima', width / 2, 225);
+
+        // Resi Badge
+        ctx.fillStyle = '#0F172A';
+        ctx.beginPath();
+        ctx.roundRect(width / 2 - 200, 250, 400, 48, 14);
+        ctx.fill();
+        ctx.fillStyle = '#D4A843';
+        ctx.font = 'bold 22px monospace';
+        ctx.fillText(value, width / 2, 282);
+
+        // Draw QR Code
+        const qrSize = 270;
+        const qrX = (width - qrSize) / 2;
+        const qrY = 325;
+        ctx.fillStyle = '#F8FAFC';
+        ctx.strokeStyle = '#94A3B8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 20);
+        ctx.fill();
+        ctx.stroke();
+        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+        // Details Box
+        ctx.textAlign = 'left';
+        const boxY = 655;
+        ctx.fillStyle = '#F1F5F9';
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(pad + 30, boxY, width - pad * 2 - 60, 410, 20);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#1B3A5C';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillText('RINCIAN PENYALURAN PANGAN RESMI', pad + 55, boxY + 40);
+
+        const drawRow = (label: string, val: string, yPos: number, isAccent?: boolean) => {
+          ctx.fillStyle = '#64748B';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.fillText(label, pad + 55, yPos);
+
+          ctx.fillStyle = isAccent ? '#1B3A5C' : '#0F172A';
+          ctx.font = isAccent ? 'bold 17px sans-serif' : '16px sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(val, width - pad - 55, yPos);
+          ctx.textAlign = 'left';
+        };
+
+        let rowY = boxY + 80;
+        if (foodName) {
+          drawRow('Menu Surplus:', foodName.length > 30 ? foodName.substring(0, 30) + '...' : foodName, rowY, true);
+          rowY += 42;
+        }
+        if (portions) {
+          drawRow('Target Porsi:', portions, rowY, true);
+          rowY += 42;
+        }
+        if (providerName) {
+          drawRow('Penyedia / Toko:', providerName, rowY);
+          rowY += 42;
+        }
+        if (recipientName) {
+          drawRow('Lembaga Penerima:', recipientName, rowY);
+          rowY += 42;
+        }
+        if (courierName) {
+          drawRow('Kurir Ditugaskan:', courierName, rowY);
+          rowY += 42;
+        }
+        if (courierVehicle) {
+          drawRow('Armada Kendaraan:', courierVehicle, rowY);
+          rowY += 42;
+        }
+        if (expiryTime) {
+          drawRow('Batas Waktu Ambil:', expiryTime, rowY);
+          rowY += 42;
+        }
+
+        // Footer Watermark
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Dokumen resmi Replate Indonesia • Terkoneksi Sistem Logistik Real-Time & Dinsos RI', width / 2, height - pad - 20);
 
         canvas.toBlob((blob) => {
           if (!blob) return;
           const a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
-          a.download = `Replate_QR_${value.replace(/[^a-zA-Z0-9-]/g, '_')}.png`;
+          a.download = `Replate_Tiket_QR_${value.replace(/[^a-zA-Z0-9-]/g, '_')}.png`;
           a.click();
           URL.revokeObjectURL(a.href);
           setDownloaded(true);
@@ -74,7 +204,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
 
         URL.revokeObjectURL(url);
       };
-      img.src = url;
+      qrImg.src = url;
     } catch (_) {
       // Fallback to print
       handlePrintIsolated();
@@ -168,13 +298,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
         {/* QR Code Container */}
         <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#1B3A5C]/30 shadow-xs relative">
           <QRCodeSVG
-            value={JSON.stringify({
-              ticket: value,
-              food: foodName,
-              recipient: recipientName,
-              portions,
-              time: expiryTime,
-            })}
+            value={`https://replate-wheat.vercel.app/driver-manifest/${encodeURIComponent(value)}`}
             size={180}
             level="H"
             includeMargin={true}

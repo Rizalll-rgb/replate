@@ -45,7 +45,7 @@ interface FoodItem {
 export default function WorkspaceExplorePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS'>('RESCUE_SALE');
+  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS' | 'OUT_OF_STOCK'>('RESCUE_SALE');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -431,10 +431,40 @@ export default function WorkspaceExplorePage() {
     { key: 'BAHAN_MENTAH', name: 'Bahan Pokok' },
   ];
 
+  const userRole = (session?.user as any)?.role || (typeof window !== 'undefined' ? localStorage.getItem('replate_role') : '') || '';
+  const isConsumer = String(userRole).toUpperCase().includes('CONSUMER');
+  const isBeneficiary = String(userRole).toUpperCase().includes('BENEFICIARY') || String(userRole).toUpperCase().includes('YAYASAN');
+  const maxRadiusKm = syncRadius || (typeof window !== 'undefined' ? Number(localStorage.getItem('replate_admin_sync_radius') || 15) : 15);
+
+  const outOfStockCount = useMemo(() => {
+    return foods.filter((item) => {
+      const qNum = parseInt(String(item.quantity || '').replace(/\D/g, '')) || 0;
+      return qNum === 0 || item.status === 'OUT_OF_STOCK';
+    }).length;
+  }, [foods]);
+
   const filteredFoods = foods.filter((item) => {
     if (activeTab === 'PANTI_NEEDS') return false; // Panti needs tab shows its own grid
-    if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
-    if (activeTab === 'DONATION' && !item.isFree) return false;
+
+    const qtyNumber = parseInt(String(item.quantity || '').replace(/\D/g, '')) || 0;
+    const isItemOutOfStock = qtyNumber === 0 || item.status === 'OUT_OF_STOCK';
+
+    if (activeTab === 'OUT_OF_STOCK') {
+      if (!isItemOutOfStock) return false;
+    } else {
+      if (isItemOutOfStock) return false;
+      if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
+      if (activeTab === 'DONATION' && !item.isFree) return false;
+    }
+
+    // Radius Geofencing for Beneficiary:
+    // Filter out stores in other cities (e.g. Dago Bakery Heritage in Bandung) unless superadmin config allows larger radius
+    if (isBeneficiary) {
+      const dist = parseFloat(item.distance) || 0;
+      const isFarLocation = item.providerName.toLowerCase().includes('dago bakery') || (dist > maxRadiusKm && dist > 0);
+      if (isFarLocation) return false;
+    }
+
     if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -916,6 +946,19 @@ export default function WorkspaceExplorePage() {
           <span>Donasi (Rp 0)</span>
         </button>
 
+        {/* Tab Stok Habis */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('OUT_OF_STOCK')}
+          className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === 'OUT_OF_STOCK'
+              ? 'bg-rose-900 text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-950 font-bold'
+          }`}
+        >
+          <span>Stok Habis ({outOfStockCount})</span>
+        </button>
+
         {/* Rescue Partner Action */}
         {(session?.user?.role?.toUpperCase().includes('RESCUE') || session?.user?.role?.toUpperCase().includes('VOLUNTEER')) && (
           <button
@@ -927,18 +970,20 @@ export default function WorkspaceExplorePage() {
           </button>
         )}
 
-        {/* Panti Needs Tab — visible for all roles including providers and beneficiaries */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('PANTI_NEEDS')}
-          className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            activeTab === 'PANTI_NEEDS'
-              ? 'bg-[#1B3A5C] text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-950 font-bold'
-          }`}
-        >
-          <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
-        </button>
+        {/* Panti Needs Tab — hidden for consumers */}
+        {!isConsumer && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('PANTI_NEEDS')}
+            className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'PANTI_NEEDS'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-950 font-bold'
+            }`}
+          >
+            <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
+          </button>
+        )}
       </div>
 
       {/* Food Grid Content */}
@@ -1006,6 +1051,12 @@ export default function WorkspaceExplorePage() {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
             {filteredFoods.map((item) => {
               const isProvider = session?.user?.role?.toUpperCase().includes('PROVIDER');
+              const currentProviderName = session?.user?.name || (session?.user as any)?.orgName || 'Warung Bakso Pak Kumis';
+              const isMyOwnProduct = isProvider && (
+                item.providerName.toLowerCase().includes(currentProviderName.toLowerCase().split(' ')[0]) ||
+                currentProviderName.toLowerCase().includes(item.providerName.toLowerCase().split(' ')[0])
+              );
+
               return (
                 <FoodCard
                   key={item.id}
@@ -1021,7 +1072,7 @@ export default function WorkspaceExplorePage() {
                   distance={item.distance}
                   imageUrl={item.imageUrl}
                   onDetail={() => handleOpenFoodDetail(item)}
-                  onManage={isProvider ? () => router.push('/dashboard/provider/my-listings') : undefined}
+                  onManage={isMyOwnProduct ? () => router.push('/dashboard/provider/my-listings') : undefined}
                   onClaim={!isProvider ? () => handleBuyNow(item) : undefined}
                   onAddToCart={!isProvider ? () => handleClaimFood(item) : undefined}
                 />

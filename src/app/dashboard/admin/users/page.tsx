@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -101,6 +101,46 @@ export default function AdminUsersPage() {
       photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
     },
   ]);
+
+  useEffect(() => {
+    try {
+      const regUserStr = localStorage.getItem('replate_registered_user');
+      if (regUserStr) {
+        const reg = JSON.parse(regUserStr);
+        if (reg && reg.email) {
+          const formattedRole =
+            reg.role === 'FOOD_PROVIDER'
+              ? 'PROVIDER'
+              : reg.role === 'FOOD_BENEFICIARY'
+              ? 'RESCUE_PARTNER'
+              : reg.role === 'FOOD_CONSUMER'
+              ? 'CONSUMER'
+              : 'PROVIDER';
+
+          const customUser = {
+            id: reg.id || `reg-${Date.now()}`,
+            name: reg.name || reg.organizationName || 'Pengguna Terdaftar',
+            email: reg.email,
+            role: formattedRole,
+            status: reg.isVerified || reg.approvalStatus === 'APPROVED' ? 'APPROVED' : 'PENDING',
+            org: reg.organizationName || reg.name || 'Organisasi Terdaftar',
+            phone: reg.phone || '0812-3456-7890',
+            address: reg.address || 'Kota Surabaya',
+            nib: reg.nib || 'NIB-ONLINE-REG',
+            joinedAt: reg.createdAt ? new Date(reg.createdAt).toISOString().split('T')[0] : '2026-09-10',
+            lat: reg.lat || -7.2575,
+            lng: reg.lng || 112.7521,
+            photo: reg.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
+          };
+
+          setUsersList((prev) => {
+            const exists = prev.some((u) => u.email.toLowerCase() === reg.email.toLowerCase());
+            return exists ? prev : [customUser, ...prev];
+          });
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);

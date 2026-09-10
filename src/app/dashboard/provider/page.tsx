@@ -867,10 +867,10 @@ export default function ProviderOverviewPage() {
                       </div>
 
                       {/* Logistics Delivery Chip */}
-                      <div className="flex items-center justify-between text-[11px] pt-1 text-slate-600 border-t border-slate-200/60">
-                        <span className="flex items-center gap-1.5 font-semibold text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200/60">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px] pt-1 text-slate-600 border-t border-slate-200/60">
+                        <span className="flex items-center gap-1.5 font-semibold text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200/60 w-fit">
                           <BikeIcon size={13} className="text-purple-700" />
-                          <span className="truncate max-w-[220px]">{panti.deliveryLabel}</span>
+                          <span className="truncate max-w-[260px]">{panti.deliveryLabel}</span>
                         </span>
                         <span className="text-[10.5px] text-slate-500 font-medium">
                           Kontak PIC: <strong className="text-slate-800">{panti.contactPerson}</strong>
@@ -900,7 +900,7 @@ export default function ProviderOverviewPage() {
                   {/* Card Action Footer Bar: Desktop Ergonomics */}
                   <div className="px-4 sm:px-5 py-3.5 bg-slate-50/90 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     {/* Left: Deadline & Formula Score link */}
-                    <div className="flex items-center justify-between sm:justify-start gap-3">
+                    <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
                       <div className="flex items-center gap-1.5 text-xs text-amber-950 font-bold font-mono bg-amber-100/70 px-2.5 py-1 rounded-lg border border-amber-200">
                         <ClockIcon size={13} className="text-amber-700" />
                         <span>Batas: {panti.cutoffTime} WIB</span>
@@ -920,22 +920,22 @@ export default function ProviderOverviewPage() {
                     </div>
 
                     {/* Right: Action Buttons (Detail & Sanggupi Donasi) */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => setSelectedShelterProfile(panti)}
-                        className="py-2 px-3 bg-white hover:bg-slate-100 text-[#1B3A5C] font-extrabold text-xs rounded-xl border border-slate-300 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        className="flex-1 sm:flex-initial py-2 px-3 bg-white hover:bg-slate-100 text-[#1B3A5C] font-extrabold text-xs rounded-xl border border-slate-300 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                         title="Lihat profil detail lembaga dan peta lokasi GPS"
                       >
                         <MapPinIcon size={13} />
-                        <span>Profil & Peta</span>
+                        <span>Profil &amp; Peta</span>
                       </button>
 
                       <Button
                         variant="gold"
                         size="sm"
                         onClick={() => handleOpenAllocationModal(panti)}
-                        className="font-black text-xs text-slate-950 py-2 px-4 shadow-sm bg-amber-400 hover:bg-amber-500 border border-amber-500 cursor-pointer flex items-center gap-1.5"
+                        className="flex-1 sm:flex-initial font-black text-xs text-slate-950 py-2 px-4 shadow-sm bg-amber-400 hover:bg-amber-500 border border-amber-500 cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <PackageIcon size={13} />
                         <span>Sanggupi Donasi</span>

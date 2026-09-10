@@ -158,24 +158,33 @@ export default function ProviderSettingsPage() {
 
   React.useEffect(() => {
     try {
+      let demoUser: any = null;
+      const rawDemo = localStorage.getItem('replate_demo_session');
+      if (rawDemo) {
+        try { demoUser = JSON.parse(rawDemo); } catch (_) {}
+      }
+
       let regUser: any = null;
       const rawReg = localStorage.getItem('replate_registered_user');
       if (rawReg) {
         try { regUser = JSON.parse(rawReg); } catch (_) {}
       }
 
+      const activeUser = demoUser || regUser;
+
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
-        if (parsed.entityName) setOrgName(parsed.entityName);
-        else if (regUser?.name) setOrgName(regUser.name);
-        if (parsed.phone) setPhone(parsed.phone);
-        else if (regUser?.phone) setPhone(regUser.phone);
-        if (parsed.email) setEmail(parsed.email);
-        else if (regUser?.email) setEmail(regUser.email);
-        if (parsed.address) {
-          setAddress(parsed.address);
-          const resolved = resolveIndonesianAddress(parsed.address);
+        if (activeUser?.organizationName || activeUser?.name) setOrgName(activeUser.organizationName || activeUser.name);
+        else if (parsed.entityName) setOrgName(parsed.entityName);
+        if (activeUser?.phone) setPhone(activeUser.phone);
+        else if (parsed.phone) setPhone(parsed.phone);
+        if (activeUser?.email) setEmail(activeUser.email);
+        else if (parsed.email) setEmail(parsed.email);
+        const targetAddress = activeUser?.address || parsed.address;
+        if (targetAddress) {
+          setAddress(targetAddress);
+          const resolved = resolveIndonesianAddress(targetAddress);
           if (resolved.district && resolved.city) {
             setDistrict(`Kec. ${resolved.district}, ${resolved.city}`);
           } else if (resolved.district) {
@@ -587,6 +596,26 @@ export default function ProviderSettingsPage() {
               </Button>
             </Link>
           </div>
+        </div>
+
+        {/* Quick link to main profile */}
+        <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 bg-blue-100 text-blue-900 rounded-lg shrink-0">
+              <SettingsIcon size={16} />
+            </span>
+            <div>
+              <strong className="text-xs font-black text-[#1B3A5C] block">Kelola Profil Akun Utama &amp; Identitas Lengkap</strong>
+              <p className="text-[11px] text-slate-600 font-medium">
+                Data outlet Anda tersinkronisasi otomatis dengan profil akun di pojok kanan atas.
+              </p>
+            </div>
+          </div>
+          <Link href="/dashboard/profile" className="self-end sm:self-auto shrink-0">
+            <Button variant="outline" size="sm" className="text-xs font-bold bg-white text-[#1B3A5C] border-blue-300 hover:bg-blue-50 cursor-pointer">
+              Buka Profil Utama →
+            </Button>
+          </Link>
         </div>
       </div>
 

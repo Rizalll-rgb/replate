@@ -56,6 +56,7 @@ export default function CheckoutCartPage() {
   const [address, setAddress] = useState('Jl. Ketintang No. 12, Gayungan, Surabaya, Jawa Timur');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [tempAddress, setTempAddress] = useState(address);
+  const [orderNotes, setOrderNotes] = useState('');
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -188,6 +189,8 @@ export default function CheckoutCartPage() {
       createdAt: new Date().toISOString(),
       claimedAt: 'Hari ini',
       pickupTime: items[0]?.pickupTime || 'Hari ini 21:00 WIB',
+      notes: orderNotes || 'Wadah steril food-grade',
+      customerNotes: orderNotes,
       items,
       hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
     };
@@ -214,6 +217,22 @@ export default function CheckoutCartPage() {
   // Poin 7: QRIS checkout initiates QRIS modal first
   const handleCheckout = () => {
     if (items.length === 0) return;
+
+    // Donasi Rp 0 dibatasi untuk Beneficiary
+    if (isFree) {
+      const rawRole = (session?.user as any)?.role || (typeof window !== 'undefined' ? localStorage.getItem('replate_role') : '');
+      const isConsumer = String(rawRole).toUpperCase().includes('CONSUMER');
+      const isBeneficiary = String(rawRole).toUpperCase().includes('BENEFICIARY') || String(rawRole).toUpperCase().includes('YAYASAN') || (typeof window !== 'undefined' && localStorage.getItem('replate_consumer_verification_status') === 'BENEFICIARY_VERIFIED');
+
+      if (isConsumer && !isBeneficiary) {
+        setToastState({
+          isOpen: true,
+          message: 'Donasi Bebas Biaya (Rp 0) dikhususkan untuk Panti Asuhan & Keluarga Rentan Terdaftar. Sebagai Konsumen Hemat, silakan pesan hidangan lezat di kategori Rescue Sale (Diskon 50-70%)!',
+          type: 'error',
+        });
+        return;
+      }
+    }
 
     // Check if any item is out of stock (0 portion)
     const hasOutOfStock = items.some((it: any) => {
@@ -398,6 +417,21 @@ export default function CheckoutCartPage() {
                   <span className="font-bold text-slate-900">{deliveryMethod === 'SELF_PICKUP' ? 'Rp 0' : 'Rp 5.000'}</span>
                   <span className="text-slate-400 group-hover:translate-x-1 transition-transform"><ChevronRight /></span>
                 </div>
+              </div>
+
+              {/* Catatan Pesanan */}
+              <div className="pt-2 space-y-1.5">
+                <label className="text-slate-700 font-bold text-xs flex items-center justify-between">
+                  <span>Catatan untuk Penjual / Petugas:</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Opsional</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={orderNotes}
+                  onChange={(e) => setOrderNotes(e.target.value)}
+                  placeholder="Tulis pesan/instruksi khusus untuk mitra penyedia makanan..."
+                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] bg-slate-50 placeholder:text-slate-400 font-medium"
+                />
               </div>
             </div>
 

@@ -55,6 +55,76 @@ export default function HomePage() {
     const queryLower = cleanQuery.toLowerCase();
 
     try {
+      // 1. Check in replate_claims for tracking codes or recipient/provider searches
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      if (savedClaimsStr) {
+        try {
+          const claims = JSON.parse(savedClaimsStr);
+          if (Array.isArray(claims)) {
+            const foundClaim = claims.find((c: any) =>
+              (c.code && c.code.toUpperCase().includes(upperQuery)) ||
+              (c.id && c.id.toUpperCase().includes(upperQuery)) ||
+              (c.claimCode && c.claimCode.toUpperCase().includes(upperQuery)) ||
+              (c.foodName && c.foodName.toLowerCase().includes(queryLower)) ||
+              (c.shelterName && c.shelterName.toLowerCase().includes(queryLower))
+            );
+            if (foundClaim) {
+              const isClaimDone = foundClaim.status === 'COMPLETED' || foundClaim.status === 'VERIFIED';
+              setTrackerResult({
+                regId: foundClaim.code || foundClaim.id || upperQuery,
+                profile: {
+                  entityName: `${foundClaim.shelterName || 'Lembaga Penerima'} (Klaim: ${foundClaim.foodName})`,
+                  email: foundClaim.email || `${cleanQuery}@replate.id`,
+                  phone: foundClaim.shelterPhone || foundClaim.providerPhone || '0812-3456-7890',
+                  contactPerson: foundClaim.providerName || 'Mitra Replate',
+                  address: foundClaim.shelterAddress || foundClaim.providerAddress || 'Surabaya',
+                  category: 'FOOD_CLAIM_AUDIT',
+                  role: 'FOOD_BENEFICIARY',
+                },
+                docsStatus: isClaimDone ? 'APPROVED_ACTIVE' : 'DOCS_SUBMITTED_PENDING_REVIEW',
+                submittedTime: foundClaim.time || 'Hari ini',
+              });
+              setIsTrackerSearched(true);
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // 2. Check in replate_registered_user
+      const regUserStr = localStorage.getItem('replate_registered_user');
+      if (regUserStr) {
+        try {
+          const regUser = JSON.parse(regUserStr);
+          if (
+            (regUser.email && regUser.email.toLowerCase() === queryLower) ||
+            (regUser.phone && regUser.phone.includes(cleanQuery)) ||
+            (regUser.id && regUser.id.toUpperCase() === upperQuery) ||
+            (regUser.name && regUser.name.toLowerCase().includes(queryLower)) ||
+            (regUser.organizationName && regUser.organizationName.toLowerCase().includes(queryLower))
+          ) {
+            const isApproved = regUser.isVerified || regUser.approvalStatus === 'APPROVED';
+            setTrackerResult({
+              regId: regUser.id ? `REG-${regUser.id.slice(-6).toUpperCase()}` : upperQuery,
+              profile: {
+                entityName: regUser.organizationName || regUser.name || 'Pengguna Terdaftar',
+                email: regUser.email || cleanQuery,
+                phone: regUser.phone || '0812-3456-7890',
+                contactPerson: regUser.name || 'PIC Lembaga',
+                address: regUser.address || 'Kota Surabaya',
+                category: regUser.role === 'FOOD_BENEFICIARY' ? 'SHELTER_ORPHANAGE' : 'RESTAURANT',
+                role: regUser.role || 'FOOD_PROVIDER',
+              },
+              docsStatus: isApproved ? 'APPROVED_ACTIVE' : 'DOCS_SUBMITTED_PENDING_REVIEW',
+              submittedTime: regUser.createdAt ? new Date(regUser.createdAt).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : 'Hari ini',
+            });
+            setIsTrackerSearched(true);
+            return;
+          }
+        } catch (_) {}
+      }
+
+      // 3. Fallback to onboarding profile & demo seeds
       const storedProfile = localStorage.getItem('replate_onboarding_profile');
       const storedDocs = localStorage.getItem('replate_onboarding_docs');
 
@@ -339,7 +409,22 @@ export default function HomePage() {
   const handleDetail = (id: string) => {
     const item = foods.find((f) => f.id === id);
     if (item) {
-      setSelectedFood(item);
+      const formattedItem: any = {
+        ...item,
+        foodName: item.foodName || item.title || 'Makanan Surplus',
+        foodCategory: item.foodCategory || item.category || 'MAKANAN_BERAT',
+        price: item.discountPrice !== undefined ? item.discountPrice : (item.isFree ? 0 : item.originalPrice),
+        pickupDeadline: item.pickupDeadline || item.pickupTime || new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
+        address: item.address || 'Surabaya',
+        storageCondition: item.storageCondition || 'Suhu Ruang / Chiller Higienis',
+        packagingType: item.packagingType || 'Food-Grade Biodegradable Container',
+        provider: item.provider || {
+          name: item.providerName || 'Mitra Replate',
+          organizationName: item.providerName || 'Mitra Replate',
+          phone: item.providerPhone || '0812-3456-7890',
+        },
+      };
+      setSelectedFood(formattedItem);
       setIsModalOpen(true);
     }
   };

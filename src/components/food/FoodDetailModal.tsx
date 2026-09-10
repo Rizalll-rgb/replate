@@ -40,6 +40,9 @@ export interface FoodDetailModalProps {
 export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClose, food, onClaim, onAddToCart }) => {
   if (!food) return null;
 
+  const displayName = food.foodName || (food as any).title || 'Makanan Surplus';
+  const displayCategory = food.foodCategory || (food as any).category || 'MAKANAN_BERAT';
+
   const isFree = !food.price || food.price === 0;
   const isOutOfStock = (food.quantity !== undefined && food.quantity <= 0);
 
@@ -93,46 +96,54 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
   const longitude = food.lng || resolvedCoords?.lng || 111.27984;
 
   const modalFooter = (
-    <div className="flex justify-end gap-3 w-full">
-      <Button variant="outline" size="sm" onClick={onClose} className="font-bold cursor-pointer">
-        Tutup
-      </Button>
-      {onAddToCart && !isOutOfStock && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="font-black text-[#1B3A5C] shadow-sm flex items-center gap-1.5 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3 cursor-pointer"
-          title="Masukkan Tas Klaim"
-          onClick={() => {
-            onAddToCart(food.id);
-            onClose();
-          }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
+    <div className="flex items-center justify-between w-full">
+      <div className="text-left">
+        <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">
+          Total Penyelamatan:
+        </span>
+        <span className="text-sm font-black text-[#1B3A5C]">
+          {food.quantity} {food.quantityUnit || 'Porsi'} ({estWeight.toFixed(1)} kg)
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={onClose} className="font-bold cursor-pointer">
+          Tutup
         </Button>
-      )}
-      {onClaim && (
-        <Button
-          variant="gold"
-          size="sm"
-          disabled={isOutOfStock}
-          className={`font-black shadow-md flex-1 ${
-            isOutOfStock
-              ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
-              : 'text-slate-950 cursor-pointer'
-          }`}
-          onClick={() => {
-            if (!isOutOfStock) {
-              onClaim(food.id);
+        {onAddToCart && !isOutOfStock && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-black text-[#1B3A5C] shadow-sm flex items-center gap-1.5 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3 cursor-pointer"
+            title="Masukkan Tas Klaim"
+            onClick={() => {
+              onAddToCart(food.id);
               onClose();
-            }
-          }}
-        >
-          {isOutOfStock ? 'Porsi Makanan Habis (0 Porsi)' : isFree ? 'Klaim Sekarang (Rp 0)' : 'Beli Langsung'}
-        </Button>
-      )}
+            }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </Button>
+        )}
+        {onClaim && (
+          <Button
+            variant={isOutOfStock ? 'outline' : isFree ? 'gold' : 'primary'}
+            size="sm"
+            disabled={isOutOfStock}
+            className={`font-black px-4 shadow-md transition-all ${
+              isOutOfStock ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-300' : ''
+            }`}
+            onClick={() => {
+              if (!isOutOfStock) {
+                onClaim(food.id);
+                onClose();
+              }
+            }}
+          >
+            {isOutOfStock ? 'Porsi Habis' : isFree ? 'Klaim Sekarang (Rp 0)' : 'Beli Langsung'}
+          </Button>
+        )}
+      </div>
     </div>
   );
 
@@ -140,7 +151,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Spesifikasi Makanan & Lokasi: ${food.foodName}`}
+      title={`Spesifikasi Makanan & Lokasi: ${displayName}`}
       size="lg"
       footer={modalFooter}
     >
@@ -148,7 +159,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
         {/* Header Badges */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="primary">{food.foodCategory}</Badge>
+            <Badge variant="primary">{displayCategory}</Badge>
             <Badge variant="success" size="sm">
               VERIFIKASI SOP BPOM 100%
             </Badge>
@@ -160,7 +171,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
 
         {/* Product Description */}
         <div className="space-y-1">
-          <h4 className="font-black text-base text-[#1B3A5C]">{food.foodName}</h4>
+          <h4 className="font-black text-base text-[#1B3A5C]">{displayName}</h4>
           <p className="text-xs text-slate-600 leading-relaxed font-medium">
             {food.description || 'Makanan surplus segar dan higienis hasil redistribusi resmi dengan standar keamanan pangan BPOM RI.'}
           </p>
