@@ -14,6 +14,8 @@ export async function GET(request: Request) {
     'next-auth.csrf-token',
     'authjs.callback-url',
     'next-auth.callback-url',
+    'replate_demo_session',
+    'replate_role',
   ];
 
   cookiesToClear.forEach((cookieName) => {

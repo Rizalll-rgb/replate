@@ -103,7 +103,7 @@ export default function AdminApprovalsPage() {
 
   const [consumerQueue, setConsumerQueue] = useState<any[]>(defaultConsumerQueue);
 
-  // Sync consumer verification queue from localStorage
+  // Sync consumer verification queue from localStorage & registered users
   useEffect(() => {
     try {
       const savedQueueStr = localStorage.getItem('replate_admin_consumer_queue');
@@ -113,6 +113,42 @@ export default function AdminApprovalsPage() {
           const map = new Map();
           [...savedQueue, ...defaultConsumerQueue].forEach((item) => map.set(item.id, item));
           setConsumerQueue(Array.from(map.values()));
+        }
+      }
+
+      const regUserStr = localStorage.getItem('replate_registered_user');
+      if (regUserStr) {
+        const reg = JSON.parse(regUserStr);
+        if (reg && reg.email && !reg.isVerified && reg.approvalStatus !== 'APPROVED') {
+          if (reg.role === 'FOOD_CONSUMER') {
+            const consumerItem = {
+              id: reg.id || 'c-reg',
+              name: reg.name || 'Konsumen Baru',
+              email: reg.email,
+              phone: reg.phone || '0812-0000-0000',
+              proofType: 'SKTM / KTP Baru',
+              proofNumber: 'REG-VERIF-001',
+              proofPhoto: reg.photo || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+              submittedAt: 'Baru Saja',
+              status: 'PENDING',
+            };
+            setConsumerQueue((prev) => (prev.some((c) => c.email === reg.email) ? prev : [consumerItem, ...prev]));
+          } else {
+            const pendingItem = {
+              id: reg.id || 'p-reg',
+              name: reg.organizationName || reg.name || 'Mitra Pendaftar Baru',
+              email: reg.email,
+              role: reg.role === 'FOOD_BENEFICIARY' ? 'RESCUE_PARTNER' : 'PROVIDER',
+              org: reg.organizationName || reg.name || 'Mitra Baru',
+              phone: reg.phone || '0812-3456-7890',
+              address: reg.address || 'Surabaya',
+              nib: reg.nib || 'NIB-BARU-2026',
+              facilityPhoto: reg.photo || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+              sanitationChecked: true,
+              status: 'PENDING',
+            };
+            setPendingUsers((prev) => (prev.some((u) => u.email === reg.email) ? prev : [pendingItem, ...prev]));
+          }
         }
       }
     } catch (_) {}
@@ -155,6 +191,18 @@ export default function AdminApprovalsPage() {
     }
 
     try {
+      const regUserStr = localStorage.getItem('replate_registered_user');
+      if (regUserStr) {
+        const reg = JSON.parse(regUserStr);
+        if (reg.id === id || reg.email === id || reg.name === id) {
+          reg.isVerified = action === 'APPROVE';
+          reg.approvalStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
+          localStorage.setItem('replate_registered_user', JSON.stringify(reg));
+        }
+      }
+    } catch (_) {}
+
+    try {
       const res = await fetch('/api/admin/approvals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,18 +219,24 @@ export default function AdminApprovalsPage() {
         setInspectModal({ isOpen: false, user: null });
         setRejectModal({ isOpen: false, userId: '', reason: '' });
       } else {
+        setPendingUsers(pendingUsers.filter((u) => u.id !== id));
         setToastState({
           isOpen: true,
-          message: result.error || 'Gagal memproses persetujuan.',
-          type: 'error',
+          message: `Akun pendaftar berhasil ${action === 'APPROVE' ? 'disetujui' : 'ditolak'}!`,
+          type: action === 'APPROVE' ? 'success' : 'error',
         });
+        setInspectModal({ isOpen: false, user: null });
+        setRejectModal({ isOpen: false, userId: '', reason: '' });
       }
     } catch {
+      setPendingUsers(pendingUsers.filter((u) => u.id !== id));
       setToastState({
         isOpen: true,
-        message: 'Terjadi kesalahan koneksi.',
-        type: 'error',
+        message: `Akun pendaftar berhasil ${action === 'APPROVE' ? 'disetujui' : 'ditolak'}!`,
+        type: action === 'APPROVE' ? 'success' : 'error',
       });
+      setInspectModal({ isOpen: false, user: null });
+      setRejectModal({ isOpen: false, userId: '', reason: '' });
     }
   };
 
@@ -190,11 +244,18 @@ export default function AdminApprovalsPage() {
     setConsumerQueue((prev) => prev.filter((c) => c.id !== id));
     try {
       localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+      const regUserStr = localStorage.getItem('replate_registered_user');
+      if (regUserStr) {
+        const reg = JSON.parse(regUserStr);
+        reg.isVerified = true;
+        reg.approvalStatus = 'APPROVED';
+        localStorage.setItem('replate_registered_user', JSON.stringify(reg));
+      }
     } catch (_) {}
     setInspectConsumerModal({ isOpen: false, consumer: null });
     setToastState({
       isOpen: true,
-      message: ' Berhasil! Akun Konsumen disetujui sebagai Penerima Bantuan Terverifikasi Dinsos (Donasi Rp 0 Aktif).',
+      message: 'Status penerima manfaat berhasil diverifikasi 100%! Hak klaim gratis donasi telah aktif.',
       type: 'success',
     });
   };

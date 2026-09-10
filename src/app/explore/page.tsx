@@ -50,7 +50,7 @@ export default function ExplorePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS'>('RESCUE_SALE');
+  const [activeTab, setActiveTab] = useState<'RESCUE_SALE' | 'DONATION' | 'PANTI_NEEDS' | 'OUT_OF_STOCK'>('RESCUE_SALE');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterPantiLocation, setFilterPantiLocation] = useState<string>('ALL');
@@ -246,9 +246,26 @@ export default function ExplorePage() {
     { key: 'BAHAN_MENTAH', name: 'Bahan Pokok' },
   ];
 
+  const outOfStockCount = useMemo(() => {
+    return foods.filter((item) => {
+      const qNum = parseInt(String(item.quantity || '').replace(/\D/g, '')) || 0;
+      return qNum === 0 || item.status === 'OUT_OF_STOCK';
+    }).length;
+  }, [foods]);
+
   const filteredFoods = foods.filter((item) => {
-    if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
-    if (activeTab === 'DONATION' && !item.isFree) return false;
+    if (activeTab === 'PANTI_NEEDS') return false;
+
+    const qtyNumber = parseInt(String(item.quantity || '').replace(/\D/g, '')) || 0;
+    const isOutOfStock = qtyNumber === 0 || item.status === 'OUT_OF_STOCK';
+
+    if (activeTab === 'OUT_OF_STOCK') {
+      if (!isOutOfStock) return false;
+    } else {
+      if (isOutOfStock) return false;
+      if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
+      if (activeTab === 'DONATION' && !item.isFree) return false;
+    }
 
     if (selectedCategory !== 'ALL' && item.category !== selectedCategory) {
       return false;
@@ -434,42 +451,54 @@ export default function ExplorePage() {
           </p>
         </div>
 
-        {/* 3 Main Navigation Tabs - Fully Responsive across Mobile, Tablet, & Desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 p-1.5 bg-slate-200/80 rounded-2xl max-w-3xl mx-auto w-full shadow-inner">
+        {/* 4 Main Navigation Tabs - Fully Responsive across Mobile, Tablet, & Desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 bg-slate-200/80 rounded-2xl max-w-4xl mx-auto w-full shadow-inner">
           <button
             type="button"
             onClick={() => setActiveTab('RESCUE_SALE')}
-            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
+            className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1 cursor-pointer text-center ${
               activeTab === 'RESCUE_SALE'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Rescue Sale (Diskon)</span>
+            <span>Rescue Sale</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('DONATION')}
-            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
+            className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1 cursor-pointer text-center ${
               activeTab === 'DONATION'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Donasi Food Rescue (Rp 0)</span>
+            <span>Donasi (Rp 0)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('OUT_OF_STOCK')}
+            className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1 cursor-pointer text-center ${
+              activeTab === 'OUT_OF_STOCK'
+                ? 'bg-rose-900 text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
+            }`}
+          >
+            <span>Stok Habis ({outOfStockCount})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('PANTI_NEEDS')}
-            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
+            className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1 cursor-pointer text-center ${
               activeTab === 'PANTI_NEEDS'
                 ? 'bg-[#1B3A5C] text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
+            <span>Permintaan Panti ({pantiNeeds.length})</span>
           </button>
         </div>
 

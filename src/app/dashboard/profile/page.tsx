@@ -1547,52 +1547,160 @@ export default function DashboardProfilePage() {
       const savedAvatar = localStorage.getItem('replate_user_avatar');
       if (savedAvatar) setProfileAvatar(savedAvatar);
 
-      // 1. Cek akun terdaftar pengguna asli (Prioritas #1)
+      // 0. Cek Sesi Demo Aktif & Sesi Login
+      const rawDemo = localStorage.getItem('replate_demo_session');
+      let demoSession: any = null;
+      if (rawDemo) {
+        try { demoSession = JSON.parse(rawDemo); } catch (_) {}
+      }
+      const activeEmail = demoSession?.email || session?.user?.email;
+      const activeRole = demoSession?.role || session?.user?.role || localStorage.getItem('replate_role');
+
+      // 1. Cek akun terdaftar pengguna asli (Hanya dipakai jika email cocok dengan sesi aktif)
       let regUser: any = null;
       const rawReg = localStorage.getItem('replate_registered_user');
       if (rawReg) {
-        try { regUser = JSON.parse(rawReg); } catch (_) {}
+        try {
+          const parsed = JSON.parse(rawReg);
+          // Jika tidak sedang memakai akun demo lain, gunakan regUser
+          if (!demoSession || parsed.email === activeEmail) {
+            regUser = parsed;
+          }
+        } catch (_) {}
       }
 
       // 2. Cek profil onboarding
       let onbProfile: any = null;
       const saved = localStorage.getItem('replate_onboarding_profile');
       if (saved) {
-        try { onbProfile = JSON.parse(saved); } catch (_) {}
+        try {
+          const parsed = JSON.parse(saved);
+          if (!demoSession || parsed.email === activeEmail) {
+            onbProfile = parsed;
+          }
+        } catch (_) {}
       }
+
+      // Template bawaan jika login via Demo Dummy
+      const demoRoleDefaults: Record<string, any> = {
+        FOOD_BENEFICIARY: {
+          name: 'Ibu Hajjah Maryam',
+          entityName: 'Panti Asuhan Kasih Ibu Surabaya',
+          email: 'panti.kasih.ibu@replate.id',
+          phone: '0812-9876-5432',
+          role: 'FOOD_BENEFICIARY',
+          address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+          district: 'Gubeng',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+        BENEFICIARY: {
+          name: 'Ibu Hajjah Maryam',
+          entityName: 'Panti Asuhan Kasih Ibu Surabaya',
+          email: 'panti.kasih.ibu@replate.id',
+          phone: '0812-9876-5432',
+          role: 'FOOD_BENEFICIARY',
+          address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+          district: 'Gubeng',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+        FOOD_PROVIDER: {
+          name: 'Mas Doni (Kasir Pak Kumis)',
+          entityName: 'Warung Bakso Pak Kumis',
+          email: 'bakso.pak.kumis@replate.id',
+          phone: '0812-3456-7891',
+          role: 'FOOD_PROVIDER',
+          address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+          district: 'Genteng',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+        PROVIDER: {
+          name: 'Mas Doni (Kasir Pak Kumis)',
+          entityName: 'Warung Bakso Pak Kumis',
+          email: 'bakso.pak.kumis@replate.id',
+          phone: '0812-3456-7891',
+          role: 'FOOD_PROVIDER',
+          address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+          district: 'Genteng',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+        RESCUE_PARTNER: {
+          name: 'Budi Santoso (Koordinator Logistik)',
+          entityName: 'Garda Pangan & Food Rescue Surabaya',
+          email: 'relawan.surabaya@replate.id',
+          phone: '0811-2233-4455',
+          role: 'RESCUE_PARTNER',
+          address: 'Jl. Pemuda No. 10, Genteng, Surabaya',
+          district: 'Genteng',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+        FOOD_CONSUMER: {
+          name: 'Siti Aminah',
+          entityName: 'Siti Aminah',
+          email: 'siti.aminah@gmail.com',
+          phone: '0819-8765-4321',
+          role: 'FOOD_CONSUMER',
+          address: 'Jl. Kertajaya Indah No. 12, Sukolilo, Surabaya',
+          district: 'Sukolilo',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+        CONSUMER: {
+          name: 'Siti Aminah',
+          entityName: 'Siti Aminah',
+          email: 'siti.aminah@gmail.com',
+          phone: '0819-8765-4321',
+          role: 'FOOD_CONSUMER',
+          address: 'Jl. Kertajaya Indah No. 12, Sukolilo, Surabaya',
+          district: 'Sukolilo',
+          city: 'Kota Surabaya',
+          province: 'Jawa Timur',
+        },
+      };
+
+      const matchedDemo = (activeRole && demoRoleDefaults[activeRole]) || (demoSession?.role && demoRoleDefaults[demoSession.role]);
 
       setProfileData((prev) => {
         const resolvedEmail =
-          regUser?.email ||
           onbProfile?.email ||
-          (session?.user?.email && !session.user.email.includes('pak.kumis') ? session.user.email : prev.email);
+          regUser?.email ||
+          matchedDemo?.email ||
+          activeEmail ||
+          prev.email;
 
         const resolvedName =
           onbProfile?.name ||
           regUser?.name ||
+          matchedDemo?.name ||
           (session?.user?.name && !session.user.name.includes('Pak Kumis') ? session.user.name : prev.name);
 
         const resolvedEntity =
           onbProfile?.entityName ||
-          onbProfile?.name ||
+          matchedDemo?.entityName ||
           regUser?.name ||
           prev.entityName;
 
         const resolvedPhone =
-          regUser?.phone ||
           onbProfile?.phone ||
+          regUser?.phone ||
+          matchedDemo?.phone ||
           prev.phone;
 
         const resolvedRole =
+          matchedDemo?.role ||
+          activeRole ||
           regUser?.role ||
           onbProfile?.role ||
-          session?.user?.role ||
           prev.role;
 
-        let resolvedAddress = onbProfile?.address || prev.address;
-        let resolvedProvince = onbProfile?.province || prev.province;
-        let resolvedCity = onbProfile?.city || prev.city;
-        let resolvedDistrict = onbProfile?.district || prev.district;
+        let resolvedAddress = onbProfile?.address || matchedDemo?.address || regUser?.address || prev.address;
+        let resolvedProvince = onbProfile?.province || matchedDemo?.province || prev.province;
+        let resolvedCity = onbProfile?.city || matchedDemo?.city || prev.city;
+        let resolvedDistrict = onbProfile?.district || matchedDemo?.district || prev.district;
         let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat;
         let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng;
 

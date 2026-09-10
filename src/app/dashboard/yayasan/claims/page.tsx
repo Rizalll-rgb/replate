@@ -93,6 +93,25 @@ export default function YayasanClaimsPage() {
     type: 'success' | 'error';
   }>({ isOpen: false, message: '', type: 'success' });
 
+  const formatFriendlyTimestamp = (val?: string) => {
+    if (!val) return 'Hari ini';
+    if (val.includes('T') || (val.includes('-') && val.length > 15)) {
+      try {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }) + ' WIB';
+        }
+      } catch (_) {}
+    }
+    return val;
+  };
+
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -659,9 +678,9 @@ export default function YayasanClaimsPage() {
                             : 'DALAM PENGIRIMAN'}
                         </span>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 shrink-0 ml-2">
+                      <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 shrink-0 ml-2" title="Waktu Klaim Diajukan">
                         <ClockIcon size={11} className="text-slate-300" />
-                        {claim.claimedAt || 'Hari ini'}
+                        {formatFriendlyTimestamp(claim.claimedAt)}
                       </span>
                     </div>
 
@@ -1353,7 +1372,6 @@ export default function YayasanClaimsPage() {
               <select value={reqDeliveryMethod} onChange={(e) => setReqDeliveryMethod(e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer">
                 <option>Membutuhkan Pengantaran Kurir Relawan</option>
                 <option>Bisa Ambil Sendiri (Self-Pickup di Toko)</option>
-                <option>Fleksibel (Diantar / Ambil Sendiri)</option>
               </select>
             </div>
             <div>

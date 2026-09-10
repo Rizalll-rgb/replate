@@ -34,8 +34,14 @@ import { Navigation, Fuel, TrendingDown, Sparkles, FileText, ChevronLeft, Chevro
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
+  const [activeTab, setActiveTab] = useState<'POOL' | 'ACTIVE' | 'COMPLETED'>('ACTIVE');
   const [activeViewMode, setActiveViewMode] = useState<'CARDS' | 'LIVE_TRACKING'>('CARDS');
+
+  // Plotting Driver Modal State for Pool Tasks
+  const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  const [isPlottingModalOpen, setIsPlottingModalOpen] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('drv-1');
+  const [assignmentNote, setAssignmentNote] = useState<string>('Gunakan wadah steril / coolbox. Penjemputan di area loading dock belakang resto.');
 
   // Modal states (Requirement Rescue #6)
   const [detailModal, setDetailModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
@@ -135,8 +141,186 @@ export default function PartnerActivePickupsPage() {
     },
   ];
 
+  const defaultFleetDrivers = [
+    {
+      id: 'drv-1',
+      name: 'Budi Santoso',
+      phone: '0812-3456-7890',
+      vehicle: 'Motor Box Cooler (25 kg)',
+      plateNumber: 'L 1234 AB',
+      capacity: '25 kg (40 Porsi)',
+      maxWeightKg: 25,
+      status: 'SIAGA',
+      isOnDuty: true,
+      approvalStatus: 'APPROVED',
+    },
+    {
+      id: 'drv-2',
+      name: 'Ahmad Fauzi',
+      phone: '0813-9876-5432',
+      vehicle: 'Mobil Steril Food-Grade (150 kg)',
+      plateNumber: 'L 5678 CD',
+      capacity: '150 kg (250 Porsi)',
+      maxWeightKg: 150,
+      status: 'SIAGA',
+      isOnDuty: true,
+      approvalStatus: 'APPROVED',
+    },
+    {
+      id: 'drv-3',
+      name: 'Rian Ardiansyah',
+      phone: '0819-1122-3344',
+      vehicle: 'Van Logistik Pendingin (500 kg)',
+      plateNumber: 'L 9012 EF',
+      capacity: '500 kg (800 Porsi)',
+      maxWeightKg: 500,
+      status: 'SIAGA',
+      isOnDuty: false, // Off duty demo
+      approvalStatus: 'APPROVED',
+    },
+  ];
+
+  const defaultIncomingMatches = [
+    {
+      id: 'match-1',
+      foodName: 'Nasi Goreng Buffet + Ayam Bakar (30 Porsi)',
+      providerName: 'Hotel Majapahit Surabaya',
+      providerAddress: 'Jl. Tunjungan No. 65, Genteng, Surabaya',
+      providerPhone: '0812-3456-7890',
+      matchedUserName: 'Food Bank Surabaya (Panti Kasih Ibu)',
+      shelterAddress: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+      shelterPhone: '0819-8765-4321',
+      quantity: 30,
+      totalWeightKg: 35,
+      requiredVehicle: 'Mobil Steril / Van Logistik (> 30 kg)',
+      pickupTime: 'Hari ini 20:30 WIB',
+      urgency: 'Mendesak (Darurat Segera)',
+      matchScore: 98,
+      packageNotes: 'Wadah food-grade steril, butuh bagasi mobil/van karena baki prasmanan lebar.',
+    },
+    {
+      id: 'match-2',
+      foodName: 'Aneka Artisan Sourdough & Baguette Perancis',
+      providerName: 'Dago Bakery Surabaya Branch',
+      providerAddress: 'Jl. Mayjen Sungkono No. 88, Surabaya Barat',
+      providerPhone: '0813-9876-5432',
+      matchedUserName: 'Rumah Singgah Anak Jalanan',
+      shelterAddress: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
+      shelterPhone: '0818-7766-5544',
+      quantity: 16,
+      totalWeightKg: 8,
+      requiredVehicle: 'Motor Box Cooler (Bisa Diangkut Motor)',
+      pickupTime: 'Hari ini 21:00 WIB',
+      urgency: 'Tinggi (Hari ini)',
+      matchScore: 95,
+      packageNotes: 'Boks roti tertutup rapat higienis, aman di motor box.',
+    },
+    {
+      id: 'match-3',
+      foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
+      providerName: 'Warung Bakso Pak Kumis',
+      providerAddress: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+      providerPhone: '0812-3456-7891',
+      matchedUserName: 'Panti Asuhan Kasih Ibu',
+      shelterAddress: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+      shelterPhone: '0819-8765-4321',
+      quantity: 45,
+      totalWeightKg: 22,
+      requiredVehicle: 'Motor Box Cooler / Mobil Steril',
+      pickupTime: 'Hari ini 19:30 WIB',
+      urgency: 'Mendesak',
+      matchScore: 96,
+      packageNotes: 'Steril boks biodegradable, saus sambal sachet dipisah.',
+    },
+  ];
+
+  const [drivers, setDrivers] = useState<any[]>(defaultFleetDrivers);
+  const [matches, setMatches] = useState<any[]>(defaultIncomingMatches);
   const [activePickups, setActivePickups] = useState<any[]>(defaultActivePickups);
   const [completedPickups, setCompletedPickups] = useState<any[]>(defaultCompletedPickups);
+
+  const toggleDriverDuty = (driverId: string) => {
+    setDrivers((prev) =>
+      prev.map((d) => (d.id === driverId ? { ...d, isOnDuty: !d.isOnDuty } : d))
+    );
+  };
+
+  const handleOpenPlottingModal = (match: any) => {
+    setSelectedMatch(match);
+    const available = drivers.filter((d) => d.isOnDuty && d.approvalStatus === 'APPROVED');
+    if (match.totalWeightKg > 25) {
+      const largeVehicle = available.find((d) => d.maxWeightKg >= match.totalWeightKg);
+      if (largeVehicle) {
+        setSelectedDriverId(largeVehicle.id);
+      } else if (available.length > 0) {
+        setSelectedDriverId(available[0].id);
+      }
+    } else {
+      if (available.length > 0) {
+        setSelectedDriverId(available[0].id);
+      }
+    }
+    setAssignmentNote(`Gunakan wadah steril / coolbox. Penjemputan di ${match.providerName}, bawa makanan ke ${match.matchedUserName || match.shelterName}.`);
+    setIsPlottingModalOpen(true);
+  };
+
+  const handleConfirmPlotDriver = () => {
+    if (!selectedMatch) return;
+    const chosenDriver = drivers.find((d) => d.id === selectedDriverId) || drivers[0];
+    const claimCode = `FB-REC-${Math.floor(10000 + Math.random() * 90000)}`;
+    const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+    const newPickup = {
+      code: claimCode,
+      foodName: selectedMatch.foodName,
+      providerName: selectedMatch.providerName,
+      providerAddress: selectedMatch.providerAddress,
+      providerPhone: selectedMatch.providerPhone || '0812-3456-7890',
+      shelterName: selectedMatch.matchedUserName || selectedMatch.shelterName || 'Panti Asuhan Kasih Ibu',
+      shelterAddress: selectedMatch.shelterAddress || 'Kota Surabaya',
+      shelterPhone: selectedMatch.shelterPhone || '0819-8765-4321',
+      quantity: `${selectedMatch.quantity} Porsi (${selectedMatch.totalWeightKg || 20} kg)`,
+      status: 'AWAITING_RESCUE_PICKUP',
+      time: `Hari ini ${nowStr}`,
+      assignedDriver: {
+        id: chosenDriver.id,
+        name: chosenDriver.name,
+        phone: chosenDriver.phone,
+        vehicle: chosenDriver.vehicle,
+        plateNumber: chosenDriver.plateNumber,
+      },
+      courierName: chosenDriver.name,
+      courierPhone: chosenDriver.phone,
+      courierVehicle: `${chosenDriver.vehicle} (${chosenDriver.plateNumber})`,
+      notes: assignmentNote,
+      auditLogs: [
+        { status: 'MATCH_ACCEPTED', title: 'Tugas Diterima dari Pool Tugas', time: nowStr, actor: 'Admin Komunitas', desc: 'Disetujui dari rekomendasi Smart Matching.' },
+        { status: 'DRIVER_PLOTTED', title: `Driver Ditugaskan: ${chosenDriver.name}`, time: nowStr, actor: 'Admin Komunitas', desc: `Armada: ${chosenDriver.vehicle} (Plat: ${chosenDriver.plateNumber}). Surat Jalan Digital diterbitkan.` },
+      ],
+    };
+
+    setActivePickups((prev) => [newPickup, ...prev]);
+    setMatches((prev) => prev.filter((m) => m.id !== selectedMatch.id));
+
+    try {
+      const savedClaimsStr = localStorage.getItem('replate_claims');
+      const existingClaims = savedClaimsStr ? JSON.parse(savedClaimsStr) : [];
+      localStorage.setItem('replate_claims', JSON.stringify([newPickup, ...existingClaims.filter((c: any) => c.code !== claimCode)]));
+
+      const activeStr = localStorage.getItem('replate_active_claims');
+      const existingActive = activeStr ? JSON.parse(activeStr) : [];
+      localStorage.setItem('replate_active_claims', JSON.stringify([newPickup, ...existingActive.filter((c: any) => c.code !== claimCode)]));
+    } catch (_) {}
+
+    setIsPlottingModalOpen(false);
+    setSelectedMatch(null);
+    setToastState({
+      isOpen: true,
+      message: `Sukses! Tugas ${claimCode} berhasil di-plot ke driver ${chosenDriver.name}. Status beralih ke Siap Dijemput.`,
+      type: 'success',
+    });
+    setActiveTab('ACTIVE');
+  };
 
   // Pilar 4: 2-Opt Multi-Hop Routing State
   const [selectedFleet, setSelectedFleet] = useState<FleetType>('MOTORCYCLE_COOLBOX');
@@ -145,7 +329,22 @@ export default function PartnerActivePickupsPage() {
   const { pickupsList, dropoffsList } = React.useMemo(() => {
     const picks: RouteWaypoint[] = [];
     const drops: RouteWaypoint[] = [];
-    activePickups.forEach((pickup, idx) => {
+    
+    // Filter pickups to only those matching the selectedFleet capability and assigned vehicle
+    const fleetFiltered = activePickups.filter((pickup) => {
+      const v = (pickup.assignedDriver?.vehicle || '').toUpperCase();
+      if (selectedFleet === 'MOTORCYCLE_COOLBOX') {
+        return v.includes('MOTOR') || (!v.includes('MOBIL') && !v.includes('VAN'));
+      } else if (selectedFleet === 'CAR_STERILE_BOX') {
+        return v.includes('MOBIL') || v.includes('CAR');
+      } else {
+        return v.includes('VAN') || v.includes('TRUCK');
+      }
+    });
+
+    const targetList = fleetFiltered.length > 0 ? fleetFiltered : activePickups.slice(0, selectedFleet === 'MOTORCYCLE_COOLBOX' ? 1 : 2);
+
+    targetList.forEach((pickup, idx) => {
       picks.push({
         id: `pick-${pickup.code}`,
         name: `${pickup.providerName} (${pickup.foodName})`,
@@ -153,7 +352,7 @@ export default function PartnerActivePickupsPage() {
         type: 'PICKUP',
         lat: -7.2600 + (idx * 0.012),
         lng: 112.7450 + (idx * 0.008),
-        weightKg: 15,
+        weightKg: selectedFleet === 'MOTORCYCLE_COOLBOX' ? 12 : selectedFleet === 'CAR_STERILE_BOX' ? 45 : 95,
         portions: 30,
         rescueUrgencyIndex: pickup.status === 'IN_TRANSIT' ? 88 : 74,
       });
@@ -164,13 +363,13 @@ export default function PartnerActivePickupsPage() {
         type: 'DROPOFF',
         lat: -7.2750 + (idx * 0.015),
         lng: 112.7550 + (idx * 0.012),
-        weightKg: 15,
+        weightKg: selectedFleet === 'MOTORCYCLE_COOLBOX' ? 12 : selectedFleet === 'CAR_STERILE_BOX' ? 45 : 95,
         portions: 30,
         rescueUrgencyIndex: 60,
       });
     });
     return { pickupsList: picks, dropoffsList: drops };
-  }, [activePickups]);
+  }, [activePickups, selectedFleet]);
 
   const optimizedPlan: OptimizedClusterPlan | null = React.useMemo(() => {
     if (pickupsList.length === 0) return null;
@@ -299,8 +498,16 @@ export default function PartnerActivePickupsPage() {
               auditLogs: c.auditLogs || [],
             }));
 
-          if (pending.length > 0) setActivePickups([...pending, ...defaultActivePickups.filter(d => !pending.some(p => p.code === d.code))]);
-          if (completed.length > 0) setCompletedPickups([...completed, ...defaultCompletedPickups.filter(d => !completed.some(c => c.code === d.code))]);
+          if (pending.length > 0) setActivePickups([...pending, ...defaultActivePickups.filter((d) => !pending.some((p) => p.code === d.code))]);
+          if (completed.length > 0) setCompletedPickups([...completed, ...defaultCompletedPickups.filter((d) => !completed.some((c) => c.code === d.code))]);
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam === 'POOL' || tabParam === 'ACTIVE' || tabParam === 'COMPLETED') {
+          setActiveTab(tabParam as any);
         }
       }
     } catch (_) {}
@@ -453,26 +660,40 @@ export default function PartnerActivePickupsPage() {
 
       {/* Tabs Filter & In-Module View Switcher (Requirement Rescue #9) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200">
-        <div className="flex items-center gap-2 text-xs font-bold">
+        {/* Tab Navigation: POOL, ACTIVE, COMPLETED */}
+        <div className="flex border-b border-slate-200 text-xs font-bold overflow-x-auto no-scrollbar gap-1">
           <button
-            onClick={() => { setActiveTab('ACTIVE'); setActivePage(1); }}
-            className={`px-4 py-2.5 rounded-t-xl transition-all ${
-              activeTab === 'ACTIVE'
-                ? 'bg-[#1B3A5C] text-white font-black'
+            onClick={() => setActiveTab('POOL')}
+            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'POOL'
+                ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            Penjemputan & Pengantaran Aktif ({activePickups.length})
+            <BoltIcon size={13} className={activeTab === 'POOL' ? 'text-[#D4A843]' : 'text-slate-400'} />
+            <span>Pool Tugas Masuk ({matches.length})</span>
+          </button>
+          <button
+            onClick={() => { setActiveTab('ACTIVE'); setActivePage(1); }}
+            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'ACTIVE'
+                ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <TruckIcon size={13} className={activeTab === 'ACTIVE' ? 'text-[#D4A843]' : 'text-slate-400'} />
+            <span>Rute Aktif & Multi-Hop ({activePickups.length})</span>
           </button>
           <button
             onClick={() => { setActiveTab('COMPLETED'); setCompletedPage(1); }}
-            className={`px-4 py-2.5 rounded-t-xl transition-all ${
+            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'COMPLETED'
-                ? 'bg-[#1B3A5C] text-white font-black'
+                ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            Riwayat Penyaluran Selesai ({completedPickups.length})
+            <CheckIcon size={13} className={activeTab === 'COMPLETED' ? 'text-emerald-400' : 'text-slate-400'} />
+            <span>Riwayat Selesai ({completedPickups.length})</span>
           </button>
         </div>
 
@@ -506,7 +727,197 @@ export default function PartnerActivePickupsPage() {
 
       {/* List Penjemputan / Pengantaran Aktif */}
       <div className="space-y-4">
-        {activeTab === 'ACTIVE' ? (
+        {activeTab === 'POOL' ? (
+          <div className="space-y-6">
+            {/* Driver Roster & On-Duty Toggle Bar */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-[#1B3A5C] flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                    Kesiapan Armada Relawan (Driver Roster & Status Siaga)
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Hanya driver yang berstatus <strong className="text-emerald-700">ON-DUTY (Siaga)</strong> & disetujui Dinsos yang dapat ditugaskan untuk mengambil donasi makanan.
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg self-start sm:self-auto">
+                  {drivers.filter((d) => d.isOnDuty).length} dari {drivers.length} Driver Siaga
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {drivers.map((drv) => (
+                  <div
+                    key={drv.id}
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between space-y-2.5 ${
+                      drv.isOnDuty
+                        ? 'bg-emerald-50/40 border-emerald-300 shadow-2xs'
+                        : 'bg-slate-50 border-slate-200 opacity-75'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <strong className="text-xs font-extrabold text-slate-900 truncate">{drv.name}</strong>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-purple-100 text-purple-800 border border-purple-200 shrink-0">
+                          {drv.approvalStatus === 'APPROVED' ? 'Dinsos RI' : 'Pending'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
+                        <TruckIcon size={12} className="text-slate-400" />
+                        <span className="truncate">{drv.vehicle}</span>
+                      </p>
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                        <span>Plat: {drv.plateNumber}</span>
+                        <span>Maks: <strong>{drv.maxWeightKg} kg</strong></span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleDriverDuty(drv.id)}
+                      className={`w-full py-1.5 px-2.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        drv.isOnDuty
+                          ? 'bg-emerald-600 text-white border-emerald-700 shadow-2xs'
+                          : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${drv.isOnDuty ? 'bg-emerald-200 animate-pulse' : 'bg-slate-400'}`} />
+                      <span>{drv.isOnDuty ? 'ON-DUTY (Siaga)' : 'OFF-DUTY (Istirahat)'}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* List Incoming Matches Pool */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-[#1B3A5C] uppercase tracking-wider">
+                  Daftar Rekomendasi Pangan Masuk ({matches.length} Tugas Tersedia)
+                </span>
+                <span className="text-xs text-slate-500">Urutkan: Urgensi Waktu & Skor AI</span>
+              </div>
+
+              {matches.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-2 shadow-xs">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto text-emerald-600 text-xl font-bold">
+                    ✓
+                  </div>
+                  <h4 className="font-black text-sm text-[#1B3A5C]">Semua Tugas Pool Telah Di-Plot</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                    Tidak ada antrean donasi makanan yang menunggu penugasan driver. Seluruh alur logistik telah berjalan.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => setActiveTab('ACTIVE')} className="text-xs font-bold mt-2">
+                    Lihat Rute Aktif Driver →
+                  </Button>
+                </div>
+              ) : (
+                matches.map((match) => {
+                  const isHeavy = (match.totalWeightKg || 0) > 25;
+                  return (
+                    <Card key={match.id} className="border-slate-200 shadow-xs hover:border-[#1B3A5C]/40 transition-all">
+                      <CardBody className="p-4 sm:p-5 space-y-4 text-xs">
+                        {/* Header: Title, Score & Urgency */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono">
+                                ⚡ {match.matchScore || 96}% Cocok
+                              </span>
+                              <span className="px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-black rounded-md">
+                                🚨 {match.urgency || 'Prioritas Hari Ini'}
+                              </span>
+                              <span className="text-slate-400 text-xs">•</span>
+                              <span className="text-slate-500 font-mono text-[11px] font-bold flex items-center gap-1">
+                                <ClockIcon size={12} className="text-amber-600" />
+                                {match.pickupTime}
+                              </span>
+                            </div>
+                            <h3 className="font-black text-base sm:text-lg text-[#1B3A5C]">{match.foodName}</h3>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-600">Total Muatan:</span>
+                            <span className="text-sm font-black text-[#1B3A5C] bg-slate-100 px-3 py-1 rounded-xl">
+                              {match.totalWeightKg} kg ({match.quantity} Porsi)
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Complete Specifications Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* Box 1: Provider */}
+                          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                            <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">
+                              Titik Penjemputan (Provider / Toko):
+                            </span>
+                            <strong className="text-xs font-bold text-slate-900 block">{match.providerName}</strong>
+                            <p className="text-slate-600 text-[11px] flex items-start gap-1">
+                              <MapPinIcon size={12} className="text-red-500 shrink-0 mt-0.5" />
+                              <span>{match.providerAddress}</span>
+                            </p>
+                            <p className="text-slate-500 text-[11px]">Telp: <strong className="text-slate-800">{match.providerPhone || '0812-3456-7890'}</strong></p>
+                          </div>
+
+                          {/* Box 2: Beneficiary Shelter */}
+                          <div className="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1">
+                            <span className="text-[10px] uppercase font-black tracking-wider text-emerald-800 block">
+                              Tujuan Pengantaran (Lembaga Penerima):
+                            </span>
+                            <strong className="text-xs font-bold text-emerald-950 block">{match.matchedUserName || match.shelterName}</strong>
+                            <p className="text-emerald-900 text-[11px] flex items-start gap-1">
+                              <MapPinIcon size={12} className="text-emerald-600 shrink-0 mt-0.5" />
+                              <span>{match.shelterAddress}</span>
+                            </p>
+                            <p className="text-emerald-800 text-[11px]">Telp: <strong className="text-emerald-950">{match.shelterPhone || '0819-8765-4321'}</strong></p>
+                          </div>
+                        </div>
+
+                        {/* Packaging & Logistics Warning Banner */}
+                        <div className="space-y-2">
+                          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px]">
+                            <div className="space-y-0.5">
+                              <span className="font-bold text-amber-900 block">🧊 Catatan Kemasan & Sterilisasi Khusus:</span>
+                              <span className="text-amber-800">{match.packageNotes || 'Gunakan wadah steril / coolbox food-grade tertutup.'}</span>
+                            </div>
+                            <div className="shrink-0">
+                              {isHeavy ? (
+                                <span className="px-2.5 py-1 bg-amber-200 text-amber-950 font-black rounded-lg inline-flex items-center gap-1">
+                                  ⚠️ Wajib Mobil / Van Logistik (&gt; 25 kg)
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-bold rounded-lg inline-flex items-center gap-1">
+                                  ✓ Sepeda Motor Box Aman (≤ 25 kg)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Footer */}
+                        <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Surat Jalan Digital & QR Code Manifest akan diterbitkan langsung saat driver dipilih.
+                          </span>
+                          <Button
+                            variant="gold"
+                            size="sm"
+                            onClick={() => handleOpenPlottingModal(match)}
+                            className="font-black text-xs text-slate-950 py-2.5 px-5 shadow-sm bg-amber-400 hover:bg-amber-500 border border-amber-500 cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            <TruckIcon size={14} />
+                            <span>Plot Driver & Ambil Tugas</span>
+                          </Button>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        ) : activeTab === 'ACTIVE' ? (
           activePickups.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-3 shadow-xs">
               <div className="w-14 h-14 bg-blue-50 rounded-2xl border border-blue-200 text-blue-600 flex items-center justify-center mx-auto text-2xl">
@@ -1066,6 +1477,140 @@ export default function PartnerActivePickupsPage() {
           )
         )}
       </div>
+
+      {/* MODAL PLOT DRIVER UNTUK POOL TUGAS */}
+      <Modal
+        isOpen={isPlottingModalOpen}
+        onClose={() => setIsPlottingModalOpen(false)}
+        title={`Plotting Driver & Armada: ${selectedMatch?.foodName || 'Tugas Rescue'}`}
+        size="lg"
+      >
+        {selectedMatch && (
+          <div className="space-y-4 text-xs text-slate-800">
+            {/* Header info */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <strong className="text-sm font-black text-[#1B3A5C]">{selectedMatch.foodName}</strong>
+                <span className="font-bold text-slate-700 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {selectedMatch.totalWeightKg} kg • {selectedMatch.quantity} Porsi
+                </span>
+              </div>
+              <p className="text-slate-600 text-[11px]">
+                Jemput: <strong>{selectedMatch.providerName}</strong> ({selectedMatch.providerAddress})
+              </p>
+              <p className="text-emerald-700 text-[11px]">
+                Tujuan: <strong>{selectedMatch.matchedUserName || selectedMatch.shelterName}</strong> ({selectedMatch.shelterAddress})
+              </p>
+            </div>
+
+            {/* Capacity check warning banner */}
+            {selectedMatch.totalWeightKg > 25 && (
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-300 text-amber-950 space-y-1">
+                <div className="flex items-center gap-1.5 font-black text-xs text-amber-900">
+                  <AlertTriangleIcon size={15} />
+                  <span>PERINGATAN KAPASITAS ARMADA (&gt; 25 KG)</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  Total muatan donasi ini mencapai <strong>{selectedMatch.totalWeightKg} kg</strong>, melebihi batas muatan sepeda motor box cooler (maks 25 kg).
+                  Sistem sangat merekomendasikan memilih <strong>Mobil Steril Food-Grade</strong> atau <strong>Van Logistik</strong> demi keselamatan pangan dan driver.
+                </p>
+              </div>
+            )}
+
+            {/* Driver Options Selection */}
+            <div className="space-y-2">
+              <label className="font-extrabold text-[#1B3A5C] block">
+                Pilih Armada Driver (Hanya yang ON-DUTY &amp; Disetujui Dinsos):
+              </label>
+              <div className="space-y-2">
+                {drivers.map((drv) => {
+                  const isSelected = selectedDriverId === drv.id;
+                  const isOffDuty = !drv.isOnDuty;
+                  const isUnderCapacity = drv.maxWeightKg < selectedMatch.totalWeightKg;
+
+                  return (
+                    <div
+                      key={drv.id}
+                      onClick={() => {
+                        if (!isOffDuty) {
+                          setSelectedDriverId(drv.id);
+                        }
+                      }}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
+                        isSelected
+                          ? 'border-[#1B3A5C] bg-blue-50/60 ring-2 ring-[#1B3A5C]/20 shadow-xs'
+                          : isOffDuty
+                          ? 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                          isSelected ? 'border-[#1B3A5C] bg-[#1B3A5C]' : 'border-slate-400 bg-white'
+                        }`}>
+                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <strong className="text-xs font-bold text-slate-900">{drv.name}</strong>
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
+                              drv.isOnDuty ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                            }`}>
+                              {drv.isOnDuty ? 'ON-DUTY' : 'OFF-DUTY'}
+                            </span>
+                            {isUnderCapacity && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">
+                                Kapasitas Kurang
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-600 mt-0.5">
+                            {drv.vehicle} • Plat: {drv.plateNumber} (Kapasitas: {drv.capacity})
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <span className="text-[11px] font-bold text-slate-500">Maks: {drv.maxWeightKg} kg</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Assignment Notes */}
+            <div className="space-y-1">
+              <label className="font-extrabold text-[#1B3A5C] block">
+                Catatan Instruksi &amp; Penanganan Makanan (Opsional):
+              </label>
+              <textarea
+                value={assignmentNote}
+                onChange={(e) => setAssignmentNote(e.target.value)}
+                rows={2}
+                className="w-full rounded-xl border border-slate-300 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
+                placeholder="Instruksi penjemputan..."
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button variant="outline" size="sm" onClick={() => setIsPlottingModalOpen(false)}>
+                Batal
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={handleConfirmPlotDriver}
+                disabled={!drivers.find((d) => d.id === selectedDriverId)?.isOnDuty}
+                className="font-black text-xs text-slate-950 px-4 py-2 bg-amber-400 hover:bg-amber-500 shadow-md cursor-pointer"
+              >
+                Konfirmasi Plotting &amp; Terbitkan Surat Jalan
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Modal Phase 3: Final Delivery Confirmation at Shelter with Photo Upload */}
       <Modal

@@ -29,7 +29,7 @@ export const HowItWorks: React.FC = () => {
     {
       num: '03',
       title: 'Dua Jalur Distribusi',
-      desc: 'Jalur A (Rescue Sale): Dijual murah ke konsumen hemat. Jalur B (Food Rescue): Disalurkan gratis ke Panti Asuhan & Food Bank.',
+      desc: 'Jalur A (Rescue Sale): Dijual murah ke konsumen hemat. Jalur B (Food Rescue): Disalurkan gratis ke Panti Asuhan & Komunitas Food Rescue volunteer atau Komunitas Sosial.',
       badge: 'Dual-Path Flow',
       icon: (
         <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

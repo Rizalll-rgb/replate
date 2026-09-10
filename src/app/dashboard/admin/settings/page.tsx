@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -56,6 +56,19 @@ export default function AdminSettingsPage() {
     defaultRadiusKm: 15,
     emergencyAlertMinutes: 120,
   });
+
+  useEffect(() => {
+    try {
+      const savedRadius = localStorage.getItem('replate_admin_sync_radius');
+      if (savedRadius && !isNaN(Number(savedRadius))) {
+        setAlertRules((prev) => ({ ...prev, defaultRadiusKm: Number(savedRadius) }));
+      }
+      const savedGrace = localStorage.getItem('replate_admin_grace_period_default');
+      if (savedGrace && !isNaN(Number(savedGrace))) {
+        setBpomRules((prev) => ({ ...prev, defaultGracePeriodMins: Number(savedGrace) }));
+      }
+    } catch (_) {}
+  }, []);
 
   const handleSave = () => {
     try {
