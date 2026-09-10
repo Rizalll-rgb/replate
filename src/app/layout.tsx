@@ -6,9 +6,9 @@ import { PWARoleRedirect } from '@/components/pwa/PWARoleRedirect';
 import { PWASplashScreen } from '@/components/pwa/PWASplashScreen';
 
 export const metadata: Metadata = {
-  title: 'Replate — Selamatkan Makanan, Bantu Sesama',
-  description: 'Platform redistribusi makanan berlebih yang menghubungkan Food Provider dengan penerima manfaat secara efisien, aman, dan transparan. Bersama kurangi food waste untuk masa depan berkelanjutan.',
-  keywords: ['food waste', 'food rescue', 'redistribusi makanan', 'SDG', 'sustainability', 'Replate', 'Surabaya'],
+  title: 'Replate — Where Surplus Finds Purpose',
+  description: 'Replate: Where Surplus Finds Purpose. Platform redistribusi makanan berlebih yang menghubungkan Food Provider dengan penerima manfaat secara efisien, aman, dan transparan. Bersama kurangi food waste untuk masa depan berkelanjutan.',
+  keywords: ['food waste', 'food rescue', 'redistribusi makanan', 'Where Surplus Finds Purpose', 'SDG', 'sustainability', 'Replate', 'Surabaya'],
   authors: [{ name: 'Replate Team' }],
   manifest: '/manifest.json',
   icons: {
