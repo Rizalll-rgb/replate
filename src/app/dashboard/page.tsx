@@ -13,19 +13,34 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === 'loading') return;
 
-    if (!session?.user) {
+    let effectiveRole: any = session?.user?.role;
+    if (!effectiveRole) {
+      try {
+        const p = localStorage.getItem('replate_onboarding_profile');
+        if (p) {
+          const parsed = JSON.parse(p);
+          if (parsed.role) effectiveRole = parsed.role;
+        }
+        if (!effectiveRole) {
+          const match = document.cookie.match(/replate_demo_session=([^;]+)/);
+          if (match) effectiveRole = match[1];
+        }
+      } catch (_) {}
+    }
+
+    if (!effectiveRole && !session?.user) {
       router.push('/login');
       return;
     }
 
-    const role = session.user.role;
-    if (role === 'ADMIN') {
+    const role = String(effectiveRole || '').toUpperCase();
+    if (role.includes('ADMIN')) {
       router.push('/dashboard/admin');
-    } else if (role === 'YAYASAN') {
+    } else if (role.includes('YAYASAN') || role.includes('BENEFICIARY')) {
       router.push('/dashboard/yayasan');
-    } else if (role === 'RESCUE_PARTNER') {
+    } else if (role.includes('RESCUE') || role.includes('VOLUNTEER')) {
       router.push('/dashboard/rescue-partner');
-    } else if (role === 'CONSUMER') {
+    } else if (role.includes('CONSUMER')) {
       router.push('/dashboard/consumer');
     } else {
       router.push('/dashboard/provider');

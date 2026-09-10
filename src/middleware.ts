@@ -3,14 +3,16 @@ import { NextResponse } from 'next/server';
 
 export default auth((req) => {
     const { nextUrl } = req;
-    const demoCookieRaw = req.cookies.get('replate_demo_session')?.value;
+    const queryDemoRole = nextUrl.searchParams.get('demo_role');
+    const demoCookieRaw = req.cookies.get('replate_demo_session')?.value || queryDemoRole;
     let demoRole: string | undefined;
     if (demoCookieRaw) {
-        if (demoCookieRaw.includes('CONSUMER')) demoRole = 'CONSUMER';
-        else if (demoCookieRaw.includes('PROVIDER')) demoRole = 'PROVIDER';
-        else if (demoCookieRaw.includes('YAYASAN') || demoCookieRaw.includes('BENEFICIARY')) demoRole = 'YAYASAN';
-        else if (demoCookieRaw.includes('RESCUE') || demoCookieRaw.includes('VOLUNTEER')) demoRole = 'RESCUE_PARTNER';
-        else if (demoCookieRaw.includes('ADMIN')) demoRole = 'ADMIN';
+        const upper = demoCookieRaw.toUpperCase();
+        if (upper.includes('CONSUMER')) demoRole = 'CONSUMER';
+        else if (upper.includes('PROVIDER')) demoRole = 'PROVIDER';
+        else if (upper.includes('YAYASAN') || upper.includes('BENEFICIARY')) demoRole = 'YAYASAN';
+        else if (upper.includes('RESCUE') || upper.includes('VOLUNTEER')) demoRole = 'RESCUE_PARTNER';
+        else if (upper.includes('ADMIN')) demoRole = 'ADMIN';
         else demoRole = demoCookieRaw;
     }
 
@@ -115,7 +117,20 @@ export default auth((req) => {
         }
     }
 
-    return NextResponse.next();
+    const res = NextResponse.next();
+    if (demoRole && !req.cookies.get('replate_demo_session')?.value) {
+        res.cookies.set('replate_demo_session', demoRole, {
+            path: '/',
+            maxAge: 86400 * 7,
+            sameSite: 'lax',
+        });
+        res.cookies.set('replate_role', demoRole, {
+            path: '/',
+            maxAge: 86400 * 7,
+            sameSite: 'lax',
+        });
+    }
+    return res;
 });
 
 export const config = {

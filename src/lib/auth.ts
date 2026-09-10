@@ -1,5 +1,4 @@
 import NextAuth from 'next-auth';
-import { skipCSRFCheck } from '@auth/core';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
@@ -32,7 +31,6 @@ declare module '@auth/core/jwt' {
 export const { handlers, signIn, signOut, auth } = NextAuth({
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'replate-secret-key-change-in-production-2026',
     trustHost: true,
-    skipCSRFCheck,
     providers: [
         Credentials({
             name: 'credentials',

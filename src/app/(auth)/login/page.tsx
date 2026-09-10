@@ -172,26 +172,42 @@ export default function LoginPage() {
         targetUrl = '/dashboard/consumer';
       }
 
-      // Simpan session cookie fallback untuk memastikan akses multi-device / LAN IP selalu tembus middleware
+      // 1. Simpan session cookie synchronous fallback
       try {
-        document.cookie = `replate_demo_session=${effectiveRole}; path=/; max-age=86400; SameSite=Lax`;
+        document.cookie = `replate_demo_session=${effectiveRole}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `replate_role=${effectiveRole}; path=/; max-age=604800; SameSite=Lax`;
       } catch (_) {}
 
+      // 2. Set HTTP Set-Cookie via API route agar browser & server 100% sinkron
       try {
-        await signIn('credentials', {
+        await fetch('/api/auth/demo-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: effectiveRole, email: emailVal }),
+        });
+      } catch (_) {}
+
+      // 3. Coba NextAuth signIn secara non-blocking (maks 1 detik agar tidak membekukan UI)
+      try {
+        const authPromise = signIn('credentials', {
           email: emailVal,
           password: passwordVal,
           redirect: false,
         });
+        await Promise.race([
+          authPromise,
+          new Promise((resolve) => setTimeout(resolve, 800)),
+        ]);
       } catch (signInErr) {
         console.warn('NextAuth credentials fallback:', signInErr);
       }
 
-      window.location.href = targetUrl;
+      // 4. Langsung navigasi ke URL dashboard dengan parameter fallback
+      window.location.href = `${targetUrl}?demo_role=${effectiveRole}`;
     } catch (err) {
       console.error('Login error:', err);
       const selectedRole = chosenRole || activeRoleTab;
-      window.location.href = roleConfigs[selectedRole].targetUrl;
+      window.location.href = `${roleConfigs[selectedRole].targetUrl}?demo_role=${selectedRole}`;
     }
   };
 
@@ -200,18 +216,59 @@ export default function LoginPage() {
     await handleLoginWithCredentials(formData.email, formData.password, activeRoleTab);
   };
 
-  const handleQuickDemoClick = (role: RoleType) => {
+  const handleQuickDemoClick = async (role: RoleType) => {
+    setError('');
+    setLoading(true);
     try {
-      localStorage.removeItem('replate_is_fresh_account');
-      localStorage.setItem('replate_is_fresh_account', 'false');
-      localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[role].mockProfile));
-      if (role === 'FOOD_CONSUMER') {
-        localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
-      }
-    } catch (_) {}
+      const cfg = roleConfigs[role];
 
-    handleRoleTabChange(role);
-    handleLoginWithCredentials(roleConfigs[role].demoEmail, 'password123', role);
+      // 1. Set data profil dan status demo di localStorage
+      try {
+        localStorage.removeItem('replate_is_fresh_account');
+        localStorage.setItem('replate_is_fresh_account', 'false');
+        localStorage.setItem('replate_onboarding_profile', JSON.stringify(cfg.mockProfile));
+        if (role === 'FOOD_CONSUMER') {
+          localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+        }
+      } catch (_) {}
+
+      // 2. Update visual tab & input
+      setActiveRoleTab(role);
+      setFormData({
+        email: cfg.demoEmail,
+        password: 'password123',
+      });
+
+      // 3. Simpan session cookie langsung di browser
+      try {
+        document.cookie = `replate_demo_session=${role}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `replate_role=${role}; path=/; max-age=604800; SameSite=Lax`;
+      } catch (_) {}
+
+      // 4. Pasang cookie lewat response header HTTP server
+      try {
+        await fetch('/api/auth/demo-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role }),
+        });
+      } catch (_) {}
+
+      // 5. Trigger NextAuth signIn di background tanpa menunggu
+      try {
+        signIn('credentials', {
+          email: cfg.demoEmail,
+          password: 'password123',
+          redirect: false,
+        }).catch(() => {});
+      } catch (_) {}
+
+      // 6. Langsung redirect ke dashboard peran terkait
+      window.location.href = `${cfg.targetUrl}?demo_role=${role}`;
+    } catch (err) {
+      console.error('Quick demo error:', err);
+      window.location.href = `${roleConfigs[role].targetUrl}?demo_role=${role}`;
+    }
   };
 
   const handleGoogleOAuthClick = async () => {

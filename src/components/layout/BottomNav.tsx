@@ -16,8 +16,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
   const { data: session } = useSession();
   const [cartCount, setCartCount] = useState<number>(0);
   const [role, setRole] = useState<string>('CONSUMER');
+  const [hasDemoSession, setHasDemoSession] = useState<boolean>(false);
 
-  const activeUser = propUser || session?.user;
+  const activeUser = propUser || session?.user || (hasDemoSession ? { role } : null);
 
   useEffect(() => {
     try {
@@ -33,8 +34,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
       if (profile) {
         const parsed = JSON.parse(profile);
         if (parsed.role) setRole(parsed.role);
+        setHasDemoSession(true);
       } else if (propUser?.role || session?.user?.role) {
         setRole(propUser?.role || session?.user?.role || 'CONSUMER');
+      } else if (typeof document !== 'undefined' && document.cookie.includes('replate_demo_session')) {
+        setHasDemoSession(true);
       }
     } catch (_) {}
   }, [propUser, session, pathname]);
