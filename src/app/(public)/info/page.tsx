@@ -712,7 +712,7 @@ export default function PublicInfoHubPage() {
 
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Category Filter in Search */}
-                {['ALL', 'LATAR_BELAKANG', 'KALKULATOR', 'CARA_KERJA', 'BPOM', 'FAQ'].map((cat) => (
+                {(['ALL', 'LATAR_BELAKANG', 'KALKULATOR', 'CARA_KERJA', 'BPOM', 'FAQ'] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"

@@ -174,7 +174,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             Label Keamanan Pangan & Bebas Alergen:
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {defaultAllergens.map((tag, idx) => (
+            {defaultAllergens.map((tag: string, idx: number) => (
               <span key={idx} className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-extrabold rounded-md text-[10px] flex items-center gap-1">
                 <CheckIcon size={11} />
                 <span>{tag}</span>
