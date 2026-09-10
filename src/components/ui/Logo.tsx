@@ -10,7 +10,7 @@ export interface LogoProps {
 }
 
 export const Logo: React.FC<LogoProps> = ({
-  customImageSrc,
+  customImageSrc = '/images/logo.png',
   variant = 'dark',
   size = 'md',
   showSubtitle = true,
@@ -36,7 +36,7 @@ export const Logo: React.FC<LogoProps> = ({
         <img
           src={customImageSrc}
           alt="Replate Logo"
-          className={`${iconSizes[size]} object-contain`}
+          className={`${iconSizes[size]} object-contain rounded-xl shadow-xs group-hover:scale-105 transition-transform duration-200`}
         />
       ) : (
         <div
