@@ -6,6 +6,7 @@ export interface LogoProps {
   variant?: 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
   showSubtitle?: boolean;
+  subtitleText?: string;
   href?: string;
 }
 
@@ -14,6 +15,7 @@ export const Logo: React.FC<LogoProps> = ({
   variant = 'dark',
   size = 'md',
   showSubtitle = true,
+  subtitleText = 'Where Surplus Finds Purpose',
   href = '/',
 }) => {
   const isLight = variant === 'light';
@@ -70,11 +72,11 @@ export const Logo: React.FC<LogoProps> = ({
         </span>
         {showSubtitle && (
           <span
-            className={`text-[10px] font-semibold tracking-wider uppercase mt-1 ${
+            className={`text-[9px] sm:text-[10px] font-bold tracking-wider uppercase mt-1 ${
               isLight ? 'text-gray-300' : 'text-[#6C757D]'
             }`}
           >
-            Redistribusi Pangan
+            {subtitleText}
           </span>
         )}
       </div>

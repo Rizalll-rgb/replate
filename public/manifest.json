@@ -1,7 +1,7 @@
 {
   "name": "Replate — Where Surplus Finds Purpose",
   "short_name": "Replate",
-  "description": "Platform redistribusi makanan berlebih zero-waste",
+  "description": "Where Surplus Finds Purpose",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
