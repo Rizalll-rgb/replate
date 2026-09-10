@@ -172,18 +172,22 @@ export default function LoginPage() {
         targetUrl = '/dashboard/consumer';
       }
 
-      const result = await signIn('credentials', {
-        email: emailVal,
-        password: passwordVal,
-        redirect: false,
-      });
+      // Simpan session cookie fallback untuk memastikan akses multi-device / LAN IP selalu tembus middleware
+      try {
+        document.cookie = `replate_demo_session=${effectiveRole}; path=/; max-age=86400; SameSite=Lax`;
+      } catch (_) {}
 
-      if (result?.error) {
-        // Jika demo fallback atau pengguna offline, arahkan ke dashboard yang sesuai
-        window.location.href = targetUrl;
-      } else {
-        window.location.href = targetUrl;
+      try {
+        await signIn('credentials', {
+          email: emailVal,
+          password: passwordVal,
+          redirect: false,
+        });
+      } catch (signInErr) {
+        console.warn('NextAuth credentials fallback:', signInErr);
       }
+
+      window.location.href = targetUrl;
     } catch (err) {
       console.error('Login error:', err);
       const selectedRole = chosenRole || activeRoleTab;

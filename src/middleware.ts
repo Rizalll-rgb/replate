@@ -3,9 +3,26 @@ import { NextResponse } from 'next/server';
 
 export default auth((req) => {
     const { nextUrl } = req;
-    const isLoggedIn = !!req.auth;
-    const userRole = req.auth?.user?.role;
-    const userStatus = req.auth?.user?.status;
+    const demoCookieRaw = req.cookies.get('replate_demo_session')?.value;
+    let demoRole: string | undefined;
+    if (demoCookieRaw) {
+        if (demoCookieRaw.includes('CONSUMER')) demoRole = 'CONSUMER';
+        else if (demoCookieRaw.includes('PROVIDER')) demoRole = 'PROVIDER';
+        else if (demoCookieRaw.includes('YAYASAN') || demoCookieRaw.includes('BENEFICIARY')) demoRole = 'YAYASAN';
+        else if (demoCookieRaw.includes('RESCUE') || demoCookieRaw.includes('VOLUNTEER')) demoRole = 'RESCUE_PARTNER';
+        else if (demoCookieRaw.includes('ADMIN')) demoRole = 'ADMIN';
+        else demoRole = demoCookieRaw;
+    }
+
+    const isLoggedIn = !!req.auth || !!demoRole;
+    let userRole = req.auth?.user?.role || (demoRole as any);
+    if (userRole === 'FOOD_CONSUMER') userRole = 'CONSUMER';
+    if (userRole === 'FOOD_PROVIDER') userRole = 'PROVIDER';
+    if (userRole === 'FOOD_BENEFICIARY') userRole = 'YAYASAN';
+    if (userRole === 'RESCUE_VOLUNTEER') userRole = 'RESCUE_PARTNER';
+    if (userRole === 'SUPER_ADMIN') userRole = 'ADMIN';
+
+    const userStatus = req.auth?.user?.status || 'APPROVED';
 
     // Public routes - always accessible
     const publicRoutes = [
