@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Toast } from '@/components/ui/Toast';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { MapPin } from 'lucide-react';
 
 export default function DriverManifestNoLoginPage() {
   const params = useParams();
@@ -185,8 +186,9 @@ export default function DriverManifestNoLoginPage() {
               <div className="space-y-3">
                 <div className="p-3.5 bg-[#1B3A5C] text-white rounded-2xl shadow-xs space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-amber-400 font-extrabold text-[10px] uppercase tracking-wider block">
-                      📍 Alamat Pengantaran Tujuan:
+                    <span className="text-amber-400 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Alamat Pengantaran Tujuan:</span>
                     </span>
                     <span className="text-[10px] font-mono text-slate-300 font-bold">
                       GPS: {lat.toFixed(5)}, {lng.toFixed(5)}

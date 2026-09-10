@@ -5,6 +5,7 @@ import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { CheckIcon } from '../ui/Icon';
+import { ExternalLink } from 'lucide-react';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import { calculateThermalDecayRUI, FoodSafetyCategory } from '@/lib/thermalRescueEngine';
 
@@ -323,9 +324,10 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || `${latitude},${longitude}`)}`}
               target="_blank"
               rel="noreferrer"
-              className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
+              className="text-[10px] font-black text-blue-600 hover:underline shrink-0 inline-flex items-center gap-1"
             >
-              Buka di Google Maps ↗
+              <span>Buka di Google Maps</span>
+              <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         </div>

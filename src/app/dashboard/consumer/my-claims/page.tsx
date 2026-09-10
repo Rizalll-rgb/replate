@@ -1640,8 +1640,9 @@ export default function MyClaimsPage() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
-                      <span className="text-white text-[10px] font-bold">
-                        📍 Lokasi Penerima: {claim.deliveryAddress || claim.address || 'Alamat Domisili Pengiriman Terdaftar'}
+                      <span className="text-white text-[10px] font-bold inline-flex items-center gap-1">
+                        <MapPinIcon size={12} className="text-rose-400 shrink-0" />
+                        <span>Lokasi Penerima: {claim.deliveryAddress || claim.address || 'Alamat Domisili Pengiriman Terdaftar'}</span>
                       </span>
                     </div>
                   </div>

@@ -160,7 +160,7 @@ function FutureDevelopmentContent() {
                 className="w-full py-3 px-5 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white border border-[#D4A843]/50 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <KeyRound className="w-4 h-4 text-amber-300" />
-                <span>Coba Demo 1-Klik (5 Roles)</span>
+                <span>Coba Masuk Akun Demo</span>
               </button>
             </Link>
           </div>

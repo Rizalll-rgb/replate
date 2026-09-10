@@ -1587,8 +1587,9 @@ export default function YayasanClaimsPage() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
-                      <span className="text-white text-[10px] font-bold">
-                        📍 Titik Serah Terima: {claim.destinationAddress || pantiAddress}
+                      <span className="text-white text-[10px] font-bold inline-flex items-center gap-1">
+                        <MapPinIcon size={12} className="text-rose-400 shrink-0" />
+                        <span>Titik Serah Terima: {claim.destinationAddress || pantiAddress}</span>
                       </span>
                     </div>
                   </div>

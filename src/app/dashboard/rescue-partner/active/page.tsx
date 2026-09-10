@@ -29,7 +29,7 @@ import {
   RouteWaypoint,
   OptimizedClusterPlan,
 } from '@/lib/clusterRoutingEngine';
-import { Navigation, Fuel, TrendingDown, Sparkles, FileText, ChevronLeft, ChevronRight, Info, UserCheck, Shield } from 'lucide-react';
+import { Navigation, Fuel, TrendingDown, Sparkles, FileText, ChevronLeft, ChevronRight, Info, UserCheck, Shield, Package } from 'lucide-react';
 
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
@@ -801,8 +801,8 @@ export default function PartnerActivePickupsPage() {
 
               {matches.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-2 shadow-xs">
-                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto text-emerald-600 text-xl font-bold">
-                    ✓
+                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto text-emerald-600">
+                    <CheckIcon size={24} className="text-emerald-600" />
                   </div>
                   <h4 className="font-black text-sm text-[#1B3A5C]">Semua Tugas Pool Telah Di-Plot</h4>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
@@ -822,11 +822,13 @@ export default function PartnerActivePickupsPage() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono">
-                                ⚡ {match.matchScore || 96}% Cocok
+                              <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono inline-flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-[#D4A843]" />
+                                <span>{match.matchScore || 96}% Cocok</span>
                               </span>
-                              <span className="px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-black rounded-md">
-                                🚨 {match.urgency || 'Prioritas Hari Ini'}
+                              <span className="px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-black rounded-md inline-flex items-center gap-1">
+                                <AlertTriangleIcon size={11} className="text-rose-700 shrink-0" />
+                                <span>{match.urgency || 'Prioritas Hari Ini'}</span>
                               </span>
                               <span className="text-slate-400 text-xs">•</span>
                               <span className="text-slate-500 font-mono text-[11px] font-bold flex items-center gap-1">
@@ -878,17 +880,22 @@ export default function PartnerActivePickupsPage() {
                         <div className="space-y-2">
                           <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px]">
                             <div className="space-y-0.5">
-                              <span className="font-bold text-amber-900 block">🧊 Catatan Kemasan & Sterilisasi Khusus:</span>
+                              <span className="font-bold text-amber-900 block inline-flex items-center gap-1">
+                                <Package className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                                <span>Catatan Kemasan & Sterilisasi Khusus:</span>
+                              </span>
                               <span className="text-amber-800">{match.packageNotes || 'Gunakan wadah steril / coolbox food-grade tertutup.'}</span>
                             </div>
                             <div className="shrink-0">
                               {isHeavy ? (
-                                <span className="px-2.5 py-1 bg-amber-200 text-amber-950 font-black rounded-lg inline-flex items-center gap-1">
-                                  ⚠️ Wajib Mobil / Van Logistik (&gt; 25 kg)
+                                <span className="px-2.5 py-1 bg-amber-200 text-amber-950 font-black rounded-lg inline-flex items-center gap-1.5">
+                                  <TruckIcon size={12} className="text-amber-950 shrink-0" />
+                                  <span>Wajib Mobil / Van Logistik (&gt; 25 kg)</span>
                                 </span>
                               ) : (
-                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-bold rounded-lg inline-flex items-center gap-1">
-                                  ✓ Sepeda Motor Box Aman (≤ 25 kg)
+                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-bold rounded-lg inline-flex items-center gap-1.5">
+                                  <CheckIcon size={12} className="text-emerald-800 shrink-0" />
+                                  <span>Sepeda Motor Box Aman (≤ 25 kg)</span>
                                 </span>
                               )}
                             </div>

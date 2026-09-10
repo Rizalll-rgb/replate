@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Clock,
   Building2,
+  Store,
   Phone,
   Mail,
   MapPin,
@@ -367,16 +368,18 @@ export default function TrackRegistrationStatusPage() {
               <button
                 type="button"
                 onClick={() => executeSearch('REPLATE-REG-2026-9812')}
-                className="px-2.5 py-1 bg-slate-800/80 hover:bg-[#1B3A5C] text-slate-200 border border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-slate-800/80 hover:bg-[#1B3A5C] text-slate-200 border border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
               >
-                🍜 Bakso Pak Kumis
+                <Store className="w-3 h-3 text-[#D4A843]" />
+                <span>Bakso Pak Kumis</span>
               </button>
               <button
                 type="button"
                 onClick={() => executeSearch('panti.kasih.ibu@replate.id')}
-                className="px-2.5 py-1 bg-slate-800/80 hover:bg-[#1B3A5C] text-slate-200 border border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-slate-800/80 hover:bg-[#1B3A5C] text-slate-200 border border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
               >
-                🏛️ Panti Kasih Ibu
+                <Building2 className="w-3 h-3 text-emerald-400" />
+                <span>Panti Kasih Ibu</span>
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -838,9 +839,10 @@ export default function PublicInfoHubPage() {
                         size="sm"
                         disabled={searchPage === 1}
                         onClick={() => setSearchPage((p) => Math.max(1, p - 1))}
-                        className="font-bold text-xs"
+                        className="font-bold text-xs inline-flex items-center gap-1"
                       >
-                        ◀ Sebelumnya
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <span>Sebelumnya</span>
                       </Button>
 
                       <div className="flex items-center gap-1">
@@ -865,9 +867,10 @@ export default function PublicInfoHubPage() {
                         size="sm"
                         disabled={searchPage === totalSearchPages}
                         onClick={() => setSearchPage((p) => Math.min(totalSearchPages, p + 1))}
-                        className="font-bold text-xs"
+                        className="font-bold text-xs inline-flex items-center gap-1"
                       >
-                        Selanjutnya ▶
+                        <span>Selanjutnya</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>

@@ -14,7 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
 import { CheckIcon } from '@/components/ui/Icon';
-import { MapPin, Utensils } from 'lucide-react';
+import { MapPin, Utensils, ExternalLink } from 'lucide-react';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed, deduplicatePantiNeeds } from '@/lib/pantiData';
 import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
@@ -867,9 +867,10 @@ export default function ExplorePage() {
                       href={`https://www.google.com/maps/search/?api=1&query=${sLat},${sLng}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
+                      className="text-[10px] font-black text-blue-600 hover:underline shrink-0 inline-flex items-center gap-1"
                     >
-                      Buka di Google Maps ↗
+                      <span>Buka di Google Maps</span>
+                      <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                 </div>

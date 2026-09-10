@@ -561,12 +561,15 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="px-2.5 py-1 bg-white rounded-lg border border-slate-200 text-[10.5px] font-bold text-slate-700 shadow-2xs">
-                  🛡️ Batas BPOM: {
-                    formData.foodCategory === 'BEVERAGES' ? '6 Jam' :
-                    formData.foodCategory === 'BAKERY' ? '8 Jam' :
-                    formData.foodCategory === 'PRODUCE' ? '24 Jam' : '4 Jam (Suhu Ruang)'
-                  }
+                <span className="px-2.5 py-1 bg-white rounded-lg border border-slate-200 text-[10.5px] font-bold text-slate-700 shadow-2xs inline-flex items-center gap-1">
+                  <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    Batas BPOM: {
+                      formData.foodCategory === 'BEVERAGES' ? '6 Jam' :
+                      formData.foodCategory === 'BAKERY' ? '8 Jam' :
+                      formData.foodCategory === 'PRODUCE' ? '24 Jam' : '4 Jam (Suhu Ruang)'
+                    }
+                  </span>
                 </span>
               </div>
             </div>

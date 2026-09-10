@@ -12,7 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
-import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, HelpCircle, Tag, X, MapPin } from 'lucide-react';
 import {
   resolveIndonesianAddress,
   reverseGeocodeIndonesianCoords,
@@ -1082,7 +1082,7 @@ export default function DashboardProfilePage() {
     const instantCategory = resolvedInstant.city || 'Outlet / Lokasi Anda';
 
     const instantCustomItem: LocationDirectoryItem = {
-      name: `📍 ${raw}`,
+      name: raw,
       detail: instantDetail,
       category: instantCategory,
       keywords: [clean],
@@ -2205,8 +2205,9 @@ export default function DashboardProfilePage() {
                           {profileData.operationalCoverage || `${profileData.district ? 'Kec. ' + profileData.district + ', ' : ''}${profileData.city || 'Kab. Magetan'} (Radius ${profileData.maxRadiusKm || 12} km)`}
                         </strong>
                       </div>
-                      <span className="text-[10px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200 block mt-1 leading-snug">
-                        💡 <strong>Platform Replate:</strong> Berskala Nasional (Indonesia). Wilayah di atas adalah radius penjemputan & jangkauan khusus outlet Anda.
+                      <span className="text-[10px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200 mt-1 leading-snug flex items-start gap-1.5">
+                        <HelpCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <span><strong>Platform Replate:</strong> Berskala Nasional (Indonesia). Wilayah di atas adalah radius penjemputan & jangkauan khusus outlet Anda.</span>
                       </span>
                     </div>
                   </>
@@ -2381,7 +2382,8 @@ export default function DashboardProfilePage() {
                   <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
                     <div className="flex items-center justify-between flex-wrap gap-1">
                       <span className="text-[11px] font-black text-slate-700 flex items-center gap-1.5">
-                        <span>🏷️ Rincian Mikro Lokasi (Nomor, RT/RW & Patokan)</span>
+                        <Tag className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>Rincian Mikro Lokasi (Nomor, RT/RW & Patokan)</span>
                       </span>
                       <span className="text-[10px] text-slate-500 font-semibold bg-white px-2 py-0.5 rounded-md border border-slate-200">
                         Otomatis Terintegrasi ke Alamat & Kurir
@@ -2426,8 +2428,9 @@ export default function DashboardProfilePage() {
                       </div>
                     </div>
 
-                    <p className="text-[10.5px] text-slate-500 leading-tight">
-                      💡 <strong>Mengapa rincian ini penting?</strong> Satelit GPS peta hanya memetakan nama jalan dan kelurahan. Rincian Nomor, RT/RW, dan Patokan akan otomatis digabungkan ke alamat lengkap agar kurir dan relawan penjemput makanan dapat menemukan lokasi Anda secara presisi tanpa tersesat.
+                    <p className="text-[10.5px] text-slate-500 leading-tight flex items-start gap-1.5">
+                      <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                      <span><strong>Mengapa rincian ini penting?</strong> Satelit GPS peta hanya memetakan nama jalan dan kelurahan. Rincian Nomor, RT/RW, dan Patokan akan otomatis digabungkan ke alamat lengkap agar kurir dan relawan penjemput makanan dapat menemukan lokasi Anda secara presisi tanpa tersesat.</span>
                     </p>
                   </div>
 
@@ -2553,16 +2556,17 @@ export default function DashboardProfilePage() {
                             }}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-black cursor-pointer"
                           >
-                            ✕
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
                       <button
                         type="button"
                         onClick={() => executeMapSearch(mapSearchQuery)}
-                        className="px-4 py-2.5 bg-[#1B3A5C] text-white font-black text-xs rounded-xl hover:bg-[#142C47] transition-all cursor-pointer shrink-0"
+                        className="px-4 py-2.5 bg-[#1B3A5C] text-white font-black text-xs rounded-xl hover:bg-[#142C47] transition-all cursor-pointer shrink-0 inline-flex items-center gap-1.5"
                       >
-                        🔍 Cari Lokasi
+                        <SearchIcon size={13} className="text-white shrink-0" />
+                        <span>Cari Lokasi</span>
                       </button>
                     </div>
 
@@ -2655,7 +2659,7 @@ export default function DashboardProfilePage() {
                           {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
                         </div>
                         <div className="w-9 h-9 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-sm font-black animate-bounce">
-                          📍
+                          <MapPin className="w-4 h-4 text-white" />
                         </div>
                         <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
                       </div>
@@ -2664,14 +2668,14 @@ export default function DashboardProfilePage() {
                     {/* Top Left Helper Overlay Badge */}
                     <div className="absolute top-3 left-3 bg-[#1B3A5C]/95 backdrop-blur-xs text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-md flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      <span> Klik di titik manapun pada peta untuk memindahkan pin & deteksi alamat</span>
+                      <span>Klik di titik manapun pada peta untuk memindahkan pin & deteksi alamat</span>
                     </div>
 
                     {/* Active Reverse Geocoding Loading Indicator */}
                     {isReverseGeocoding && (
                       <div className="absolute top-12 left-3 z-20 bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-black shadow-lg flex items-center gap-2 animate-pulse border border-amber-600">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>📍 Mendeteksi alamat dari titik peta...</span>
+                        <span>Mendeteksi alamat dari titik peta...</span>
                       </div>
                     )}
 
@@ -2908,8 +2912,9 @@ export default function DashboardProfilePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                <span className="text-[11px] text-slate-500 font-medium">
-                  💡 Terakhir diperbarui: 30 hari yang lalu · Sesi login aman
+                <span className="text-[11px] text-slate-500 font-medium inline-flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>Terakhir diperbarui: 30 hari yang lalu · Sesi login aman</span>
                 </span>
                 <Button variant="gold" size="sm" type="submit" className="font-black text-xs text-slate-950 shadow-xs cursor-pointer">
                   Perbarui Kata Sandi
@@ -3667,7 +3672,7 @@ export default function DashboardProfilePage() {
                     {profileData.lat || -7.2754}, {profileData.lng || 112.7541}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-red-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-base font-black animate-bounce">
-                    📍
+                    <MapPin className="w-5 h-5 text-white" />
                   </div>
                   <div className="w-4 h-2 bg-slate-950/40 rounded-full blur-[1px]"></div>
                 </div>
@@ -3677,15 +3682,16 @@ export default function DashboardProfilePage() {
               {isReverseGeocoding && (
                 <div className="absolute top-4 left-4 z-20 bg-amber-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-black shadow-2xl flex items-center gap-2 animate-pulse border border-amber-600">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>📍 Mendeteksi alamat dari titik peta...</span>
+                  <span>Mendeteksi alamat dari titik peta...</span>
                 </div>
               )}
             </div>
 
             {/* Live Address Display Inside Fullscreen Modal */}
             <div className="p-3 bg-slate-100 rounded-xl border border-slate-300 flex items-center justify-between text-xs">
-              <span className="font-extrabold text-slate-800 truncate max-w-[70%]">
-                📍 Alamat Saat Ini: <span className="font-bold text-slate-900">{profileData.address || 'Belum dipilih'}</span>
+              <span className="font-extrabold text-slate-800 truncate max-w-[70%] inline-flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span>Alamat Saat Ini: <strong className="text-slate-900">{profileData.address || 'Belum dipilih'}</strong></span>
               </span>
               <span className="font-mono text-[11px] font-bold text-slate-500">
                 {profileData.lat}, {profileData.lng}

@@ -20,6 +20,7 @@ import {
   ArrowRight,
   CheckCircle2,
   FileCheck2,
+  AlertCircle,
 } from 'lucide-react';
 
 type RoleType = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOLUNTEER' | 'SUPER_ADMIN';
@@ -387,7 +388,7 @@ export default function LoginPage() {
 
             {error && (
               <div className="p-3.5 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-200 text-xs font-medium flex items-start gap-2 shadow-sm">
-                <span className="text-sm">ℹ️</span>
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
@@ -397,9 +398,6 @@ export default function LoginPage() {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-black text-[#D4A843] uppercase tracking-wider block">
                   Pilih Peran Akun:
-                </span>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                  5 ROLES READY
                 </span>
               </div>
 
@@ -443,9 +441,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => handleQuickDemoClick(activeRoleTab)}
-                  className="text-[#D4A843] hover:underline font-extrabold cursor-pointer"
+                  className="text-[#D4A843] hover:underline font-extrabold cursor-pointer inline-flex items-center gap-1"
                 >
-                  ⚡ Masuk 1-Klik Demo ({roleConfigs[activeRoleTab].label})
+                  <Sparkles className="w-3 h-3 text-[#D4A843]" />
+                  <span>Masuk 1-Klik Demo ({roleConfigs[activeRoleTab].label})</span>
                 </button>
               </div>
             </div>
@@ -511,7 +510,7 @@ export default function LoginPage() {
                   onClick={() => setIsTOSOpen(true)}
                   className="text-[#D4A843] hover:underline font-bold cursor-pointer"
                 >
-                  Baca Syarat dan Ketentuan
+                  Syarat dan Ketentuan
                 </button>
               </div>
 
