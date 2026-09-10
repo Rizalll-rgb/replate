@@ -35,6 +35,10 @@ import {
   Plus,
   Lock,
   User,
+  Tag,
+  BookOpen,
+  Building2,
+  Handshake,
 } from 'lucide-react';
 import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
@@ -865,11 +869,11 @@ export default function ConsumerDashboardPage() {
               </div>
             </div>
 
-            {/* Equal Sized Action Buttons - STRICTLY IDENTICAL HEIGHT (h-11) & WIDTH */}
+            {/* Equal Sized Action Buttons - Direct Redirection to Dedicated Pages */}
             <div className="flex items-center gap-2 pt-0.5">
               <button
                 type="button"
-                onClick={() => setIsRewardsModalOpen(true)}
+                onClick={() => router.push('/dashboard/consumer/rewards')}
                 className="h-11 flex-1 px-3 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-[#D4A843] transition-all cursor-pointer active:scale-98"
               >
                 <Award className="w-4 h-4 text-slate-950 shrink-0" />
@@ -878,7 +882,7 @@ export default function ConsumerDashboardPage() {
 
               <button
                 type="button"
-                onClick={() => setIsQRModalOpen(true)}
+                onClick={() => router.push('/dashboard/consumer/my-claims')}
                 className="h-11 flex-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-emerald-500 transition-all cursor-pointer active:scale-98"
               >
                 <QrCode className="w-4 h-4 text-white shrink-0" />
@@ -1006,30 +1010,143 @@ export default function ConsumerDashboardPage() {
             </div>
           </section>
 
-          {/* Social Impact Hero Banner */}
-          <section className="rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+          {/* Highlight Promo Banner Carousel (Swipeable Horizontal Slider - Point 7) */}
+          <section className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black text-[#1B3A5C] uppercase tracking-wider block">
+                Promo &amp; Highlight Replate
+              </span>
+              <span className="text-[10px] text-slate-400 font-bold">
+                Geser untuk promo lainnya
+              </span>
+            </div>
+
             <div
-              className={`p-4 bg-gradient-to-r ${heroBanners[bannerIndex].accentColor} text-white rounded-2xl flex items-center justify-between gap-3`}
+              className="flex gap-3 overflow-x-auto pb-1.5 no-scrollbar snap-x snap-mandatory"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              <div className="space-y-1 min-w-0">
-                <span
-                  className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border inline-block ${heroBanners[bannerIndex].badgeColor}`}
-                >
-                  {heroBanners[bannerIndex].badge}
-                </span>
-                <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
-                  {heroBanners[bannerIndex].title}
-                </h4>
-                <p className="text-[11px] text-slate-200 leading-snug line-clamp-2">
-                  {heroBanners[bannerIndex].desc}
-                </p>
+              {/* Slide 1: Flash Rescue */}
+              <div
+                onClick={() => router.push('/dashboard/explore?tab=RESCUE_SALE&filter=flash')}
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#1B3A5C] via-[#1E436D] to-[#0E4A3B] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500 text-white shadow-xs inline-flex items-center gap-1">
+                      <Flame className="w-2.5 h-2.5" />
+                      <span>DISKON S.D 70%</span>
+                    </span>
+                    <span className="text-[9px] font-bold text-amber-300">Hari Ini</span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
+                    Flash Rescue Spesial Malam
+                  </h4>
+                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                    Selamatkan surplus kuliner resto &amp; bakery favorit terdekat sebelum jam tutup dengan diskon besar.
+                  </p>
+                </div>
+                <div className="pt-3 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-[#D4A843] flex items-center gap-1">
+                    <span>Ambil Promo</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                    1 / 4
+                  </span>
+                </div>
               </div>
 
-              {/* Auto-sliding indicator pill without manual arrow buttons */}
-              <div className="flex items-center gap-1 shrink-0 bg-white/20 px-2 py-0.5 rounded-full text-[9px] font-black">
-                <span>{bannerIndex + 1}</span>
-                <span className="opacity-60">/</span>
-                <span>{heroBanners.length}</span>
+              {/* Slide 2: Donasi Rp 0 */}
+              <div
+                onClick={() => router.push('/dashboard/explore?tab=DONATION')}
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#0D3F33] via-[#125845] to-[#1B3A5C] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs inline-flex items-center gap-1">
+                      <Gift className="w-2.5 h-2.5" />
+                      <span>GRATIS RP 0</span>
+                    </span>
+                    <span className="text-[9px] font-bold text-emerald-300">Mitra Resmi</span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
+                    Donasi Pangan Bebas Biaya
+                  </h4>
+                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                    Surplus makanan siap konsumsi bebas biaya dari donatur terverifikasi, aman berstandar higienis BPOM.
+                  </p>
+                </div>
+                <div className="pt-3 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-emerald-300 flex items-center gap-1">
+                    <span>Klaim Donasi</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                    2 / 4
+                  </span>
+                </div>
+              </div>
+
+              {/* Slide 3: Double EcoPoints */}
+              <div
+                onClick={() => router.push('/dashboard/consumer/rewards')}
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#2F1F4E] via-[#422271] to-[#1B3A5C] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs inline-flex items-center gap-1">
+                      <Coins className="w-2.5 h-2.5" />
+                      <span>DOUBLE REWARD</span>
+                    </span>
+                    <span className="text-[9px] font-bold text-amber-300">Gamifikasi</span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
+                    Gandakan EcoPoints Penyelamatan
+                  </h4>
+                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                    Kumpulkan poin pahlawan pangan setiap kali bertransaksi, tukarkan voucher sembako &amp; merchandise.
+                  </p>
+                </div>
+                <div className="pt-3 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-amber-300 flex items-center gap-1">
+                    <span>Katalog Hadiah</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                    3 / 4
+                  </span>
+                </div>
+              </div>
+
+              {/* Slide 4: Kerjasama Mitra F&B */}
+              <div
+                onClick={() => router.push('/dashboard/provider/register')}
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#19324D] via-[#10404C] to-[#1B3A5C] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-teal-400 text-slate-950 shadow-xs inline-flex items-center gap-1">
+                      <Building2 className="w-2.5 h-2.5" />
+                      <span>KEMITRAAN F&amp;B</span>
+                    </span>
+                    <span className="text-[9px] font-bold text-teal-300">Zero Waste</span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
+                    Mitra Resto &amp; Toko Roti
+                  </h4>
+                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                    Daftarkan gerai kuliner Anda, kurangi susut pangan harian, dan jangkau konsumen baru di kotamu.
+                  </p>
+                </div>
+                <div className="pt-3 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-teal-300 flex items-center gap-1">
+                    <span>Daftar Gerai</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                    4 / 4
+                  </span>
+                </div>
               </div>
             </div>
           </section>
@@ -1049,7 +1166,10 @@ export default function ConsumerDashboardPage() {
               </div>
             </div>
 
-            <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar snap-x snap-mandatory">
+            <div
+              className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar snap-x snap-mandatory"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {flashRescueItems.map((item) => (
                 <div
                   key={`mobile-flash-${item.id}`}
@@ -1151,7 +1271,10 @@ export default function ConsumerDashboardPage() {
             {/* Smooth Swipeable Horizontal Rail of 4 Condensed Cards - No Clunky Slider Controls */}
             {filteredFoods.length > 0 ? (
               <div className="space-y-3">
-                <div className="flex gap-3 overflow-x-auto pb-2 pt-0.5 no-scrollbar snap-x snap-mandatory">
+                <div
+                  className="flex gap-3 overflow-x-auto pb-2 pt-0.5 no-scrollbar snap-x snap-mandatory"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
                   {filteredFoods.slice(0, 4).map((food) => {
                     const isDiscounted = food.originalPrice > food.price && food.price > 0;
                     const discPct = isDiscounted
@@ -1161,11 +1284,7 @@ export default function ConsumerDashboardPage() {
                     return (
                       <div
                         key={`catalog-condensed-${food.id}`}
-                        onClick={() => {
-                          setSelectedFood(food);
-                          setIsDetailModalOpen(true);
-                        }}
-                        className="w-[180px] shrink-0 snap-start bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between cursor-pointer"
+                        className="w-[185px] shrink-0 snap-start bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between"
                       >
                         {/* Image Container */}
                         <div className="relative h-32 w-full bg-slate-100 overflow-hidden shrink-0">
@@ -1185,6 +1304,21 @@ export default function ConsumerDashboardPage() {
                               </span>
                             ) : null}
                           </div>
+
+                          {/* Tombol Info Detail Khusus (Bukan klik seluruh card - Point 5) */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedFood(food);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 hover:bg-white text-[#1B3A5C] shadow-xs flex items-center justify-center transition-transform active:scale-90 cursor-pointer border border-slate-200"
+                            title="Lihat Detail Makanan &amp; Standar BPOM"
+                          >
+                            <Info className="w-3.5 h-3.5 text-[#1B3A5C]" />
+                          </button>
+
                           <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between text-[8.5px] font-bold text-white bg-slate-950/70 backdrop-blur-xs px-1.5 py-0.5 rounded">
                             <span className="truncate">{food.distance}</span>
                             <span className="truncate">{food.pickupTime?.split(' ')[0] || 'Hari ini'}</span>
@@ -1202,7 +1336,7 @@ export default function ConsumerDashboardPage() {
                             </h4>
                           </div>
 
-                          {/* Pricing & Add Button */}
+                          {/* Pricing & Dual Action Buttons (Klaim Langsung & Tambah ke Tas - Point 5) */}
                           <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
                             <div className="min-w-0">
                               {isDiscounted && (
@@ -1217,14 +1351,34 @@ export default function ConsumerDashboardPage() {
                               </strong>
                             </div>
 
-                            <button
-                              type="button"
-                              onClick={(e) => handleAddToCart(food, e)}
-                              className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
-                              title="Tambah ke Tas"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {/* Tombol Checkout Langsung */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickClaim(food);
+                                }}
+                                className="px-2 py-1 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-[9.5px] rounded-lg flex items-center gap-0.5 shadow-2xs cursor-pointer active:scale-95 transition-all"
+                                title="Checkout Langsung"
+                              >
+                                <Zap className="w-3 h-3 text-slate-950" />
+                                <span>Klaim</span>
+                              </button>
+
+                              {/* Tombol Tambah ke Tas */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToCart(food, e);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+                                title="Tambah ke Tas"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1280,6 +1434,111 @@ export default function ConsumerDashboardPage() {
                 </button>
               </div>
             )}
+          </section>
+
+          {/* Section Paling Bawah: Pusat Ekosistem Penyelamatan Pangan (Promo, Tiket Donasi, Edukasi, Kemitraan - Point 6) */}
+          <section className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#1B3A5C] block">
+                Ekosistem Penyelamatan Pangan
+              </span>
+              <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                Pusat Promo, Bantuan &amp; Kemitraan
+              </h4>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Pilih topik informasi sesuai kebutuhan Anda untuk diarahkan ke modul terkait.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              {/* Card 1: Promo & Diskon Surplus */}
+              <div
+                onClick={() => router.push('/dashboard/explore?tab=RESCUE_SALE')}
+                className="bg-gradient-to-br from-amber-50 to-orange-50/70 border border-amber-200/80 hover:border-amber-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
+              >
+                <div className="space-y-1.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-800 flex items-center justify-center">
+                    <Tag className="w-4 h-4 text-amber-700" />
+                  </div>
+                  <h5 className="text-xs font-black text-slate-900 group-hover:text-amber-800 transition-colors leading-tight">
+                    Promo Rescue
+                  </h5>
+                  <p className="text-[10px] text-slate-600 leading-snug line-clamp-2">
+                    Diskon belanja hemat hingga 70% kuliner surplus layak konsumsi.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-black text-amber-800 pt-1 border-t border-amber-200/60">
+                  <span>Buka Promo</span>
+                  <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+
+              {/* Card 2: Tiket Donasi & Panti */}
+              <div
+                onClick={() => router.push('/dashboard/explore?tab=PANTI_NEEDS')}
+                className="bg-gradient-to-br from-emerald-50 to-teal-50/70 border border-emerald-200/80 hover:border-emerald-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
+              >
+                <div className="space-y-1.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-800 flex items-center justify-center">
+                    <Ticket className="w-4 h-4 text-emerald-700" />
+                  </div>
+                  <h5 className="text-xs font-black text-slate-900 group-hover:text-emerald-800 transition-colors leading-tight">
+                    Tiket Donasi
+                  </h5>
+                  <p className="text-[10px] text-slate-600 leading-snug line-clamp-2">
+                    Salurkan donasi surplus untuk panti asuhan &amp; dhuafa Dinsos.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-black text-emerald-800 pt-1 border-t border-emerald-200/60">
+                  <span>Buka Donasi</span>
+                  <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+
+              {/* Card 3: Edukasi & Standar BPOM */}
+              <div
+                onClick={() => router.push('/dashboard/info')}
+                className="bg-gradient-to-br from-blue-50 to-sky-50/70 border border-blue-200/80 hover:border-blue-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
+              >
+                <div className="space-y-1.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-800 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-blue-700" />
+                  </div>
+                  <h5 className="text-xs font-black text-slate-900 group-hover:text-blue-800 transition-colors leading-tight">
+                    Edukasi Pangan
+                  </h5>
+                  <p className="text-[10px] text-slate-600 leading-snug line-clamp-2">
+                    Standar sanitasi BPOM RI, batas suhu aman, &amp; pencegahan food waste.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-black text-blue-800 pt-1 border-t border-blue-200/60">
+                  <span>Baca Edukasi</span>
+                  <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+
+              {/* Card 4: Kerjasama Gerai & Mitra */}
+              <div
+                onClick={() => router.push('/dashboard/provider/register')}
+                className="bg-gradient-to-br from-indigo-50 to-purple-50/70 border border-indigo-200/80 hover:border-indigo-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
+              >
+                <div className="space-y-1.5">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-800 flex items-center justify-center">
+                    <Handshake className="w-4 h-4 text-indigo-700" />
+                  </div>
+                  <h5 className="text-xs font-black text-slate-900 group-hover:text-indigo-800 transition-colors leading-tight">
+                    Kerjasama Mitra
+                  </h5>
+                  <p className="text-[10px] text-slate-600 leading-snug line-clamp-2">
+                    Kolaborasi bisnis F&amp;B, hotel, dan katering dalam ekosistem hijau.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-black text-indigo-800 pt-1 border-t border-indigo-200/60">
+                  <span>Daftar Mitra</span>
+                  <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -1591,6 +1850,18 @@ export default function ConsumerDashboardPage() {
         message={actionLoader.message}
         submessage={actionLoader.submessage}
       />
+
+      <style jsx global>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}</style>
     </div>
   );
 }

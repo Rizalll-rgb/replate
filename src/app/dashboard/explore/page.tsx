@@ -2,8 +2,32 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { SparklesIcon, AlertTriangleIcon, CheckIcon, TruckIcon, ShieldCheckIcon, MinusIcon, PlusIcon } from 'lucide-react';
+import {
+  SparklesIcon,
+  AlertTriangleIcon,
+  CheckIcon,
+  TruckIcon,
+  ShieldCheckIcon,
+  MinusIcon,
+  PlusIcon,
+  ArrowLeft,
+  Search,
+  MapPin,
+  ShoppingBag,
+  X,
+  Zap,
+  Info,
+  Plus,
+  Clock,
+  Tag,
+  Gift,
+  Building2,
+  ChevronRight,
+  Flame,
+  Filter,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Toast } from '@/components/ui/Toast';
@@ -101,6 +125,63 @@ export default function WorkspaceExplorePage() {
   
   const [syncRadius, setSyncRadius] = useState<number | null>(null);
   const [showAIAnalyticsDetails, setShowAIAnalyticsDetails] = useState(false);
+
+  // Mobile Explorer States & Synchronization (Point 2)
+  const [cartCount, setCartCount] = useState<number>(0);
+  const [consumerAddress, setConsumerAddress] = useState<string>('Kec. Wonokromo, Surabaya');
+
+  // Read URL query parameters on mount (e.g. ?tab=RESCUE_SALE, ?tab=DONATION, ?category=ROTI_KUE)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam === 'RESCUE_SALE' || tabParam === 'DONATION' || tabParam === 'PANTI_NEEDS') {
+        setActiveTab(tabParam);
+      }
+      const catParam = params.get('category');
+      if (catParam) {
+        setSelectedCategory(catParam);
+      }
+      const qParam = params.get('q');
+      if (qParam) {
+        setSearchQuery(qParam);
+      }
+
+      // Sync user address from profile
+      try {
+        const p = localStorage.getItem('replate_onboarding_profile');
+        if (p) {
+          const parsed = JSON.parse(p);
+          if (parsed.address) setConsumerAddress(parsed.address);
+          else if (parsed.city) setConsumerAddress(parsed.city);
+        }
+      } catch (_) {}
+
+      // Sync radius
+      try {
+        const r = localStorage.getItem('replate_admin_sync_radius');
+        if (r) setSyncRadius(parseInt(r));
+      } catch (_) {}
+    }
+  }, []);
+
+  // Sync Cart Count
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const c = localStorage.getItem('replate_tas_klaim') || localStorage.getItem('replate_cart') || '[]';
+        const parsed = JSON.parse(c);
+        setCartCount(parsed.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 1), 0));
+      } catch (_) {}
+    };
+    updateCount();
+    window.addEventListener('storage', updateCount);
+    window.addEventListener('replate_cart_updated', updateCount);
+    return () => {
+      window.removeEventListener('storage', updateCount);
+      window.removeEventListener('replate_cart_updated', updateCount);
+    };
+  }, []);
 
   // Multi-Slide Interactive Promo Hero Carousel State (Point 9)
   const promoSlides = [
@@ -787,8 +868,13 @@ export default function WorkspaceExplorePage() {
         message={actionLoader.message}
         submessage={actionLoader.submessage}
       />
-      {/* Header Info & Featured Promo Hero */}
-      {/* Multi-Slide Interactive Promo Hero Carousel (Point 9) */}
+      {/* ========================================================================= */}
+      {/* 1. DESKTOP VIEW (hidden on mobile, visible md: and up)                     */}
+      {/* 100% UNCHANGED AND PRESERVED FOR LAPTOP / DESKTOP (Point 2)               */}
+      {/* ========================================================================= */}
+      <div className="hidden md:block space-y-6">
+        {/* Header Info & Featured Promo Hero */}
+        {/* Multi-Slide Interactive Promo Hero Carousel (Point 9) */}
       {(() => {
         const slide = promoSlides[currentSlideIndex];
         return (
@@ -1302,6 +1388,442 @@ export default function WorkspaceExplorePage() {
           </div>
         </div>
       )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. MOBILE VIEW (visible on mobile, hidden on md: and up)                  */}
+      {/* GOJEK-STYLE LIST BERDAFTAR WITH SEARCH, PROMO BANNER & CHIPS (Point 2)    */}
+      {/* ========================================================================= */}
+      <div className="block md:hidden pb-16 space-y-3 font-sans">
+        {/* Sticky Mobile Header */}
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 py-2.5 space-y-2.5 shadow-2xs">
+          <div className="flex items-center justify-between gap-2">
+            {/* Back Button & Location Chip */}
+            <div className="flex items-center gap-2 min-w-0">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 shrink-0 cursor-pointer transition-colors"
+                title="Kembali"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <div className="min-w-0">
+                <span className="text-[9px] text-slate-500 block font-medium leading-none">
+                  Area Penjemputan
+                </span>
+                <span className="text-xs font-black text-slate-900 truncate block">
+                  {consumerAddress}
+                </span>
+              </div>
+            </div>
+
+            {/* Tas Klaim Shortcut */}
+            <Link href="/dashboard/cart">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#D4A843] text-slate-950 font-black text-xs shadow-2xs shrink-0 cursor-pointer"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Tas</span>
+                {cartCount > 0 && (
+                  <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9.5px] font-black leading-none">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </Link>
+          </div>
+
+          {/* Real-time Search Input */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari makanan surplus, resto, panti..."
+              className="w-full pl-9 pr-8 py-2 bg-slate-100 border border-slate-200 focus:border-[#1B3A5C] focus:bg-white rounded-xl text-xs text-slate-900 placeholder:text-slate-400 font-medium outline-hidden transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="px-3 space-y-3">
+          {/* Main 3 Service Tabs (Gojek-style rounded pill buttons) */}
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setActiveTab('RESCUE_SALE')}
+              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                activeTab === 'RESCUE_SALE'
+                  ? 'bg-[#1B3A5C] text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>Rescue Sale</span>
+              <span className="block text-[8px] opacity-80 font-bold">Hemat 70%</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('DONATION')}
+              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                activeTab === 'DONATION'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>Donasi Rp 0</span>
+              <span className="block text-[8px] opacity-80 font-bold">Gratis</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('PANTI_NEEDS')}
+              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                activeTab === 'PANTI_NEEDS'
+                  ? 'bg-[#1B3A5C] text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>Panti Asuhan</span>
+              <span className="block text-[8px] opacity-80 font-bold">({pantiNeeds.length} Lembaga)</span>
+            </button>
+          </div>
+
+          {/* Contextual Gojek-Style Promo Banner */}
+          {activeTab === 'RESCUE_SALE' && (
+            <div className="p-3 bg-gradient-to-r from-amber-500 via-amber-600 to-[#1B3A5C] rounded-2xl text-white shadow-xs flex items-center justify-between gap-2.5">
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 text-white inline-block">
+                  RESCUE SALE HINGGA 70%
+                </span>
+                <h4 className="text-xs font-black text-white leading-tight">
+                  Porsi Resto &amp; Bakery Lezat Sebelum Tutup
+                </h4>
+                <p className="text-[10px] text-white/90 leading-snug line-clamp-1">
+                  Kualitas premium teruji sensorik standar BPOM RI.
+                </p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <Flame className="w-5 h-5 text-amber-200" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'DONATION' && (
+            <div className="p-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-[#1B3A5C] rounded-2xl text-white shadow-xs flex items-center justify-between gap-2.5">
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 text-white inline-block">
+                  DONASI SURPLUS RP 0
+                </span>
+                <h4 className="text-xs font-black text-white leading-tight">
+                  Makanan Bebas Biaya untuk Masyarakat
+                </h4>
+                <p className="text-[10px] text-white/90 leading-snug line-clamp-1">
+                  Bebas biaya dari donatur terverifikasi, higienis berstempel BPOM.
+                </p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <Gift className="w-5 h-5 text-emerald-200" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'PANTI_NEEDS' && (
+            <div className="p-3 bg-gradient-to-r from-[#1B3A5C] via-[#1E436D] to-[#0D3F33] rounded-2xl text-white shadow-xs flex items-center justify-between gap-2.5">
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 inline-block font-black">
+                  YAYASAN &amp; PANTI ASUHAN
+                </span>
+                <h4 className="text-xs font-black text-white leading-tight">
+                  Permohonan Donasi Terverifikasi Dinsos
+                </h4>
+                <p className="text-[10px] text-white/90 leading-snug line-clamp-1">
+                  Salurkan surplus langsung atau dengan kurir relawan rescue.
+                </p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <Building2 className="w-5 h-5 text-amber-300" />
+              </div>
+            </div>
+          )}
+
+          {/* Horizontal Filter Chips (Category Pills - Only for food tabs) */}
+          {activeTab !== 'PANTI_NEEDS' && (
+            <div
+              className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {categoryList.map((cat) => (
+                <button
+                  key={`mobile-cat-${cat.key}`}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.key)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-black shrink-0 transition-all cursor-pointer border ${
+                    selectedCategory === cat.key
+                      ? 'bg-[#1B3A5C] text-white border-[#1B3A5C] shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Vertical List Berdaftar (Gojek / GoFood Single-Column Style) */}
+          {activeTab !== 'PANTI_NEEDS' ? (
+            filteredFoods.length > 0 ? (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-[10px] font-bold text-slate-500">
+                    Menampilkan {filteredFoods.length} makanan siap diselamatkan
+                  </span>
+                  <span className="text-[10px] font-bold text-[#1B3A5C]">
+                    Radius &lt; {syncRadius || 15} km
+                  </span>
+                </div>
+
+                {filteredFoods.map((item) => {
+                  const isDiscounted = item.originalPrice > item.discountPrice && item.discountPrice > 0;
+                  const discPct = isDiscounted
+                    ? Math.round(((item.originalPrice - item.discountPrice) / item.originalPrice) * 100)
+                    : 0;
+
+                  return (
+                    <div
+                      key={`mobile-list-${item.id}`}
+                      className="bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs hover:border-slate-300 transition-all space-y-2.5"
+                    >
+                      <div className="flex gap-3">
+                        {/* Left Info Column */}
+                        <div className="flex-1 min-w-0 space-y-1">
+                          {/* Provider & Distance */}
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold">
+                            <span className="text-[#1B3A5C] truncate max-w-[140px]">
+                              {item.providerName}
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-0.5 text-amber-700 shrink-0">
+                              <MapPin className="w-2.5 h-2.5" />
+                              <span>{item.distance || '1.2 km'}</span>
+                            </span>
+                          </div>
+
+                          {/* Food Title */}
+                          <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight line-clamp-2">
+                            {item.title}
+                          </h4>
+
+                          {/* Pickup time & portions */}
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
+                            <span className="flex items-center gap-1 truncate">
+                              <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{item.pickupTime || 'Hari ini 19:00 - 21:00'}</span>
+                            </span>
+                            <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded shrink-0">
+                              {item.quantity || '1 Porsi'}
+                            </span>
+                          </div>
+
+                          {/* Price */}
+                          <div className="pt-0.5 flex items-baseline gap-1.5">
+                            <strong className="text-xs sm:text-sm font-black text-emerald-700 font-mono">
+                              {item.isFree || item.discountPrice === 0
+                                ? 'GRATIS'
+                                : `Rp ${item.discountPrice.toLocaleString('id-ID')}`}
+                            </strong>
+                            {!item.isFree && isDiscounted && (
+                              <span className="text-[10px] text-slate-400 line-through font-mono">
+                                Rp {item.originalPrice.toLocaleString('id-ID')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right Thumbnail Column */}
+                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative border border-slate-200">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {item.isFree || item.discountPrice === 0 ? (
+                            <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[9px] rounded uppercase shadow-xs">
+                              Rp 0
+                            </span>
+                          ) : isDiscounted ? (
+                            <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-red-600 text-white font-black text-[9px] rounded shadow-xs">
+                              -{discPct}%
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Card Actions Bar */}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                        {/* Info Detail Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenFoodDetail(item)}
+                          className="h-8 px-2.5 bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] font-bold text-[11px] rounded-xl flex items-center gap-1 transition-all cursor-pointer"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                          <span>Info Detail</span>
+                        </button>
+
+                        {/* Direct Claim & Add to Cart */}
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleClaimFood(item)}
+                            className="w-8 h-8 bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 rounded-xl flex items-center justify-center transition-all cursor-pointer"
+                            title="Tambah ke Tas Klaim"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleBuyNow(item)}
+                            className="h-8 px-3.5 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-[11px] rounded-xl flex items-center gap-1 shadow-2xs transition-all cursor-pointer active:scale-95"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                            <span>{item.isFree ? 'Klaim Gratis' : 'Klaim Langsung'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-white border border-slate-200 rounded-2xl space-y-2">
+                <SparklesIcon className="w-8 h-8 text-slate-400 mx-auto" />
+                <h4 className="text-xs font-black text-slate-800">Tidak Ada Makanan yang Cocok</h4>
+                <p className="text-[11px] text-slate-500">
+                  Coba ubah kata kunci pencarian atau ganti filter kategori.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('ALL');
+                  }}
+                  className="mt-1 py-1.5 px-3 bg-[#1B3A5C] text-white font-black text-xs rounded-xl cursor-pointer"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )
+          ) : (
+            /* Panti Needs List on Mobile */
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-0.5">
+                <span className="text-[10px] font-bold text-slate-500">
+                  Menampilkan {filteredPantiNeeds.length} lembaga panti
+                </span>
+                <span className="text-[10px] font-bold text-[#1B3A5C]">
+                  Dinsos Terverifikasi
+                </span>
+              </div>
+
+              {filteredPantiNeeds.map((need) => {
+                const targetNum = typeof need.targetQuantity === 'number' ? need.targetQuantity : parseInt(String(need.targetQuantity).replace(/\D/g, '')) || 1;
+                const fulfilledNum = parseInt(need.fulfilledQuantity.replace(/\D/g, '')) || 0;
+                const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
+
+                return (
+                  <div
+                    key={`mobile-panti-${need.id}`}
+                    className="bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs space-y-2.5"
+                  >
+                    <div className="flex gap-3">
+                      {/* Left: Info */}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[8.5px] font-black px-1.5 py-0.2 rounded ${
+                            need.urgency === 'HIGH' ? 'bg-red-500 text-white animate-pulse' : 'bg-amber-400 text-slate-950'
+                          }`}>
+                            {need.urgency === 'HIGH' ? 'URGENT' : 'BESOK'}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-bold truncate">
+                            {need.shelterType}
+                          </span>
+                        </div>
+
+                        <h4 className="text-xs sm:text-sm font-black text-[#1B3A5C] leading-tight line-clamp-2">
+                          {need.pantiName}
+                        </h4>
+
+                        <div className="text-[10px] text-slate-600 space-y-0.5">
+                          <div className="flex justify-between">
+                            <span>Penerima:</span>
+                            <span className="font-bold text-[#1B3A5C]">{need.beneficiariesCount} Jiwa</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Menu Dibutuhkan:</span>
+                            <span className="font-bold text-emerald-700 truncate max-w-[120px]">{need.foodCategoryNeeded}</span>
+                          </div>
+                        </div>
+
+                        {/* Progress */}
+                        <div className="space-y-1 pt-1">
+                          <div className="flex justify-between text-[9px] font-bold text-slate-600">
+                            <span>Target: {need.targetQuantity}</span>
+                            <span className="text-emerald-700 font-black">{percent}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${percent}%` }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Photo */}
+                      <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200 relative">
+                        <img src={need.imageUrl} alt={need.pantiName} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 right-1 text-[8.5px] bg-slate-900/80 text-amber-300 font-bold px-1 rounded">
+                          {need.location.split('(')[0]}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedShelterProfile(need)}
+                        className="flex-1 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1B3A5C] font-black text-[10.5px] rounded-xl border border-blue-200 text-center transition-colors cursor-pointer"
+                      >
+                        Detail &amp; Peta GPS
+                      </button>
+
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        onClick={() => handleOpenAllocationModal(need)}
+                        className="flex-1 py-1.5 font-black text-[10.5px] text-slate-950 rounded-xl cursor-pointer"
+                      >
+                        Sanggupi Bantuan
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Modal Detail Profil Lembaga & Titik Lokasi Peta GPS */}
       <Modal

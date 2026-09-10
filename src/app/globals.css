@@ -525,3 +525,18 @@ input, textarea, select {
   animation: replateGlowPulse 3s ease-in-out infinite;
 }
 
+/* ============================================
+   HIDE SCROLLBAR UTILITY (.no-scrollbar)
+   Eliminates native slider/track on mobile & desktop
+   ============================================ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
