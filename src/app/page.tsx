@@ -269,6 +269,16 @@ export default function HomePage() {
         imageUrl: item.photos?.[0] || item.photo || item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
       }));
 
+      const deduplicateFoods = (list: any[]) => {
+        const seen = new Set<string>();
+        return list.filter((item) => {
+          const id = String(item.id || '');
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+      };
+
       fetch('/api/surplus')
         .then((res) => res.json())
         .then((data) => {
@@ -294,13 +304,13 @@ export default function HomePage() {
               matchScore: item.matchScore || 96,
               imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
             }));
-            setFoods([...mappedLocal, ...mappedApi]);
+            setFoods(deduplicateFoods([...mappedLocal, ...mappedApi]));
           } else {
-            setFoods([...mappedLocal, ...exploreDefaultFoods]);
+            setFoods(deduplicateFoods([...mappedLocal, ...exploreDefaultFoods]));
           }
         })
         .catch(() => {
-          setFoods([...mappedLocal, ...exploreDefaultFoods]);
+          setFoods(deduplicateFoods([...mappedLocal, ...exploreDefaultFoods]));
         });
     } catch (_) {
       setFoods(exploreDefaultFoods);

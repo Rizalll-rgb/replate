@@ -187,22 +187,7 @@ export default function LoginPage() {
         });
       } catch (_) {}
 
-      // 3. Coba NextAuth signIn secara non-blocking (maks 1 detik agar tidak membekukan UI)
-      try {
-        const authPromise = signIn('credentials', {
-          email: emailVal,
-          password: passwordVal,
-          redirect: false,
-        });
-        await Promise.race([
-          authPromise,
-          new Promise((resolve) => setTimeout(resolve, 800)),
-        ]);
-      } catch (signInErr) {
-        console.warn('NextAuth credentials fallback:', signInErr);
-      }
-
-      // 4. Langsung navigasi ke URL dashboard dengan parameter fallback
+      // 3. Langsung navigasi ke URL dashboard dengan parameter fallback
       window.location.href = `${targetUrl}?demo_role=${effectiveRole}`;
     } catch (err) {
       console.error('Login error:', err);
@@ -254,16 +239,7 @@ export default function LoginPage() {
         });
       } catch (_) {}
 
-      // 5. Trigger NextAuth signIn di background tanpa menunggu
-      try {
-        signIn('credentials', {
-          email: cfg.demoEmail,
-          password: 'password123',
-          redirect: false,
-        }).catch(() => {});
-      } catch (_) {}
-
-      // 6. Langsung redirect ke dashboard peran terkait
+      // 5. Langsung redirect ke dashboard peran terkait
       window.location.href = `${cfg.targetUrl}?demo_role=${role}`;
     } catch (err) {
       console.error('Quick demo error:', err);
