@@ -383,9 +383,10 @@ export default function ConsumerDashboardPage() {
       if (activeCategoryFilter === 'ALL') return true;
       if (activeCategoryFilter === 'RESCUE_SALE') return !item.isFree && item.price > 0 && item.originalPrice > item.price;
       if (activeCategoryFilter === 'FREE') return item.isFree || item.price === 0;
+      if (activeCategoryFilter === 'MINUMAN_SUSU') return item.category === 'MINUMAN_SUSU' || (item.title && item.title.toLowerCase().includes('susu')) || (item.title && item.title.toLowerCase().includes('jus')) || (item.title && item.title.toLowerCase().includes('kopi')) || (item.title && item.title.toLowerCase().includes('teh')) || (item.title && item.title.toLowerCase().includes('drink'));
       if (activeCategoryFilter === 'FLASH') return item.originalPrice > item.price && (item.originalPrice - item.price) / item.originalPrice >= 0.5;
-      if (activeCategoryFilter === 'BAKERY') return item.category === 'BAKERY' || (item.title && item.title.toLowerCase().includes('roti'));
-      if (activeCategoryFilter === 'PRODUCE') return item.category === 'PRODUCE' || (item.title && item.title.toLowerCase().includes('buah')) || (item.title && item.title.toLowerCase().includes('sayur'));
+      if (activeCategoryFilter === 'BAKERY') return item.category === 'BAKERY' || item.category === 'ROTI_KUE' || (item.title && item.title.toLowerCase().includes('roti'));
+      if (activeCategoryFilter === 'PRODUCE') return item.category === 'PRODUCE' || item.category === 'BUAH_SAYUR' || (item.title && item.title.toLowerCase().includes('buah')) || (item.title && item.title.toLowerCase().includes('sayur'));
       if (activeCategoryFilter === 'NEARBY') {
         const dist = parseFloat(item.distance) || 3.0;
         return dist <= 2.0;
@@ -763,7 +764,7 @@ export default function ConsumerDashboardPage() {
               </div>
             </button>
 
-            {/* Action Buttons: Tas Klaim (Notifikasi dipindahkan ke BottomNav) */}
+            {/* Action Buttons: Tas Klaim + Avatar Button (Profilku Ala Gojek) */}
             <div className="flex items-center gap-2 shrink-0">
               <Link href="/dashboard/cart">
                 <button
@@ -780,6 +781,17 @@ export default function ConsumerDashboardPage() {
                   )}
                 </button>
               </Link>
+
+              {/* Avatar Icon Button: Opens Gojek Profile Drawer */}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event('replate_open_profile_drawer'))}
+                className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1B3A5C] to-[#2C5282] text-white flex items-center justify-center font-black text-xs shadow-xs border border-white/60 active:scale-95 transition-all cursor-pointer relative"
+                title="Buka Profil & Pengaturan (Ala Gojek)"
+              >
+                <User className="w-4 h-4 text-[#D4A843]" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+              </button>
             </div>
           </div>
 
@@ -1245,6 +1257,7 @@ export default function ConsumerDashboardPage() {
                   { id: 'ALL', label: 'Semua' },
                   { id: 'RESCUE_SALE', label: 'Rescue Sale' },
                   { id: 'FREE', label: 'Donasi Rp 0' },
+                  { id: 'MINUMAN_SUSU', label: 'Minuman & Susu' },
                   { id: 'BAKERY', label: 'Roti/Kue' },
                   { id: 'PRODUCE', label: 'Buah/Sayur' },
                   { id: 'NEARBY', label: 'Dekat (<2km)' },
@@ -1473,24 +1486,24 @@ export default function ConsumerDashboardPage() {
                 </div>
               </div>
 
-              {/* Card 2: Tiket Donasi & Panti */}
+              {/* Card 2: Voucher & Hadiah (Tukar EcoPoints) - Pengganti Tiket Donasi */}
               <div
-                onClick={() => router.push('/dashboard/explore?tab=PANTI_NEEDS')}
+                onClick={() => router.push('/dashboard/consumer/rewards')}
                 className="bg-gradient-to-br from-emerald-50 to-teal-50/70 border border-emerald-200/80 hover:border-emerald-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
               >
                 <div className="space-y-1.5">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-800 flex items-center justify-center">
-                    <Ticket className="w-4 h-4 text-emerald-700" />
+                    <Award className="w-4 h-4 text-emerald-700" />
                   </div>
                   <h5 className="text-xs font-black text-slate-900 group-hover:text-emerald-800 transition-colors leading-tight">
-                    Tiket Donasi
+                    Voucher &amp; Hadiah
                   </h5>
                   <p className="text-[10px] text-slate-600 leading-snug line-clamp-2">
-                    Salurkan donasi surplus untuk panti asuhan &amp; dhuafa Dinsos.
+                    Tukar EcoPoints penyelamatan pangan jadi voucher diskon &amp; bibit pohon.
                   </p>
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-black text-emerald-800 pt-1 border-t border-emerald-200/60">
-                  <span>Buka Donasi</span>
+                  <span>Tukar Poin</span>
                   <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>

@@ -400,7 +400,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
         <div className="border-t border-[#2C5A8F]/40 pt-4 pb-4 px-4 shrink-0">
           <button
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={() => {
+              try {
+                if (typeof window !== 'undefined') {
+                  const keysToRemove: string[] = [];
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('replate_') || key.startsWith('replate-'))) {
+                      keysToRemove.push(key);
+                    }
+                  }
+                  keysToRemove.forEach((k) => localStorage.removeItem(k));
+                  document.cookie = 'replate_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                }
+              } catch (_) {}
+              signOut({ callbackUrl: '/' });
+            }}
             className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-[#142C47] hover:text-red-300 w-full transition-colors cursor-pointer"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

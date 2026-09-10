@@ -27,6 +27,9 @@ import {
   ChevronRight,
   Flame,
   Filter,
+  Store,
+  UtensilsCrossed,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -284,6 +287,38 @@ export default function WorkspaceExplorePage() {
     return () => clearInterval(timer);
   }, [promoSlides.length]);
 
+  // User role determination (Consumer vs Provider vs Beneficiary vs Admin)
+  const userRole = useMemo(() => {
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.role) return String(parsed.role).toUpperCase();
+      }
+      if (session?.user?.role) return String(session.user.role).toUpperCase();
+      const reg = localStorage.getItem('replate_registered_user');
+      if (reg) {
+        const parsed = JSON.parse(reg);
+        if (parsed.role) return String(parsed.role).toUpperCase();
+      }
+    } catch (_) {}
+    return String(session?.user?.role || 'CONSUMER').toUpperCase();
+  }, [session]);
+
+  const isConsumer = userRole.includes('CONSUMER');
+
+  // Mobile view mode: 'TOKO' (list merchant first - Ala Gojek GoFood) or 'SEMUA_MENU'
+  const [mobileViewMode, setMobileViewMode] = useState<'TOKO' | 'SEMUA_MENU'>('TOKO');
+  const [selectedStoreModal, setSelectedStoreModal] = useState<{
+    isOpen: boolean;
+    storeName: string;
+    foods: FoodItem[];
+  }>({
+    isOpen: false,
+    storeName: '',
+    foods: [],
+  });
+
   // Panti Needs data synchronized with explore page & smart matching (Single Source of Truth)
   const [pantiNeeds, setPantiNeeds] = useState<SharedPantiNeed[]>(SHARED_PANTI_NEEDS);
   const [filterPantiMethod, setFilterPantiMethod] = useState<'ALL' | 'SELF_PICKUP' | 'PARTNER_DELIVERY'>('ALL');
@@ -317,7 +352,7 @@ export default function WorkspaceExplorePage() {
           } else if (up === 'DONATION' || up === 'FREE' || up === 'DONASI') {
             setActiveTab('DONATION');
           } else if (up === 'PANTI_NEEDS' || up === 'PANTI') {
-            setActiveTab('PANTI_NEEDS');
+            setActiveTab(isConsumer ? 'RESCUE_SALE' : 'PANTI_NEEDS');
           }
         }
 
@@ -566,6 +601,37 @@ export default function WorkspaceExplorePage() {
     }
     return true;
   });
+
+  // Grouped foods by Store / Merchant for GoFood-style mobile experience (Point 5)
+  const groupedByStore = useMemo(() => {
+    const map = new Map<string, {
+      storeName: string;
+      providerAddress?: string;
+      distance: string;
+      coverImage: string;
+      foods: FoodItem[];
+      rating: number;
+    }>();
+
+    filteredFoods.forEach((food) => {
+      const sName = food.providerName || 'Mitra Toko Replate';
+      if (!map.has(sName)) {
+        map.set(sName, {
+          storeName: sName,
+          providerAddress: food.providerAddress,
+          distance: food.distance || '1.2 km',
+          coverImage: food.imageUrl,
+          foods: [food],
+          rating: food.rating || 4.9,
+        });
+      } else {
+        const existing = map.get(sName)!;
+        existing.foods.push(food);
+      }
+    });
+
+    return Array.from(map.values());
+  }, [filteredFoods]);
 
   const handleClaimFood = (item: FoodItem) => {
     try {
@@ -1056,18 +1122,20 @@ export default function WorkspaceExplorePage() {
           </button>
         )}
 
-        {/* Panti Needs Tab — visible for all roles including providers and beneficiaries */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('PANTI_NEEDS')}
-          className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            activeTab === 'PANTI_NEEDS'
-              ? 'bg-[#1B3A5C] text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-950 font-bold'
-          }`}
-        >
-          <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
-        </button>
+        {/* Panti Needs Tab — hidden for consumers (Point 8) */}
+        {!isConsumer && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('PANTI_NEEDS')}
+            className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'PANTI_NEEDS'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-950 font-bold'
+            }`}
+          >
+            <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
+          </button>
+        )}
       </div>
 
       {/* Food Grid Content */}
@@ -1458,8 +1526,8 @@ export default function WorkspaceExplorePage() {
         </div>
 
         <div className="px-3 space-y-3">
-          {/* Main 3 Service Tabs (Gojek-style rounded pill buttons) */}
-          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+          {/* Main Service Tabs — Consumer only gets 2 tabs, Panti is hidden (Point 8) */}
+          <div className={`grid ${isConsumer ? 'grid-cols-2' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
             <button
               type="button"
               onClick={() => setActiveTab('RESCUE_SALE')}
@@ -1486,18 +1554,20 @@ export default function WorkspaceExplorePage() {
               <span className="block text-[8px] opacity-80 font-bold">Gratis</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('PANTI_NEEDS')}
-              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
-                activeTab === 'PANTI_NEEDS'
-                  ? 'bg-[#1B3A5C] text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
-              }`}
-            >
-              <span>Panti Asuhan</span>
-              <span className="block text-[8px] opacity-80 font-bold">({pantiNeeds.length} Lembaga)</span>
-            </button>
+            {!isConsumer && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('PANTI_NEEDS')}
+                className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                  activeTab === 'PANTI_NEEDS'
+                    ? 'bg-[#1B3A5C] text-white shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200/60'
+                }`}
+              >
+                <span>Panti Asuhan</span>
+                <span className="block text-[8px] opacity-80 font-bold">({pantiNeeds.length} Lembaga)</span>
+              </button>
+            )}
           </div>
 
           {/* Contextual Gojek-Style Promo Banner */}
@@ -1539,10 +1609,10 @@ export default function WorkspaceExplorePage() {
             </div>
           )}
 
-          {activeTab === 'PANTI_NEEDS' && (
+          {activeTab === 'PANTI_NEEDS' && !isConsumer && (
             <div className="p-3 bg-gradient-to-r from-[#1B3A5C] via-[#1E436D] to-[#0D3F33] rounded-2xl text-white shadow-xs flex items-center justify-between gap-2.5">
               <div className="space-y-0.5 min-w-0">
-                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 inline-block font-black">
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 inline-block">
                   YAYASAN &amp; PANTI ASUHAN
                 </span>
                 <h4 className="text-xs font-black text-white leading-tight">
@@ -1581,8 +1651,130 @@ export default function WorkspaceExplorePage() {
             </div>
           )}
 
-          {/* Vertical List Berdaftar (Gojek / GoFood Single-Column Style) */}
-          {activeTab !== 'PANTI_NEEDS' ? (
+          {/* View Mode Switcher: Berdasarkan Toko (Ala Gojek GoFood) vs Semua Menu (Point 5) */}
+          {activeTab !== 'PANTI_NEEDS' && (
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setMobileViewMode('TOKO')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    mobileViewMode === 'TOKO'
+                      ? 'bg-[#1B3A5C] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Store className="w-3.5 h-3.5" />
+                  <span>Daftar Toko ({groupedByStore.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileViewMode('SEMUA_MENU')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    mobileViewMode === 'SEMUA_MENU'
+                      ? 'bg-[#1B3A5C] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <UtensilsCrossed className="w-3.5 h-3.5" />
+                  <span>Semua Menu ({filteredFoods.length})</span>
+                </button>
+              </div>
+
+              <span className="text-[10px] font-bold text-slate-400">
+                &lt;{syncRadius || 15} km
+              </span>
+            </div>
+          )}
+
+          {/* 1. TOKO-FIRST LIST (Ala Gojek / GoFood Merchant Cards - Point 5) */}
+          {activeTab !== 'PANTI_NEEDS' && mobileViewMode === 'TOKO' && (
+            groupedByStore.length > 0 ? (
+              <div className="space-y-3">
+                {groupedByStore.map((store) => (
+                  <div
+                    key={`mobile-store-${store.storeName}`}
+                    onClick={() => setSelectedStoreModal({
+                      isOpen: true,
+                      storeName: store.storeName,
+                      foods: store.foods,
+                    })}
+                    className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs hover:border-slate-300 transition-all cursor-pointer space-y-3 active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Store Cover Image */}
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                        <img
+                          src={store.coverImage}
+                          alt={store.storeName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 font-bold text-[9px] rounded flex items-center gap-0.5">
+                            <ShieldCheckIcon size={10} className="text-emerald-700" />
+                            <span>Mitra BPOM</span>
+                          </span>
+                          <span className="text-[10px] font-bold text-amber-700 flex items-center gap-0.5">
+                            <MapPin className="w-2.5 h-2.5" />
+                            <span>{store.distance}</span>
+                          </span>
+                        </div>
+
+                        <h4 className="font-black text-sm text-slate-900 truncate">
+                          {store.storeName}
+                        </h4>
+
+                        <div className="flex items-center gap-2 text-[10.5px] text-slate-500 font-medium">
+                          <span className="text-amber-600 font-black flex items-center gap-1">
+                            <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                            <span>{store.rating.toFixed(1)}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="text-[#1B3A5C] font-bold">
+                            {store.foods.length} Menu Siap Jemput
+                          </span>
+                        </div>
+                      </div>
+
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </div>
+
+                    {/* Preview dishes chips */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 border-t border-slate-100">
+                      {store.foods.map((food) => (
+                        <div
+                          key={`preview-food-${food.id}`}
+                          className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[10px] shrink-0 font-medium flex items-center gap-1.5"
+                        >
+                          <span className="font-bold text-slate-800 truncate max-w-[120px]">
+                            {food.title}
+                          </span>
+                          <strong className="text-emerald-700 font-black font-mono">
+                            {food.isFree || food.discountPrice === 0 ? 'Gratis' : `Rp ${food.discountPrice.toLocaleString('id-ID')}`}
+                          </strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-white border border-slate-200 rounded-2xl space-y-2">
+                <Store className="w-8 h-8 text-slate-400 mx-auto" />
+                <h4 className="text-xs font-black text-slate-800">Tidak Ada Toko yang Cocok</h4>
+                <p className="text-[11px] text-slate-500">
+                  Coba ubah kata kunci atau ganti filter kategori makanan.
+                </p>
+              </div>
+            )
+          )}
+
+          {/* 2. Vertical List Berdaftar (Gojek / GoFood Single-Column Style - When mode is SEMUA_MENU) */}
+          {activeTab !== 'PANTI_NEEDS' && mobileViewMode === 'SEMUA_MENU' && (
             filteredFoods.length > 0 ? (
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between px-0.5">
@@ -1726,8 +1918,10 @@ export default function WorkspaceExplorePage() {
                 </button>
               </div>
             )
-          ) : (
-            /* Panti Needs List on Mobile */
+          )}
+
+          {/* Panti Needs List on Mobile (Non-Consumer only) */}
+          {!isConsumer && activeTab === 'PANTI_NEEDS' && (
             <div className="space-y-3">
               <div className="flex items-center justify-between px-0.5">
                 <span className="text-[10px] font-bold text-slate-500">
@@ -2416,6 +2610,130 @@ export default function WorkspaceExplorePage() {
       )}
 
 
+
+      {/* Store Menu Drawer / Modal (Ala Gojek / GoFood Store Menu - Point 5) */}
+      <Modal
+        isOpen={selectedStoreModal.isOpen}
+        onClose={() => setSelectedStoreModal({ isOpen: false, storeName: '', foods: [] })}
+        title={`Menu Surplus — ${selectedStoreModal.storeName}`}
+        size="lg"
+      >
+        <div className="space-y-3 p-1 font-sans">
+          <div className="p-3 bg-gradient-to-r from-[#1B3A5C] to-[#2C5282] text-white rounded-2xl flex items-center justify-between gap-3">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[9px] font-black uppercase tracking-wider text-[#D4A843] block">
+                GERAI MITRA TERVERIFIKASI
+              </span>
+              <h3 className="text-sm sm:text-base font-black text-white truncate">
+                {selectedStoreModal.storeName}
+              </h3>
+              <p className="text-[10.5px] text-slate-200 truncate">
+                Standar Higienitas &amp; Rantai Dingin BPOM RI
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Store className="w-5 h-5 text-[#D4A843]" />
+            </div>
+          </div>
+
+          <div className="space-y-2.5 max-h-[60vh] overflow-y-auto no-scrollbar pr-0.5">
+            {selectedStoreModal.foods.map((food) => {
+              const isDiscounted = food.originalPrice > food.discountPrice && food.discountPrice > 0;
+              const discPct = isDiscounted
+                ? Math.round(((food.originalPrice - food.discountPrice) / food.originalPrice) * 100)
+                : 0;
+
+              return (
+                <div
+                  key={`store-menu-${food.id}`}
+                  className="bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs space-y-2.5 hover:border-slate-300 transition-all"
+                >
+                  <div className="flex gap-3">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                        {food.title}
+                      </h4>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          <span>{food.pickupTime || 'Hari ini 19:00 - 21:00'}</span>
+                        </span>
+                        <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded">
+                          {food.quantity || '1 Porsi'}
+                        </span>
+                      </div>
+                      <div className="pt-0.5 flex items-baseline gap-1.5">
+                        <strong className="text-xs sm:text-sm font-black text-emerald-700 font-mono">
+                          {food.isFree || food.discountPrice === 0
+                            ? 'GRATIS'
+                            : `Rp ${food.discountPrice.toLocaleString('id-ID')}`}
+                        </strong>
+                        {!food.isFree && isDiscounted && (
+                          <span className="text-[10px] text-slate-400 line-through font-mono">
+                            Rp {food.originalPrice.toLocaleString('id-ID')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative border border-slate-200">
+                      <img
+                        src={food.imageUrl}
+                        alt={food.title}
+                        className="w-full h-full object-cover"
+                      />
+                      {food.isFree || food.discountPrice === 0 ? (
+                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[9px] rounded uppercase shadow-xs">
+                          Rp 0
+                        </span>
+                      ) : isDiscounted ? (
+                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-red-600 text-white font-black text-[9px] rounded shadow-xs">
+                          -{discPct}%
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenFoodDetail(food)}
+                      className="h-7 px-2 bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] font-bold text-[10.5px] rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                    >
+                      <Info className="w-3 h-3" />
+                      <span>Detail</span>
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleClaimFood(food)}
+                        className="h-7 px-2.5 bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 rounded-lg flex items-center gap-1 font-bold text-[10.5px] transition-all cursor-pointer"
+                        title="Tambah ke Tas"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Tas</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedStoreModal({ isOpen: false, storeName: '', foods: [] });
+                          handleBuyNow(food);
+                        }}
+                        className="h-7 px-3 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-[10.5px] rounded-lg flex items-center gap-1 shadow-2xs transition-all cursor-pointer active:scale-95"
+                      >
+                        <Zap className="w-3 h-3" />
+                        <span>Klaim Langsung</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Modal>
 
       {/* Toast */}
       <Toast

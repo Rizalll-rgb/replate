@@ -11,7 +11,23 @@ import {
   FoodSafetyCategory,
 } from '@/lib/thermalRescueEngine';
 import { calculateIppcEsgImpact } from '@/lib/esgCarbonEngine';
-import { Thermometer, ShieldAlert, CheckCircle2, AlertTriangle, Flame, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Thermometer,
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  Flame,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  HelpCircle,
+  BookOpen,
+  Calculator,
+  Phone,
+  MessageSquare,
+  X,
+} from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -854,8 +870,430 @@ export default function DashboardInfoHubPage() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
+      {/* ============================================================
+          MOBILE FIRST VIEW (Gojek Help Center / "Bantuan" Style - block md:hidden)
+          ============================================================ */}
+      <div className="block md:hidden space-y-4 pb-12">
+        {/* Mobile Search & Hero Header (Gojek Bantuan Style) */}
+        <div className="bg-gradient-to-br from-[#1B3A5C] via-[#1B3A5C] to-[#2C5A8F] text-white rounded-3xl p-5 shadow-sm space-y-3.5">
+          <div className="flex items-center justify-between">
+            <span className="px-2.5 py-0.5 bg-[#D4A843]/20 border border-[#D4A843]/30 text-[#D4A843] rounded-full text-[9.5px] font-black uppercase tracking-wider">
+              Pusat Bantuan Replate
+            </span>
+            <span className="text-[10px] text-slate-300 font-medium">
+              {formatRoleLabel(userRole)}
+            </span>
+          </div>
+
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-white">Ada yang bisa dibantu?</h1>
+            <p className="text-xs text-slate-300 font-medium mt-0.5">
+              Temukan panduan SOP klaim, standar BPOM RI, alur donasi, atau hitung dampak emisi.
+            </p>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Ketik kendala atau kata kunci..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-8 py-2.5 bg-white text-slate-900 rounded-2xl text-xs font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#D4A843] shadow-xs"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                title="Hapus pencarian"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Quick Keyword Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+            {roleRecommendedKeywords.slice(0, 4).map((kw) => (
+              <button
+                key={kw}
+                onClick={() => setSearchQuery(kw)}
+                className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-[10px] font-bold text-slate-200 whitespace-nowrap transition-colors cursor-pointer"
+              >
+                {kw}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 4 Category Quick Nav Cards (Gojek Help Center 4-Icon Grid) */}
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            {
+              id: 'FAQ',
+              label: 'Tanya Jawab',
+              sub: 'FAQ Populer',
+              icon: <HelpCircle className="w-5 h-5 text-indigo-600" />,
+              bg: 'bg-indigo-50 border-indigo-200',
+            },
+            {
+              id: 'CARA_KERJA',
+              label: 'Cara Kerja',
+              sub: 'Alur 4 Role',
+              icon: <BookOpen className="w-5 h-5 text-blue-600" />,
+              bg: 'bg-blue-50 border-blue-200',
+            },
+            {
+              id: 'BPOM',
+              label: 'SOP BPOM',
+              sub: 'Audit 8-Poin',
+              icon: <ShieldCheck className="w-5 h-5 text-amber-600" />,
+              bg: 'bg-amber-50 border-amber-200',
+            },
+            {
+              id: 'KALKULATOR',
+              label: 'Kalkulator',
+              sub: 'Emisi & Gizi',
+              icon: <Calculator className="w-5 h-5 text-emerald-600" />,
+              bg: 'bg-emerald-50 border-emerald-200',
+            },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => {
+                setActiveTab(cat.id as any);
+                setSearchQuery('');
+              }}
+              className={`p-2.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                activeTab === cat.id
+                  ? 'bg-white border-[#D4A843] shadow-xs ring-2 ring-[#D4A843]/30 scale-[1.02]'
+                  : 'bg-white border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${cat.bg}`}>
+                {cat.icon}
+              </div>
+              <span className="text-[10px] font-black text-[#1B3A5C] leading-tight line-clamp-1">
+                {cat.label}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Live Search Results (If searching) */}
+        {searchQuery.trim() && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-2.5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#1B3A5C]">
+                Hasil Pencarian ({searchResults.length})
+              </span>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                Hapus
+              </button>
+            </div>
+            {searchResults.length === 0 ? (
+              <p className="text-xs text-slate-500 py-3 text-center">
+                Tidak ada panduan yang cocok dengan kata kunci &quot;{searchQuery}&quot;.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {searchResults.slice(0, 6).map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleJumpToTopic(item)}
+                    className="p-2.5 rounded-xl border border-slate-100 hover:border-amber-300 bg-slate-50/70 hover:bg-amber-50/30 transition-all cursor-pointer space-y-1"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded ${item.categoryBadgeColor}`}>
+                        {item.categoryLabel}
+                      </span>
+                      <h4 className="text-xs font-bold text-slate-900 truncate flex-1">
+                        {highlightText(item.title, searchQuery)}
+                      </h4>
+                    </div>
+                    <p className="text-[10.5px] text-slate-600 line-clamp-2 leading-relaxed">
+                      {highlightText(item.content, searchQuery)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Section Content Display based on activeTab */}
+        {!searchQuery.trim() && activeTab === 'FAQ' && (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-black text-[#1B3A5C]">Pertanyaan yang Sering Diajukan</span>
+              <span className="text-[10px] text-slate-400 font-bold">{faqs.length} Topik</span>
+            </div>
+            {faqs.map((faq, idx) => (
+              <div
+                key={idx}
+                className={`bg-white rounded-2xl border transition-all overflow-hidden ${
+                  openFaqIndex === idx
+                    ? 'border-[#D4A843] shadow-xs ring-1 ring-[#D4A843]/30'
+                    : 'border-slate-200'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
+                  className="w-full p-3.5 text-left flex items-start justify-between gap-2 font-bold text-xs text-[#1B3A5C] cursor-pointer"
+                >
+                  <span className="leading-snug">{faq.q}</span>
+                  <span className="shrink-0 mt-0.5">
+                    {openFaqIndex === idx ? (
+                      <ChevronUp className="w-4 h-4 text-[#D4A843]" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    )}
+                  </span>
+                </button>
+                {openFaqIndex === idx && (
+                  <div className="px-3.5 pb-3.5 pt-0 text-[11.5px] text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!searchQuery.trim() && activeTab === 'CARA_KERJA' && (
+          <div className="space-y-3">
+            {/* Role Switcher Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+              {[
+                { id: 'CONSUMER', label: 'Konsumen' },
+                { id: 'PROVIDER', label: 'Resto & Bakery' },
+                { id: 'BENEFICIARY', label: 'Panti & Yayasan' },
+                { id: 'VOLUNTEER', label: 'Relawan' },
+              ].map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => setSelectedRoleFlow(r.id as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                    selectedRoleFlow === r.id
+                      ? 'bg-[#1B3A5C] text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Steps Timeline Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div>
+                  <span className="text-[9px] font-black uppercase text-[#B8860B] tracking-wider block">
+                    {roleWorkflows[selectedRoleFlow].badge}
+                  </span>
+                  <h3 className="text-sm font-black text-[#1B3A5C]">
+                    {roleWorkflows[selectedRoleFlow].roleTitle}
+                  </h3>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                {roleWorkflows[selectedRoleFlow].summary}
+              </p>
+
+              <div className="space-y-3 pt-1">
+                {roleWorkflows[selectedRoleFlow].steps.map((step) => (
+                  <div key={step.num} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#1B3A5C] text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                      {step.num}
+                    </div>
+                    <div className="space-y-0.5 flex-1 min-w-0">
+                      <h4 className="text-xs font-black text-slate-900 leading-tight">{step.title}</h4>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!searchQuery.trim() && activeTab === 'BPOM' && (
+          <div className="space-y-3">
+            {/* BPOM 8-Poin Summary Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-[#1B3A5C]">8 Poin Protokol BPOM RI</h3>
+                  <p className="text-[10px] text-slate-500 font-medium">Standar Wajib Penyelamatan Pangan Siap Santap</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-[10.5px]">
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
+                  <span className="font-black text-slate-800 block">1. Waktu Masak</span>
+                  <span className="text-slate-500">&lt; 4 Jam sejak matang</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
+                  <span className="font-black text-slate-800 block">2. Suhu Kontrol</span>
+                  <span className="text-slate-500">&gt; 60°C atau &lt; 4°C</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
+                  <span className="font-black text-slate-800 block">3. Segel Higienis</span>
+                  <span className="text-slate-500">Kemasan tersegel rapi</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-0.5">
+                  <span className="font-black text-slate-800 block">4. Organoleptik</span>
+                  <span className="text-slate-500">Uji bau, rasa, tekstur</span>
+                </div>
+              </div>
+
+              {/* Thermal Decay Calculator Mobile Card */}
+              <div className="p-3.5 bg-slate-900 text-white rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-black uppercase text-[#D4A843] tracking-wider">
+                    Simulasi Termal BPOM RUI
+                  </span>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    bpomRuiResult.remainingSafeMinutes <= 0
+                      ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                  }`}>
+                    {bpomRuiResult.urgencyLabelIndo}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                  <div className="p-2 bg-slate-800 rounded-xl">
+                    <span className="text-[10px] text-slate-400 block">Batas Maksimal</span>
+                    <strong className="text-white font-mono text-sm">{bpomRuiResult.effectiveMaxHours} Jam</strong>
+                  </div>
+                  <div className="p-2 bg-slate-800 rounded-xl">
+                    <span className="text-[10px] text-slate-400 block">Sisa Toleransi</span>
+                    <strong className={`font-mono text-sm ${bpomRuiResult.remainingSafeMinutes <= 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                      {bpomRuiResult.remainingSafeMinutes <= 0 ? 'Kedaluwarsa' : `${Math.round(bpomRuiResult.remainingSafeMinutes)} Menit`}
+                    </strong>
+                  </div>
+                </div>
+
+                <p className="text-[10.5px] text-slate-300 leading-relaxed font-medium">
+                  {bpomRuiResult.recommendedDispatchAction}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(!searchQuery.trim() && (activeTab === 'KALKULATOR' || activeTab === 'LATAR_BELAKANG')) && (
+          <div className="space-y-3">
+            {/* Mobile ESG & Carbon Calculator */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-4 shadow-xs">
+              <div>
+                <span className="text-[9px] font-black uppercase text-[#B8860B] tracking-wider block">
+                  Kajian Ilmiah Bappenas RI & KLH
+                </span>
+                <h3 className="text-sm font-black text-[#1B3A5C]">
+                  Kalkulator Dampak Emisi & Nutrisi
+                </h3>
+              </div>
+
+              {/* Portion Selector Counter */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 block">Porsi Surplus Pangan</span>
+                  <strong className="text-base font-black text-[#1B3A5C] font-mono">{simulatedPortions} Porsi</strong>
+                  <span className="text-[10px] text-slate-400 font-medium block">(~{calcWasteKg} kg makanan)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setSimulatedPortions(Math.max(5, simulatedPortions - 10))}
+                    className="w-8 h-8 rounded-xl bg-white border border-slate-300 font-black text-slate-800 flex items-center justify-center hover:bg-slate-100 cursor-pointer text-sm"
+                  >
+                    -
+                  </button>
+                  <button
+                    onClick={() => setSimulatedPortions(simulatedPortions + 10)}
+                    className="w-8 h-8 rounded-xl bg-[#1B3A5C] text-white font-black flex items-center justify-center hover:bg-[#254f7d] cursor-pointer text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-center space-y-0.5">
+                  <span className="text-[10px] font-bold text-emerald-800 block">CO2e Dicegah</span>
+                  <strong className="text-base font-black text-emerald-950 font-mono">{calcCo2eKg} kg</strong>
+                  <span className="text-[9.5px] text-emerald-700 block">Setara {calcCarKm} km mobil</span>
+                </div>
+
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 text-center space-y-0.5">
+                  <span className="text-[10px] font-bold text-amber-800 block">Nilai Ekonomi</span>
+                  <strong className="text-base font-black text-amber-950 font-mono">Rp {calcEconomicRp.toLocaleString('id-ID')}</strong>
+                  <span className="text-[9.5px] text-amber-700 block">Standar Bappenas</span>
+                </div>
+
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 text-center space-y-0.5">
+                  <span className="text-[10px] font-bold text-blue-800 block">Kalori Diselamatkan</span>
+                  <strong className="text-base font-black text-blue-950 font-mono">{calcEnergyKcal.toLocaleString('id-ID')} kkal</strong>
+                  <span className="text-[9.5px] text-blue-700 block">AKG Nutrisi Sehat</span>
+                </div>
+
+                <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 text-center space-y-0.5">
+                  <span className="text-[10px] font-bold text-purple-800 block">Metana (CH4) Dihindari</span>
+                  <strong className="text-base font-black text-purple-950 font-mono">{calcCh4Kg} kg</strong>
+                  <span className="text-[9.5px] text-purple-700 block">Tier 2 IPCC GWP-28</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Support Footer Card (Ala Gojek Bantuan CS) */}
+        <div className="bg-[#1B3A5C] text-white rounded-3xl p-4 sm:p-5 border border-[#2C5A8F] space-y-3 shadow-xs">
+          <div className="space-y-0.5">
+            <h4 className="font-black text-xs sm:text-sm text-[#D4A843]">Butuh Bantuan Operasional Langsung?</h4>
+            <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+              Tim Helpdesk Governance Replate siap mendampingi Anda 24/7 jika ada kendala saat pengambilan surplus.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="https://wa.me/6281234567890?text=Halo%20Admin%20Replate,%20saya%20butuh%20bantuan%20operasional"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2 px-3 bg-[#D4A843] hover:bg-[#c49839] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors text-center"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>WhatsApp CS</span>
+            </a>
+
+            <a
+              href="mailto:halo@replate.id"
+              className="py-2 px-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-white/20 text-center"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Email</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================
+          DESKTOP VIEW (Preserved 100% Unchanged - hidden md:block)
+          ============================================================ */}
+      <div className="hidden md:block space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
         <div>
           <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
             PUSAT INFORMASI, EDUKASI & REGULASI TERPADU
@@ -1788,6 +2226,7 @@ export default function DashboardInfoHubPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

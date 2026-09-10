@@ -295,6 +295,31 @@ export default function CheckoutCartPage() {
     setUploadProofModal({ isOpen: true, resiCode, totalAmount });
   };
 
+  const handleAutoPayDemo = () => {
+    const resiCode = genResiCode('CNS');
+    setQrisModal(false);
+    setActionLoader({
+      isOpen: true,
+      message: 'Memverifikasi Pembayaran QRIS...',
+      submessage: 'Sinkronisasi gateway pembayaran digital QRIS',
+    });
+    setTimeout(() => {
+      try {
+        const defaultStatus = deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH';
+        const newClaim = saveClaimAndRedirect(resiCode, defaultStatus, 'https://images.unsplash.com/photo-1554415707-9e4466b88738?w=500&auto=format&fit=crop&q=60');
+        setActionLoader({ isOpen: false, message: '' });
+        setSuccessModal({ isOpen: true, claim: newClaim });
+        setToastState({
+          isOpen: true,
+          message: 'Pembayaran QRIS Berhasil Diverifikasi! Tiket klaim siap digunakan.',
+          type: 'success',
+        });
+      } catch (_) {
+        setActionLoader({ isOpen: false, message: '' });
+      }
+    }, 1200);
+  };
+
   // Poin 7: After proof uploaded → save claim as WAITING_PAYMENT_APPROVAL
   const handleUploadProof = () => {
     if (!proofImageName) {
@@ -563,32 +588,34 @@ export default function CheckoutCartPage() {
           </div>
         </Modal>
 
-        {/* POIN 7: MODAL QRIS PAYMENT CODE */}
+        {/* POIN 7: MODAL QRIS PAYMENT CODE NASIONAL */}
         <Modal isOpen={qrisModal} onClose={() => setQrisModal(false)} title="Scan & Bayar QRIS">
-          <div className="space-y-4 text-xs text-center">
+          <div className="space-y-3.5 text-xs text-center font-sans">
             <div className="p-4 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl border border-blue-200 space-y-3">
               <div className="flex items-center justify-center gap-2 text-[#1B3A5C]">
                 <QrCodeIcon size={16} />
-                <span className="font-black text-sm">QRIS Pembayaran Replate</span>
+                <span className="font-black text-sm">QRIS Pembayaran Resmi Replate</span>
               </div>
-              {/* Real Uploaded Barcode QRIS dari Setup Profil Provider (Poin 4) */}
-              <div className="flex justify-center py-2">
-                <div className="bg-white p-4 rounded-2xl shadow-md border-2 border-slate-300 max-w-[280px] w-full text-center space-y-2.5">
+
+              {/* Real Dynamic QRIS Barcode Box */}
+              <div className="flex justify-center py-1">
+                <div className="bg-white p-4 rounded-2xl shadow-md border-2 border-slate-300 max-w-[290px] w-full text-center space-y-2.5">
                   {/* QRIS Official Header */}
                   <div className="border-b border-slate-200 pb-2">
                     <div className="flex items-center justify-center gap-1.5">
-                      <span className="font-black text-sm tracking-widest text-[#1B3A5C]">QRIS</span>
-                      <span className="text-[9px] font-bold text-slate-500 uppercase">National Standard</span>
+                      <span className="font-black text-base tracking-widest text-[#1B3A5C]">QRIS</span>
+                      <span className="text-[9px] font-extrabold text-slate-500 uppercase">National Standard</span>
                     </div>
-                    <p className="text-[9.5px] text-slate-400 font-mono mt-0.5">NMID: {providerQris.nmid}</p>
+                    <p className="text-[9.5px] text-slate-400 font-mono mt-0.5">NMID: {providerQris.nmid || 'ID1020268891001'}</p>
                   </div>
 
-                  {/* Uploaded QRIS Image from Provider Profile */}
-                  <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-1 flex items-center justify-center">
-                    <img
-                      src={providerQris.imageUrl}
-                      alt="Barcode QRIS Toko"
-                      className="w-full h-full object-contain"
+                  {/* Real QR Barcode Rendered via QRGenerator */}
+                  <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border border-slate-200 bg-white p-1 flex items-center justify-center">
+                    <QRGenerator
+                      value={`00020101021226580016ID.CO.REPLATE.WWW0118RPL-CNS-2026-889152045812530336054${totalAmount}5802ID59${(providerQris.merchantName || items[0]?.providerName || 'REPLATE SURABAYA').slice(0, 25)}6008SURABAYA62070703A016304`}
+                      size={180}
+                      codeTitle=""
+                      codeSubtitle=""
                     />
                   </div>
 
@@ -596,23 +623,46 @@ export default function CheckoutCartPage() {
                     <h5 className="font-black text-xs text-[#1B3A5C] truncate">{providerQris.merchantName || items[0]?.providerName || 'Provider Replate'}</h5>
                     <p className="text-[10px] text-slate-500 font-medium">{providerQris.bank} • {providerQris.accountNo}</p>
                   </div>
+
+                  {/* Supported Payment Channels */}
+                  <div className="pt-1 border-t border-slate-100 flex flex-wrap items-center justify-center gap-1 text-[8.5px] text-slate-500 font-bold">
+                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">GoPay</span>
+                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">OVO</span>
+                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">DANA</span>
+                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">ShopeePay</span>
+                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">BCA</span>
+                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">Mandiri</span>
+                  </div>
                 </div>
               </div>
+
               <div className="p-3 bg-white rounded-xl border border-slate-200 text-left space-y-1.5">
-                <div className="flex justify-between"><span className="text-slate-500">Nama Merchant:</span><strong className="text-slate-800">{providerQris.merchantName || items[0]?.providerName || 'Replate Provider'}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-500">Jumlah Bayar:</span><strong className="text-[#1B3A5C] font-black text-sm">Rp {totalAmount.toLocaleString('id-ID')}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-500">Metode:</span><strong className="text-slate-800">QRIS (Semua E-Wallet & Bank)</strong></div>
+                <div className="flex justify-between"><span className="text-slate-500">Nama Toko:</span><strong className="text-slate-800">{providerQris.merchantName || items[0]?.providerName || 'Replate Provider'}</strong></div>
+                <div className="flex justify-between"><span className="text-slate-500">Jumlah Bayar:</span><strong className="text-emerald-700 font-black text-sm">Rp {totalAmount.toLocaleString('id-ID')}</strong></div>
+                <div className="flex justify-between"><span className="text-slate-500">Metode:</span><strong className="text-slate-800">QRIS (Semua E-Wallet &amp; Bank)</strong></div>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                Scan barcode QRIS toko di atas menggunakan aplikasi GoPay, OVO, DANA, ShopeePay, atau m-Banking manapun.
-                Setelah pembayaran berhasil, klik <strong>"Sudah Bayar, Upload Bukti"</strong>.
+
+              <p className="text-[10.5px] text-slate-500 leading-relaxed">
+                Scan barcode QRIS di atas menggunakan aplikasi GoPay, OVO, DANA, ShopeePay, atau m-Banking manapun.
               </p>
             </div>
-            <div className="flex gap-2.5">
-              <Button variant="outline" size="sm" className="flex-1 font-bold text-xs cursor-pointer" onClick={() => setQrisModal(false)}>Batal</Button>
-              <Button variant="gold" size="sm" leftIcon={<CheckIcon size={12} className="text-slate-950" />} className="flex-1 font-black text-xs text-slate-950 shadow-xs cursor-pointer" onClick={handleQrisConfirmed}>
-                Sudah Bayar, Upload Bukti
-              </Button>
+
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleAutoPayDemo}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white font-black text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+              >
+                <CheckIcon size={14} />
+                <span>Simulasi Bayar Otomatis (Demo Cepat)</span>
+              </button>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 font-bold text-xs cursor-pointer" onClick={() => setQrisModal(false)}>Batal</Button>
+                <Button variant="gold" size="sm" leftIcon={<CheckIcon size={12} className="text-slate-950" />} className="flex-1 font-black text-xs text-slate-950 shadow-xs cursor-pointer" onClick={handleQrisConfirmed}>
+                  Sudah Bayar, Upload Bukti
+                </Button>
+              </div>
             </div>
           </div>
         </Modal>
