@@ -880,7 +880,7 @@ export default function PartnerActivePickupsPage() {
                         <div className="space-y-2">
                           <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px]">
                             <div className="space-y-0.5">
-                              <span className="font-bold text-amber-900 block inline-flex items-center gap-1">
+                              <span className="font-bold text-amber-900 inline-flex items-center gap-1">
                                 <Package className="w-3.5 h-3.5 text-amber-800 shrink-0" />
                                 <span>Catatan Kemasan & Sterilisasi Khusus:</span>
                               </span>
