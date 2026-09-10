@@ -759,23 +759,12 @@ export default function ConsumerDashboardPage() {
               </div>
             </button>
 
-            {/* Action Buttons: Notif & Tas */}
+            {/* Action Buttons: Tas Klaim (Notifikasi dipindahkan ke BottomNav) */}
             <div className="flex items-center gap-2 shrink-0">
-              <Link href="/notifications">
-                <button
-                  type="button"
-                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300/80 flex items-center justify-center text-slate-700 transition-all cursor-pointer relative"
-                  title="Notifikasi"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500" />
-                </button>
-              </Link>
-
               <Link href="/dashboard/cart">
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-105 text-slate-950 font-black text-xs transition-all shadow-xs cursor-pointer relative"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-105 active:scale-95 text-slate-950 font-black text-xs transition-all shadow-xs cursor-pointer relative"
                   title="Tas Klaim"
                 >
                   <ShoppingBag className="w-4 h-4 text-slate-950" />
@@ -818,35 +807,39 @@ export default function ConsumerDashboardPage() {
         <div className="px-3.5 space-y-4">
           {/* Mobile Eco-Impact & Savings Card (Emerald-Navy Member Card) */}
           <section className="bg-gradient-to-br from-[#1B3A5C] via-[#14334E] to-[#0D3F33] rounded-2xl p-4 text-white shadow-md border border-[#D4A843]/40 space-y-3.5 relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/15 pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#D4A843]/20 border border-[#D4A843]/80 flex items-center justify-center shrink-0">
-                  <Coins className="w-4 h-4 text-[#D4A843]" />
+            <div className="flex items-center justify-between gap-2 border-b border-white/15 pb-3">
+              {/* Left: Member Badge & Name */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-[#D4A843]/20 border border-[#D4A843]/80 flex items-center justify-center shrink-0">
+                  <Coins className="w-4.5 h-4.5 text-[#D4A843]" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[#D4A843] font-black uppercase tracking-wider">
-                      Dompet Dampak & Penghematan
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsPahlawanInfoModalOpen(true)}
-                      className="text-[9px] bg-white/15 hover:bg-white/25 text-amber-300 px-1.5 py-0.2 rounded-md font-bold cursor-pointer inline-flex items-center gap-0.5"
-                    >
-                      <Info className="w-2.5 h-2.5" /> Apa ini?
-                    </button>
-                  </div>
-                  <h3 className="text-xs font-black text-slate-100">
+                <div className="min-w-0">
+                  <span className="text-[10px] text-[#D4A843] font-black uppercase tracking-wider block leading-tight">
+                    Pahlawan Pangan
+                  </span>
+                  <h3 className="text-xs font-black text-white truncate">
                     {consumerName}
                   </h3>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-[9px] text-slate-300 block font-medium">Saldo EcoPoints</span>
-                <strong className="text-xs font-black text-amber-300 font-mono">
-                  {ecoPoints} Poin
-                </strong>
+              {/* Right: Saldo EcoPoints & Apa Ini Aligned Horizontally on Same Baseline */}
+              <div className="flex items-center gap-2 shrink-0 bg-white/10 hover:bg-white/15 border border-white/15 px-2.5 py-1.5 rounded-xl transition-all">
+                <div className="text-right leading-tight">
+                  <span className="text-[9.5px] text-slate-300 font-semibold block">Saldo EcoPoints</span>
+                  <strong className="text-xs sm:text-sm font-black text-amber-300 font-mono block">
+                    {ecoPoints} Poin
+                  </strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPahlawanInfoModalOpen(true)}
+                  className="h-8 px-2.5 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[11px] font-bold cursor-pointer flex items-center gap-1 transition-all active:scale-95 shrink-0"
+                  title="Penjelasan Pahlawan Pangan & EcoPoints"
+                >
+                  <Info className="w-3 h-3 text-amber-300" />
+                  <span>Apa ini?</span>
+                </button>
               </div>
             </div>
 
@@ -872,62 +865,47 @@ export default function ConsumerDashboardPage() {
               </div>
             </div>
 
-            {/* Equal Sized Action Buttons */}
-            <div className="flex items-center gap-2 pt-1">
+            {/* Equal Sized Action Buttons - STRICTLY IDENTICAL HEIGHT (h-11) & WIDTH */}
+            <div className="flex items-center gap-2 pt-0.5">
               <button
                 type="button"
                 onClick={() => setIsRewardsModalOpen(true)}
-                className="flex-1 py-2.5 px-3 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-[#D4A843] transition-all cursor-pointer"
+                className="h-11 flex-1 px-3 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-[#D4A843] transition-all cursor-pointer active:scale-98"
               >
-                <Award className="w-3.5 h-3.5 text-slate-950 shrink-0" />
-                <span>Tukar EcoPoints</span>
+                <Award className="w-4 h-4 text-slate-950 shrink-0" />
+                <span className="truncate">Tukar EcoPoints</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsQRModalOpen(true)}
-                className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-emerald-500 transition-all cursor-pointer"
+                className="h-11 flex-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-emerald-500 transition-all cursor-pointer active:scale-98"
               >
-                <QrCode className="w-3.5 h-3.5 text-white shrink-0" />
-                <span>Tiket QR Klaim ({activeClaimsCount})</span>
+                <QrCode className="w-4 h-4 text-white shrink-0" />
+                <span className="truncate">Tiket QR Klaim ({activeClaimsCount})</span>
               </button>
             </div>
           </section>
 
-          {/* 8 Quick-Action Service Icons Grid (Grid 4x2) */}
+          {/* 8 Quick-Action Service Icons Grid (Direct Redirection to Filtered Explore) */}
           <section className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black text-[#1B3A5C] uppercase tracking-wider block">
                 Layanan Penyelamatan Pangan
               </span>
-              {activeCategoryFilter !== 'ALL' && (
-                <button
-                  type="button"
-                  onClick={() => setActiveCategoryFilter('ALL')}
-                  className="text-[10.5px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Reset</span>
-                </button>
-              )}
+              <span className="text-[10px] text-slate-400 font-bold">
+                Pilih Kategori Langsung
+              </span>
             </div>
 
             <div className="grid grid-cols-4 gap-2">
               {/* 1. Rescue Sale */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategoryFilter('RESCUE_SALE');
-                  setCurrentPage(1);
-                  scrollToCatalog();
-                }}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
-                  activeCategoryFilter === 'RESCUE_SALE'
-                    ? 'bg-amber-100/70 border border-amber-300 ring-2 ring-amber-400/50'
-                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
-                }`}
+                onClick={() => router.push('/dashboard/explore?tab=RESCUE_SALE')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center mb-1 text-amber-700">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 group-hover:bg-amber-200 border border-amber-200 flex items-center justify-center mb-1 text-amber-700 transition-colors">
                   <UtensilsCrossed className="w-4 h-4" />
                 </div>
                 <span className="text-[10px] font-black text-slate-800 leading-tight">Rescue Sale</span>
@@ -937,18 +915,10 @@ export default function ConsumerDashboardPage() {
               {/* 2. Donasi Rp 0 */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategoryFilter('FREE');
-                  setCurrentPage(1);
-                  scrollToCatalog();
-                }}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
-                  activeCategoryFilter === 'FREE'
-                    ? 'bg-emerald-100/70 border border-emerald-300 ring-2 ring-emerald-400/50'
-                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
-                }`}
+                onClick={() => router.push('/dashboard/explore?tab=DONATION')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center mb-1 text-emerald-700">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 group-hover:bg-emerald-200 border border-emerald-200 flex items-center justify-center mb-1 text-emerald-700 transition-colors">
                   <Gift className="w-4 h-4" />
                 </div>
                 <span className="text-[10px] font-black text-slate-800 leading-tight">Donasi Rp 0</span>
@@ -958,18 +928,10 @@ export default function ConsumerDashboardPage() {
               {/* 3. Flash Rescue */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategoryFilter('FLASH');
-                  setCurrentPage(1);
-                  scrollToCatalog();
-                }}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
-                  activeCategoryFilter === 'FLASH'
-                    ? 'bg-rose-100/70 border border-rose-300 ring-2 ring-rose-400/50'
-                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
-                }`}
+                onClick={() => router.push('/dashboard/explore?tab=RESCUE_SALE&filter=flash')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center mb-1 text-rose-700 relative">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 group-hover:bg-rose-200 border border-rose-200 flex items-center justify-center mb-1 text-rose-700 relative transition-colors">
                   <Zap className="w-4 h-4" />
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                 </div>
@@ -980,18 +942,10 @@ export default function ConsumerDashboardPage() {
               {/* 4. Bakery Malam */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategoryFilter('BAKERY');
-                  setCurrentPage(1);
-                  scrollToCatalog();
-                }}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
-                  activeCategoryFilter === 'BAKERY'
-                    ? 'bg-amber-100/70 border border-amber-300 ring-2 ring-amber-400/50'
-                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
-                }`}
+                onClick={() => router.push('/dashboard/explore?category=ROTI_KUE')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-1 text-amber-800">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 group-hover:bg-amber-100 border border-amber-200 flex items-center justify-center mb-1 text-amber-800 transition-colors">
                   <Croissant className="w-4 h-4" />
                 </div>
                 <span className="text-[10px] font-black text-slate-800 leading-tight">Bakery</span>
@@ -1001,18 +955,10 @@ export default function ConsumerDashboardPage() {
               {/* 5. Bahan Segar */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategoryFilter('PRODUCE');
-                  setCurrentPage(1);
-                  scrollToCatalog();
-                }}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
-                  activeCategoryFilter === 'PRODUCE'
-                    ? 'bg-green-100/70 border border-green-300 ring-2 ring-green-400/50'
-                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
-                }`}
+                onClick={() => router.push('/dashboard/explore?category=BUAH_SAYUR')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-green-50 hover:border-green-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-green-100 border border-green-200 flex items-center justify-center mb-1 text-green-700">
+                <div className="w-10 h-10 rounded-xl bg-green-100 group-hover:bg-green-200 border border-green-200 flex items-center justify-center mb-1 text-green-700 transition-colors">
                   <Apple className="w-4 h-4" />
                 </div>
                 <span className="text-[10px] font-black text-slate-800 leading-tight">Bahan Segar</span>
@@ -1022,18 +968,10 @@ export default function ConsumerDashboardPage() {
               {/* 6. Dekat Saya */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategoryFilter('NEARBY');
-                  setCurrentPage(1);
-                  scrollToCatalog();
-                }}
-                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
-                  activeCategoryFilter === 'NEARBY'
-                    ? 'bg-sky-100/70 border border-sky-300 ring-2 ring-sky-400/50'
-                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
-                }`}
+                onClick={() => router.push('/dashboard/explore?sort=nearest')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-sky-50 hover:border-sky-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center mb-1 text-sky-700">
+                <div className="w-10 h-10 rounded-xl bg-sky-100 group-hover:bg-sky-200 border border-sky-200 flex items-center justify-center mb-1 text-sky-700 transition-colors">
                   <Navigation className="w-4 h-4" />
                 </div>
                 <span className="text-[10px] font-black text-slate-800 leading-tight">Dekat Saya</span>
@@ -1041,23 +979,25 @@ export default function ConsumerDashboardPage() {
               </button>
 
               {/* 7. Peta Radar */}
-              <Link href="/dashboard/explore" className="block">
-                <div className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-center">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center mb-1 text-indigo-700">
-                    <Compass className="w-4 h-4" />
-                  </div>
-                  <span className="text-[10px] font-black text-slate-800 leading-tight">Peta Radar</span>
-                  <span className="text-[8px] text-indigo-700 font-bold">Live GPS</span>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/explore')}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 border border-slate-200 transition-all cursor-pointer text-center group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 group-hover:bg-indigo-200 border border-indigo-200 flex items-center justify-center mb-1 text-indigo-700 transition-colors">
+                  <Compass className="w-4 h-4" />
                 </div>
-              </Link>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Peta Radar</span>
+                <span className="text-[8px] text-indigo-700 font-bold">Live GPS</span>
+              </button>
 
               {/* 8. Standar BPOM */}
               <button
                 type="button"
                 onClick={() => setIsBPOMModalOpen(true)}
-                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-center"
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-teal-50 hover:border-teal-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
-                <div className="w-10 h-10 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center mb-1 text-teal-700">
+                <div className="w-10 h-10 rounded-xl bg-teal-100 group-hover:bg-teal-200 border border-teal-200 flex items-center justify-center mb-1 text-teal-700 transition-colors">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <span className="text-[10px] font-black text-slate-800 leading-tight">Standar BPOM</span>
@@ -1085,21 +1025,11 @@ export default function ConsumerDashboardPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setBannerIndex((prev) => (prev === 0 ? heroBanners.length - 1 : prev - 1))}
-                  className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white cursor-pointer"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBannerIndex((prev) => (prev + 1) % heroBanners.length)}
-                  className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white cursor-pointer"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+              {/* Auto-sliding indicator pill without manual arrow buttons */}
+              <div className="flex items-center gap-1 shrink-0 bg-white/20 px-2 py-0.5 rounded-full text-[9px] font-black">
+                <span>{bannerIndex + 1}</span>
+                <span className="opacity-60">/</span>
+                <span>{heroBanners.length}</span>
               </div>
             </div>
           </section>
@@ -1168,7 +1098,7 @@ export default function ConsumerDashboardPage() {
             </div>
           </section>
 
-          {/* 2-Column Mobile Feed */}
+          {/* Mobile Condensed Catalog Preview Section (Max 4 Cards, Swipeable without Slider Controls) */}
           <section id="mobile-catalog-feed" className="space-y-3 pt-1">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -1177,18 +1107,15 @@ export default function ConsumerDashboardPage() {
                     Katalog Makanan Surplus
                   </h3>
                   <p className="text-[11px] text-slate-500 font-medium">
-                    {filteredFoods.length} makanan siap diselamatkan
+                    Preview {Math.min(4, filteredFoods.length)} dari {filteredFoods.length} makanan siap diselamatkan
                   </p>
                 </div>
 
                 <Link href="/dashboard/explore">
-                  <button
-                    type="button"
-                    className="text-xs font-bold text-[#1B3A5C] hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Eksplor Peta</span>
+                  <span className="text-xs font-bold text-[#1B3A5C] hover:underline flex items-center gap-1 cursor-pointer">
+                    <span>Buka Peta</span>
                     <ExternalLink className="w-3 h-3" />
-                  </button>
+                  </span>
                 </Link>
               </div>
 
@@ -1221,87 +1148,118 @@ export default function ConsumerDashboardPage() {
               </div>
             </div>
 
-            {/* 2-Column Responsive Grid with UNIFORM IMAGE HEIGHT */}
-            {paginatedFoods.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
-                {paginatedFoods.map((food) => {
-                  const isDiscounted = food.originalPrice > food.price && food.price > 0;
-                  const discPct = isDiscounted
-                    ? Math.round(((food.originalPrice - food.price) / food.originalPrice) * 100)
-                    : 0;
+            {/* Smooth Swipeable Horizontal Rail of 4 Condensed Cards - No Clunky Slider Controls */}
+            {filteredFoods.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex gap-3 overflow-x-auto pb-2 pt-0.5 no-scrollbar snap-x snap-mandatory">
+                  {filteredFoods.slice(0, 4).map((food) => {
+                    const isDiscounted = food.originalPrice > food.price && food.price > 0;
+                    const discPct = isDiscounted
+                      ? Math.round(((food.originalPrice - food.price) / food.originalPrice) * 100)
+                      : 0;
 
-                  return (
-                    <div
-                      key={food.id}
-                      onClick={() => {
-                        setSelectedFood(food);
-                        setIsDetailModalOpen(true);
-                      }}
-                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between cursor-pointer"
-                    >
-                      {/* STRICT UNIFORM IMAGE PREVIEW SIZE: h-36 w-full object-cover shrink-0 */}
-                      <div className="relative h-36 w-full bg-slate-100 overflow-hidden shrink-0">
-                        <img
-                          src={food.imageUrl}
-                          alt={food.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 items-start">
-                          {food.isFree || food.price === 0 ? (
-                            <span className="px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[9px] rounded shadow-xs uppercase">
-                              Rp 0
-                            </span>
-                          ) : isDiscounted ? (
-                            <span className="px-1.5 py-0.5 bg-red-600 text-white font-black text-[9px] rounded shadow-xs">
-                              -{discPct}%
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between text-[8.5px] font-bold text-white bg-slate-950/70 backdrop-blur-xs px-1.5 py-0.5 rounded">
-                          <span className="truncate">{food.distance}</span>
-                          <span className="truncate">{food.pickupTime?.split(' ')[0] || 'Hari ini'}</span>
-                        </div>
-                      </div>
-
-                      {/* Content Body */}
-                      <div className="p-2.5 space-y-1.5 flex-1 flex flex-col justify-between">
-                        <div className="space-y-0.5">
-                          <span className="text-[9.5px] text-slate-400 font-bold block truncate">
-                            {food.providerName}
-                          </span>
-                          <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-tight">
-                            {food.title}
-                          </h4>
-                        </div>
-
-                        {/* Pricing & Add Button */}
-                        <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
-                          <div className="min-w-0">
-                            {isDiscounted && (
-                              <span className="text-[9px] text-slate-400 line-through font-mono block leading-none">
-                                Rp {food.originalPrice.toLocaleString('id-ID')}
+                    return (
+                      <div
+                        key={`catalog-condensed-${food.id}`}
+                        onClick={() => {
+                          setSelectedFood(food);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className="w-[180px] shrink-0 snap-start bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between cursor-pointer"
+                      >
+                        {/* Image Container */}
+                        <div className="relative h-32 w-full bg-slate-100 overflow-hidden shrink-0">
+                          <img
+                            src={food.imageUrl}
+                            alt={food.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 items-start">
+                            {food.isFree || food.price === 0 ? (
+                              <span className="px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[9px] rounded shadow-xs uppercase">
+                                Rp 0
                               </span>
-                            )}
-                            <strong className="text-xs font-black text-emerald-700 font-mono block truncate">
-                              {food.isFree || food.price === 0
-                                ? 'GRATIS'
-                                : `Rp ${food.price.toLocaleString('id-ID')}`}
-                            </strong>
+                            ) : isDiscounted ? (
+                              <span className="px-1.5 py-0.5 bg-red-600 text-white font-black text-[9px] rounded shadow-xs">
+                                -{discPct}%
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between text-[8.5px] font-bold text-white bg-slate-950/70 backdrop-blur-xs px-1.5 py-0.5 rounded">
+                            <span className="truncate">{food.distance}</span>
+                            <span className="truncate">{food.pickupTime?.split(' ')[0] || 'Hari ini'}</span>
+                          </div>
+                        </div>
+
+                        {/* Content Body */}
+                        <div className="p-2.5 space-y-1.5 flex-1 flex flex-col justify-between">
+                          <div className="space-y-0.5">
+                            <span className="text-[9.5px] text-slate-400 font-bold block truncate">
+                              {food.providerName}
+                            </span>
+                            <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-tight">
+                              {food.title}
+                            </h4>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={(e) => handleAddToCart(food, e)}
-                            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
-                            title="Tambah ke Tas"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
+                          {/* Pricing & Add Button */}
+                          <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                            <div className="min-w-0">
+                              {isDiscounted && (
+                                <span className="text-[9px] text-slate-400 line-through font-mono block leading-none">
+                                  Rp {food.originalPrice.toLocaleString('id-ID')}
+                                </span>
+                              )}
+                              <strong className="text-xs font-black text-emerald-700 font-mono block truncate">
+                                {food.isFree || food.price === 0
+                                  ? 'GRATIS'
+                                  : `Rp ${food.price.toLocaleString('id-ID')}`}
+                              </strong>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => handleAddToCart(food, e)}
+                              className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                              title="Tambah ke Tas"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
+                    );
+                  })}
+
+                  {/* 5th Card: Direct Link to Explore More */}
+                  <Link
+                    href="/dashboard/explore"
+                    className="w-[140px] shrink-0 snap-start bg-slate-100 hover:bg-slate-200/80 border-2 border-dashed border-slate-300 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white shadow-2xs flex items-center justify-center text-[#1B3A5C] group-hover:scale-110 transition-transform">
+                      <Search className="w-4 h-4 text-[#1B3A5C]" />
                     </div>
-                  );
-                })}
+                    <div>
+                      <span className="text-xs font-black text-slate-800 block">
+                        Lihat Semua
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold block mt-0.5">
+                        {foods.length} Makanan
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Primary Action Button to Open Full Explore */}
+                <Link href="/dashboard/explore" className="block">
+                  <button
+                    type="button"
+                    className="w-full py-3 px-4 bg-white hover:bg-slate-100 border border-slate-300 rounded-2xl text-xs font-black text-[#1B3A5C] flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer"
+                  >
+                    <span>Buka Seluruh Katalog Makanan Surplus ({foods.length})</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-[#D4A843]" />
+                  </button>
+                </Link>
               </div>
             ) : (
               <div className="p-6 text-center bg-white border border-slate-200 rounded-2xl space-y-1.5">
@@ -1320,35 +1278,6 @@ export default function ConsumerDashboardPage() {
                 >
                   Reset Filter
                 </button>
-              </div>
-            )}
-
-            {/* Mobile Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200">
-                <span className="text-[11px] text-slate-500 font-medium">
-                  Hal <strong className="text-slate-800">{currentPage}</strong> dari{' '}
-                  <strong className="text-slate-800">{totalPages}</strong>
-                </span>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
-                  >
-                    Prev
-                  </button>
-                  <button
-                    type="button"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
-                  >
-                    Next
-                  </button>
-                </div>
               </div>
             )}
           </section>

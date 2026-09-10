@@ -223,6 +223,47 @@ export default function WorkspaceExplorePage() {
         }
       }
     } catch (_) {}
+
+    // Parse URL Search Parameters (e.g. ?tab=RESCUE_SALE, ?tab=DONATION, ?category=ROTI_KUE)
+    try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam) {
+          const up = tabParam.toUpperCase();
+          if (up === 'RESCUE_SALE' || up === 'RESCUE' || up === 'SALE') {
+            setActiveTab('RESCUE_SALE');
+          } else if (up === 'DONATION' || up === 'FREE' || up === 'DONASI') {
+            setActiveTab('DONATION');
+          } else if (up === 'PANTI_NEEDS' || up === 'PANTI') {
+            setActiveTab('PANTI_NEEDS');
+          }
+        }
+
+        const catParam = params.get('category');
+        if (catParam) {
+          const up = catParam.toUpperCase();
+          if (up === 'BAKERY' || up === 'ROTI' || up === 'ROTI_KUE') {
+            setSelectedCategory('ROTI_KUE');
+          } else if (up === 'PRODUCE' || up === 'BUAH' || up === 'SAYUR' || up === 'BUAH_SAYUR') {
+            setSelectedCategory('BUAH_SAYUR');
+          } else if (up === 'MEALS' || up === 'COOKED_MEALS' || up === 'MAKANAN_BERAT') {
+            setSelectedCategory('MAKANAN_BERAT');
+          } else if (up === 'DAIRY' || up === 'BEVERAGES' || up === 'MINUMAN_SUSU') {
+            setSelectedCategory('MINUMAN_SUSU');
+          } else if (up === 'PANTRY' || up === 'BAHAN_MENTAH' || up === 'SEMBAKO') {
+            setSelectedCategory('BAHAN_MENTAH');
+          } else {
+            setSelectedCategory(catParam);
+          }
+        }
+
+        const qParam = params.get('q') || params.get('search');
+        if (qParam) {
+          setSearchQuery(qParam);
+        }
+      }
+    } catch (_) {}
   }, []);
 
   const [foods, setFoods] = useState<FoodItem[]>(MOCK_SURPLUS_FOODS as unknown as FoodItem[]);
