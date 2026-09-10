@@ -149,7 +149,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
       } ${onDetail ? 'cursor-pointer' : ''}`}
       onClick={() => onDetail && onDetail(id)}
     >
-      <div className="relative h-28 sm:h-44 w-full bg-slate-100 overflow-hidden">
+      <div className="relative h-36 sm:h-44 w-full bg-slate-100 overflow-hidden shrink-0">
         <img
           src={imageSrc}
           alt={title}

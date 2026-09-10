@@ -24,7 +24,6 @@ import {
   Ticket,
   QrCode,
   Award,
-  Trees,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -33,19 +32,31 @@ import {
   X,
   ExternalLink,
   Flame,
-  Check,
   Plus,
-  SlidersHorizontal,
+  Lock,
+  User,
 } from 'lucide-react';
+import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
+import { Card, CardBody } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Toast } from '@/components/ui/Toast';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { QRGenerator } from '@/components/qr/QRGenerator';
+import {
+  PackageIcon,
+  SearchIcon,
+  CheckIcon,
+  MapPinIcon,
+  ClockIcon,
+  ShieldCheckIcon,
+  TicketIcon,
+} from '@/components/ui/Icon';
 import { MOCK_SURPLUS_FOODS } from '@/lib/mockDatabase';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
-export default function ConsumerSuperAppPage() {
+export default function ConsumerDashboardPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -65,15 +76,19 @@ export default function ConsumerSuperAppPage() {
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  // Pagination for 2-column catalog
+  // Pagination for Desktop & Mobile
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 8;
+  const desktopItemsPerPage = 6;
+  const [desktopCurrentPage, setDesktopCurrentPage] = useState<number>(1);
 
   // Interactive Modals
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isBPOMModalOpen, setIsBPOMModalOpen] = useState(false);
+  const [isPahlawanInfoModalOpen, setIsPahlawanInfoModalOpen] = useState(false);
+  const [isStatusExplanationModalOpen, setIsStatusExplanationModalOpen] = useState(false);
 
   // Loader & Toast
   const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({
@@ -103,35 +118,29 @@ export default function ConsumerSuperAppPage() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Rotating Hero Campaign Banner
+  // Rotating Hero Campaign Banner (Mobile)
   const [bannerIndex, setBannerIndex] = useState(0);
   const heroBanners = [
     {
       badge: 'Gerakan Pahlawan Pangan',
       title: '520+ Porsi Terselamatkan Hari Ini di Surabaya',
       desc: 'Mencegah 1.300 kg jejak emisi gas metana dari TPA Benowo. Belanja cerdas sambil jaga bumi!',
-      actionText: 'Eksplor Penyelamatan',
-      accentColor: 'from-[#0D382B] via-[#144E3D] to-[#0B253D]',
-      borderColor: 'border-emerald-500/50',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      accentColor: 'from-[#1B3A5C] via-[#163859] to-[#0E4A3B]',
+      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
     },
     {
       badge: 'Mitra Resto & Bakery Baru',
       title: 'Dapur Cokelat & Hotel Bumi Sedia Rescue Sale',
-      desc: 'Nikmati hidangan artisan dan kue berkualitas hotel bintang 5 dengan diskon hingga 70%.',
-      actionText: 'Lihat Menu Resto',
-      accentColor: 'from-[#2B1B0D] via-[#4A3215] to-[#122238]',
-      borderColor: 'border-amber-500/50',
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+      desc: 'Nikmati hidangan artisan dan pastry berkualitas hotel bintang 5 dengan diskon hingga 70%.',
+      accentColor: 'from-[#4A3215] via-[#2F2111] to-[#142A42]',
+      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
     },
     {
       badge: 'Gamifikasi Hijau',
       title: 'Kumpulkan EcoPoints, Tukar Bibit Mangrove',
-      desc: 'Setiap 1 porsi yang kamu selamatkan menghasilkan 40 EcoPoints untuk program restorasi pantai.',
-      actionText: 'Tukar Reward',
-      accentColor: 'from-[#122E4A] via-[#1A456E] to-[#0A3D2F]',
-      borderColor: 'border-[#D4A843]/50',
-      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      desc: 'Setiap 1 porsi yang kamu selamatkan menghasilkan 40 EcoPoints untuk program restorasi mangrove Surabaya.',
+      accentColor: 'from-[#0C3B2E] via-[#104D3C] to-[#153450]',
+      badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-400/40',
     },
   ];
 
@@ -167,6 +176,18 @@ export default function ConsumerSuperAppPage() {
 
   // Sync Profile, Session, and Database
   useEffect(() => {
+    // Radius is STRICTLY determined by SuperAdmin
+    try {
+      const adminRadius = localStorage.getItem('replate_admin_sync_radius');
+      if (adminRadius) {
+        setSyncRadius(parseInt(adminRadius));
+      } else {
+        setSyncRadius(15);
+      }
+    } catch (_) {
+      setSyncRadius(15);
+    }
+
     try {
       if (session?.user?.name) {
         setConsumerName(session.user.name);
@@ -177,12 +198,18 @@ export default function ConsumerSuperAppPage() {
         if (parsed.entityName || parsed.contactPerson || parsed.name) {
           setConsumerName(parsed.entityName || parsed.contactPerson || parsed.name);
         }
-        if (parsed.address) setConsumerAddress(parsed.address);
+        // District/Kecamatan is STRICTLY taken from the user's role profile data
+        if (parsed.address) {
+          setConsumerAddress(parsed.address);
+        } else if (parsed.city) {
+          setConsumerAddress(parsed.city);
+        }
       } else {
         const reg = localStorage.getItem('replate_registered_user');
         if (reg) {
           const parsedReg = JSON.parse(reg);
           if (parsedReg.name) setConsumerName(parsedReg.name);
+          if (parsedReg.address) setConsumerAddress(parsedReg.address);
         }
       }
 
@@ -330,7 +357,7 @@ export default function ConsumerSuperAppPage() {
   const handleQuickClaim = (item: any) => {
     setActionLoader({
       isOpen: true,
-      message: 'Mempersiapkan Checkout SuperApp...',
+      message: 'Mempersiapkan Checkout...',
       submessage: `Mengamankan porsi "${item.title || item.foodName}"`,
     });
     setTimeout(() => {
@@ -350,9 +377,9 @@ export default function ConsumerSuperAppPage() {
       if (!matchSearch) return false;
 
       if (activeCategoryFilter === 'ALL') return true;
-      if (activeCategoryFilter === 'RESCUE_SALE') return !item.isFree && item.price > 0;
+      if (activeCategoryFilter === 'RESCUE_SALE') return !item.isFree && item.price > 0 && item.originalPrice > item.price;
       if (activeCategoryFilter === 'FREE') return item.isFree || item.price === 0;
-      if (activeCategoryFilter === 'FLASH') return item.originalPrice > item.price && (item.originalPrice - item.price) / item.originalPrice >= 0.6;
+      if (activeCategoryFilter === 'FLASH') return item.originalPrice > item.price && (item.originalPrice - item.price) / item.originalPrice >= 0.5;
       if (activeCategoryFilter === 'BAKERY') return item.category === 'BAKERY' || (item.title && item.title.toLowerCase().includes('roti'));
       if (activeCategoryFilter === 'PRODUCE') return item.category === 'PRODUCE' || (item.title && item.title.toLowerCase().includes('buah')) || (item.title && item.title.toLowerCase().includes('sayur'));
       if (activeCategoryFilter === 'NEARBY') {
@@ -363,12 +390,19 @@ export default function ConsumerSuperAppPage() {
     });
   }, [foods, searchQuery, activeCategoryFilter]);
 
-  // Paginated Foods
+  // Paginated Foods for Mobile 2-column feed
   const totalPages = Math.max(1, Math.ceil(filteredFoods.length / itemsPerPage));
   const paginatedFoods = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredFoods.slice(start, start + itemsPerPage);
   }, [filteredFoods, currentPage, itemsPerPage]);
+
+  // Paginated Foods for Desktop Full Explorer
+  const desktopTotalPages = Math.max(1, Math.ceil(foods.length / desktopItemsPerPage));
+  const desktopPaginatedFoods = useMemo(() => {
+    const start = (desktopCurrentPage - 1) * desktopItemsPerPage;
+    return foods.slice(start, start + desktopItemsPerPage);
+  }, [foods, desktopCurrentPage, desktopItemsPerPage]);
 
   // Flash Rescue Highlight Items (High discount items with urgent pickup)
   const flashRescueItems = useMemo(() => {
@@ -402,815 +436,1030 @@ export default function ConsumerSuperAppPage() {
     });
   }, [foods, syncRadius]);
 
+  // Scroll smoothly to catalog when icon is clicked
+  const scrollToCatalog = () => {
+    const el = document.getElementById('mobile-catalog-feed');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="-m-4 sm:-m-6 min-h-screen bg-gradient-to-b from-[#071320] via-[#0B1A2C] to-[#050E18] text-slate-100 font-sans pb-28">
-      {/* 1. TOP STICKY SUPERAPP HEADER */}
-      <header className="sticky top-0 z-40 bg-[#0A1828]/95 backdrop-blur-md border-b border-[#1E3B5C] px-3.5 sm:px-6 py-3 space-y-2.5 shadow-xl">
-        <div className="flex items-center justify-between gap-2">
-          {/* Location Picker Pill */}
-          <button
-            type="button"
-            onClick={() => setIsLocationModalOpen(true)}
-            className="flex items-center gap-1.5 bg-[#122A45] hover:bg-[#1A385C] border border-[#2B5480] px-3 py-1.5 rounded-full transition-all cursor-pointer text-left max-w-[65%] sm:max-w-md group"
-          >
-            <MapPin className="w-3.5 h-3.5 text-[#D4A843] shrink-0 group-hover:scale-110 transition-transform" />
-            <div className="min-w-0">
-              <span className="text-[10px] text-slate-400 block leading-tight font-medium">Zona Penjemputan Anda</span>
-              <div className="flex items-center gap-1">
-                <span className="text-xs font-black text-slate-100 truncate">{consumerAddress}</span>
-                <span className="text-[10px] text-[#D4A843] font-bold shrink-0">(&lt;{syncRadius} km) ▾</span>
-              </div>
-            </div>
-          </button>
-
-          {/* Action Icons: Notification & Tas Klaim */}
-          <div className="flex items-center gap-2 shrink-0">
-            <Link href="/notifications">
-              <button
-                type="button"
-                className="w-9 h-9 rounded-full bg-[#122A45] hover:bg-[#1A385C] border border-[#2B5480] flex items-center justify-center text-slate-300 hover:text-white transition-all cursor-pointer relative"
-                title="Notifikasi"
-              >
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500" />
-              </button>
-            </Link>
-
-            <Link href="/dashboard/cart">
-              <button
-                type="button"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-110 text-slate-950 font-black text-xs transition-all shadow-md cursor-pointer relative"
-                title="Tas Klaim"
-              >
-                <ShoppingBag className="w-4 h-4 text-slate-950" />
-                <span className="hidden sm:inline">Tas Klaim</span>
-                {cartCount > 0 && (
-                  <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-black leading-none">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Real-time Search Bar */}
-        <div className="relative">
-          <Search className="w-4 h-4 text-[#D4A843] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Cari roti artisan, nasi box, buah surplus terdekat..."
-            className="w-full pl-10 pr-9 py-2.5 bg-[#071322] border border-[#23456C] focus:border-[#D4A843] focus:ring-1 focus:ring-[#D4A843] rounded-2xl text-xs text-white placeholder:text-slate-400 font-medium transition-all outline-hidden"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      </header>
-
-      <div className="px-3.5 sm:px-6 py-4 space-y-5 max-w-7xl mx-auto">
-        {/* 2. THE ECO-IMPACT & SAVINGS WALLET (Widget ala GoPay Replate) */}
-        <section className="bg-gradient-to-br from-[#0C243B] via-[#103452] to-[#08352A] rounded-2xl sm:rounded-3xl p-4 sm:p-5 border-2 border-[#D4A843]/60 shadow-2xl relative overflow-hidden space-y-4">
-          {/* Ambient Glow & Badge */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 relative z-10 border-b border-[#234F77]/60 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#D4A843]/20 border border-[#D4A843] flex items-center justify-center shrink-0 shadow-inner">
-                <Coins className="w-5 h-5 text-[#D4A843]" />
-              </div>
-              <div>
-                <span className="text-[10px] text-[#D4A843] font-black uppercase tracking-widest block">
-                  Dompet Dampak & Penghematan
+    <div className="w-full">
+      {/* ========================================================================= */}
+      {/* 1. DESKTOP VIEW (hidden on mobile, visible md: and up)                     */}
+      {/* RESTORED TO CLEAN PREVIOUS DASHBOARD AS REQUESTED BY USER                 */}
+      {/* ========================================================================= */}
+      <div className="hidden md:block space-y-6">
+        {/* Sleek Modern Header Card */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span className="px-2.5 py-0.5 bg-[#1B3A5C]/10 text-[#1B3A5C] text-[10px] font-black uppercase tracking-wider rounded-md">
+                  Dashboard Food Consumer
                 </span>
-                <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5">
-                  <span>Halo, {consumerName}</span>
-                  <span className="text-[9.5px] bg-emerald-500/30 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/40">
-                    Pahlawan Pangan
-                  </span>
-                </h2>
-              </div>
-            </div>
-
-            {/* EcoPoints Pill */}
-            <div className="flex items-center gap-2 self-start sm:self-auto bg-[#07192A]/80 border border-[#234F77] px-3 py-1.5 rounded-xl">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <div className="text-right">
-                <span className="text-[9.5px] text-slate-400 block font-medium">EcoPoints Replate</span>
-                <strong className="text-xs sm:text-sm font-black text-amber-300 font-mono">
-                  {ecoPoints} Poin
-                </strong>
-              </div>
-            </div>
-          </div>
-
-          {/* 3 Core Metrics Grid */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 relative z-10">
-            <div className="bg-[#081C30]/80 border border-[#234A72]/80 rounded-xl p-2.5 sm:p-3 text-center space-y-0.5">
-              <span className="text-[9.5px] sm:text-[10.5px] text-slate-400 font-bold block truncate">
-                Total Hemat
-              </span>
-              <strong className="text-xs sm:text-lg font-black text-emerald-400 font-mono block">
-                Rp {totalSavings.toLocaleString('id-ID')}
-              </strong>
-              <span className="text-[8.5px] sm:text-[9.5px] text-emerald-300/80 font-bold block">
-                Diskon ~65%
-              </span>
-            </div>
-
-            <div className="bg-[#081C30]/80 border border-[#234A72]/80 rounded-xl p-2.5 sm:p-3 text-center space-y-0.5">
-              <span className="text-[9.5px] sm:text-[10.5px] text-slate-400 font-bold block truncate">
-                Porsi Selamat
-              </span>
-              <strong className="text-xs sm:text-lg font-black text-amber-300 font-mono block">
-                {totalSavedPortions} Porsi
-              </strong>
-              <span className="text-[8.5px] sm:text-[9.5px] text-amber-300/80 font-bold block">
-                Penyelamatan Nyata
-              </span>
-            </div>
-
-            <div className="bg-[#081C30]/80 border border-[#234A72]/80 rounded-xl p-2.5 sm:p-3 text-center space-y-0.5">
-              <span className="text-[9.5px] sm:text-[10.5px] text-slate-400 font-bold block truncate">
-                Karbon Dicegah
-              </span>
-              <strong className="text-xs sm:text-lg font-black text-teal-300 font-mono block">
-                ~{(totalSavedPortions * 0.9).toFixed(1)} kg
-              </strong>
-              <span className="text-[8.5px] sm:text-[9.5px] text-teal-300/80 font-bold block">
-                Emisi Gas CO2e
-              </span>
-            </div>
-          </div>
-
-          {/* Quick Action Buttons on Wallet */}
-          <div className="flex items-center gap-2 pt-1 flex-wrap relative z-10">
-            <button
-              type="button"
-              onClick={() => setIsRewardsModalOpen(true)}
-              className="flex-1 py-2 px-3 bg-[#173D63] hover:bg-[#204E7D] text-[#D4A843] border border-[#D4A843]/50 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
-            >
-              <Award className="w-3.5 h-3.5 text-[#D4A843]" />
-              <span>Tukar EcoPoints</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsQRModalOpen(true)}
-              className="flex-1 py-2 px-3 bg-emerald-700/80 hover:bg-emerald-600 text-white border border-emerald-400/50 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
-            >
-              <QrCode className="w-3.5 h-3.5 text-emerald-200" />
-              <span>Tiket QR Klaim ({activeClaimsCount})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsBPOMModalOpen(true)}
-              className="py-2 px-3 bg-[#081A2D] hover:bg-[#122A45] text-slate-300 hover:text-white border border-[#265380] rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Standar BPOM</span>
-            </button>
-          </div>
-        </section>
-
-        {/* 3. 8 QUICK-ACTION SHORTCUT ICONS (Grid 4x2 ala Gojek Mobile) */}
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-[#D4A843] uppercase tracking-wider block">
-              Layanan Penyelamatan Pangan
-            </span>
-            {activeCategoryFilter !== 'ALL' && (
-              <button
-                type="button"
-                onClick={() => setActiveCategoryFilter('ALL')}
-                className="text-[10.5px] font-bold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset Filter</span>
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-4 gap-2.5 sm:gap-3.5">
-            {/* 1. Rescue Sale */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveCategoryFilter('RESCUE_SALE');
-                setCurrentPage(1);
-              }}
-              className={`flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer text-center group ${
-                activeCategoryFilter === 'RESCUE_SALE'
-                  ? 'bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/50'
-                  : 'bg-[#0E2034] hover:bg-[#152B44] border-[#1E3E63]'
-              }`}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-500/30 to-amber-700/20 border border-amber-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                <UtensilsCrossed className="w-5 h-5 text-amber-300" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Rescue Sale
-              </span>
-              <span className="text-[8.5px] text-amber-400 font-black mt-0.5">Diskon 70%</span>
-            </button>
-
-            {/* 2. Donasi Rp 0 */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveCategoryFilter('FREE');
-                setCurrentPage(1);
-              }}
-              className={`flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer text-center group ${
-                activeCategoryFilter === 'FREE'
-                  ? 'bg-emerald-500/25 border-emerald-400 ring-2 ring-emerald-400/50'
-                  : 'bg-[#0E2034] hover:bg-[#152B44] border-[#1E3E63]'
-              }`}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-emerald-700/20 border border-emerald-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                <Gift className="w-5 h-5 text-emerald-300" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Donasi Rp 0
-              </span>
-              <span className="text-[8.5px] text-emerald-400 font-black mt-0.5">Porsi Gratis</span>
-            </button>
-
-            {/* 3. Flash Rescue */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveCategoryFilter('FLASH');
-                setCurrentPage(1);
-              }}
-              className={`flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer text-center group ${
-                activeCategoryFilter === 'FLASH'
-                  ? 'bg-rose-500/25 border-rose-400 ring-2 ring-rose-400/50'
-                  : 'bg-[#0E2034] hover:bg-[#152B44] border-[#1E3E63]'
-              }`}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-rose-500/30 to-rose-700/20 border border-rose-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md relative">
-                <Zap className="w-5 h-5 text-rose-300" />
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Flash Rescue
-              </span>
-              <span className="text-[8.5px] text-rose-400 font-black mt-0.5">&lt; 2 Jam</span>
-            </button>
-
-            {/* 4. Bakery Malam */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveCategoryFilter('BAKERY');
-                setCurrentPage(1);
-              }}
-              className={`flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer text-center group ${
-                activeCategoryFilter === 'BAKERY'
-                  ? 'bg-amber-600/25 border-amber-400 ring-2 ring-amber-400/50'
-                  : 'bg-[#0E2034] hover:bg-[#152B44] border-[#1E3E63]'
-              }`}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-600/30 to-yellow-600/20 border border-amber-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                <Croissant className="w-5 h-5 text-amber-200" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Bakery Malam
-              </span>
-              <span className="text-[8.5px] text-amber-300 font-black mt-0.5">Roti Fresh</span>
-            </button>
-
-            {/* 5. Bahan Segar */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveCategoryFilter('PRODUCE');
-                setCurrentPage(1);
-              }}
-              className={`flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer text-center group ${
-                activeCategoryFilter === 'PRODUCE'
-                  ? 'bg-green-600/25 border-green-400 ring-2 ring-green-400/50'
-                  : 'bg-[#0E2034] hover:bg-[#152B44] border-[#1E3E63]'
-              }`}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-green-500/30 to-teal-700/20 border border-green-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                <Apple className="w-5 h-5 text-green-300" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Bahan Segar
-              </span>
-              <span className="text-[8.5px] text-green-400 font-black mt-0.5">Buah & Sayur</span>
-            </button>
-
-            {/* 6. Dekat Saya */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveCategoryFilter('NEARBY');
-                setCurrentPage(1);
-              }}
-              className={`flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer text-center group ${
-                activeCategoryFilter === 'NEARBY'
-                  ? 'bg-sky-600/25 border-sky-400 ring-2 ring-sky-400/50'
-                  : 'bg-[#0E2034] hover:bg-[#152B44] border-[#1E3E63]'
-              }`}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-sky-500/30 to-blue-700/20 border border-sky-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                <Navigation className="w-5 h-5 text-sky-300" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Dekat Saya
-              </span>
-              <span className="text-[8.5px] text-sky-400 font-black mt-0.5">&lt; 2 km</span>
-            </button>
-
-            {/* 7. Peta Radar */}
-            <Link href="/dashboard/explore" className="block">
-              <div className="flex flex-col items-center p-2.5 sm:p-3 rounded-2xl bg-[#0E2034] hover:bg-[#152B44] border border-[#1E3E63] transition-all cursor-pointer text-center group">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-700/20 border border-indigo-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                  <Compass className="w-5 h-5 text-indigo-300" />
-                </div>
-                <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                  Peta Radar
+                <span className="text-[9.5px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Konsumen Reguler • Akses Rescue Sale & Donasi Rp 0</span>
                 </span>
-                <span className="text-[8.5px] text-indigo-400 font-black mt-0.5">Live GPS</span>
               </div>
-            </Link>
-
-            {/* 8. Standar BPOM */}
-            <button
-              type="button"
-              onClick={() => setIsBPOMModalOpen(true)}
-              className="flex flex-col items-center p-2.5 sm:p-3 rounded-2xl bg-[#0E2034] hover:bg-[#152B44] border border-[#1E3E63] transition-all cursor-pointer text-center group"
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-teal-500/30 to-emerald-700/20 border border-teal-400/50 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
-                <ShieldCheck className="w-5 h-5 text-teal-300" />
-              </div>
-              <span className="text-[10.5px] sm:text-xs font-bold text-slate-200 block leading-tight">
-                Standar BPOM
-              </span>
-              <span className="text-[8.5px] text-teal-400 font-black mt-0.5">Higienis SOP</span>
-            </button>
-          </div>
-        </section>
-
-        {/* 4. HERO SOCIAL IMPACT CAMPAIGN BANNER (Carousel) */}
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/50 shadow-xl transition-all">
-          <div
-            className={`p-4 sm:p-5 bg-gradient-to-r ${heroBanners[bannerIndex].accentColor} border-2 ${heroBanners[bannerIndex].borderColor} rounded-2xl sm:rounded-3xl transition-all duration-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5`}
-          >
-            <div className="space-y-1 max-w-xl">
-              <span
-                className={`text-[9.5px] font-black uppercase px-2.5 py-0.5 rounded-full border inline-block ${heroBanners[bannerIndex].badgeColor}`}
-              >
-                {heroBanners[bannerIndex].badge}
-              </span>
-              <h3 className="text-sm sm:text-lg font-black text-white leading-tight">
-                {heroBanners[bannerIndex].title}
-              </h3>
-              <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                {heroBanners[bannerIndex].desc}
+              <h1 className="text-2xl font-black text-[#1B3A5C] tracking-tight">
+                Selamat Datang, {consumerName}
+              </h1>
+              <p className="text-xs text-slate-500 font-medium mt-0.5 max-w-xl">
+                Hemat pengeluaran belanja dengan Rescue Sale dan selamatkan donasi makanan surplus Rp 0 berstandar BPOM RI.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-              <button
-                type="button"
-                onClick={() =>
-                  setBannerIndex((prev) => (prev === 0 ? heroBanners.length - 1 : prev - 1))
-                }
-                className="w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 border border-slate-600 flex items-center justify-center text-slate-300 cursor-pointer"
-                title="Sebelumnya"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setBannerIndex((prev) => (prev + 1) % heroBanners.length)}
-                className="w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 border border-slate-600 flex items-center justify-center text-slate-300 cursor-pointer"
-                title="Selanjutnya"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <Link href="/dashboard/consumer/my-claims">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<TicketIcon size={14} className="text-[#1B3A5C]" />}
+                  className="font-bold text-xs py-2 px-3.5 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Klaim & Riwayat Saya
+                </Button>
+              </Link>
+              <Link href="/dashboard/explore">
+                <Button
+                  variant="gold"
+                  size="sm"
+                  leftIcon={<SearchIcon size={14} className="text-slate-950" />}
+                  className="font-black text-xs text-slate-950 shadow-xs py-2 px-3.5 rounded-xl cursor-pointer"
+                >
+                  Eksplor Makanan
+                </Button>
+              </Link>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* 5. FLASH RESCUE CLEARANCE SECTION (Urgent Before Store Close) */}
-        <section className="bg-gradient-to-r from-rose-950/70 via-[#121E2E] to-amber-950/70 border border-amber-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0">
-                <Flame className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm sm:text-base font-black text-white">
-                    Flash Rescue Clearance Malam
-                  </h3>
-                  <span className="text-[10px] bg-rose-500 text-white font-black px-2 py-0.5 rounded-full uppercase animate-pulse">
-                    Mendesak
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-300">
-                  Ambil malam ini sebelum gerai tutup agar makanan tidak terbuang sia-sia!
-                </p>
-              </div>
-            </div>
-
-            {/* Live Countdown Timer */}
-            <div className="flex items-center gap-2 bg-[#071320]/90 border border-amber-500/60 px-3 py-1.5 rounded-xl self-start sm:self-auto">
-              <Clock className="w-4 h-4 text-amber-400 shrink-0 animate-spin" />
-              <span className="text-[10px] text-slate-300 font-bold">Batas Waktu:</span>
-              <strong className="text-xs sm:text-sm font-black text-amber-300 font-mono tracking-wider">
-                {formatCountdown(secondsLeft)}
+        {/* Desktop KPI Stats Grid (4-kolom) */}
+        <div className="grid grid-cols-4 gap-4">
+          <Card className="border-slate-200 shadow-xs bg-white rounded-3xl p-5">
+            <CardBody className="p-0 space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 block truncate">Total Hemat Belanja</span>
+              <strong className="text-xl font-black text-emerald-600 font-mono block">
+                Rp {totalSavings.toLocaleString('id-ID')}
               </strong>
-            </div>
-          </div>
-
-          {/* Horizontal Swipeable Cards for Flash Rescue */}
-          <div className="flex gap-3.5 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
-            {flashRescueItems.map((item) => (
-              <div
-                key={`flash-${item.id}`}
-                className="w-[280px] sm:w-[320px] shrink-0 snap-start bg-[#0A1726] border border-[#24476D] rounded-2xl p-3 flex flex-col justify-between space-y-2.5 shadow-md hover:border-amber-400/70 transition-all"
-              >
-                <div className="flex gap-3">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 relative bg-slate-900 border border-slate-700">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-1 left-1 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">
-                      -{item.discountPct}%
-                    </span>
-                  </div>
-
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <span className="text-[9.5px] text-[#D4A843] font-bold block truncate">
-                      {item.providerName}
-                    </span>
-                    <h4 className="text-xs font-black text-white line-clamp-2 leading-snug">
-                      {item.title}
-                    </h4>
-                    <span className="text-[9.5px] text-rose-300 bg-rose-950/80 border border-rose-800/60 px-1.5 py-0.5 rounded font-bold block truncate">
-                      {item.urgencyText}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                  <div>
-                    <span className="text-[10px] text-slate-500 line-through font-mono block">
-                      Rp {item.originalPrice.toLocaleString('id-ID')}
-                    </span>
-                    <strong className="text-sm font-black text-emerald-400 font-mono leading-none">
-                      Rp {item.price.toLocaleString('id-ID')}
-                    </strong>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={(e) => handleAddToCart(item, e)}
-                      className="p-2 rounded-xl bg-[#122A45] hover:bg-[#1C3D63] text-amber-300 border border-[#2B5480] transition-all cursor-pointer"
-                      title="Tambah ke Tas"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickClaim(item)}
-                      className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-110 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-xs"
-                    >
-                      Klaim Cepat
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 6. SMART MATCHING 2.0 CAROUSEL (Rekomendasi Cerdas AI) */}
-        <section className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#D4A843] block">
-                Smart Matching 2.0 Engine
+              <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                <span>Diskon ~65%</span>
               </span>
-              <h3 className="text-base sm:text-lg font-black text-white">
-                Rekomendasi Terbaik Berdasarkan Preferensi Anda
+            </CardBody>
+          </Card>
+
+          <Card className="border-slate-200 shadow-xs bg-white rounded-3xl p-5">
+            <CardBody className="p-0 space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 block truncate">Makanan Diselamatkan</span>
+              <strong className="text-xl font-black text-[#1B3A5C] font-mono block">
+                {totalSavedPortions} Porsi
+              </strong>
+              <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                <CheckIcon size={10} className="text-emerald-600" />
+                <span>~{(totalSavedPortions * 0.9).toFixed(1)} kg CO2 Dicegah</span>
+              </span>
+            </CardBody>
+          </Card>
+
+          <Card className="border-slate-200 shadow-xs bg-white rounded-3xl p-5">
+            <CardBody className="p-0 space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 block truncate">Klaim Aktif</span>
+              <strong className="text-xl font-black text-[#D4A843] font-mono block">
+                {activeClaimsCount} Pesanan
+              </strong>
+              <span className="text-[10px] text-amber-700 font-bold flex items-center gap-1">
+                <ClockIcon size={10} />
+                <span>{activeClaimsCount > 0 ? 'Siap Diambil di Gerai' : 'Belum Ada Klaim Aktif'}</span>
+              </span>
+            </CardBody>
+          </Card>
+
+          <Card
+            onClick={() => setIsStatusExplanationModalOpen(true)}
+            className="border-slate-200 shadow-xs bg-white rounded-3xl p-5 hover:border-[#1B3A5C]/40 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute top-2 right-2.5 opacity-80 group-hover:opacity-100 transition-opacity">
+              <span className="text-[9px] font-bold text-[#1B3A5C] bg-slate-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                <Info size={10} /> Info
+              </span>
+            </div>
+            <CardBody className="p-0 space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 block truncate">Status Akun Konsumen</span>
+              <strong className="text-sm font-black text-slate-800 block truncate">
+                Konsumen Reguler
+              </strong>
+              <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                <ShieldCheckIcon size={10} className="text-emerald-600" />
+                <span className="truncate">Rescue Sale & Donasi Rp 0 Bebas Biaya</span>
+              </span>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Desktop Smart Matching 2.0 Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#D4A843] block mb-0.5">
+                SMART MATCHING ENGINE 2.0 (KONSUMEN)
+              </span>
+              <h3 className="text-xl font-black text-[#1B3A5C]">
+                Rekomendasi Paling Cocok Untuk Anda
               </h3>
             </div>
-            <span className="text-xs text-slate-400 font-bold flex items-center gap-1 self-start sm:self-auto">
-              <MapPin className="w-3.5 h-3.5 text-[#D4A843]" />
-              Radius &lt; {syncRadius} km
+            <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
+              <MapPinIcon size={12} className="text-slate-400" />
+              Radius &lt; {syncRadius} km (Ditetapkan SuperAdmin)
             </span>
           </div>
 
-          <div className="flex md:grid md:grid-cols-2 gap-3.5 overflow-x-auto md:overflow-visible pb-2 snap-x snap-mandatory no-scrollbar">
+          <div className="grid grid-cols-2 gap-5">
             {smartMatchedItems.map((item) => (
               <div
-                key={`smart-${item.id}`}
-                className="w-[85vw] max-w-[340px] md:max-w-none md:w-auto shrink-0 snap-start bg-[#0C1E32] border-2 border-[#D4A843]/50 rounded-2xl sm:rounded-3xl p-4 flex flex-col justify-between space-y-3 shadow-lg relative overflow-hidden group"
+                key={`desktop-smart-${item.id}`}
+                className="p-5 bg-gradient-to-br from-white via-white to-amber-50/40 rounded-3xl border-2 border-amber-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5 group"
               >
                 <div className="flex items-start gap-3.5">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden shrink-0 bg-slate-900 border border-slate-700 relative">
+                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
                     <img
                       src={item.imageUrl}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className="absolute top-1 left-1 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+                    <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-red-500 text-white font-black text-[9px] rounded-md shadow-xs">
                       Diskon {item.discountPct}
-                    </span>
+                    </div>
                   </div>
 
-                  <div className="space-y-1 flex-1 min-w-0">
+                  <div className="space-y-1.5 flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-2 py-0.5 bg-[#D4A843] text-slate-950 font-black text-[9.5px] rounded-md font-mono">
+                      <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[9.5px] rounded-md font-mono">
                         Skor {item.matchScore}%
                       </span>
-                      <span className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5">
-                        <MapPin className="w-3 h-3 text-[#D4A843]" />
+                      <span className="text-[10px] font-bold text-slate-500 flex items-center gap-0.5">
+                        <MapPinIcon size={10} className="text-slate-400" />
                         {item.distance}
                       </span>
                     </div>
-
-                    <h4 className="font-black text-sm text-white line-clamp-2 leading-snug">
+                    <h4 className="font-black text-sm text-[#1B3A5C] leading-snug line-clamp-2">
                       {item.title}
                     </h4>
-                    <p className="text-[10.5px] text-slate-300 font-medium truncate flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <p className="text-[10px] text-slate-500 font-medium truncate flex items-center gap-1">
+                      <ShieldCheckIcon size={11} className="text-emerald-600 shrink-0" />
                       <span>{item.providerName}</span>
                     </p>
-                    <p className="text-[10px] text-amber-300 font-medium bg-[#142E4A] px-2 py-0.5 rounded-md border border-[#234A70] line-clamp-1">
-                      {item.matchReason}
+                    <p className="text-[10.5px] text-amber-900 font-bold line-clamp-1 bg-amber-50/80 px-2 py-0.5 rounded-md border border-amber-200/60 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
+                      <span>{item.matchReason}</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-slate-800">
+                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-amber-200/80">
                   <div>
-                    <span className="text-[10px] text-slate-500 line-through font-mono block">
+                    <div className="text-[10px] text-slate-400 line-through font-medium">
                       Rp {item.originalPrice.toLocaleString('id-ID')}
-                    </span>
-                    <strong className="text-base font-black text-emerald-400 font-mono leading-none">
+                    </div>
+                    <div className="text-base font-black text-[#1B3A5C] leading-none">
                       Rp {item.price.toLocaleString('id-ID')}
-                    </strong>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => handleAddToCart(item, e)}
-                      className="p-2 rounded-xl bg-[#14304F] hover:bg-[#1E436C] text-amber-300 border border-[#2B5480] transition-all cursor-pointer"
-                      title="Tambah ke Tas"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickClaim(item)}
-                      className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-110 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md"
-                    >
-                      Klaim Cepat →
-                    </button>
-                  </div>
+                  <Button
+                    onClick={() => handleQuickClaim(item)}
+                    variant="gold"
+                    size="sm"
+                    className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs cursor-pointer rounded-xl shrink-0"
+                  >
+                    Klaim Cepat →
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 7. 2-COLUMN GOFOOD-STYLE DISCOVERY FEED */}
-        <section className="space-y-4 pt-2">
-          {/* Section Header & Category Chips */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base sm:text-xl font-black text-white">
-                  Katalog Makanan Surplus Hari Ini
-                </h3>
-                <p className="text-xs text-slate-400 font-medium">
-                  {filteredFoods.length} makanan siap diselamatkan di sekitar Anda
-                </p>
-              </div>
-
-              <Link href="/dashboard/explore">
-                <button
-                  type="button"
-                  className="text-xs font-bold text-[#D4A843] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Lihat Semua</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </Link>
+        {/* Desktop Main Food Explorer Grid */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <h3 className="text-lg font-black text-[#1B3A5C]">
+                Semua Katalog Makanan Surplus Aktif
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Menampilkan {foods.length > 0 ? (desktopCurrentPage - 1) * desktopItemsPerPage + 1 : 0} -{' '}
+                {Math.min(desktopCurrentPage * desktopItemsPerPage, foods.length)} dari total {foods.length} makanan siap diselamatkan
+              </p>
             </div>
 
-            {/* Chips Scrollable Bar */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {[
-                { id: 'ALL', label: 'Semua Surplus' },
-                { id: 'RESCUE_SALE', label: 'Rescue Sale Diskon' },
-                { id: 'FREE', label: 'Donasi Rp 0' },
-                { id: 'BAKERY', label: 'Roti & Kue' },
-                { id: 'PRODUCE', label: 'Buah & Sayur' },
-                { id: 'NEARBY', label: 'Dekat (< 2 km)' },
-              ].map((chip) => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  onClick={() => {
-                    setActiveCategoryFilter(chip.id);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-black shrink-0 transition-all cursor-pointer border ${
-                    activeCategoryFilter === chip.id
-                      ? 'bg-[#D4A843] text-slate-950 border-[#D4A843] shadow-md'
-                      : 'bg-[#0E2034] text-slate-300 hover:text-white border-[#1E3E63]'
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
+            <Link href="/dashboard/explore">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs font-bold text-[#1B3A5C] border-slate-300 hover:bg-slate-50 rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Lihat Semua di Eksplor Pangan</span>
+                <ExternalLink size={13} className="text-[#1B3A5C]" />
+              </Button>
+            </Link>
           </div>
 
-          {/* 2-Column Responsive Grid */}
-          {paginatedFoods.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {paginatedFoods.map((food) => {
-                const isDiscounted = food.originalPrice > food.price && food.price > 0;
-                const discPct = isDiscounted
-                  ? Math.round(((food.originalPrice - food.price) / food.originalPrice) * 100)
-                  : 0;
+          <FoodGrid
+            foods={desktopPaginatedFoods}
+            onClaim={handleQuickClaim}
+            onDetail={(id) => {
+              const item = foods.find((f) => f.id === id);
+              if (item) {
+                setSelectedFood(item);
+                setIsDetailModalOpen(true);
+              }
+            }}
+            onAddToCart={(id) => {
+              const item = foods.find((f) => f.id === id);
+              if (item) handleAddToCart(item);
+            }}
+          />
 
-                return (
-                  <div
-                    key={food.id}
-                    onClick={() => {
-                      setSelectedFood(food);
-                      setIsDetailModalOpen(true);
-                    }}
-                    className="bg-[#0D1F33] hover:bg-[#122842] border border-[#214164] hover:border-[#D4A843]/80 rounded-2xl overflow-hidden shadow-lg transition-all flex flex-col justify-between cursor-pointer group"
-                  >
-                    {/* Image with Badges */}
-                    <div className="relative aspect-4/3 w-full bg-slate-900 overflow-hidden">
-                      <img
-                        src={food.imageUrl}
-                        alt={food.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-
-                      {/* Top Badges */}
-                      <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
-                        {food.isFree || food.price === 0 ? (
-                          <span className="px-2 py-0.5 bg-emerald-600 text-white font-black text-[9.5px] rounded-md shadow-md uppercase">
-                            Rp 0 Donasi
-                          </span>
-                        ) : isDiscounted ? (
-                          <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9.5px] rounded-md shadow-md">
-                            -{discPct}%
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[9px] font-bold text-white bg-slate-950/70 backdrop-blur-xs px-2 py-1 rounded-lg">
-                        <span className="truncate">{food.distance}</span>
-                        <span className="truncate">{food.pickupTime?.split(' ')[0] || 'Hari ini'}</span>
-                      </div>
-                    </div>
-
-                    {/* Content Body */}
-                    <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-slate-400 font-bold block truncate">
-                          {food.providerName}
-                        </span>
-                        <h4 className="text-xs sm:text-sm font-black text-white line-clamp-2 leading-snug">
-                          {food.title}
-                        </h4>
-                      </div>
-
-                      {/* Pricing & Add Button */}
-                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
-                        <div>
-                          {isDiscounted && (
-                            <span className="text-[9.5px] text-slate-500 line-through font-mono block leading-none">
-                              Rp {food.originalPrice.toLocaleString('id-ID')}
-                            </span>
-                          )}
-                          <strong className="text-xs sm:text-sm font-black text-emerald-400 font-mono">
-                            {food.isFree || food.price === 0
-                              ? 'GRATIS'
-                              : `Rp ${food.price.toLocaleString('id-ID')}`}
-                          </strong>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleAddToCart(food, e)}
-                          className="w-8 h-8 rounded-xl bg-[#17385C] hover:bg-[#204975] text-[#D4A843] border border-[#2B5480] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs"
-                          title="Tambah ke Tas"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-8 text-center bg-[#0C1B2C] border border-slate-800 rounded-2xl space-y-2">
-              <Sparkles className="w-8 h-8 text-slate-500 mx-auto" />
-              <h4 className="text-sm font-black text-white">Tidak Ada Makanan yang Cocok</h4>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                Coba ubah kata kunci pencarian atau reset filter untuk melihat katalog surplus lainnya.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setActiveCategoryFilter('ALL');
-                }}
-                className="mt-2 py-1.5 px-4 bg-[#D4A843] text-slate-950 font-black text-xs rounded-xl cursor-pointer"
-              >
-                Tampilkan Semua Makanan
-              </button>
-            </div>
-          )}
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between gap-2 pt-4 border-t border-slate-800">
-              <span className="text-xs text-slate-400 font-medium">
-                Hal <strong className="text-white">{currentPage}</strong> dari{' '}
-                <strong className="text-white">{totalPages}</strong>
+          {/* Desktop Pagination Controls */}
+          {desktopTotalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+              <span className="text-xs font-semibold text-slate-500">
+                Halaman <strong className="text-slate-800 font-black">{desktopCurrentPage}</strong> dari{' '}
+                <strong className="text-slate-800 font-black">{desktopTotalPages}</strong>
               </span>
 
               <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-xl bg-[#0F2338] border border-slate-700 text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1 text-slate-200"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={desktopCurrentPage === 1}
+                  onClick={() => setDesktopCurrentPage((p) => Math.max(1, p - 1))}
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl border-slate-300 disabled:opacity-40 cursor-pointer flex items-center gap-1"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Prev</span>
-                </button>
+                  <ChevronLeft size={14} />
+                  <span>Sebelumnya</span>
+                </Button>
 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                  {Array.from({ length: desktopTotalPages }, (_, i) => i + 1).map((pageNum) => (
                     <button
-                      key={num}
-                      type="button"
-                      onClick={() => setCurrentPage(num)}
-                      className={`w-7 h-7 rounded-xl text-xs font-black cursor-pointer ${
-                        num === currentPage
-                          ? 'bg-[#D4A843] text-slate-950 shadow-md'
-                          : 'bg-[#0F2338] border border-slate-700 text-slate-300 hover:bg-[#153250]'
+                      key={pageNum}
+                      onClick={() => setDesktopCurrentPage(pageNum)}
+                      className={`w-8 h-8 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                        pageNum === desktopCurrentPage
+                          ? 'bg-[#1B3A5C] text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {num}
+                      {pageNum}
                     </button>
                   ))}
                 </div>
 
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 rounded-xl bg-[#0F2338] border border-slate-700 text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1 text-slate-200"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={desktopCurrentPage === desktopTotalPages}
+                  onClick={() => setDesktopCurrentPage((p) => Math.min(desktopTotalPages, p + 1))}
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl border-slate-300 disabled:opacity-40 cursor-pointer flex items-center gap-1"
                 >
-                  <span>Next</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+                  <span>Selanjutnya</span>
+                  <ChevronRight size={14} />
+                </Button>
               </div>
             </div>
           )}
         </section>
       </div>
 
-      {/* 8. MODAL: QR CODE KLAIM AKTIF */}
+      {/* ========================================================================= */}
+      {/* 2. MOBILE VIEW (visible on mobile, hidden on md: and up)                  */}
+      {/* CREATIVE LIGHT BACKGROUND WITH WARM ACCENTS & SEAMLESS TRANSITIONS        */}
+      {/* ========================================================================= */}
+      <div className="block md:hidden bg-slate-50 text-slate-800 font-sans pb-24 space-y-4">
+        {/* Mobile Header Bar */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 py-3 space-y-2.5 shadow-2xs">
+          <div className="flex items-center justify-between gap-2">
+            {/* Location Pill synced with registered profile */}
+            <button
+              type="button"
+              onClick={() => setIsLocationModalOpen(true)}
+              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 px-3 py-1.5 rounded-full transition-all cursor-pointer text-left max-w-[65%]"
+            >
+              <MapPin className="w-3.5 h-3.5 text-[#1B3A5C] shrink-0" />
+              <div className="min-w-0">
+                <span className="text-[9.5px] text-slate-500 block leading-tight font-medium">Zona Penjemputan Akun</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-black text-slate-800 truncate">{consumerAddress}</span>
+                  <span className="text-[10px] text-slate-500 font-bold shrink-0">(&lt;{syncRadius} km)</span>
+                </div>
+              </div>
+            </button>
+
+            {/* Action Buttons: Notif & Tas */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Link href="/notifications">
+                <button
+                  type="button"
+                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300/80 flex items-center justify-center text-slate-700 transition-all cursor-pointer relative"
+                  title="Notifikasi"
+                >
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500" />
+                </button>
+              </Link>
+
+              <Link href="/dashboard/cart">
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-105 text-slate-950 font-black text-xs transition-all shadow-xs cursor-pointer relative"
+                  title="Tas Klaim"
+                >
+                  <ShoppingBag className="w-4 h-4 text-slate-950" />
+                  <span>Tas</span>
+                  {cartCount > 0 && (
+                    <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-black leading-none">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Real-time Search Input */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Cari roti artisan, nasi box, buah surplus..."
+              className="w-full pl-10 pr-9 py-2 bg-slate-100 border border-slate-200 focus:border-[#1B3A5C] focus:bg-white focus:ring-1 focus:ring-[#1B3A5C] rounded-2xl text-xs text-slate-900 placeholder:text-slate-400 font-medium transition-all outline-hidden"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </header>
+
+        <div className="px-3.5 space-y-4">
+          {/* Mobile Eco-Impact & Savings Card (Emerald-Navy Member Card) */}
+          <section className="bg-gradient-to-br from-[#1B3A5C] via-[#14334E] to-[#0D3F33] rounded-2xl p-4 text-white shadow-md border border-[#D4A843]/40 space-y-3.5 relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/15 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#D4A843]/20 border border-[#D4A843]/80 flex items-center justify-center shrink-0">
+                  <Coins className="w-4 h-4 text-[#D4A843]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-[#D4A843] font-black uppercase tracking-wider">
+                      Dompet Dampak & Penghematan
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsPahlawanInfoModalOpen(true)}
+                      className="text-[9px] bg-white/15 hover:bg-white/25 text-amber-300 px-1.5 py-0.2 rounded-md font-bold cursor-pointer inline-flex items-center gap-0.5"
+                    >
+                      <Info className="w-2.5 h-2.5" /> Apa ini?
+                    </button>
+                  </div>
+                  <h3 className="text-xs font-black text-slate-100">
+                    {consumerName}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[9px] text-slate-300 block font-medium">Saldo EcoPoints</span>
+                <strong className="text-xs font-black text-amber-300 font-mono">
+                  {ecoPoints} Poin
+                </strong>
+              </div>
+            </div>
+
+            {/* 3 Metrics */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-black/20 rounded-xl p-2 border border-white/10">
+                <span className="text-[9.5px] text-slate-300 font-medium block truncate">Total Hemat</span>
+                <strong className="text-xs font-black text-emerald-300 font-mono block">
+                  Rp {totalSavings.toLocaleString('id-ID')}
+                </strong>
+              </div>
+              <div className="bg-black/20 rounded-xl p-2 border border-white/10">
+                <span className="text-[9.5px] text-slate-300 font-medium block truncate">Porsi Selamat</span>
+                <strong className="text-xs font-black text-amber-300 font-mono block">
+                  {totalSavedPortions} Porsi
+                </strong>
+              </div>
+              <div className="bg-black/20 rounded-xl p-2 border border-white/10">
+                <span className="text-[9.5px] text-slate-300 font-medium block truncate">Karbon Tercegah</span>
+                <strong className="text-xs font-black text-teal-300 font-mono block">
+                  ~{(totalSavedPortions * 0.9).toFixed(1)} kg
+                </strong>
+              </div>
+            </div>
+
+            {/* Equal Sized Action Buttons */}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsRewardsModalOpen(true)}
+                className="flex-1 py-2.5 px-3 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-[#D4A843] transition-all cursor-pointer"
+              >
+                <Award className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                <span>Tukar EcoPoints</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsQRModalOpen(true)}
+                className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs border border-emerald-500 transition-all cursor-pointer"
+              >
+                <QrCode className="w-3.5 h-3.5 text-white shrink-0" />
+                <span>Tiket QR Klaim ({activeClaimsCount})</span>
+              </button>
+            </div>
+          </section>
+
+          {/* 8 Quick-Action Service Icons Grid (Grid 4x2) */}
+          <section className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black text-[#1B3A5C] uppercase tracking-wider block">
+                Layanan Penyelamatan Pangan
+              </span>
+              {activeCategoryFilter !== 'ALL' && (
+                <button
+                  type="button"
+                  onClick={() => setActiveCategoryFilter('ALL')}
+                  className="text-[10.5px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-4 gap-2">
+              {/* 1. Rescue Sale */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryFilter('RESCUE_SALE');
+                  setCurrentPage(1);
+                  scrollToCatalog();
+                }}
+                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
+                  activeCategoryFilter === 'RESCUE_SALE'
+                    ? 'bg-amber-100/70 border border-amber-300 ring-2 ring-amber-400/50'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center mb-1 text-amber-700">
+                  <UtensilsCrossed className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Rescue Sale</span>
+                <span className="text-[8px] text-amber-700 font-bold">Diskon 70%</span>
+              </button>
+
+              {/* 2. Donasi Rp 0 */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryFilter('FREE');
+                  setCurrentPage(1);
+                  scrollToCatalog();
+                }}
+                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
+                  activeCategoryFilter === 'FREE'
+                    ? 'bg-emerald-100/70 border border-emerald-300 ring-2 ring-emerald-400/50'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center mb-1 text-emerald-700">
+                  <Gift className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Donasi Rp 0</span>
+                <span className="text-[8px] text-emerald-700 font-bold">Gratis</span>
+              </button>
+
+              {/* 3. Flash Rescue */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryFilter('FLASH');
+                  setCurrentPage(1);
+                  scrollToCatalog();
+                }}
+                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
+                  activeCategoryFilter === 'FLASH'
+                    ? 'bg-rose-100/70 border border-rose-300 ring-2 ring-rose-400/50'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center mb-1 text-rose-700 relative">
+                  <Zap className="w-4 h-4" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Flash Rescue</span>
+                <span className="text-[8px] text-rose-700 font-bold">&lt; 2 Jam</span>
+              </button>
+
+              {/* 4. Bakery Malam */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryFilter('BAKERY');
+                  setCurrentPage(1);
+                  scrollToCatalog();
+                }}
+                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
+                  activeCategoryFilter === 'BAKERY'
+                    ? 'bg-amber-100/70 border border-amber-300 ring-2 ring-amber-400/50'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-1 text-amber-800">
+                  <Croissant className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Bakery</span>
+                <span className="text-[8px] text-amber-700 font-bold">Roti Fresh</span>
+              </button>
+
+              {/* 5. Bahan Segar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryFilter('PRODUCE');
+                  setCurrentPage(1);
+                  scrollToCatalog();
+                }}
+                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
+                  activeCategoryFilter === 'PRODUCE'
+                    ? 'bg-green-100/70 border border-green-300 ring-2 ring-green-400/50'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-green-100 border border-green-200 flex items-center justify-center mb-1 text-green-700">
+                  <Apple className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Bahan Segar</span>
+                <span className="text-[8px] text-green-700 font-bold">Sayur/Buah</span>
+              </button>
+
+              {/* 6. Dekat Saya */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategoryFilter('NEARBY');
+                  setCurrentPage(1);
+                  scrollToCatalog();
+                }}
+                className={`flex flex-col items-center p-2 rounded-xl transition-all cursor-pointer text-center ${
+                  activeCategoryFilter === 'NEARBY'
+                    ? 'bg-sky-100/70 border border-sky-300 ring-2 ring-sky-400/50'
+                    : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center mb-1 text-sky-700">
+                  <Navigation className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Dekat Saya</span>
+                <span className="text-[8px] text-sky-700 font-bold">&lt; 2 km</span>
+              </button>
+
+              {/* 7. Peta Radar */}
+              <Link href="/dashboard/explore" className="block">
+                <div className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-center">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center mb-1 text-indigo-700">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-black text-slate-800 leading-tight">Peta Radar</span>
+                  <span className="text-[8px] text-indigo-700 font-bold">Live GPS</span>
+                </div>
+              </Link>
+
+              {/* 8. Standar BPOM */}
+              <button
+                type="button"
+                onClick={() => setIsBPOMModalOpen(true)}
+                className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-center"
+              >
+                <div className="w-10 h-10 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center mb-1 text-teal-700">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-800 leading-tight">Standar BPOM</span>
+                <span className="text-[8px] text-teal-700 font-bold">SOP Higienis</span>
+              </button>
+            </div>
+          </section>
+
+          {/* Social Impact Hero Banner */}
+          <section className="rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+            <div
+              className={`p-4 bg-gradient-to-r ${heroBanners[bannerIndex].accentColor} text-white rounded-2xl flex items-center justify-between gap-3`}
+            >
+              <div className="space-y-1 min-w-0">
+                <span
+                  className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border inline-block ${heroBanners[bannerIndex].badgeColor}`}
+                >
+                  {heroBanners[bannerIndex].badge}
+                </span>
+                <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
+                  {heroBanners[bannerIndex].title}
+                </h4>
+                <p className="text-[11px] text-slate-200 leading-snug line-clamp-2">
+                  {heroBanners[bannerIndex].desc}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setBannerIndex((prev) => (prev === 0 ? heroBanners.length - 1 : prev - 1))}
+                  className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBannerIndex((prev) => (prev + 1) % heroBanners.length)}
+                  className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Flash Rescue Clearance Section */}
+          <section className="bg-gradient-to-r from-rose-50 via-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3.5 space-y-3 shadow-2xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-rose-600 shrink-0" />
+                <h4 className="text-xs font-black text-slate-900">
+                  Flash Rescue Sebelum Toko Tutup
+                </h4>
+              </div>
+              <div className="flex items-center gap-1 bg-white border border-amber-300 px-2 py-0.5 rounded-lg text-[10px] font-mono font-black text-amber-900">
+                <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                <span>{formatCountdown(secondsLeft)}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar snap-x snap-mandatory">
+              {flashRescueItems.map((item) => (
+                <div
+                  key={`mobile-flash-${item.id}`}
+                  className="w-[240px] shrink-0 snap-start bg-white border border-slate-200 rounded-xl p-2.5 space-y-2 shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex gap-2">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-200 relative">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-0.5 left-0.5 bg-red-600 text-white text-[8px] font-black px-1 rounded">
+                        -{item.discountPct}%
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <span className="text-[9px] text-[#1B3A5C] font-bold block truncate">
+                        {item.providerName}
+                      </span>
+                      <h5 className="text-[11px] font-black text-slate-900 line-clamp-2 leading-tight">
+                        {item.title}
+                      </h5>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                    <div>
+                      <span className="text-[9px] text-slate-400 line-through font-mono block">
+                        Rp {item.originalPrice.toLocaleString('id-ID')}
+                      </span>
+                      <strong className="text-xs font-black text-emerald-700 font-mono">
+                        Rp {item.price.toLocaleString('id-ID')}
+                      </strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickClaim(item)}
+                      className="py-1 px-2.5 bg-[#D4A843] text-slate-950 font-black text-[10.5px] rounded-lg cursor-pointer shadow-2xs"
+                    >
+                      Klaim
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 2-Column Mobile Feed */}
+          <section id="mobile-catalog-feed" className="space-y-3 pt-1">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-[#1B3A5C]">
+                    Katalog Makanan Surplus
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {filteredFoods.length} makanan siap diselamatkan
+                  </p>
+                </div>
+
+                <Link href="/dashboard/explore">
+                  <button
+                    type="button"
+                    className="text-xs font-bold text-[#1B3A5C] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Eksplor Peta</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                </Link>
+              </div>
+
+              {/* Chips Scrollable Bar */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {[
+                  { id: 'ALL', label: 'Semua' },
+                  { id: 'RESCUE_SALE', label: 'Rescue Sale' },
+                  { id: 'FREE', label: 'Donasi Rp 0' },
+                  { id: 'BAKERY', label: 'Roti/Kue' },
+                  { id: 'PRODUCE', label: 'Buah/Sayur' },
+                  { id: 'NEARBY', label: 'Dekat (<2km)' },
+                ].map((chip) => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveCategoryFilter(chip.id);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-3 py-1 rounded-full text-[11px] font-black shrink-0 transition-all cursor-pointer border ${
+                      activeCategoryFilter === chip.id
+                        ? 'bg-[#1B3A5C] text-white border-[#1B3A5C] shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2-Column Responsive Grid with UNIFORM IMAGE HEIGHT */}
+            {paginatedFoods.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
+                {paginatedFoods.map((food) => {
+                  const isDiscounted = food.originalPrice > food.price && food.price > 0;
+                  const discPct = isDiscounted
+                    ? Math.round(((food.originalPrice - food.price) / food.originalPrice) * 100)
+                    : 0;
+
+                  return (
+                    <div
+                      key={food.id}
+                      onClick={() => {
+                        setSelectedFood(food);
+                        setIsDetailModalOpen(true);
+                      }}
+                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between cursor-pointer"
+                    >
+                      {/* STRICT UNIFORM IMAGE PREVIEW SIZE: h-36 w-full object-cover shrink-0 */}
+                      <div className="relative h-36 w-full bg-slate-100 overflow-hidden shrink-0">
+                        <img
+                          src={food.imageUrl}
+                          alt={food.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 items-start">
+                          {food.isFree || food.price === 0 ? (
+                            <span className="px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[9px] rounded shadow-xs uppercase">
+                              Rp 0
+                            </span>
+                          ) : isDiscounted ? (
+                            <span className="px-1.5 py-0.5 bg-red-600 text-white font-black text-[9px] rounded shadow-xs">
+                              -{discPct}%
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between text-[8.5px] font-bold text-white bg-slate-950/70 backdrop-blur-xs px-1.5 py-0.5 rounded">
+                          <span className="truncate">{food.distance}</span>
+                          <span className="truncate">{food.pickupTime?.split(' ')[0] || 'Hari ini'}</span>
+                        </div>
+                      </div>
+
+                      {/* Content Body */}
+                      <div className="p-2.5 space-y-1.5 flex-1 flex flex-col justify-between">
+                        <div className="space-y-0.5">
+                          <span className="text-[9.5px] text-slate-400 font-bold block truncate">
+                            {food.providerName}
+                          </span>
+                          <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-tight">
+                            {food.title}
+                          </h4>
+                        </div>
+
+                        {/* Pricing & Add Button */}
+                        <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                          <div className="min-w-0">
+                            {isDiscounted && (
+                              <span className="text-[9px] text-slate-400 line-through font-mono block leading-none">
+                                Rp {food.originalPrice.toLocaleString('id-ID')}
+                              </span>
+                            )}
+                            <strong className="text-xs font-black text-emerald-700 font-mono block truncate">
+                              {food.isFree || food.price === 0
+                                ? 'GRATIS'
+                                : `Rp ${food.price.toLocaleString('id-ID')}`}
+                            </strong>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddToCart(food, e)}
+                            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#1B3A5C] border border-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                            title="Tambah ke Tas"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-6 text-center bg-white border border-slate-200 rounded-2xl space-y-1.5">
+                <Sparkles className="w-6 h-6 text-slate-400 mx-auto" />
+                <h4 className="text-xs font-black text-slate-800">Tidak Ada Makanan yang Cocok</h4>
+                <p className="text-[11px] text-slate-500">
+                  Coba ubah kata kunci atau reset filter kategori.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveCategoryFilter('ALL');
+                  }}
+                  className="mt-1 py-1 px-3 bg-[#1B3A5C] text-white font-black text-[11px] rounded-lg cursor-pointer"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200">
+                <span className="text-[11px] text-slate-500 font-medium">
+                  Hal <strong className="text-slate-800">{currentPage}</strong> dari{' '}
+                  <strong className="text-slate-800">{totalPages}</strong>
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. MODALS (SHARED)                                                        */}
+      {/* ========================================================================= */}
+
+      {/* MODAL 1: PENJELASAN PAHLAWAN PANGAN & ECOPOINTS REPLATE */}
+      <Modal
+        isOpen={isPahlawanInfoModalOpen}
+        onClose={() => setIsPahlawanInfoModalOpen(false)}
+        title="Penjelasan Pahlawan Pangan & EcoPoints Replate"
+      >
+        <div className="space-y-3.5 text-xs text-slate-700">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-1.5 font-black text-emerald-900 text-xs">
+              <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Siapa itu Pahlawan Pangan Replate?</span>
+            </div>
+            <p className="text-[11px] text-emerald-800 leading-relaxed">
+              <strong>Pahlawan Pangan</strong> adalah gelar apresiasi bagi setiap konsumen Replate yang aktif menyelamatkan makanan surplus layak konsumsi (Rescue Sale) atau mengklaim donasi pangan. Anda adalah garda terdepan pencegahan emisi gas metana di TPA Benowo Surabaya.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+              <div className="flex items-center gap-1.5 font-black text-slate-900">
+                <Coins className="w-3.5 h-3.5 text-[#D4A843]" />
+                <span>Apa itu EcoPoints Replate?</span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                EcoPoints adalah sistem poin penghargaan dampak lingkungan nyata. Setiap <strong>1 porsi makanan yang Anda selamatkan</strong>, sistem secara otomatis menghadiahkan <strong>40 EcoPoints</strong> (setara mencegah ~0.9 kg emisi gas rumah kaca CO2e).
+              </p>
+            </div>
+
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+              <div className="flex items-center gap-1.5 font-black text-slate-900">
+                <Award className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Manfaat & Cara Penukaran Poin:</span>
+              </div>
+              <ul className="text-[11px] text-slate-600 list-disc list-inside space-y-0.5">
+                <li><strong>100 Poin:</strong> Voucher potongan belanja Rescue Sale Rp 10.000.</li>
+                <li><strong>150 Poin:</strong> Donasi 1 bibit pohon mangrove di Ekowisata Wonorejo Surabaya.</li>
+                <li><strong>Lencana Digital:</strong> Meningkatkan level status kontribusi hijau akun Anda.</li>
+              </ul>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsPahlawanInfoModalOpen(false)}
+            className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer shadow-xs"
+          >
+            Saya Mengerti
+          </button>
+        </div>
+      </Modal>
+
+      {/* MODAL 2: INFORMASI ZONA & RADIUS PENJEMPUTAN (SUPERADMIN CONTROLLED) */}
+      <Modal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        title="Informasi Zona & Radius Penjemputan"
+      >
+        <div className="space-y-3.5 text-xs text-slate-700">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-1.5 font-black text-[#1B3A5C]">
+              <MapPin className="w-4 h-4 text-[#1B3A5C]" />
+              <span>Zona Domisili Akun Terdaftar:</span>
+            </div>
+            <strong className="text-sm font-black text-slate-900 block">{consumerAddress}</strong>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Kecamatan penjemputan disinkronkan secara otomatis dari data profil akun Anda.
+            </p>
+          </div>
+
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+            <div className="flex items-center gap-1.5 font-black text-amber-900">
+              <Lock className="w-4 h-4 text-amber-700" />
+              <span>Radius Penyelamatan: &lt; {syncRadius} km</span>
+            </div>
+            <p className="text-[11px] text-amber-800 leading-relaxed">
+              Radius penjemputan ditetapkan secara terpusat oleh <strong>SuperAdmin</strong> untuk memastikan seluruh surplus makanan yang Anda ambil tetap berada dalam batas toleransi kesegaran dan higienitas 3 jam BPOM RI.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
+            <Link href="/dashboard/profile" className="w-full sm:flex-1">
+              <button
+                type="button"
+                className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Perbarui Alamat di Profil</span>
+              </button>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsLocationModalOpen(false)}
+              className="w-full sm:w-auto py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 3: TIKET QR KLAIM AKTIF */}
       <Modal
         isOpen={isQRModalOpen}
         onClose={() => setIsQRModalOpen(false)}
@@ -1218,7 +1467,7 @@ export default function ConsumerSuperAppPage() {
       >
         <div className="space-y-4 text-xs text-slate-700">
           <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 space-y-1">
-            <div className="flex items-center gap-1.5 font-black text-sm">
+            <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Tiket Siap Diambil di Gerai Mitra</span>
             </div>
@@ -1242,21 +1491,21 @@ export default function ConsumerSuperAppPage() {
           <button
             type="button"
             onClick={() => setIsQRModalOpen(false)}
-            className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer shadow-md"
+            className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer shadow-xs"
           >
             Tutup Tiket QR
           </button>
         </div>
       </Modal>
 
-      {/* 9. MODAL: TUKAR ECOPOINTS REPLATE */}
+      {/* MODAL 4: TUKAR ECOPOINTS */}
       <Modal
         isOpen={isRewardsModalOpen}
         onClose={() => setIsRewardsModalOpen(false)}
         title="Pusat Penukaran EcoPoints Replate"
       >
-        <div className="space-y-4 text-xs text-slate-700">
-          <div className="p-3.5 bg-gradient-to-r from-[#0C243B] to-[#0A4B3C] text-white rounded-2xl flex items-center justify-between">
+        <div className="space-y-3.5 text-xs text-slate-700">
+          <div className="p-3.5 bg-gradient-to-r from-[#1B3A5C] to-[#0E4A3B] text-white rounded-2xl flex items-center justify-between">
             <div className="space-y-0.5">
               <span className="text-[10px] text-[#D4A843] font-black uppercase">Saldo EcoPoints Anda</span>
               <h3 className="text-xl font-black text-amber-300 font-mono">{ecoPoints} Poin</h3>
@@ -1268,11 +1517,10 @@ export default function ConsumerSuperAppPage() {
           <div className="space-y-2.5">
             <h4 className="font-black text-slate-800 text-xs">Pilihan Reward & Penukaran:</h4>
 
-            {/* Reward 1 */}
             <div className="p-3 border border-slate-200 rounded-xl flex items-center justify-between gap-2 hover:border-amber-400 transition-all">
               <div className="space-y-0.5">
                 <strong className="text-xs text-slate-900 block font-bold">Voucher Potongan Rp 10.000</strong>
-                <span className="text-[10px] text-slate-500 block">Dapat digunakan untuk pesanan Rescue Sale berikutnya</span>
+                <span className="text-[10px] text-slate-500 block">Digunakan untuk pesanan Rescue Sale berikutnya</span>
               </div>
               <button
                 type="button"
@@ -1290,7 +1538,6 @@ export default function ConsumerSuperAppPage() {
               </button>
             </div>
 
-            {/* Reward 2 */}
             <div className="p-3 border border-slate-200 rounded-xl flex items-center justify-between gap-2 hover:border-emerald-400 transition-all">
               <div className="space-y-0.5">
                 <strong className="text-xs text-slate-900 block font-bold">Donasi 1 Bibit Pohon Mangrove</strong>
@@ -1301,7 +1548,7 @@ export default function ConsumerSuperAppPage() {
                 onClick={() => {
                   setToastState({
                     isOpen: true,
-                    message: 'Luar biasa! 150 Poin didonasikan untuk 1 bibit mangrove di Wonorejo.',
+                    message: 'Luar biasa! 150 Poin didonasikan untuk bibit mangrove di Wonorejo.',
                     type: 'success',
                   });
                   setIsRewardsModalOpen(false);
@@ -1315,84 +1562,17 @@ export default function ConsumerSuperAppPage() {
         </div>
       </Modal>
 
-      {/* 10. MODAL: UBAH LOKASI & RADIUS PENJEMPUTAN */}
-      <Modal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        title="Pengaturan Zona & Radius Penjemputan"
-      >
-        <div className="space-y-4 text-xs text-slate-700">
-          <div className="space-y-1.5">
-            <label className="font-bold text-slate-800 block">Pilih Kecamatan Penjemputan (Surabaya):</label>
-            <select
-              value={consumerAddress}
-              onChange={(e) => setConsumerAddress(e.target.value)}
-              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 font-bold focus:ring-1 focus:ring-[#1B3A5C]"
-            >
-              <option value="Gubeng, Surabaya">Gubeng, Surabaya</option>
-              <option value="Genteng, Surabaya">Genteng, Surabaya</option>
-              <option value="Wonokromo, Surabaya">Wonokromo, Surabaya</option>
-              <option value="Sukolilo, Surabaya">Sukolilo, Surabaya</option>
-              <option value="Tegalsari, Surabaya">Tegalsari, Surabaya</option>
-              <option value="Rungkut, Surabaya">Rungkut, Surabaya</option>
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-800">Maksimal Radius Penyelamatan:</label>
-              <span className="font-black text-[#1B3A5C] text-sm">{syncRadius} km</span>
-            </div>
-            <input
-              type="range"
-              min="2"
-              max="25"
-              step="1"
-              value={syncRadius}
-              onChange={(e) => {
-                const r = parseInt(e.target.value);
-                setSyncRadius(r);
-                try {
-                  localStorage.setItem('replate_admin_sync_radius', r.toString());
-                } catch (_) {}
-              }}
-              className="w-full accent-[#1B3A5C] cursor-pointer"
-            />
-            <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-              <span>2 km (Dekat)</span>
-              <span>15 km (Kota)</span>
-              <span>25 km (Metropolitan)</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setToastState({
-                isOpen: true,
-                message: `Lokasi diperbarui ke "${consumerAddress}" dengan radius ${syncRadius} km!`,
-                type: 'success',
-              });
-              setIsLocationModalOpen(false);
-            }}
-            className="w-full py-2.5 bg-[#1B3A5C] hover:bg-[#254F7C] text-white font-black rounded-xl text-xs cursor-pointer shadow-md"
-          >
-            Terapkan Zona Baru
-          </button>
-        </div>
-      </Modal>
-
-      {/* 11. MODAL: STANDAR BPOM RI & HIGIENITAS */}
+      {/* MODAL 5: STANDAR BPOM RI */}
       <Modal
         isOpen={isBPOMModalOpen}
         onClose={() => setIsBPOMModalOpen(false)}
         title="Jaminan Keamanan Pangan Replate (SOP BPOM RI)"
       >
-        <div className="space-y-3.5 text-xs text-slate-700">
+        <div className="space-y-3 text-xs text-slate-700">
           <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-            <div className="flex items-center gap-1.5 text-emerald-800 font-black text-sm">
+            <div className="flex items-center gap-1.5 text-emerald-800 font-black text-xs sm:text-sm">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Standar Operasional Pangan Replate 100% Bebas Khawatir</span>
+              <span>Standar Operasional Higienis 100% Bebas Khawatir</span>
             </div>
             <p className="text-[11px] text-emerald-700 leading-relaxed">
               Seluruh makanan yang didistribusikan melalui Replate wajib lolos uji sensorik organoleptik (bau, rasa, tekstur, visual) dan mematuhi batas waktu konsumsi 3 jam BPOM RI.
@@ -1415,27 +1595,45 @@ export default function ConsumerSuperAppPage() {
                 <span className="text-[11px] text-slate-600">Wadah higienis anti tumpah dengan label informasi waktu simpan yang jelas.</span>
               </div>
             </div>
-
-            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-slate-900 block font-bold">3. Perlindungan Konsumen Terpadu</strong>
-                <span className="text-[11px] text-slate-600">Hak kompensasi dan jaminan penggantian jika makanan tidak sesuai deskripsi.</span>
-              </div>
-            </div>
           </div>
 
           <button
             type="button"
             onClick={() => setIsBPOMModalOpen(false)}
-            className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer shadow-md"
+            className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer shadow-xs"
           >
             Saya Memahami Standar BPOM
           </button>
         </div>
       </Modal>
 
-      {/* 12. FOOD DETAIL MODAL */}
+      {/* MODAL 6: PENJELASAN STATUS KONSUMEN REGULER (DESKTOP) */}
+      <Modal
+        isOpen={isStatusExplanationModalOpen}
+        onClose={() => setIsStatusExplanationModalOpen(false)}
+        title="Informasi Status Akun Konsumen"
+      >
+        <div className="space-y-4 text-xs text-slate-700">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 text-[#1B3A5C] font-black text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Status Akun: Konsumen Reguler</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Di Replate, seluruh akun konsumen berhak menikmati <strong>Rescue Sale diskon hingga 70%</strong> dan mengklaim <strong>Donasi Makanan Rp 0</strong> berstandar higienis BPOM RI tanpa perlu mengunggah surat keterangan SKTM.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsStatusExplanationModalOpen(false)}
+            className="w-full py-2.5 bg-[#1B3A5C] text-white font-black rounded-xl text-xs cursor-pointer"
+          >
+            Tutup Informasi
+          </button>
+        </div>
+      </Modal>
+
+      {/* MODAL 7: FOOD DETAIL MODAL */}
       {selectedFood && (
         <FoodDetailModal
           isOpen={isDetailModalOpen}
@@ -1451,7 +1649,7 @@ export default function ConsumerSuperAppPage() {
         />
       )}
 
-      {/* 13. GLOBAL TOAST & LOADER */}
+      {/* GLOBAL TOAST & LOADER */}
       <Toast
         isOpen={toastState.isOpen}
         onClose={() => setToastState({ ...toastState, isOpen: false })}
