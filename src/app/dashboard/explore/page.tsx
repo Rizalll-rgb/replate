@@ -276,32 +276,51 @@ export default function WorkspaceExplorePage() {
     return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
   };
 
+  const normalizeCategory = (cat?: string): string => {
+    if (!cat) return 'MAKANAN_BERAT';
+    const c = cat.toUpperCase();
+    if (c === 'MEALS' || c === 'MAKANAN_BERAT' || c.includes('BERAT') || c.includes('OLAHAN')) return 'MAKANAN_BERAT';
+    if (c === 'BAKERY' || c === 'ROTI_KUE' || c.includes('ROTI') || c.includes('KUE') || c.includes('BAKERY')) return 'ROTI_KUE';
+    if (c === 'DAIRY' || c === 'BEVERAGES' || c === 'MINUMAN_SUSU' || c.includes('SUSU') || c.includes('MINUM')) return 'MINUMAN_SUSU';
+    if (c === 'PRODUCE' || c === 'BUAH_SAYUR' || c.includes('BUAH') || c.includes('SAYUR')) return 'BUAH_SAYUR';
+    if (c === 'BAHAN_MENTAH' || c === 'SNACKS' || c === 'OTHER' || c.includes('MENTAH') || c.includes('POKOK')) return 'BAHAN_MENTAH';
+    return 'MAKANAN_BERAT';
+  };
+
   // Helper: map raw item to FoodItem
-  const mapToFoodItem = (item: any): FoodItem => ({
-    id: item.id || `food-${Math.random()}`,
-    title: item.foodName || item.title || 'Makanan Surplus',
-    description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
-    providerName: item.provider?.organizationName || item.providerName || 'Warung Bakso Pak Kumis',
-    providerPhone: item.provider?.phone || '081234567891',
-    providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
-    originalPrice: item.originalPrice || 25000,
-    discountPrice: item.discountPrice || item.price || 0,
-    quantity: `${item.quantity || item.remainingQuantity || 10} Porsi`,
-    pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
-    distance: item.distance || '1.2 km',
-    category: item.category || item.foodCategory || 'MAKANAN_BERAT',
-    isFree: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0,
-    type: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0 ? 'DONATION' : 'RESCUE_SALE',
-    imageUrl: extractExplorePhoto(item),
-    rating: item.rating || 4.8,
-    storageCondition: item.storageCondition || 'ROOM_TEMP',
-    packagingType: item.packagingType || 'PACKAGED',
-    weightPerUnitKg: item.weightPerUnitKg || 0.4,
-    allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
-    lat: item.lat || item.latitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lat,
-    lng: item.lng || item.longitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lng,
-    status: item.status,
-  });
+  const mapToFoodItem = (item: any): FoodItem => {
+    const isDonation = item.isFree === true || item.pricingScheme === 'DONATION' || item.pricingScheme === 'DONATION_YAYASAN' || item.pricingScheme === 'DONATION_INDIVIDUAL' || item.distributionType === 'FREE' || item.discountPrice === 0 || item.price === 0;
+    const originalPrice = Number(item.originalPrice || 25000);
+    const discountPrice = isDonation ? 0 : Number(item.discountPrice !== undefined ? item.discountPrice : (item.price || 5000));
+    const rawQty = item.remainingQuantity !== undefined ? item.remainingQuantity : item.quantity;
+    const quantityStr = typeof rawQty === 'number' ? `${rawQty} ${item.quantityUnit || 'Porsi'}` : String(rawQty || '10 Porsi');
+
+    return {
+      id: item.id || `food-${Math.random()}`,
+      title: item.foodName || item.title || 'Makanan Surplus',
+      description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
+      providerName: item.provider?.organizationName || item.providerName || 'Warung Bakso Pak Kumis',
+      providerPhone: item.provider?.phone || '081234567891',
+      providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
+      originalPrice,
+      discountPrice,
+      quantity: quantityStr,
+      pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+      distance: item.distance || '1.2 km',
+      category: normalizeCategory(item.foodCategory || item.category),
+      isFree: isDonation,
+      type: isDonation ? 'DONATION' : 'RESCUE_SALE',
+      imageUrl: extractExplorePhoto(item),
+      rating: item.rating || 4.8,
+      storageCondition: item.storageCondition || 'ROOM_TEMP',
+      packagingType: item.packagingType || 'PACKAGED',
+      weightPerUnitKg: Number(item.weightPerUnitKg || 0.4),
+      allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
+      lat: item.lat || item.latitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lat,
+      lng: item.lng || item.longitude || resolveIndonesianAddress(item.address || item.pickupAddress || '').lng,
+      status: item.status || 'AVAILABLE',
+    };
+  };
 
   useEffect(() => {
     // 1. Load local surplus items from localStorage (syncs newly added items)
@@ -409,6 +428,7 @@ export default function WorkspaceExplorePage() {
     { key: 'ROTI_KUE', name: 'Roti & Bakery' },
     { key: 'MINUMAN_SUSU', name: 'Minuman & Susu' },
     { key: 'BUAH_SAYUR', name: 'Buah & Sayur' },
+    { key: 'BAHAN_MENTAH', name: 'Bahan Pokok' },
   ];
 
   const filteredFoods = foods.filter((item) => {
@@ -627,22 +647,57 @@ export default function WorkspaceExplorePage() {
       const existingClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
       localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingClaims]));
 
-      // 2. Deduct portions from local surplus if present
+      // 2. Deduct portions from local surplus dynamically
       const localSurplus = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      let foundInLocal = false;
       const updatedSurplus = localSurplus.map((item: any) => {
         if (item.id === selectedProduct.id) {
-          const currentQty = Number(item.remainingQuantity || item.quantity || 0);
+          foundInLocal = true;
+          const currentQty = Number(item.remainingQuantity !== undefined ? item.remainingQuantity : (item.quantity || 0));
           const newQty = Math.max(0, currentQty - allocateModal.portions);
           return { ...item, remainingQuantity: newQty, quantity: newQty };
         }
         return item;
       });
+
+      if (!foundInLocal) {
+        const currentQty = Number(selectedProduct.remainingQuantity !== undefined ? selectedProduct.remainingQuantity : (selectedProduct.quantity || 0));
+        const newQty = Math.max(0, currentQty - allocateModal.portions);
+        updatedSurplus.unshift({
+          ...selectedProduct,
+          remainingQuantity: newQty,
+          quantity: newQty,
+        });
+      }
       localStorage.setItem('replate_local_surplus', JSON.stringify(updatedSurplus));
+
+      // 3. Update in-memory availableProducts and foods states immediately
+      setAvailableProducts((prev) =>
+        prev.map((p) => {
+          if (p.id === selectedProduct.id) {
+            const currentQty = Number(p.remainingQuantity !== undefined ? p.remainingQuantity : (p.quantity || 0));
+            const newQty = Math.max(0, currentQty - allocateModal.portions);
+            return { ...p, remainingQuantity: newQty, quantity: newQty };
+          }
+          return p;
+        })
+      );
+
+      setFoods((prev) =>
+        prev.map((f) => {
+          if (f.id === selectedProduct.id) {
+            const currentQty = parseInt(f.quantity) || 0;
+            const newQty = Math.max(0, currentQty - allocateModal.portions);
+            return { ...f, quantity: `${newQty} Porsi` };
+          }
+          return f;
+        })
+      );
     } catch (_) {}
 
-    // Update panti state
-    setPantiNeeds((prev) =>
-      prev.map((n) => {
+    // Update panti state and persist
+    setPantiNeeds((prev) => {
+      const nextPanti = prev.map((n) => {
         if (n.id === allocateModal.panti?.id) {
           const currentFulfilled = parseInt(n.fulfilledQuantity.replace(/\D/g, '')) || 0;
           return {
@@ -651,8 +706,12 @@ export default function WorkspaceExplorePage() {
           };
         }
         return n;
-      })
-    );
+      });
+      try {
+        localStorage.setItem('replate_panti_requests', JSON.stringify(nextPanti));
+      } catch (_) {}
+      return nextPanti;
+    });
 
     const savedPanti = allocateModal.panti;
 
@@ -878,7 +937,7 @@ export default function WorkspaceExplorePage() {
               : 'text-slate-700 hover:text-slate-950 font-bold'
           }`}
         >
-          <span>Permintaan Panti ({pantiNeeds.length})</span>
+          <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
         </button>
       </div>
 

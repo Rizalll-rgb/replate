@@ -65,6 +65,7 @@ interface ClaimItem {
   createdAt: string;
   pickupTime: string;
   hygieneStatus?: string;
+  paymentProof?: string | null;
   items?: Array<{
     title?: string;
     foodName?: string;
@@ -78,6 +79,7 @@ interface ClaimItem {
     vehicle: string;
     plateNumber?: string;
   };
+  proofImage?: string;
 }
 
 export default function MyClaimsPage() {
@@ -130,6 +132,14 @@ export default function MyClaimsPage() {
 
   // Tracking Modal State
   const [trackingModal, setTrackingModal] = useState<ClaimItem | null>(null);
+
+  const [deliveryProofModal, setDeliveryProofModal] = useState<{
+    isOpen: boolean;
+    claim: ClaimItem | null;
+  }>({
+    isOpen: false,
+    claim: null,
+  });
 
   // Safety Confirmation Modal before completing
   const [confirmPickupModal, setConfirmPickupModal] = useState<{
@@ -352,11 +362,12 @@ export default function MyClaimsPage() {
 
     setTimeout(() => {
       const updated = claims.map((c) =>
-        c.id === uploadModal.claimId ? { ...c, status: 'WAITING_PAYMENT_APPROVAL' as const } : c
+        c.id === uploadModal.claimId ? { ...c, status: 'WAITING_PAYMENT_APPROVAL' as const, paymentProof: 'uploaded_receipt.jpg' } : c
       );
       setClaims(updated);
       try {
         localStorage.setItem('replate_active_claims', JSON.stringify(updated));
+        localStorage.setItem('replate_claims', JSON.stringify(updated));
       } catch (_) {}
 
       setActionLoader({ isOpen: false, message: '' });
@@ -662,12 +673,14 @@ export default function MyClaimsPage() {
               claim.status === 'WAITING_STORE_DISPATCH' ||
               claim.status === 'WAITING_STORE_COURIER';
             const isWaitingPool = claim.status === 'WAITING_RESCUE_POOL';
-            const isPaymentPending = claim.status === 'AWAITING_PAYMENT' && !isCod;
+            const hasUploadedProof = Boolean(claim.paymentProof);
+            const isPaymentPending = (claim.status === 'AWAITING_PAYMENT' && !isCod && !hasUploadedProof);
             const isVerificationPending =
               !isCod &&
               (claim.status === 'AWAITING_VERIFICATION' ||
                 claim.status === 'WAITING_PAYMENT_APPROVAL' ||
-                claim.status === 'PENDING_APPROVAL');
+                claim.status === 'PENDING_APPROVAL' ||
+                (claim.status === 'AWAITING_PAYMENT' && hasUploadedProof));
             const isReady =
               claim.status === 'READY_FOR_PICKUP' ||
               (isCod && !isCourier && !isPickedUp && !isDone) ||
@@ -1040,15 +1053,31 @@ export default function MyClaimsPage() {
                 {/* Card Footer: Action Buttons (User Request 1 & 2) */}
                 <div className="px-4 sm:px-6 pb-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 flex-wrap">
-                    {isCourier && (
+                    {/* Tombol Lacak Kurir / Timeline Selesai (Poin 12) */}
+                    {(isCourier || isDone) && (
                       <Button
                         variant="outline"
                         size="sm"
-                        leftIcon={<TruckIcon size={13} className="text-[#1B3A5C]" />}
-                        className="text-xs font-bold py-2 px-3 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                        leftIcon={isDone ? <ClockIcon size={13} className="text-blue-600" /> : <TruckIcon size={13} className="text-[#1B3A5C]" />}
+                        className={`text-xs font-bold py-2 px-3 rounded-xl cursor-pointer ${
+                          isDone ? 'border-blue-200 text-blue-800 hover:bg-blue-50' : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                        }`}
                         onClick={() => setTrackingModal(claim)}
                       >
-                        Lacak Kurir
+                        {isDone ? 'Lacak Alur / Timeline' : 'Lacak Kurir'}
+                      </Button>
+                    )}
+
+                    {/* Tombol Bukti Pengiriman Langsung Jika Selesai (Poin 13) */}
+                    {isDone && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        leftIcon={<CheckIcon size={13} className="text-emerald-600" />}
+                        className="text-xs font-bold py-2 px-3 rounded-xl border-emerald-200 text-emerald-800 hover:bg-emerald-50 cursor-pointer"
+                        onClick={() => setDeliveryProofModal({ isOpen: true, claim })}
+                      >
+                        Bukti Pengiriman
                       </Button>
                     )}
 
@@ -1271,6 +1300,31 @@ export default function MyClaimsPage() {
                   : 'Menyiapkan Penjemputan'}
               </span>
             </div>
+
+            {/* Banner Bukti Pengiriman Terverifikasi (Poin 13) */}
+            {trackingModal.status === 'COMPLETED' && (
+              <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckIcon size={18} className="text-emerald-700 shrink-0" />
+                  <div>
+                    <strong className="text-xs text-emerald-900 block font-black">
+                      Pesanan Telah Tiba & Diserahterimakan
+                    </strong>
+                    <span className="text-[11px] text-emerald-700">
+                      Foto dokumentasi serah terima dan catatan penerimaan telah diverifikasi di sistem.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryProofModal({ isOpen: true, claim: trackingModal })}
+                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-xs transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                >
+                  <span>Lihat Bukti Pengiriman</span>
+                  <span>→</span>
+                </button>
+              </div>
+            )}
 
             {/* Courier Profile */}
             <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1548,6 +1602,83 @@ export default function MyClaimsPage() {
           </Button>
         </div>
       </Modal>
+
+      {/* Modal Bukti Pengiriman & Serah Terima Konsumen (Poin 13) */}
+      {deliveryProofModal.isOpen && (
+        <Modal
+          isOpen={deliveryProofModal.isOpen}
+          onClose={() => setDeliveryProofModal({ isOpen: false, claim: null })}
+          title={`Bukti Serah Terima: ${deliveryProofModal.claim?.code || deliveryProofModal.claim?.id || ''}`}
+          size="md"
+        >
+          {deliveryProofModal.claim && (() => {
+            const claim = deliveryProofModal.claim;
+            return (
+              <div className="space-y-4 text-xs text-slate-800">
+                <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <CheckIcon size={18} />
+                  </div>
+                  <div>
+                    <strong className="text-emerald-950 font-black text-xs block">
+                      Serah Terima Sukses & Terverifikasi
+                    </strong>
+                    <span className="text-[11px] text-emerald-800">
+                      Diserahkan pada {claim.pickupTime || '20:30 WIB'} · Standar Higienitas BPOM RI
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-slate-900 block text-[11px]">
+                    Foto Dokumentasi Serah Terima:
+                  </label>
+                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
+                    <img
+                      src={claim.proofImage || 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800&auto=format&fit=crop&q=80'}
+                      alt="Bukti Serah Terima"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
+                      <span className="text-white text-[10px] font-bold">
+                        📍 Lokasi Penerima: {claim.deliveryAddress || claim.address || 'Alamat Domisili Pengiriman Terdaftar'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block font-medium">Penerima Manfaat:</span>
+                    <strong className="text-slate-900">{claim.recipientName || consumerName || 'Budi Santoso'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Diserahkan Oleh:</span>
+                    <strong className="text-slate-900">{claim.driver?.name || 'Driver Mitra / Kasir Gerai'}</strong>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t border-slate-200">
+                    <span className="text-slate-400 block font-medium">Catatan Kondisi Makanan:</span>
+                    <p className="text-slate-700 font-medium">
+                      Makanan surplus diserahkan dalam kemasan higienis yang tersegel rapi, layak konsumsi, dan sesuai pesanan.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2 border-t border-slate-100">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeliveryProofModal({ isOpen: false, claim: null })}
+                    className="text-xs font-bold"
+                  >
+                    Tutup
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </Modal>
+      )}
     </div>
   );
 }

@@ -130,7 +130,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             }
           }}
         >
-          {isOutOfStock ? 'Porsi Makanan Habis (0 Porsi)' : 'Beli Langsung '}
+          {isOutOfStock ? 'Porsi Makanan Habis (0 Porsi)' : isFree ? 'Klaim Sekarang (Rp 0)' : 'Beli Langsung'}
         </Button>
       )}
     </div>

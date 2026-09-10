@@ -133,31 +133,69 @@ export default function ExplorePage() {
         .filter((item: any) => item.status === 'AVAILABLE' || !item.status);
     } catch (_) {}
 
-    const mapToFoodItem = (item: any): FoodItem => ({
-      id: item.id || `food-${Math.random()}`,
-      title: item.foodName || item.title || 'Makanan Surplus',
-      description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
-      providerName: item.provider?.organizationName || item.provider?.name || item.providerName || item.storeName || 'Warung Bakso Pak Kumis',
-      providerPhone: item.provider?.phone || '081234567891',
-      providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
-      originalPrice: Number(item.originalPrice || 25000),
-      discountPrice: item.discountPrice !== undefined ? Number(item.discountPrice) : (item.pricingScheme === 'RESCUE_SALE' ? Number(item.price || 5000) : 0),
-      quantity: typeof item.quantity === 'number' ? `${item.quantity} ${item.quantityUnit || 'Porsi'}` : item.quantity || '10 Porsi',
-      pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
-      distance: item.distance || '1.2 km',
-      category: item.foodCategory || item.category || 'MAKANAN_BERAT',
-      isFree: item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.price === 0,
-      type: (item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.price === 0) ? 'DONATION' : 'RESCUE_SALE',
-      imageUrl: item.imageUrl || item.photos?.[0] || item.photo || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
-      rating: item.rating || 4.8,
-      storageCondition: item.storageCondition || 'ROOM_TEMP',
-      packagingType: item.packagingType || 'PACKAGED',
-      weightPerUnitKg: Number(item.weightPerUnitKg || 0.4),
-      allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
-      lat: item.lat || item.latitude || -7.2575,
-      lng: item.lng || item.longitude || 112.7521,
-      status: item.status || 'AVAILABLE',
-    });
+    const normalizeCategory = (cat?: string): string => {
+      if (!cat) return 'MAKANAN_BERAT';
+      const c = cat.toUpperCase();
+      if (c === 'MEALS' || c === 'MAKANAN_BERAT' || c.includes('BERAT') || c.includes('OLAHAN')) return 'MAKANAN_BERAT';
+      if (c === 'BAKERY' || c === 'ROTI_KUE' || c.includes('ROTI') || c.includes('KUE') || c.includes('BAKERY')) return 'ROTI_KUE';
+      if (c === 'DAIRY' || c === 'BEVERAGES' || c === 'MINUMAN_SUSU' || c.includes('SUSU') || c.includes('MINUM')) return 'MINUMAN_SUSU';
+      if (c === 'PRODUCE' || c === 'BUAH_SAYUR' || c.includes('BUAH') || c.includes('SAYUR')) return 'BUAH_SAYUR';
+      if (c === 'BAHAN_MENTAH' || c === 'SNACKS' || c === 'OTHER' || c.includes('MENTAH') || c.includes('POKOK')) return 'BAHAN_MENTAH';
+      return 'MAKANAN_BERAT';
+    };
+
+    const extractPhoto = (item: any): string => {
+      if (item.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.length > 2) return item.imageUrl;
+      if (item.photoUrl && typeof item.photoUrl === 'string' && item.photoUrl.length > 2) return item.photoUrl;
+      if (item.photo && typeof item.photo === 'string' && item.photo.length > 2) return item.photo;
+      if (item.photos) {
+        if (Array.isArray(item.photos) && item.photos.length > 0 && typeof item.photos[0] === 'string') return item.photos[0];
+        if (typeof item.photos === 'string') {
+          try {
+            const parsed = JSON.parse(item.photos);
+            if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') return parsed[0];
+            if (typeof parsed === 'string' && parsed.length > 2) return parsed;
+          } catch (_) {
+            if (item.photos.startsWith('http') || item.photos.startsWith('data:') || item.photos.startsWith('/')) return item.photos;
+          }
+        }
+      }
+      return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
+    };
+
+    const mapToFoodItem = (item: any): FoodItem => {
+      const isDonation = item.isFree === true || item.pricingScheme === 'DONATION' || item.pricingScheme === 'DONATION_YAYASAN' || item.pricingScheme === 'DONATION_INDIVIDUAL' || item.distributionType === 'FREE' || item.discountPrice === 0 || item.price === 0;
+      const originalPrice = Number(item.originalPrice || 25000);
+      const discountPrice = isDonation ? 0 : Number(item.discountPrice !== undefined ? item.discountPrice : (item.price || 5000));
+      const rawQty = item.remainingQuantity !== undefined ? item.remainingQuantity : item.quantity;
+      const quantityStr = typeof rawQty === 'number' ? `${rawQty} ${item.quantityUnit || 'Porsi'}` : String(rawQty || '10 Porsi');
+
+      return {
+        id: item.id || `food-${Math.random()}`,
+        title: item.foodName || item.title || 'Makanan Surplus',
+        description: item.description || 'Makanan surplus terverifikasi higienis SOP BPOM RI.',
+        providerName: item.provider?.organizationName || item.provider?.name || item.providerName || item.storeName || 'Warung Bakso Pak Kumis',
+        providerPhone: item.provider?.phone || '081234567891',
+        providerAddress: item.address || item.pickupAddress || 'Jl. Genteng Kali No. 45, Surabaya',
+        originalPrice,
+        discountPrice,
+        quantity: quantityStr,
+        pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+        distance: item.distance || '1.2 km',
+        category: normalizeCategory(item.foodCategory || item.category),
+        isFree: isDonation,
+        type: isDonation ? 'DONATION' : 'RESCUE_SALE',
+        imageUrl: extractPhoto(item),
+        rating: item.rating || 4.8,
+        storageCondition: item.storageCondition || 'ROOM_TEMP',
+        packagingType: item.packagingType || 'PACKAGED',
+        weightPerUnitKg: Number(item.weightPerUnitKg || 0.4),
+        allergens: item.allergens || ['Nut-Free', 'Halal BPJPH', 'Sterile Container'],
+        lat: item.lat || item.latitude || -7.2575,
+        lng: item.lng || item.longitude || 112.7521,
+        status: item.status || 'AVAILABLE',
+      };
+    };
 
     fetch('/api/surplus')
       .then((res) => res.json())
@@ -431,7 +469,7 @@ export default function ExplorePage() {
                 : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Permintaan Panti ({pantiNeeds.length})</span>
+            <span>Permintaan Donasi Panti ({pantiNeeds.length})</span>
           </button>
         </div>
 

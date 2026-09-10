@@ -273,6 +273,13 @@ export default function CheckoutPage() {
     const resolvedDest = resolveIndonesianAddress(address);
     const resolvedProv = resolveIndonesianAddress(item?.providerAddress || (item as any)?.address || '');
 
+    const deliveryFeeAmt = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : deliveryMethod === 'COMMUNITY_DELIVERY' ? 8000 : 0;
+    const computedMethodLabel = deliveryMethod === 'SELF_PICKUP'
+      ? 'Ambil Mandiri (Self-Pickup)'
+      : deliveryMethod === 'COMMUNITY_DELIVERY'
+      ? 'Diantar Kurir Relawan Komunitas'
+      : 'Diantar Armada Toko';
+
     return {
       id: resiCode,
       code: resiCode,
@@ -282,10 +289,10 @@ export default function CheckoutPage() {
       providerAddress: item?.providerAddress || (item as any)?.address,
       providerLat: item?.lat || (item as any)?.latitude || resolvedProv.lat,
       providerLng: item?.lng || (item as any)?.longitude || resolvedProv.lng,
-      totalAmount: isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0),
+      totalAmount: isFreeItem ? 0 : (item?.price ?? 0) * quantity + deliveryFeeAmt,
       deliveryMethod,
       method: deliveryMethod,
-      methodLabel: deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri (Self-Pickup)' : 'Diantar Armada Toko',
+      methodLabel: computedMethodLabel,
       recipientName: recipientName || 'Budi Santoso',
       recipientPhone: recipientPhone || '0812-3456-7890',
       deliveryAddress: address,
@@ -302,14 +309,40 @@ export default function CheckoutPage() {
       pickupTime: item?.pickupTime,
       items: [{ ...item, quantity }],
       hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
+      courierName: deliveryMethod === 'SELF_PICKUP'
+        ? 'Pengambil Mandiri'
+        : deliveryMethod === 'COMMUNITY_DELIVERY'
+        ? 'Pool Siaga Relawan Replate'
+        : 'Menunggu Penugasan Driver Toko',
+      driverInfo: null,
     };
   };
 
   const persistClaim = (claim: any) => {
     const ex = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
-    localStorage.setItem('replate_active_claims', JSON.stringify([claim, ...ex]));
+    const filteredActive = ex.filter((c: any) => c.id !== claim.id && c.code !== claim.code && c.claimCode !== claim.claimCode);
+    localStorage.setItem('replate_active_claims', JSON.stringify([claim, ...filteredActive]));
     const exYys = JSON.parse(localStorage.getItem('replate_claims') || '[]');
-    localStorage.setItem('replate_claims', JSON.stringify([claim, ...exYys]));
+    const filteredYys = exYys.filter((c: any) => c.id !== claim.id && c.code !== claim.code && c.claimCode !== claim.claimCode);
+    localStorage.setItem('replate_claims', JSON.stringify([claim, ...filteredYys]));
+
+    // Poin 6: Pengurangan stok dinamis pada replate_local_surplus
+    try {
+      const localSurplus = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      let found = false;
+      const updated = localSurplus.map((sItem: any) => {
+        if (sItem.id === item?.id || sItem.foodName === item?.title || sItem.title === item?.title) {
+          found = true;
+          const cur = Number(sItem.remainingQuantity !== undefined ? sItem.remainingQuantity : (sItem.quantity || 0));
+          const rem = Math.max(0, cur - quantity);
+          return { ...sItem, remainingQuantity: rem, status: rem <= 0 ? 'SOLD_OUT' : sItem.status };
+        }
+        return sItem;
+      });
+      if (found) {
+        localStorage.setItem('replate_local_surplus', JSON.stringify(updated));
+      }
+    } catch (_) {}
   };
 
   const handleCheckout = () => {
@@ -324,18 +357,36 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Poin 3: Alert pencegahan jika memesan melebihi kapasitas porsi ready
+    if (quantity > maxStock) {
+      setToastState({
+        isOpen: true,
+        message: `Peringatan: Jumlah pesanan (${quantity} porsi) melebihi stok yang tersedia (${maxStock} porsi). Anda tidak dapat memesan lebih dari stok yang ready.`,
+        type: 'error',
+      });
+      return;
+    }
+
     const resiCode = isFreeItem ? genResiCode('YYS') : genResiCode('CNS');
-    const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + (deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0);
+    const deliveryFeeAmt = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : deliveryMethod === 'COMMUNITY_DELIVERY' ? 8000 : 0;
+    const totalAmt = isFreeItem ? 0 : (item?.price ?? 0) * quantity + deliveryFeeAmt;
+
+    // Poin 7 & 8: Status awal logistik yang tepat
+    const defaultStatus = deliveryMethod === 'SELF_PICKUP' 
+      ? 'READY_FOR_PICKUP' 
+      : deliveryMethod === 'COMMUNITY_DELIVERY' 
+      ? 'WAITING_RESCUE_POOL' 
+      : 'AWAITING_DRIVER_PLOTTING';
 
     // If Free Item: instant confirmation & ready for pickup / waiting for store courier dispatch
     if (isFreeItem) {
-      processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH');
+      processDirectCheckout(resiCode, defaultStatus);
       return;
     }
 
     // If COD: langsung terkonfirmasi tanpa verifikasi bukti transfer
     if (paymentMethod === 'COD') {
-      processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH');
+      processDirectCheckout(resiCode, defaultStatus);
       return;
     }
 
@@ -348,7 +399,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    processDirectCheckout(resiCode, deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH');
+    processDirectCheckout(resiCode, defaultStatus);
   };
 
   const processDirectCheckout = (forcedResi?: string, forcedStatus?: string) => {
@@ -357,7 +408,11 @@ export default function CheckoutPage() {
     setTimeout(() => {
       try {
         const resiCode = forcedResi || (isFreeItem ? genResiCode('YYS') : genResiCode('CNS'));
-        const defaultStatus = deliveryMethod === 'SELF_PICKUP' ? 'READY_FOR_PICKUP' : 'WAITING_STORE_DISPATCH';
+        const defaultStatus = deliveryMethod === 'SELF_PICKUP' 
+          ? 'READY_FOR_PICKUP' 
+          : deliveryMethod === 'COMMUNITY_DELIVERY' 
+          ? 'WAITING_RESCUE_POOL' 
+          : 'AWAITING_DRIVER_PLOTTING';
         const status = forcedStatus || defaultStatus;
         const newClaim = buildClaim(resiCode, status);
         persistClaim(newClaim);
@@ -421,7 +476,7 @@ export default function CheckoutPage() {
   const stockDigits = parseInt(String(item.quantity).replace(/\D/g, ''));
   const maxStock = (!isNaN(stockDigits) && stockDigits > 0) ? stockDigits : 99;
   const subtotal = item.isFree ? 0 : item.price * quantity;
-  const deliveryFee = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0;
+  const deliveryFee = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : deliveryMethod === 'COMMUNITY_DELIVERY' ? 8000 : 0;
   const totalAmount = subtotal + deliveryFee;
 
   return (
@@ -550,7 +605,7 @@ export default function CheckoutPage() {
                     ? 'Bebas ongkir (Rp 0). Ambil langsung di gerai penyedia.' 
                     : deliveryMethod === 'COURIER_DELIVERY' 
                       ? 'Diantar oleh armada/driver internal penyedia toko (+Rp 5.000).' 
-                      : 'Diantar oleh relawan logistik Food Rescue Komunitas (Rp 0).'}
+                      : 'Diantar oleh relawan logistik Food Rescue Komunitas (+Rp 8.000).'}
                 </div>
                 <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 mt-2 inline-block">
                   {deliveryMethod === 'SELF_PICKUP'
@@ -562,7 +617,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-slate-900">
-                  {deliveryMethod === 'SELF_PICKUP' ? 'Rp 0' : 'Rp 5.000'}
+                  {deliveryMethod === 'SELF_PICKUP' ? 'Rp 0' : deliveryMethod === 'COMMUNITY_DELIVERY' ? 'Rp 8.000' : 'Rp 5.000'}
                 </span>
                 <span className="text-slate-400 group-hover:translate-x-1 transition-transform"><ChevronRight /></span>
               </div>
@@ -747,10 +802,10 @@ export default function CheckoutPage() {
                     <span className="font-extrabold text-slate-900 text-sm">
                       Diantar Kurir Relawan Komunitas (Khusus Skala Besar) {quantity < 20 && <span className="text-red-500 text-[10px] ml-1">(Min. 20 porsi)</span>}
                     </span>
-                    <span className="font-bold text-slate-900 text-sm">Rp 0</span>
+                    <span className="font-bold text-slate-900 text-sm">Rp 8.000</span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    Khusus penyaluran donasi skala besar ke panti asuhan/yayasan. Relawan food rescue siap antar.
+                    Khusus penyaluran donasi skala besar ke panti asuhan/yayasan. Disalurkan oleh relawan siaga Food Rescue Replate.
                   </p>
                 </div>
               </label>

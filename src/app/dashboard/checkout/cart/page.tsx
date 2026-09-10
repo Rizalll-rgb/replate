@@ -161,6 +161,7 @@ export default function CheckoutCartPage() {
     return {
       id: resiCode,
       code: resiCode,
+      claimCode: resiCode,
       foodName: items.map(i => `${i.foodName || i.title} (${i.quantity}x)`).join(', '),
       providerName: items[0]?.providerName || 'Provider Replate',
       provider: items[0]?.providerName || 'Provider Replate',
@@ -196,9 +197,11 @@ export default function CheckoutCartPage() {
     const newClaim = buildNewClaim(resiCode, status, proofUrl);
 
     const existingClaims = JSON.parse(localStorage.getItem('replate_active_claims') || '[]');
-    localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...existingClaims]));
+    const filteredActive = existingClaims.filter((c: any) => c.id !== newClaim.id && c.code !== newClaim.code && c.claimCode !== newClaim.claimCode);
+    localStorage.setItem('replate_active_claims', JSON.stringify([newClaim, ...filteredActive]));
     const existingYysClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
-    localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingYysClaims]));
+    const filteredYys = existingYysClaims.filter((c: any) => c.id !== newClaim.id && c.code !== newClaim.code && c.claimCode !== newClaim.claimCode);
+    localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...filteredYys]));
     localStorage.removeItem('replate_checkout_pending');
     const currentCart = JSON.parse(localStorage.getItem('replate_cart') || '[]');
     const pendingIds = new Set(items.map(i => i.id));

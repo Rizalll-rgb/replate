@@ -948,7 +948,35 @@ const INDONESIAN_LOCATION_DIRECTORY: LocationDirectoryItem[] = [
 export default function DashboardProfilePage() {
   const { data: session } = useSession();
 
-  const [activeTab, setActiveTab] = useState<'AKUN' | 'OUTLET' | 'FLEET' | 'LEGALITAS'>('AKUN');
+  const [activeTab, setActiveTab] = useState<'AKUN' | 'KEAMANAN' | 'OUTLET' | 'FLEET' | 'LEGALITAS'>('AKUN');
+
+  // Keamanan Akun State (Poin 14)
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [activeSessions, setActiveSessions] = useState([
+    {
+      id: 'sess-1',
+      device: 'Windows PC · Chrome Browser',
+      location: 'Surabaya, Jawa Timur',
+      ip: '182.253.112.45',
+      lastActive: 'Aktif saat ini (Perangkat Ini)',
+      isCurrent: true,
+    },
+    {
+      id: 'sess-2',
+      device: 'Samsung Galaxy S23 · Replate Mobile App',
+      location: 'Surabaya, Jawa Timur',
+      ip: '114.125.88.19',
+      lastActive: '2 jam yang lalu',
+      isCurrent: false,
+    },
+  ]);
 
   const [profileData, setProfileData] = useState({
     name: 'Warung Bakso Pak Kumis',
@@ -1003,6 +1031,21 @@ export default function DashboardProfilePage() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Read query parameter `tab` to automatically switch active tab (e.g. ?tab=FLEET or ?tab=KEAMANAN)
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const queryTab = params.get('tab')?.toUpperCase();
+        if (queryTab === 'FLEET') setActiveTab('FLEET');
+        else if (queryTab === 'KEAMANAN') setActiveTab('KEAMANAN');
+        else if (queryTab === 'OUTLET') setActiveTab('OUTLET');
+        else if (queryTab === 'LEGALITAS') setActiveTab('LEGALITAS');
+        else if (queryTab === 'AKUN') setActiveTab('AKUN');
+      }
+    } catch (_) {}
   }, []);
 
   // Fully automatic ultra-fast live geocoding (Photon Komoot + OpenStreetMap + Instant POI)
@@ -1754,7 +1797,6 @@ export default function DashboardProfilePage() {
       f.id === otpModal.fleetId ? { ...f, isPhoneVerified: true } : f
     );
     setFleetList(updated);
-    localStorage.setItem('replate_provider_fleet_list', JSON.stringify(updated));
     setOtpModal({ isOpen: false, fleetId: '', phone: '', driverName: '', sentOtp: '', inputOtp: '' });
 
     setToastState({
@@ -1762,6 +1804,48 @@ export default function DashboardProfilePage() {
       message: `Nomor WhatsApp Driver "${otpModal.driverName}" berhasil diverifikasi aktif!`,
       type: 'success',
     });
+  };
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      setToastState({ isOpen: true, message: 'Kata sandi baru minimal 8 karakter!', type: 'error' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setToastState({ isOpen: true, message: 'Konfirmasi kata sandi tidak cocok!', type: 'error' });
+      return;
+    }
+    setActionLoader({ isOpen: true, message: 'Memperbarui Kata Sandi...', submessage: 'Enkripsi bcrypt salted 12-rounds' });
+    setTimeout(() => {
+      setActionLoader({ isOpen: false, message: '' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setToastState({ isOpen: true, message: 'Kata sandi akun berhasil diperbarui!', type: 'success' });
+    }, 1000);
+  };
+
+  const handleVerify2FA = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (twoFactorCode.length !== 6) {
+      setToastState({ isOpen: true, message: 'Masukkan 6 digit kode autentikasi!', type: 'error' });
+      return;
+    }
+    setTwoFactorEnabled(true);
+    setShow2FAModal(false);
+    setTwoFactorCode('');
+    setToastState({ isOpen: true, message: 'Autentikasi Dua Faktor (2FA) berhasil diaktifkan!', type: 'success' });
+  };
+
+  const handleDisable2FA = () => {
+    setTwoFactorEnabled(false);
+    setToastState({ isOpen: true, message: 'Autentikasi Dua Faktor (2FA) dinonaktifkan.', type: 'info' as any });
+  };
+
+  const handleTerminateOtherSessions = () => {
+    setActiveSessions((prev) => prev.filter((s) => s.isCurrent));
+    setToastState({ isOpen: true, message: 'Berhasil keluar dari seluruh sesi di perangkat lain!', type: 'success' });
   };
 
   const getRoleBadge = (role: string) => {
@@ -1826,7 +1910,23 @@ export default function DashboardProfilePage() {
               : 'text-slate-700 hover:text-slate-900 font-bold'
           }`}
         >
-          Identitas & Keamanan Akun
+          Identitas Profil
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('KEAMANAN')}
+          className={`shrink-0 py-2.5 px-4 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap text-center flex items-center gap-1.5 ${
+            activeTab === 'KEAMANAN'
+              ? 'bg-[#1B3A5C] text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-900 font-bold'
+          }`}
+        >
+          <ShieldCheckIcon size={13} className={activeTab === 'KEAMANAN' ? 'text-[#D4A843]' : 'text-slate-500'} />
+          <span>Keamanan Akun</span>
+          {twoFactorEnabled && (
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          )}
         </button>
 
         {isProvider && (
@@ -2613,7 +2713,7 @@ export default function DashboardProfilePage() {
                   </div>
 
                   <div className="p-3 bg-blue-50/90 rounded-xl border border-blue-200 text-xs text-blue-950 font-medium">
-                    <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke panti asuhan & kurir relawan terdekat.
+                    <strong>Google Maps Precision:</strong> Titik koordinat ini digunakan oleh algoritma Smart Matching Replate untuk menghitung jarak presisi ke lembaga penerima manfaat & kurir relawan terdekat.
                   </div>
                 </div>
 
@@ -2625,6 +2725,194 @@ export default function DashboardProfilePage() {
               </form>
             </Card>
           </div>
+        </div>
+      )}
+
+      {/* TAB KEAMANAN AKUN (Poin 14) */}
+      {activeTab === 'KEAMANAN' && (
+        <div className="space-y-6 max-w-4xl mx-auto">
+          {/* Section 1: Ganti Kata Sandi */}
+          <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-black text-base text-[#1B3A5C] flex items-center gap-2">
+                  <span>Perubahan Kata Sandi Akun</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Gunakan kombinasi minimal 8 karakter huruf, angka, dan simbol untuk perlindungan maksimal.
+                </p>
+              </div>
+              <Badge variant="primary">ENKRIPSI BCRYPT 12-ROUNDS</Badge>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-slate-700 block">Kata Sandi Saat Ini:</label>
+                  <div className="relative">
+                    <Input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Sandi saat ini..."
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-2.5 text-[10px] font-extrabold text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showCurrentPassword ? 'Tutup' : 'Lihat'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-slate-700 block">Kata Sandi Baru:</label>
+                  <div className="relative">
+                    <Input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Min. 8 karakter..."
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-2.5 text-[10px] font-extrabold text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showNewPassword ? 'Tutup' : 'Lihat'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-slate-700 block">Konfirmasi Sandi Baru:</label>
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Ulangi sandi baru..."
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                <span className="text-[11px] text-slate-500 font-medium">
+                  💡 Terakhir diperbarui: 30 hari yang lalu · Sesi login aman
+                </span>
+                <Button variant="gold" size="sm" type="submit" className="font-black text-xs text-slate-950 shadow-xs cursor-pointer">
+                  Perbarui Kata Sandi
+                </Button>
+              </div>
+            </form>
+          </Card>
+
+          {/* Section 2: Autentikasi Dua Faktor (2FA) */}
+          <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-base text-[#1B3A5C]">Autentikasi Dua Faktor (2FA)</h3>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                    twoFactorEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    {twoFactorEnabled ? 'AKTIF' : 'NONAKTIF'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium">
+                  Tambahkan lapisan proteksi ekstra saat masuk ke dashboard akun Replate Anda.
+                </p>
+              </div>
+
+              {twoFactorEnabled ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDisable2FA}
+                  className="border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold cursor-pointer"
+                >
+                  Nonaktifkan 2FA
+                </Button>
+              ) : (
+                <Button
+                  variant="gold"
+                  size="sm"
+                  onClick={() => setShow2FAModal(true)}
+                  className="font-black text-xs text-slate-950 shadow-xs cursor-pointer"
+                >
+                  Aktifkan 2FA Sekarang
+                </Button>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-1">
+                <span className="font-extrabold text-slate-800 block">Metode Autentikasi Pilihan:</span>
+                <p className="text-[11px] text-slate-600">
+                  Google Authenticator / WhatsApp OTP Verifikasi Resmi.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <span className="font-extrabold text-slate-800 block">Status Keamanan Akun:</span>
+                <p className={`text-[11px] font-bold ${twoFactorEnabled ? 'text-emerald-700' : 'text-amber-800'}`}>
+                  {twoFactorEnabled
+                    ? 'Terproteksi 2FA Standar Enterprise'
+                    : 'Disarankan mengaktifkan 2FA untuk transaksi pangan bernilai tinggi.'}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Section 3: Sesi Login Aktif */}
+          <Card className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="space-y-0.5">
+                <h3 className="font-black text-base text-[#1B3A5C]">Sesi Login Aktif</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Daftar perangkat yang saat ini memiliki akses ke akun Anda.
+                </p>
+              </div>
+              {activeSessions.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTerminateOtherSessions}
+                  className="border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold cursor-pointer"
+                >
+                  Keluarkan Perangkat Lain
+                </Button>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {activeSessions.map((sess) => (
+                <div
+                  key={sess.id}
+                  className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <strong className="font-black text-[#1B3A5C]">{sess.device}</strong>
+                      {sess.isCurrent && (
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-black text-[9.5px] rounded-md">
+                          Perangkat Ini
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-slate-500 text-[11px]">
+                      Lokasi: <strong>{sess.location}</strong> · IP: <span className="font-mono">{sess.ip}</span>
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-600 self-start sm:self-center">
+                    {sess.lastActive}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
       )}
 
@@ -2798,41 +3086,41 @@ export default function DashboardProfilePage() {
                   <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
                     Dokumen Legalitas Pengemudi:
                   </span>
-                  <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
                     <button
                       type="button"
                       onClick={() => setLightboxModal({ isOpen: true, title: `Foto Kendaraan - ${driver.driverName}`, imageUrl: driver.docs.vehiclePhoto })}
-                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                      className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-[#1B3A5C] transition-all cursor-pointer min-h-[48px] flex flex-col items-center justify-center shadow-2xs"
                     >
-                      <img src={driver.docs.vehiclePhoto} alt="Motor" className="w-full h-10 object-cover rounded" />
-                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">Armada</span>
+                      <img src={driver.docs.vehiclePhoto} alt="Motor" className="w-full h-12 object-cover rounded-lg" />
+                      <span className="text-[10px] text-slate-700 block mt-1 font-bold">Armada</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setLightboxModal({ isOpen: true, title: `Foto KTP - ${driver.driverName}`, imageUrl: driver.docs.ktpPhoto })}
-                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                      className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-[#1B3A5C] transition-all cursor-pointer min-h-[48px] flex flex-col items-center justify-center shadow-2xs"
                     >
-                      <img src={driver.docs.ktpPhoto} alt="KTP" className="w-full h-10 object-cover rounded" />
-                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">KTP</span>
+                      <img src={driver.docs.ktpPhoto} alt="KTP" className="w-full h-12 object-cover rounded-lg" />
+                      <span className="text-[10px] text-slate-700 block mt-1 font-bold">KTP</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setLightboxModal({ isOpen: true, title: `Foto SIM - ${driver.driverName}`, imageUrl: driver.docs.simPhoto })}
-                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                      className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-[#1B3A5C] transition-all cursor-pointer min-h-[48px] flex flex-col items-center justify-center shadow-2xs"
                     >
-                      <img src={driver.docs.simPhoto} alt="SIM" className="w-full h-10 object-cover rounded" />
-                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">SIM</span>
+                      <img src={driver.docs.simPhoto} alt="SIM" className="w-full h-12 object-cover rounded-lg" />
+                      <span className="text-[10px] text-slate-700 block mt-1 font-bold">SIM</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setLightboxModal({ isOpen: true, title: `Foto STNK - ${driver.driverName}`, imageUrl: driver.docs.stnkPhoto })}
-                      className="p-1 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#1B3A5C] transition-colors cursor-pointer"
+                      className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-[#1B3A5C] transition-all cursor-pointer min-h-[48px] flex flex-col items-center justify-center shadow-2xs"
                     >
-                      <img src={driver.docs.stnkPhoto} alt="STNK" className="w-full h-10 object-cover rounded" />
-                      <span className="text-[9px] text-slate-600 block mt-0.5 font-bold">STNK</span>
+                      <img src={driver.docs.stnkPhoto} alt="STNK" className="w-full h-12 object-cover rounded-lg" />
+                      <span className="text-[10px] text-slate-700 block mt-1 font-bold">STNK</span>
                     </button>
                   </div>
                 </div>
@@ -3305,6 +3593,80 @@ export default function DashboardProfilePage() {
               </Button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Modal 2FA Verification (Poin 14) */}
+      {show2FAModal && (
+        <Modal
+          isOpen={show2FAModal}
+          onClose={() => setShow2FAModal(false)}
+          title="Aktivasi Autentikasi Dua Faktor (2FA)"
+          size="md"
+        >
+          <form onSubmit={handleVerify2FA} className="space-y-4 text-xs text-slate-700">
+            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800 block">
+                KEAMANAN TINGKAT TINGGI REPLATE
+              </span>
+              <h4 className="font-black text-sm text-emerald-950">
+                Pindai Barcode Authenticator atau Gunakan WhatsApp OTP
+              </h4>
+              <p className="text-[11px] text-emerald-800 leading-relaxed font-medium">
+                Gunakan aplikasi Google Authenticator / Authy atau terima 6-digit kode OTP ke nomor WhatsApp Anda ({profileData.phone}).
+              </p>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-2">
+              <div className="w-36 h-36 mx-auto bg-white rounded-xl border border-slate-300 p-2 flex items-center justify-center">
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/Replate:mitra@replate.id?secret=JBSWY3DPEHPK3PXP"
+                  alt="QR 2FA"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <p className="text-[11px] font-mono text-slate-600 font-bold">
+                Kode Setup Manual: <span className="text-[#1B3A5C]">JBSW Y3DP EHPK 3PXP</span>
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-slate-800 block">
+                Masukkan 6 Digit Kode Autentikasi:
+              </label>
+              <Input
+                type="text"
+                maxLength={6}
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="Contoh: 829103"
+                className="text-center font-mono text-lg font-black tracking-widest"
+                required
+              />
+              <span className="text-[10px] text-slate-400 block text-center">
+                Simulasi cepat: Masukkan 6 angka sembarang untuk mengaktifkan.
+              </span>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setShow2FAModal(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                className="bg-emerald-600 hover:bg-emerald-700 font-black text-xs text-white cursor-pointer shadow-xs"
+              >
+                Verifikasi & Aktifkan 2FA
+              </Button>
+            </div>
+          </form>
         </Modal>
       )}
 

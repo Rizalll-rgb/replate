@@ -29,14 +29,29 @@ import {
   RouteWaypoint,
   OptimizedClusterPlan,
 } from '@/lib/clusterRoutingEngine';
-import { Navigation, Fuel, TrendingDown, Sparkles } from 'lucide-react';
+import { Navigation, Fuel, TrendingDown, Sparkles, FileText, ChevronLeft, ChevronRight, Info, UserCheck, Shield } from 'lucide-react';
 
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
+  const [activeViewMode, setActiveViewMode] = useState<'CARDS' | 'LIVE_TRACKING'>('CARDS');
+
+  // Modal states (Requirement Rescue #6)
+  const [detailModal, setDetailModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
+  const [auditModal, setAuditModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
   const [trackingModal, setTrackingModal] = useState<any | null>(null);
-  const [incidentModal, setIncidentModal] = useState<{ isOpen: boolean; claim: any | null; issueType: string; description: string }>({ isOpen: false, claim: null, issueType: 'DELIVERY_LATE', description: '' });
+  const [incidentModal, setIncidentModal] = useState<{ isOpen: boolean; claim: any | null; issueType: string; description: string }>({
+    isOpen: false,
+    claim: null,
+    issueType: 'DELIVERY_LATE',
+    description: '',
+  });
+
+  // Pagination states (Requirement Rescue #7)
+  const [activePage, setActivePage] = useState<number>(1);
+  const [completedPage, setCompletedPage] = useState<number>(1);
+  const itemsPerPage = 5;
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -50,22 +65,49 @@ export default function PartnerActivePickupsPage() {
       foodName: 'Nasi Ayam Bakar Specialty Pak Kumis',
       providerName: 'Warung Bakso Pak Kumis',
       providerAddress: 'Jl. Genteng Kali No. 45, Surabaya',
+      providerPhone: '0812-3456-7890',
       shelterName: 'Panti Asuhan Kasih Ibu',
       shelterAddress: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+      shelterPhone: '0819-8765-4321',
       quantity: '45 Porsi',
       status: 'AWAITING_RESCUE_PICKUP', // Phase 1: Wait for pickup at store
       time: 'Hari ini 19:00 WIB',
+      assignedDriver: {
+        name: 'Budi Santoso',
+        phone: '0812-3456-7890',
+        vehicle: 'Motor Box Cooler (25 kg)',
+        plateNumber: 'L 1234 AB',
+      },
+      notes: 'Wadah steril food-grade, penjemputan pintu loading dock.',
+      auditLogs: [
+        { status: 'MATCH_ACCEPTED', title: 'Tugas Diterima dari Pool Tugas', time: '18:30 WIB', actor: 'Admin Komunitas', desc: 'Disetujui dari rekomendasi Smart Matching.' },
+        { status: 'DRIVER_PLOTTED', title: 'Driver Ditugaskan: Budi Santoso', time: '18:35 WIB', actor: 'Admin Komunitas', desc: 'Armada Motor Box Cooler (L 1234 AB).' },
+      ],
     },
     {
       code: 'FB-DON-99201',
       foodName: 'Roti Tawar Gandum & Croissant Steril',
       providerName: 'Bakery Bonami Surabaya',
       providerAddress: 'Jl. Pemuda No. 12, Surabaya',
+      providerPhone: '0813-2233-4455',
       shelterName: 'Rumah Singgah Anak Jalanan',
       shelterAddress: 'Jl. Tegalsari No. 34, Genteng, Surabaya',
+      shelterPhone: '0818-7766-5544',
       quantity: '30 Paket',
       status: 'IN_TRANSIT', // Phase 2: OTW delivering to shelter
       time: 'Hari ini 20:30 WIB',
+      assignedDriver: {
+        name: 'Ahmad Fauzi',
+        phone: '0813-9876-5432',
+        vehicle: 'Mobil Steril Food-Grade',
+        plateNumber: 'L 5678 CD',
+      },
+      notes: 'Bawa tas pendingin, steril kemasan rapat.',
+      auditLogs: [
+        { status: 'MATCH_ACCEPTED', title: 'Tugas Diterima dari Pool Tugas', time: '18:00 WIB', actor: 'Admin Komunitas', desc: 'Disetujui dari rekomendasi Smart Matching.' },
+        { status: 'DRIVER_PLOTTED', title: 'Driver Ditugaskan: Ahmad Fauzi', time: '18:05 WIB', actor: 'Admin Komunitas', desc: 'Armada Mobil Steril (L 5678 CD).' },
+        { status: 'IN_TRANSIT', title: 'Scan QR Toko Selesai & OTW Panti', time: '18:45 WIB', actor: 'Driver Relawan', desc: 'Makanan telah diambil dari Bakery Bonami.' },
+      ],
     },
   ];
 
@@ -74,11 +116,22 @@ export default function PartnerActivePickupsPage() {
       code: 'FB-DON-77182',
       foodName: 'Paket Roti Bakery Steril & Susu UHT',
       providerName: 'Bakery Bonami Surabaya',
+      providerAddress: 'Jl. Pemuda No. 12, Surabaya',
       shelterName: 'Panti Werdha Lansia Sejahtera',
+      shelterAddress: 'Jl. Manyar Kertoarjo No. 20, Surabaya',
       quantity: '30 Paket',
       status: 'COMPLETED',
       time: '21 Aug 2026, 14:00 WIB',
+      assignedDriver: {
+        name: 'Budi Santoso',
+        phone: '0812-3456-7890',
+        vehicle: 'Motor Box Cooler (25 kg)',
+        plateNumber: 'L 1234 AB',
+      },
       photoProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+      auditLogs: [
+        { status: 'COMPLETED', title: 'Serah Terima di Panti Selesai', time: '14:00 WIB', actor: 'Driver Relawan', desc: 'Diterima oleh pengurus panti lansia.' },
+      ],
     },
   ];
 
@@ -131,6 +184,19 @@ export default function PartnerActivePickupsPage() {
     };
     return optimizeClusterRoute(depot, pickupsList, dropoffsList, selectedFleet);
   }, [selectedFleet, pickupsList, dropoffsList]);
+
+  // Pagination calculation (Requirement Rescue #7)
+  const paginatedActivePickups = React.useMemo(() => {
+    const start = (activePage - 1) * itemsPerPage;
+    return activePickups.slice(start, start + itemsPerPage);
+  }, [activePickups, activePage, itemsPerPage]);
+  const totalActivePages = Math.max(1, Math.ceil(activePickups.length / itemsPerPage));
+
+  const paginatedCompletedPickups = React.useMemo(() => {
+    const start = (completedPage - 1) * itemsPerPage;
+    return completedPickups.slice(start, start + itemsPerPage);
+  }, [completedPickups, completedPage, itemsPerPage]);
+  const totalCompletedPages = Math.max(1, Math.ceil(completedPickups.length / itemsPerPage));
 
   // Sync with localStorage replate_claims
   useEffect(() => {
@@ -190,13 +256,23 @@ export default function PartnerActivePickupsPage() {
             .map((c: any) => ({
               code: c.claimCode || c.id,
               foodName: c.foodName,
-              providerName: 'Mitra Provider Replate',
-              providerAddress: 'Surabaya Pusat',
-              shelterName: c.shelterName || 'Panti Asuhan Surabaya',
-              shelterAddress: c.address || 'Kota Surabaya',
-              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+              providerName: c.providerName || 'Hotel Majapahit Surabaya',
+              providerAddress: c.providerAddress || 'Surabaya Pusat',
+              providerPhone: c.providerPhone || '0812-3456-7890',
+              shelterName: c.shelterName || 'Panti Asuhan Kasih Ibu',
+              shelterAddress: c.shelterAddress || c.address || 'Kota Surabaya',
+              shelterPhone: c.shelterPhone || '0819-8765-4321',
+              quantity: typeof c.quantity === 'number' ? `${c.quantity} ${c.quantityUnit || 'Porsi'}` : c.quantity,
               status: c.status || 'AWAITING_RESCUE_PICKUP',
-              time: c.readyTime || 'Hari ini',
+              time: c.time || c.readyTime || 'Hari ini',
+              assignedDriver: c.assignedDriver || {
+                name: c.courierName || 'Budi Santoso',
+                phone: c.courierPhone || '0812-3456-7890',
+                vehicle: c.courierVehicle || 'Motor Box Cooler (25 kg)',
+                plateNumber: 'L 1234 AB',
+              },
+              notes: c.notes || 'Wadah steril food-grade',
+              auditLogs: c.auditLogs || [],
             }));
 
           const completed = savedClaims
@@ -204,12 +280,23 @@ export default function PartnerActivePickupsPage() {
             .map((c: any) => ({
               code: c.claimCode || c.id,
               foodName: c.foodName,
-              providerName: 'Mitra Provider Replate',
-              shelterName: c.shelterName || 'Panti Asuhan Surabaya',
-              quantity: `${c.quantity} ${c.quantityUnit || 'Porsi'}`,
+              providerName: c.providerName || 'Bakery Bonami Surabaya',
+              providerAddress: c.providerAddress || 'Surabaya',
+              providerPhone: c.providerPhone || '0813-2233-4455',
+              shelterName: c.shelterName || 'Panti Werdha Lansia Sejahtera',
+              shelterAddress: c.shelterAddress || c.address || 'Kota Surabaya',
+              shelterPhone: c.shelterPhone || '0818-7766-5544',
+              quantity: typeof c.quantity === 'number' ? `${c.quantity} ${c.quantityUnit || 'Porsi'}` : c.quantity,
               status: 'COMPLETED',
               time: c.createdAt || 'Selesai',
-              photoProof: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+              assignedDriver: c.assignedDriver || {
+                name: c.courierName || 'Budi Santoso',
+                phone: c.courierPhone || '0812-3456-7890',
+                vehicle: c.courierVehicle || 'Motor Box Cooler (25 kg)',
+                plateNumber: 'L 1234 AB',
+              },
+              photoProof: c.photoProof || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+              auditLogs: c.auditLogs || [],
             }));
 
           if (pending.length > 0) setActivePickups([...pending, ...defaultActivePickups.filter(d => !pending.some(p => p.code === d.code))]);
@@ -364,28 +451,57 @@ export default function PartnerActivePickupsPage() {
         </Card>
       )}
 
-      {/* Tabs Filter */}
-      <div className="flex items-center gap-2 border-b border-slate-200 text-xs font-bold">
-        <button
-          onClick={() => setActiveTab('ACTIVE')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all ${
-            activeTab === 'ACTIVE'
-              ? 'bg-[#1B3A5C] text-white font-black'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          Penjemputan & Pengantaran Aktif ({activePickups.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('COMPLETED')}
-          className={`px-4 py-2.5 rounded-t-xl transition-all ${
-            activeTab === 'COMPLETED'
-              ? 'bg-[#1B3A5C] text-white font-black'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          Riwayat Penyaluran Selesai ({completedPickups.length})
-        </button>
+      {/* Tabs Filter & In-Module View Switcher (Requirement Rescue #9) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200">
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <button
+            onClick={() => { setActiveTab('ACTIVE'); setActivePage(1); }}
+            className={`px-4 py-2.5 rounded-t-xl transition-all ${
+              activeTab === 'ACTIVE'
+                ? 'bg-[#1B3A5C] text-white font-black'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            Penjemputan & Pengantaran Aktif ({activePickups.length})
+          </button>
+          <button
+            onClick={() => { setActiveTab('COMPLETED'); setCompletedPage(1); }}
+            className={`px-4 py-2.5 rounded-t-xl transition-all ${
+              activeTab === 'COMPLETED'
+                ? 'bg-[#1B3A5C] text-white font-black'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            Riwayat Penyaluran Selesai ({completedPickups.length})
+          </button>
+        </div>
+
+        {activeTab === 'ACTIVE' && (
+          <div className="flex items-center gap-2 pb-2 sm:pb-0">
+            <span className="text-[11px] text-slate-500 font-bold hidden sm:inline">Mode Tampilan:</span>
+            <button
+              onClick={() => setActiveViewMode('CARDS')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeViewMode === 'CARDS'
+                  ? 'bg-slate-900 text-white shadow-xs font-black'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <span>Daftar Kartu Tugas ({activePickups.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveViewMode('LIVE_TRACKING')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeViewMode === 'LIVE_TRACKING'
+                  ? 'bg-emerald-600 text-white shadow-xs font-black'
+                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              <MapIcon size={13} />
+              <span>Peta Live Tracking Rute</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* List Penjemputan / Pengantaran Aktif */}
@@ -404,11 +520,131 @@ export default function PartnerActivePickupsPage() {
               </div>
               <Link href="/dashboard/rescue-partner/requests" className="inline-block pt-2">
                 <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 px-4 py-2 shadow-xs">
-                  Cek Permintaan Match Baru 
+                  Cek Pool Tugas Masuk 
                 </Button>
               </Link>
             </div>
+          ) : activeViewMode === 'LIVE_TRACKING' ? (
+            /* INTEGRATED LIVE TRACKING VIEW (Requirement Rescue #9) */
+            <div className="space-y-4">
+              <div className="p-4 bg-gradient-to-r from-[#1B3A5C] via-[#142C47] to-[#1B3A5C] text-white rounded-2xl border border-[#2C5A8F] shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 px-2 py-0.5 rounded">
+                      Live Telemetry Aktif
+                    </span>
+                    <span className="text-xs text-slate-200 font-medium">
+                      Memantau {activePickups.length} armada logistik bergerak
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-white">
+                    Peta Satelit & GPS Monitoring Penyelamatan Pangan
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setActiveViewMode('CARDS')}
+                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 cursor-pointer"
+                  >
+                    ← Kembali ke Kartu Tugas
+                  </button>
+                  <Link href="/dashboard/tracking">
+                    <Button variant="gold" size="sm" className="font-black text-xs text-slate-950">
+                      Buka Fullscreen Tracking
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Map Preview Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Embedded Map */}
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs relative min-h-[380px]">
+                  <iframe
+                    title="Peta Live Tracking Armada Rescue"
+                    width="100%"
+                    height="100%"
+                    style={{ minHeight: '380px', border: 0 }}
+                    loading="lazy"
+                    src="https://maps.google.com/maps?q=-7.2575,112.7521&z=13&output=embed"
+                    className="w-full h-full filter saturate-150"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#1B3A5C]/95 text-white p-2.5 rounded-xl text-xs font-bold shadow-md border border-slate-700 backdrop-blur-xs max-w-xs space-y-1">
+                    <div className="flex items-center gap-1.5 text-emerald-400 font-black text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      <span>GPS Sinyal Terhubung (Surabaya Raya)</span>
+                    </div>
+                    <p className="text-[10.5px] text-slate-200 font-normal">
+                      Posisi armada driver diperbarui otomatis setiap interval 15 detik.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Active Drivers Live List */}
+                <div className="space-y-2.5 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span className="font-black text-xs text-[#1B3A5C] uppercase tracking-wider">
+                        Armada OTW Saat Ini
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        {activePickups.filter(p => p.status === 'IN_TRANSIT').length} OTW / {activePickups.length} Total
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+                      {activePickups.map((item) => (
+                        <div key={item.code} className="p-3 bg-slate-50 hover:bg-blue-50/50 rounded-xl border border-slate-200 text-xs space-y-2 transition-all">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-mono font-black text-[11px] text-[#1B3A5C] bg-white px-2 py-0.5 rounded border border-slate-200">
+                              {item.code}
+                            </span>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                              item.status === 'IN_TRANSIT' ? 'bg-amber-100 text-amber-900 animate-pulse' : 'bg-blue-100 text-blue-900'
+                            }`}>
+                              {item.status === 'IN_TRANSIT' ? 'OTW KE PANTI' : 'MENUNGGU PICKUP'}
+                            </span>
+                          </div>
+
+                          <div>
+                            <h5 className="font-bold text-slate-900 truncate">{item.foodName}</h5>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              Ke: <strong>{item.shelterName}</strong>
+                            </p>
+                            <p className="text-[10.5px] text-emerald-800 font-bold mt-0.5 flex items-center gap-1">
+                              <UserCheck size={11} className="text-emerald-700" />
+                              <span>{item.assignedDriver?.name || 'Budi Santoso'} ({item.assignedDriver?.vehicle?.split(' ')[0] || 'Motor'})</span>
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-200/80">
+                            <Link href={`/dashboard/rescue-partner/surat-jalan?code=${item.code}`} className="flex-1">
+                              <button className="w-full py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg text-[10.5px] font-bold text-slate-800 flex items-center justify-center gap-1 cursor-pointer">
+                                <FileText size={11} /> Surat Jalan
+                              </button>
+                            </Link>
+                            <button
+                              onClick={() => setTrackingModal(item)}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10.5px] font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <MapIcon size={11} /> Lacak
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 text-center">
+                    <span className="text-[10.5px] text-slate-400 font-medium">
+                      Gunakan menu <strong>Surat Jalan Driver</strong> untuk interaksi langsung di lapangan.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
+            /* CARDS VIEW WITH 5 ACTIONS (Requirement Rescue #6) & PAGINATION (Requirement Rescue #7) */
             <>
               {/* Pilar 4: 2-Opt TSP Multi-Hop Consolidated Route Plan */}
               {optimizedPlan && (
@@ -510,11 +746,12 @@ export default function PartnerActivePickupsPage() {
                 </div>
               )}
 
-              {activePickups.map((item) => (
+              {/* Paginated Route Task Cards (5 cards per page) */}
+              {paginatedActivePickups.map((item) => (
               <Card key={item.code} className="border-slate-200 shadow-xs hover:shadow-md transition-all">
                 <CardBody className="p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono font-black text-sm bg-[#1B3A5C] text-white px-3 py-1 rounded-md">
                         {item.code}
                       </span>
@@ -525,6 +762,12 @@ export default function PartnerActivePickupsPage() {
                       ) : (
                         <span className="px-3 py-1 bg-blue-600 text-white font-extrabold text-xs rounded-md shadow-xs">
                            SIAP DIAMBIL DI TOKO
+                        </span>
+                      )}
+                      {item.assignedDriver && (
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-900 border border-blue-200 font-extrabold text-xs rounded-md flex items-center gap-1.5">
+                          <UserCheck size={12} className="text-blue-700" />
+                          <span>Driver: <strong>{item.assignedDriver.name}</strong> ({item.assignedDriver.vehicle})</span>
                         </span>
                       )}
                     </div>
@@ -549,40 +792,147 @@ export default function PartnerActivePickupsPage() {
                     </div>
                   </div>
 
-                  {/* Dynamic Action Button based on Phase */}
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      leftIcon={<MapIcon size={12} className="text-[#1B3A5C]" />}
-                      className="text-xs font-bold py-1.5 px-3 rounded-xl cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50 flex-1 sm:flex-initial"
-                      onClick={() => setTrackingModal(item)}
-                    >
-                      Lacak Pengiriman
-                    </Button>
-                    {item.status === 'AWAITING_RESCUE_PICKUP' ? (
+                  {item.notes && (
+                    <div className="p-2.5 bg-amber-50/80 rounded-xl border border-amber-200 text-amber-900 text-xs">
+                      <span className="font-bold">Catatan Pengantaran: </span>
+                      <span className="font-medium">{item.notes}</span>
+                    </div>
+                  )}
+
+                  {/* 5 Aksi Lengkap Sesuai Permintaan (Requirement Rescue #6) */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    {/* 5 Distinct Actions */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Aksi 1: Surat Jalan Digital */}
+                      <Link href={`/dashboard/rescue-partner/surat-jalan?code=${item.code}`}>
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-black text-xs text-slate-950 shadow-xs flex items-center gap-1.5 px-3 py-1.5 cursor-pointer"
+                        >
+                          <FileText size={13} />
+                          <span>Surat Jalan Driver</span>
+                        </Button>
+                      </Link>
+
+                      {/* Aksi 2: Detail Informasi */}
                       <Button
-                        variant="gold"
+                        variant="outline"
                         size="sm"
-                        className="font-extrabold text-xs shadow-xs"
-                        onClick={() => handlePickupAtStore(item.code)}
+                        className="text-xs font-bold py-1.5 px-3 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
+                        onClick={() => setDetailModal({ isOpen: true, claim: item })}
                       >
-                         Scan QR Toko & Set Status OTW 
+                        <Info size={13} className="text-[#1B3A5C]" />
+                        <span>Detail Informasi</span>
                       </Button>
-                    ) : (
+
+                      {/* Aksi 3: Live Tracking */}
                       <Button
-                        variant="gold"
+                        variant="outline"
                         size="sm"
-                        className="font-black text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={() => setCompleteModalItem(item)}
+                        className="text-xs font-bold py-1.5 px-3 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
+                        onClick={() => setTrackingModal(item)}
                       >
-                         Konfirmasi Sampai Panti & Upload Foto Penyerahan 
+                        <MapIcon size={13} className="text-emerald-600" />
+                        <span>Live Tracking</span>
                       </Button>
-                    )}
+
+                      {/* Aksi 4: Audit Log */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs font-bold py-1.5 px-3 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
+                        onClick={() => setAuditModal({ isOpen: true, claim: item })}
+                      >
+                        <Shield size={13} className="text-purple-600" />
+                        <span>Audit Log</span>
+                      </Button>
+
+                      {/* Aksi 5: Lapor Masalah / Kendala */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs font-bold py-1.5 px-3 rounded-xl border-red-200 text-red-600 hover:bg-red-50 flex items-center gap-1.5 cursor-pointer"
+                        onClick={() => setIncidentModal({
+                          isOpen: true,
+                          claim: item,
+                          issueType: 'DELIVERY_LATE',
+                          description: '',
+                        })}
+                      >
+                        <AlertTriangleIcon size={13} className="text-red-600" />
+                        <span>Lapor Kendala</span>
+                      </Button>
+                    </div>
+
+                    {/* Operational Next Step Button */}
+                    <div className="shrink-0">
+                      {item.status === 'AWAITING_RESCUE_PICKUP' ? (
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-extrabold text-xs shadow-xs w-full sm:w-auto"
+                          onClick={() => handlePickupAtStore(item.code)}
+                        >
+                           Scan QR Toko & Set OTW 
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          className="font-black text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto"
+                          onClick={() => setCompleteModalItem(item)}
+                        >
+                           Konfirmasi Sampai Panti 
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardBody>
               </Card>
             ))}
+
+            {/* Pagination Controls for Active Pickups (Requirement Rescue #7) */}
+            {totalActivePages > 1 && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200 pt-4 px-2">
+                <span className="text-xs text-slate-500 font-medium">
+                  Menampilkan {((activePage - 1) * itemsPerPage) + 1} - {Math.min(activePage * itemsPerPage, activePickups.length)} dari {activePickups.length} tugas rute aktif (5 kartu per halaman)
+                </span>
+                <div className="flex items-center gap-2 self-center sm:self-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={activePage === 1}
+                    onClick={() => setActivePage((p) => Math.max(1, p - 1))}
+                    className="text-xs font-bold flex items-center gap-1"
+                  >
+                    <ChevronLeft size={14} /> Sebelumnya
+                  </Button>
+                  {Array.from({ length: totalActivePages }, (_, i) => i + 1).map((pg) => (
+                    <button
+                      key={pg}
+                      onClick={() => setActivePage(pg)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                        activePage === pg
+                          ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {pg}
+                    </button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={activePage === totalActivePages}
+                    onClick={() => setActivePage((p) => Math.min(totalActivePages, p + 1))}
+                    className="text-xs font-bold flex items-center gap-1"
+                  >
+                    Selanjutnya <ChevronRight size={14} />
+                  </Button>
+                </div>
+              </div>
+            )}
             </>
           )
         ) : (
@@ -597,46 +947,122 @@ export default function PartnerActivePickupsPage() {
               </p>
             </div>
           ) : (
-            completedPickups.map((item) => (
-              <Card key={item.code} className="border-slate-200 shadow-xs">
-                <CardBody className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+            <>
+            {paginatedCompletedPickups.map((item) => (
+              <Card key={item.code} className="border-slate-200 shadow-xs hover:shadow-md transition-all">
+                <CardBody className="p-5 space-y-3 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono font-black text-sm bg-emerald-700 text-white px-2.5 py-0.5 rounded-md">
                         {item.code}
                       </span>
                       <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md">
-                         COMPLETED (TERAMBIL & DISERAHKAN)
+                         COMPLETED (TERSERAHKAN KE PANTI)
                       </span>
+                      {item.assignedDriver && (
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded">
+                          Driver: {item.assignedDriver.name}
+                        </span>
+                      )}
                     </div>
-                    <h4 className="font-extrabold text-[#1B3A5C] text-sm mt-1">
-                      {item.shelterName} — <span className="text-emerald-700">{item.foodName} ({item.quantity})</span>
-                    </h4>
-                    <p className="text-slate-500">Waktu Penyerahan: {item.time}</p>
+                    <span className="text-slate-500 font-medium">Diserahkan: {item.time}</span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      leftIcon={<MapIcon size={12} className="text-[#1B3A5C]" />}
-                      className="text-xs font-bold py-1.5 px-3 rounded-xl cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
-                      onClick={() => setTrackingModal(item)}
-                    >
-                      Lacak Logistik
-                    </Button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Penyedia Asal:</span>
+                      <strong className="text-slate-900 block">{item.providerName}</strong>
+                      <p className="text-emerald-700 font-bold mt-0.5">{item.foodName} ({item.quantity})</p>
+                    </div>
+                    <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
+                      <span className="text-[10px] uppercase font-bold text-emerald-800 block">Penerima Manfaat:</span>
+                      <strong className="text-emerald-950 block">{item.shelterName}</strong>
+                      <p className="text-emerald-800">{item.shelterAddress}</p>
+                    </div>
                   </div>
 
-                  {item.photoProof && (
-                    <img
-                      src={item.photoProof}
-                      alt="Bukti Serah Terima Panti"
-                      className="w-24 h-16 object-cover rounded-xl border border-slate-300 shrink-0"
-                    />
-                  )}
+                  <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link href={`/dashboard/rescue-partner/surat-jalan?code=${item.code}`}>
+                        <Button variant="outline" size="sm" className="text-xs font-bold flex items-center gap-1 border-slate-200 text-slate-700">
+                          <FileText size={12} /> Surat Jalan
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs font-bold flex items-center gap-1 border-slate-200 text-slate-700"
+                        onClick={() => setDetailModal({ isOpen: true, claim: item })}
+                      >
+                        <Info size={12} className="text-[#1B3A5C]" /> Detail
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs font-bold flex items-center gap-1 border-slate-200 text-slate-700"
+                        onClick={() => setAuditModal({ isOpen: true, claim: item })}
+                      >
+                        <Shield size={12} className="text-purple-600" /> Audit Log
+                      </Button>
+                    </div>
+
+                    {item.photoProof && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-500 font-medium">Foto Bukti:</span>
+                        <img
+                          src={item.photoProof}
+                          alt="Bukti Serah Terima Panti"
+                          className="w-14 h-10 object-cover rounded-lg border border-slate-300 shrink-0"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </CardBody>
               </Card>
-            ))
+            ))}
+
+            {/* Pagination Controls for Completed Pickups */}
+            {totalCompletedPages > 1 && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200 pt-4 px-2">
+                <span className="text-xs text-slate-500 font-medium">
+                  Menampilkan {((completedPage - 1) * itemsPerPage) + 1} - {Math.min(completedPage * itemsPerPage, completedPickups.length)} dari {completedPickups.length} riwayat selesai (5 kartu per halaman)
+                </span>
+                <div className="flex items-center gap-2 self-center sm:self-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={completedPage === 1}
+                    onClick={() => setCompletedPage((p) => Math.max(1, p - 1))}
+                    className="text-xs font-bold flex items-center gap-1"
+                  >
+                    <ChevronLeft size={14} /> Sebelumnya
+                  </Button>
+                  {Array.from({ length: totalCompletedPages }, (_, i) => i + 1).map((pg) => (
+                    <button
+                      key={pg}
+                      onClick={() => setCompletedPage(pg)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                        completedPage === pg
+                          ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {pg}
+                    </button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={completedPage === totalCompletedPages}
+                    onClick={() => setCompletedPage((p) => Math.min(totalCompletedPages, p + 1))}
+                    className="text-xs font-bold flex items-center gap-1"
+                  >
+                    Selanjutnya <ChevronRight size={14} />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
           )
         )}
       </div>
@@ -1070,6 +1496,163 @@ export default function PartnerActivePickupsPage() {
           </form>
         </Modal>
       )}
+
+      {/* MODAL DETAIL INFORMASI LENGKAP TUGAS RUTE (Requirement Rescue #6) */}
+      <Modal
+        isOpen={detailModal.isOpen}
+        onClose={() => setDetailModal({ isOpen: false, claim: null })}
+        title={`Detail Informasi Tugas Rute: ${detailModal.claim?.code || ''}`}
+        size="lg"
+      >
+        {detailModal.claim && (() => {
+          const item = detailModal.claim;
+          return (
+            <div className="space-y-4 text-xs text-slate-700">
+              <div className="p-4 bg-[#1B3A5C] text-white rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+                <div>
+                  <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">
+                    Manifest Tugas Penjemputan Logistik
+                  </span>
+                  <h3 className="text-base font-black text-white">{item.foodName}</h3>
+                  <p className="text-xs text-slate-200 font-mono mt-0.5">
+                    Kode Resi: <strong className="text-[#D4A843] bg-slate-950/60 px-2 py-0.5 rounded">{item.code}</strong> • Porsi: <strong>{item.quantity}</strong>
+                  </p>
+                </div>
+                <span className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase shadow-xs self-start sm:self-center ${
+                  item.status === 'COMPLETED' ? 'bg-emerald-500 text-white' :
+                  item.status === 'IN_TRANSIT' ? 'bg-amber-400 text-slate-950 animate-pulse' : 'bg-blue-500 text-white'
+                }`}>
+                  {item.status === 'COMPLETED' ? 'Selesai Diterima' : item.status === 'IN_TRANSIT' ? 'OTW Mengantar' : 'Siap Ambil di Toko'}
+                </span>
+              </div>
+
+              {/* Assigned Driver Box */}
+              <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#1B3A5C] text-white flex items-center justify-center font-black shrink-0">
+                    <UserCheck size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-900 block">
+                      Armada & Relawan Driver Ditugaskan:
+                    </span>
+                    <h4 className="font-extrabold text-sm text-[#1B3A5C]">
+                      {item.assignedDriver?.name || 'Budi Santoso'}
+                    </h4>
+                    <p className="text-slate-600 text-[11px]">
+                      {item.assignedDriver?.vehicle || 'Motor Box Cooler (25 kg)'} • Plat: {item.assignedDriver?.plateNumber || 'L 1234 AB'}
+                    </p>
+                  </div>
+                </div>
+                {item.assignedDriver?.phone && (
+                  <a
+                    href={`https://wa.me/62${item.assignedDriver.phone.replace(/^0/, '').replace(/-/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[11px] flex items-center justify-center gap-1.5 shadow-xs whitespace-nowrap cursor-pointer"
+                  >
+                    <ChatIcon size={12} />
+                    <span>Chat Driver</span>
+                  </a>
+                )}
+              </div>
+
+              {/* Locations Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                    Titik Penjemputan (Penyedia Pangan):
+                  </span>
+                  <strong className="text-sm font-black text-[#1B3A5C] block">{item.providerName}</strong>
+                  <p className="text-slate-600">{item.providerAddress}</p>
+                  <p className="text-slate-500 text-[11px]">Telp/WA: {item.providerPhone || '0812-3456-7890'}</p>
+                </div>
+                <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-2xl space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
+                    Titik Penyaluran (Penerima Manfaat):
+                  </span>
+                  <strong className="text-sm font-black text-emerald-950 block">{item.shelterName}</strong>
+                  <p className="text-slate-700">{item.shelterAddress}</p>
+                  <p className="text-slate-500 text-[11px]">Telp/WA: {item.shelterPhone || '0819-8765-4321'}</p>
+                </div>
+              </div>
+
+              {item.notes && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900">
+                  <span className="font-bold block text-[11px] uppercase tracking-wider">Catatan Operasional Khusus:</span>
+                  <p className="font-medium text-xs mt-0.5">{item.notes}</p>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-200">
+                <Link href={`/dashboard/rescue-partner/surat-jalan?code=${item.code}`}>
+                  <Button variant="gold" size="sm" className="font-black text-xs text-slate-950 shadow-xs flex items-center gap-1.5 cursor-pointer w-full sm:w-auto">
+                    <FileText size={13} />
+                    <span>Buka Surat Jalan Digital Driver</span>
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={() => setDetailModal({ isOpen: false, claim: null })}>
+                  Tutup
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
+      </Modal>
+
+      {/* MODAL AUDIT LOG HISTORI OPERASIONAL (Requirement Rescue #6) */}
+      <Modal
+        isOpen={auditModal.isOpen}
+        onClose={() => setAuditModal({ isOpen: false, claim: null })}
+        title={`Audit Trail & Logistik Histori: ${auditModal.claim?.code || ''}`}
+        size="md"
+      >
+        {auditModal.claim && (() => {
+          const item = auditModal.claim;
+          const logs = item.auditLogs && item.auditLogs.length > 0 ? item.auditLogs : [
+            { status: 'MATCH_ACCEPTED', title: 'Tugas Diterima dari Pool Tugas', time: '18:00 WIB', actor: 'Admin Komunitas', desc: 'Disetujui dari rekomendasi Smart Matching.' },
+            { status: 'DRIVER_PLOTTED', title: `Driver Ditugaskan: ${item.assignedDriver?.name || 'Budi Santoso'}`, time: '18:05 WIB', actor: 'Admin Komunitas', desc: `Armada: ${item.assignedDriver?.vehicle || 'Motor Box Cooler'}` },
+            ...(item.status === 'IN_TRANSIT' || item.status === 'COMPLETED' ? [{ status: 'IN_TRANSIT', title: 'Penjemputan Selesai di Toko (OTW)', time: '18:40 WIB', actor: 'Driver Relawan', desc: 'Scan QR toko berhasil, logistik dibawa dengan tas steril.' }] : []),
+            ...(item.status === 'COMPLETED' ? [{ status: 'COMPLETED', title: 'Serah Terima di Panti Selesai', time: item.time || '19:15 WIB', actor: 'Driver Relawan', desc: 'Makanan diterima pengurus panti dalam keadaan higienis.' }] : []),
+          ];
+
+          return (
+            <div className="space-y-4 text-xs text-slate-700">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#1B3A5C]">Kode Resi: <strong className="font-mono text-sm">{item.code}</strong></span>
+                  <span className="px-2 py-0.5 rounded-md bg-slate-200 text-slate-800 font-extrabold text-[10px]">
+                    {logs.length} Milestone
+                  </span>
+                </div>
+                <p className="text-slate-500">{item.foodName} ({item.quantity}) • {item.shelterName}</p>
+              </div>
+
+              <div className="space-y-3 relative pl-4 border-l-2 border-slate-300 ml-2">
+                {logs.map((log: any, idx: number) => (
+                  <div key={idx} className="relative pl-3 space-y-0.5">
+                    <span className="absolute -left-[23px] top-1 w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow-xs flex items-center justify-center"></span>
+                    <div className="flex items-center justify-between">
+                      <strong className="text-slate-900 font-bold">{log.title}</strong>
+                      <span className="text-[10px] text-slate-500 font-mono">{log.time}</span>
+                    </div>
+                    <p className="text-slate-600 text-[11px]">{log.desc}</p>
+                    <span className="inline-block text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                      Aktor: {log.actor}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-slate-200">
+                <Button variant="primary" size="sm" onClick={() => setAuditModal({ isOpen: false, claim: null })}>
+                  Tutup Audit Log
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
+      </Modal>
 
       {/* Toast Alert */}
       <Toast

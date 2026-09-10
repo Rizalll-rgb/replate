@@ -54,6 +54,8 @@ export default function YayasanClaimsPage() {
 
   // Incident / Kendala Modal (Poin 2)
   const [incidentModal, setIncidentModal] = useState<{ isOpen: boolean; claim: any | null; issueType: string; description: string }>({ isOpen: false, claim: null, issueType: 'DELIVERY_LATE', description: '' });
+  // Delivery Proof Documentation Modal (Poin 13)
+  const [deliveryProofModal, setDeliveryProofModal] = useState<{ isOpen: boolean; claim: any | null }>({ isOpen: false, claim: null });
 
   // Pagination states
   const [activePage, setActivePage] = useState(1);
@@ -798,11 +800,22 @@ export default function YayasanClaimsPage() {
                 <div><span className="text-slate-400 block">PIC Penerima:</span><strong className="text-slate-800">{item.pic}</strong></div>
               </div>
 
-              {/* Action Bar: Cetak Bukti & Beri Ulasan (Poin 1) */}
+              {/* Action Bar: Cetak Bukti & Lacak Timeline & Beri Ulasan (Poin 12 & 13) */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
-                <Link href="/dashboard/yayasan/bantuan-pangan" className="text-[11px] font-bold text-[#1B3A5C] hover:underline flex items-center gap-1">
-                  <span>Lihat / Cetak Bukti Bantuan Resmi </span>
-                </Link>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link href={`/dashboard/yayasan/bantuan-pangan?code=${encodeURIComponent(item.code || item.id)}`} className="text-[11px] font-bold text-[#1B3A5C] hover:underline flex items-center gap-1">
+                    <span>Lihat / Cetak Bukti Bantuan Resmi </span>
+                  </Link>
+                  <span className="text-slate-300">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setTrackingModal(item)}
+                    className="text-[11px] font-extrabold text-blue-700 hover:text-blue-900 hover:underline flex items-center gap-0.5 cursor-pointer"
+                  >
+                    <span>Lacak Alur / Timeline</span>
+                    <span>→</span>
+                  </button>
+                </div>
                 <div className="flex items-center gap-2">
                   {item.reviewed ? (
                     <span className="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg font-black text-[11px] flex items-center gap-1">
@@ -1016,7 +1029,17 @@ export default function YayasanClaimsPage() {
                   ) : isWaitingPool ? (
                     <>
                       <BoltIcon size={14} />
-                      <span>Menunggu Relawan</span>
+                      <span>Menunggu Relawan Siaga</span>
+                    </>
+                  ) : (claim.status === 'AWAITING_DRIVER_PLOTTING' || claim.status === 'WAITING_STORE_DISPATCH') ? (
+                    <>
+                      <ClockIcon size={14} />
+                      <span>Menunggu Penugasan Driver Toko</span>
+                    </>
+                  ) : (isPickup || claim.status === 'READY_FOR_PICKUP') ? (
+                    <>
+                      <PackageIcon size={14} />
+                      <span>Siap Diambil di Toko</span>
                     </>
                   ) : (
                     <>
@@ -1027,36 +1050,97 @@ export default function YayasanClaimsPage() {
                 </span>
               </div>
 
-              {/* Courier Profile Card */}
+              {/* Action Banner: Lihat Bukti Pengiriman Jika Selesai (Poin 13) */}
+              {claim.status === 'COMPLETED' && (
+                <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2">
+                    <CheckIcon size={18} className="text-emerald-700 shrink-0" />
+                    <div>
+                      <strong className="text-xs text-emerald-900 block font-black">
+                        Penyaluran Makanan Selesai & Terverifikasi
+                      </strong>
+                      <span className="text-[11px] text-emerald-700">
+                        Dokumentasi foto serah terima dan verifikasi penerima telah tersimpan sah di sistem.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryProofModal({ isOpen: true, claim })}
+                    className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-xs transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                  >
+                    <span>Lihat Bukti Pengiriman</span>
+                    <span>→</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Courier Profile Card (Poin 10: Hanya tampil jika driver sudah sah ditugaskan) */}
               {!isPickup && (
-                <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isProviderDelivery ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black text-xl shadow-xs ${isProviderDelivery ? 'bg-blue-600' : 'bg-purple-600'}`}>
-                      {isProviderDelivery ? <TruckIcon size={22} /> : <BikeIcon size={22} />}
+                isWaitingPool ? (
+                  <div className="p-4 rounded-2xl border bg-amber-50/80 border-amber-200 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl text-amber-900 bg-amber-100 flex items-center justify-center font-black text-xl shadow-xs shrink-0">
+                      <BikeIcon size={22} />
                     </div>
                     <div>
-                      <span className={`text-[10px] font-black uppercase tracking-widest block ${isProviderDelivery ? 'text-blue-700' : 'text-purple-700'}`}>
-                        {isProviderDelivery ? 'ARMADA DRIVER INTERNAL TOKO' : 'KURIR RELAWAN RESMI KOMUNITAS'}
+                      <span className="text-[10px] font-black uppercase tracking-widest block text-amber-800">
+                        POOL SIAGA RELAWAN REPLATE
                       </span>
                       <h4 className="font-extrabold text-sm text-slate-900">
-                        {driver?.name || 'Budi Santoso (Relawan ID #RC-881)'}
+                        Menunggu Penugasan Relawan Komunitas
                       </h4>
                       <p className="text-xs text-slate-600 font-medium">
-                        {driver?.vehicle || (isProviderDelivery ? 'Armada Toko' : 'Motor Box Cooler Steril (Plat L 8912 RC)')}
+                        Sistem Smart Matching sedang menyiagakan relawan food rescue terdekat untuk rute penjemputan donasi Anda.
                       </p>
                     </div>
                   </div>
+                ) : (isProviderDelivery && !plottedDriver && (claim.status === 'AWAITING_DRIVER_PLOTTING' || claim.status === 'WAITING_STORE_DISPATCH' || isWaitingApproval)) ? (
+                  <div className="p-4 rounded-2xl border bg-blue-50/80 border-blue-200 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl text-blue-900 bg-blue-100 flex items-center justify-center font-black text-xl shadow-xs shrink-0">
+                      <TruckIcon size={22} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-widest block text-blue-800">
+                        ARMADA DRIVER INTERNAL TOKO
+                      </span>
+                      <h4 className="font-extrabold text-sm text-slate-900">
+                        Menunggu Penugasan Driver oleh Toko
+                      </h4>
+                      <p className="text-xs text-slate-600 font-medium">
+                        Pihak donatur sedang menetapkan driver armada internal toko untuk mengantar pesanan ke alamat panti Anda.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isProviderDelivery ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black text-xl shadow-xs shrink-0 ${isProviderDelivery ? 'bg-blue-600' : 'bg-purple-600'}`}>
+                        {isProviderDelivery ? <TruckIcon size={22} /> : <BikeIcon size={22} />}
+                      </div>
+                      <div>
+                        <span className={`text-[10px] font-black uppercase tracking-widest block ${isProviderDelivery ? 'text-blue-700' : 'text-purple-700'}`}>
+                          {isProviderDelivery ? 'ARMADA DRIVER INTERNAL TOKO' : 'KURIR RELAWAN RESMI KOMUNITAS'}
+                        </span>
+                        <h4 className="font-extrabold text-sm text-slate-900">
+                          {driver?.name || (isProviderDelivery ? 'Driver Toko Ditugaskan' : 'Relawan Replate Siaga')}
+                        </h4>
+                        <p className="text-xs text-slate-600 font-medium">
+                          {driver?.vehicle || (isProviderDelivery ? 'Armada Toko Terverifikasi' : 'Motor Box Cooler Steril')}
+                        </p>
+                      </div>
+                    </div>
 
-                  <a
-                    href={`https://wa.me/${(driver?.phone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(`Halo, saya dari ${pantiName} menanyakan pengantaran donasi resi ${claim.code || claim.id}.`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap cursor-pointer"
-                  >
-                    <ChatIcon size={14} />
-                    <span>Hubungi Driver (WhatsApp)</span>
-                  </a>
-                </div>
+                    <a
+                      href={`https://wa.me/${(driver?.phone || '081298765432').replace(/\D/g, '')}?text=${encodeURIComponent(`Halo, saya dari ${pantiName} menanyakan pengantaran donasi resi ${claim.code || claim.id}.`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      <ChatIcon size={14} />
+                      <span>Hubungi Driver (WhatsApp)</span>
+                    </a>
+                  </div>
+                )
               )}
 
               {/* Status Menunggu Approval Banner (Poin 5) */}
@@ -1444,6 +1528,92 @@ export default function YayasanClaimsPage() {
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* MODAL BUKTI PENGIRIMAN & SERAH TERIMA (Poin 13) */}
+      {deliveryProofModal.isOpen && (
+        <Modal
+          isOpen={deliveryProofModal.isOpen}
+          onClose={() => setDeliveryProofModal({ isOpen: false, claim: null })}
+          title={`Bukti Pengiriman & Serah Terima: ${deliveryProofModal.claim?.code || deliveryProofModal.claim?.id || ''}`}
+          size="md"
+        >
+          {deliveryProofModal.claim && (() => {
+            const claim = deliveryProofModal.claim;
+            return (
+              <div className="space-y-4 text-xs text-slate-800">
+                <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <CheckIcon size={18} />
+                  </div>
+                  <div>
+                    <strong className="text-emerald-950 font-black text-xs block">
+                      Serah Terima Sukses & Terverifikasi
+                    </strong>
+                    <span className="text-[11px] text-emerald-800">
+                      Diserahkan pada {claim.deliveredAt || '17:15 WIB'} · Lolos verifikasi kode QR
+                    </span>
+                  </div>
+                </div>
+
+                {/* Foto Dokumentasi */}
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-slate-900 block text-[11px]">
+                    Foto Dokumentasi Serah Terima Pangan:
+                  </label>
+                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center group">
+                    <img
+                      src={claim.proofImage || 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800&auto=format&fit=crop&q=80'}
+                      alt="Bukti Serah Terima"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
+                      <span className="text-white text-[10px] font-bold">
+                        📍 Titik Serah Terima: {claim.destinationAddress || pantiAddress}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detail Penerima & Catatan Serah Terima */}
+                <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block font-medium">Nama Penerima:</span>
+                    <strong className="text-slate-900">{claim.pic || contactPerson || 'Pengurus Panti Asuhan'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Diserahkan Oleh:</span>
+                    <strong className="text-slate-900">{claim.driverInfo?.name || claim.courierName || 'Armada Driver / Relawan'}</strong>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t border-slate-200">
+                    <span className="text-slate-400 block font-medium">Catatan / Kondisi Makanan:</span>
+                    <p className="text-slate-700 font-medium">
+                      {claim.deliveryNotes || 'Paket bantuan pangan diterima lengkap dalam kondisi hangat, kemasan higienis utuh, dan sesuai porsi alokasi.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                  <Link
+                    href={`/dashboard/yayasan/bantuan-pangan?code=${encodeURIComponent(claim.code || claim.id)}`}
+                    className="text-xs font-bold text-[#1B3A5C] hover:underline flex items-center gap-1"
+                  >
+                    <span>Buka Dokumen Bukti Bantuan Pangan</span>
+                    <span>→</span>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeliveryProofModal({ isOpen: false, claim: null })}
+                    className="text-xs font-bold"
+                  >
+                    Tutup
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
         </Modal>
       )}
     </div>

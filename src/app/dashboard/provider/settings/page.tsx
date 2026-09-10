@@ -11,6 +11,7 @@ import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { resolveIndonesianAddress, reverseGeocodeIndonesianCoords, mergeAddressWithLocalDetails } from '@/lib/geoResolver';
+import { INDONESIA_CITIES_REGIONS } from '@/lib/constants';
 import {
   BikeIcon,
   TruckIcon,
@@ -42,7 +43,7 @@ export default function ProviderSettingsPage() {
   const [phone, setPhone] = useState((session?.user as any)?.phone || '081234567891');
   const [email, setEmail] = useState(session?.user?.email || 'mitra@replate.id');
   const [address, setAddress] = useState((session?.user as any)?.address || 'Jl. Genteng Kali No. 45, Genteng, Surabaya');
-  const [district, setDistrict] = useState('Surabaya Pusat');
+  const [district, setDistrict] = useState('Surabaya');
   const [nib, setNib] = useState('NIB-9120481023912');
   const [businessCategory, setBusinessCategory] = useState('Restoran / Warung Kuliner');
   const [pickupHours, setPickupHours] = useState('19:00 - 22:00 WIB');
@@ -343,6 +344,51 @@ export default function ProviderSettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
+
+  // 2FA & Active Sessions State (Poin 14)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [activeSessions, setActiveSessions] = useState([
+    {
+      id: 'sess-p1',
+      device: 'Windows PC · Chrome Desktop (Outlet POS)',
+      location: 'Surabaya, Jawa Timur',
+      ip: '182.253.112.45',
+      lastActive: 'Aktif saat ini (Perangkat Ini)',
+      isCurrent: true,
+    },
+    {
+      id: 'sess-p2',
+      device: 'Android Tablet · Kasir Gerai Replate',
+      location: 'Surabaya, Jawa Timur',
+      ip: '114.125.88.22',
+      lastActive: '3 jam yang lalu',
+      isCurrent: false,
+    },
+  ]);
+
+  const handleVerify2FA = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (twoFactorCode.length !== 6) {
+      setToastState({ isOpen: true, message: 'Masukkan 6 digit kode autentikasi!', type: 'error' });
+      return;
+    }
+    setTwoFactorEnabled(true);
+    setShow2FAModal(false);
+    setTwoFactorCode('');
+    setToastState({ isOpen: true, message: 'Autentikasi Dua Faktor (2FA) berhasil diaktifkan untuk akun mitra!', type: 'success' });
+  };
+
+  const handleDisable2FA = () => {
+    setTwoFactorEnabled(false);
+    setToastState({ isOpen: true, message: 'Autentikasi Dua Faktor (2FA) dinonaktifkan.', type: 'success' });
+  };
+
+  const handleTerminateOtherSessions = () => {
+    setActiveSessions((prev) => prev.filter((s) => s.isCurrent));
+    setToastState({ isOpen: true, message: 'Berhasil memutuskan sesi di perangkat kasir/tablet lain!', type: 'success' });
+  };
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -978,17 +1024,17 @@ export default function ProviderSettingsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-[#343A40]">Wilayah Operasional Surabaya</label>
+                  <label className="text-xs font-semibold text-[#343A40]">Wilayah Operasional Utama (Kota / Kabupaten)</label>
                   <select
-                    className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C] focus:border-[#1B3A5C] focus:outline-none cursor-pointer"
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
                   >
-                    <option value="Surabaya Pusat">Surabaya Pusat</option>
-                    <option value="Surabaya Barat">Surabaya Barat</option>
-                    <option value="Surabaya Timur">Surabaya Timur</option>
-                    <option value="Surabaya Selatan">Surabaya Selatan</option>
-                    <option value="Surabaya Utara">Surabaya Utara</option>
+                    {INDONESIA_CITIES_REGIONS.map((reg) => (
+                      <option key={reg.value} value={reg.value}>
+                        {reg.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1422,7 +1468,7 @@ export default function ProviderSettingsPage() {
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
                         {/* 1. Pasfoto Driver Toko */}
                         <div className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 text-center flex flex-col justify-between shadow-xs">
                           <div>
@@ -2117,7 +2163,7 @@ export default function ProviderSettingsPage() {
               <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
                 <h3 className="text-base font-extrabold text-[#1B3A5C] flex items-center gap-2">
                   <PackageIcon size={18} />
-                  <span>Kemitraan Langganan Rutin Prioritas Panti Asuhan (Preferred Partner Drop)</span>
+                  <span>Kemitraan Langganan Rutin Prioritas Lembaga Penerima Manfaat (Preferred Partner Drop)</span>
                 </h3>
                 <Button
                   variant="gold"
@@ -2125,7 +2171,7 @@ export default function ProviderSettingsPage() {
                   className="font-extrabold text-xs shadow-xs"
                   onClick={() => setAddPartnerModal({ ...addPartnerModal, isOpen: true })}
                 >
-                  + Tambah Mitra Panti Langganan Baru 
+                  + Tambah Mitra Lembaga Sosial / Panti Baru 
                 </Button>
               </div>
 
@@ -2133,10 +2179,10 @@ export default function ProviderSettingsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
                   <div className="space-y-0.5">
                     <span className="font-extrabold text-xs text-[#1B3A5C] block">
-                      Alokasikan Otomatis Makanan Surplus Ke Panti Asuhan Langganan Utama:
+                      Alokasikan Otomatis Makanan Surplus Ke Lembaga Penerima Manfaat / Panti Langganan Utama:
                     </span>
                     <p className="text-[11px] text-slate-500 font-medium">
-                      Makanan donasi dari toko Anda akan diprioritaskan secara khusus ke daftar panti di bawah sebelum dilempar ke pool umum.
+                      Makanan donasi dari toko Anda akan diprioritaskan secara khusus ke daftar lembaga penerima manfaat di bawah sebelum dilempar ke pool umum.
                     </p>
                   </div>
 
@@ -2346,8 +2392,8 @@ export default function ProviderSettingsPage() {
               <div className="space-y-3 text-xs">
                 <label className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
                   <div>
-                    <span className="font-extrabold text-[#1B3A5C] block">Otomatiskan Match Panti Asuhan Surabaya</span>
-                    <span className="text-slate-500 block text-[11px]">Ijinkan Smart Matching Engine langsung menyalurkan donasi surplus porsi besar ke panti terverifikasi.</span>
+                    <span className="font-extrabold text-[#1B3A5C] block">Otomatiskan Match Lembaga Penerima Manfaat</span>
+                    <span className="text-slate-500 block text-[11px]">Ijinkan Smart Matching Engine langsung menyalurkan donasi surplus porsi besar ke lembaga sosial, panti asuhan, dan shelter dhuafa terverifikasi.</span>
                   </div>
                   <input
                     type="checkbox"
@@ -2484,6 +2530,119 @@ export default function ProviderSettingsPage() {
             </form>
           </CardBody>
         </Card>
+      )}
+
+      {/* Section 9: 2FA & Active Sessions (Poin 14) */}
+      {activeCategory === 'SECURITY' && (
+        <div className="space-y-6">
+          {/* 2FA Card */}
+          <Card className="border-slate-200 shadow-xs">
+            <CardBody className="p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-extrabold text-[#1B3A5C]">Autentikasi Dua Faktor (2FA Mitra)</h3>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                      twoFactorEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {twoFactorEnabled ? 'AKTIF' : 'NONAKTIF'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Wajibkan kode keamanan ekstra setiap kali login kasir toko untuk melindungi data penjualan dan klaim donasi.
+                  </p>
+                </div>
+
+                {twoFactorEnabled ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDisable2FA}
+                    className="border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold cursor-pointer"
+                  >
+                    Nonaktifkan 2FA
+                  </Button>
+                ) : (
+                  <Button
+                    variant="gold"
+                    size="sm"
+                    onClick={() => setShow2FAModal(true)}
+                    className="font-black text-xs text-slate-950 shadow-xs cursor-pointer"
+                  >
+                    Aktifkan 2FA Sekarang
+                  </Button>
+                )}
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1">
+                  <span className="font-extrabold text-slate-800 block">Metode 2FA Didukung:</span>
+                  <p className="text-[11px] text-slate-600">
+                    Aplikasi Google Authenticator, Microsoft Authenticator, atau WhatsApp OTP resmi Replate.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-extrabold text-slate-800 block">SOP Kepatuhan Dinsos & BPOM:</span>
+                  <p className={`text-[11px] font-bold ${twoFactorEnabled ? 'text-emerald-700' : 'text-amber-800'}`}>
+                    {twoFactorEnabled
+                      ? 'Lolos Standar Audit Keamanan Sistem Pangan Nasional'
+                      : 'Aktifkan untuk meningkatkan skor verifikasi mitra toko.'}
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Sesi Login Aktif Card */}
+          <Card className="border-slate-200 shadow-xs">
+            <CardBody className="p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-base font-extrabold text-[#1B3A5C]">Sesi Login Aktif (Perangkat Kasir & POS)</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Pantau perangkat yang sedang terhubung ke akun outlet Warung Bakso Pak Kumis.
+                  </p>
+                </div>
+                {activeSessions.length > 1 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTerminateOtherSessions}
+                    className="border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold cursor-pointer"
+                  >
+                    Keluarkan Perangkat Lain
+                  </Button>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {activeSessions.map((sess) => (
+                  <div
+                    key={sess.id}
+                    className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <strong className="font-black text-[#1B3A5C]">{sess.device}</strong>
+                        {sess.isCurrent && (
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-black text-[9.5px] rounded-md">
+                            Perangkat Ini
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-slate-500 text-[11px]">
+                        Lokasi: <strong>{sess.location}</strong> · IP: <span className="font-mono">{sess.ip}</span>
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-600 self-start sm:self-center">
+                      {sess.lastActive}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
       )}
 
       {/* Modal Lightbox for Document Guidance Hints, Sample Reference Photos & User Upload Inspection */}
@@ -2739,6 +2898,80 @@ export default function ProviderSettingsPage() {
               </Button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Modal 2FA Verification Provider (Poin 14) */}
+      {show2FAModal && (
+        <Modal
+          isOpen={show2FAModal}
+          onClose={() => setShow2FAModal(false)}
+          title="Aktivasi 2FA Akun Provider"
+          size="md"
+        >
+          <form onSubmit={handleVerify2FA} className="space-y-4 text-xs text-slate-700">
+            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800 block">
+                KEAMANAN TINGKAT TINGGI REPLATE MITRA
+              </span>
+              <h4 className="font-black text-sm text-emerald-950">
+                Pindai Barcode Authenticator atau Gunakan WhatsApp OTP
+              </h4>
+              <p className="text-[11px] text-emerald-800 leading-relaxed font-medium">
+                Gunakan aplikasi Google Authenticator / Authy atau terima 6-digit kode OTP ke nomor WhatsApp terdaftar ({phone}).
+              </p>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-2">
+              <div className="w-36 h-36 mx-auto bg-white rounded-xl border border-slate-300 p-2 flex items-center justify-center">
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/Replate:mitra@replate.id?secret=JBSWY3DPEHPK3PXP"
+                  alt="QR 2FA"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <p className="text-[11px] font-mono text-slate-600 font-bold">
+                Kode Setup Manual: <span className="text-[#1B3A5C]">JBSW Y3DP EHPK 3PXP</span>
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-slate-800 block">
+                Masukkan 6 Digit Kode Autentikasi:
+              </label>
+              <Input
+                type="text"
+                maxLength={6}
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="Contoh: 829103"
+                className="text-center font-mono text-lg font-black tracking-widest"
+                required
+              />
+              <span className="text-[10px] text-slate-400 block text-center">
+                Simulasi cepat: Masukkan 6 angka sembarang untuk mengaktifkan.
+              </span>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setShow2FAModal(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                className="bg-emerald-600 hover:bg-emerald-700 font-black text-xs text-white cursor-pointer shadow-xs"
+              >
+                Verifikasi & Aktifkan 2FA
+              </Button>
+            </div>
+          </form>
         </Modal>
       )}
 

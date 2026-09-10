@@ -98,35 +98,35 @@ export default function ConsumerBrowsePage() {
     type: 'success',
   });
 
-  // Top Smart Matching 2.0 recommendations for Food Consumer
-  const smartMatchedItems = [
-    {
-      id: 'smart-cns-1',
-      title: 'Nasi Paket Ayam Bakar Specialty',
-      provider: 'Warung Bakso Pak Kumis',
-      price: 10000,
-      originalPrice: 25000,
-      discount: '60%',
-      distance: '800 meter',
-      matchScore: 98,
-      reason: `Jarak sangat dekat (< ${syncRadius} km) • Diskon 60% • Makanan Siap Santap`,
-      pickupTime: '19:00 - 21:30 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
-    },
-    {
-      id: 'smart-cns-2',
-      title: 'Roti Croissant & Pastry Steril',
-      provider: 'Rotiboy Bakery Surabaya',
-      price: 6000,
-      originalPrice: 18000,
-      discount: '67%',
-      distance: '1.2 km',
-      matchScore: 95,
-      reason: `Rating Mitra 4.9 • Diskon 67% • Radius < ${syncRadius} km`,
-      pickupTime: '20:00 - 22:00 WIB',
-      imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60',
-    },
-  ];
+  // Top Smart Matching 2.0 recommendations dynamically matched from global synced catalog
+  const smartMatchedItems = React.useMemo(() => {
+    if (!foods || foods.length === 0) return [];
+    const candidates = foods
+      .filter((f) => f.status === 'AVAILABLE' || !f.status)
+      .map((f, idx) => {
+        const orig = Number(f.originalPrice) || 25000;
+        const discPrice = f.discountPrice !== undefined ? Number(f.discountPrice) : (Number(f.price) || 10000);
+        const discountPct = orig > discPrice ? Math.round(((orig - discPrice) / orig) * 100) : 50;
+        const matchScore = Math.min(99, Math.max(88, 98 - (idx * 2)));
+        return {
+          id: f.id,
+          title: f.title || f.foodName,
+          provider: f.providerName || 'Mitra Replate',
+          price: discPrice,
+          originalPrice: orig,
+          discount: `${discountPct}%`,
+          distance: f.distance || '1.2 km',
+          matchScore,
+          reason: `Jarak sangat dekat (< ${syncRadius} km) • Diskon ${discountPct}% • Higienis BPOM`,
+          pickupTime: f.pickupTime || 'Hari ini',
+          imageUrl: f.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+          rawFood: f,
+        };
+      })
+      .sort((a, b) => b.matchScore - a.matchScore);
+
+    return candidates.slice(0, 4);
+  }, [foods, syncRadius]);
 
   const mapToFoodItem = (item: any) => ({
     id: item.id || `food-${Math.random()}`,
@@ -700,11 +700,11 @@ export default function ConsumerBrowsePage() {
         {/* Explore Pangan Full Banner Call-Out */}
         <div className="bg-gradient-to-r from-slate-900 to-[#1B3A5C] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-2 shadow-sm">
           <div className="space-y-1 text-center sm:text-left">
-            <h4 className="text-sm sm:text-base font-black flex items-center gap-2 justify-center sm:justify-start">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Ingin Filter Kategori Lengkap & Peta Interaktif?</span>
+            <h4 className="text-sm sm:text-base font-black flex items-center gap-2 justify-center sm:justify-start text-white drop-shadow-xs">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-white drop-shadow-xs">Ingin Filter Kategori Lengkap & Peta Interaktif?</span>
             </h4>
-            <p className="text-xs text-slate-300 max-w-xl font-medium">
+            <p className="text-xs text-slate-100/90 max-w-xl font-medium">
               Akses seluruh katalog makanan surplus, filter kategori, donasi Rp 0 panti asuhan, dan geofencing GPS di halaman Eksplor Pangan.
             </p>
           </div>

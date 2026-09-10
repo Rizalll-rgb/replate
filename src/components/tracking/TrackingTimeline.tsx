@@ -1,24 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface TrackingStep {
-  status: 'LISTED' | 'MATCHED' | 'CLAIMED' | 'PICKUP_READY' | 'IN_TRANSIT' | 'DELIVERED' | 'VERIFIED' | 'CANCELLED' | 'DISQUALIFIED';
+  status:
+    | 'LISTED'
+    | 'MATCHED'
+    | 'CLAIMED'
+    | 'PICKUP_READY'
+    | 'IN_TRANSIT'
+    | 'DELIVERED'
+    | 'VERIFIED'
+    | 'CANCELLED'
+    | 'DISQUALIFIED';
   title: string;
   description: string;
   timestamp?: string;
   actor?: string;
   completed: boolean;
   current: boolean;
+  proofImageUrl?: string;
+  proofNotes?: string;
 }
 
 export interface TrackingTimelineProps {
   referenceId: string;
   foodName?: string;
   steps: TrackingStep[];
+  onViewProof?: () => void;
 }
 
-export const TrackingTimeline: React.FC<TrackingTimelineProps> = ({ referenceId, foodName, steps }) => {
+export const TrackingTimeline: React.FC<TrackingTimelineProps> = ({
+  referenceId,
+  foodName,
+  steps,
+  onViewProof,
+}) => {
+  const [showProofPreview, setShowProofPreview] = useState(false);
+
+  const isDeliveredOrVerified = steps.some(
+    (s) => (s.status === 'DELIVERED' || s.status === 'VERIFIED') && s.completed
+  );
+
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
       <div className="border-b border-slate-200 pb-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-extrabold text-[#D4A843] uppercase tracking-widest">
@@ -28,8 +51,51 @@ export const TrackingTimeline: React.FC<TrackingTimelineProps> = ({ referenceId,
             {referenceId}
           </span>
         </div>
-        {foodName && <h3 className="text-lg font-extrabold text-[#1B3A5C] mt-2">{foodName}</h3>}
+        {foodName && <h3 className="text-base sm:text-lg font-extrabold text-[#1B3A5C] mt-2">{foodName}</h3>}
       </div>
+
+      {/* Banner Bukti Pengiriman & Serah Terima Jika Selesai */}
+      {isDeliveredOrVerified && (
+        <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="space-y-0.5">
+            <span className="text-[10px] uppercase font-black tracking-widest text-emerald-700 block">
+              STATUS AKHIR TERVERIFIKASI
+            </span>
+            <p className="text-xs font-bold text-emerald-950">
+              Makanan telah diserahterimakan dengan dokumentasi foto dan tanda tangan sah.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (onViewProof) onViewProof();
+              else setShowProofPreview((v) => !v);
+            }}
+            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-xs transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 self-start sm:self-auto"
+          >
+            <span>{showProofPreview ? 'Tutup Bukti' : 'Lihat Bukti Pengiriman'}</span>
+            <span>→</span>
+          </button>
+        </div>
+      )}
+
+      {showProofPreview && (
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs">
+          <strong className="text-[#1B3A5C] block font-extrabold">
+            Foto Dokumentasi & Catatan Serah Terima:
+          </strong>
+          <div className="rounded-xl overflow-hidden aspect-video border border-slate-200 max-w-sm mx-auto bg-slate-200">
+            <img
+              src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800&auto=format&fit=crop&q=80"
+              alt="Bukti Serah Terima"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <p className="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200">
+            <strong>Catatan Petugas:</strong> Paket bantuan pangan diterima dalam kondisi hangat, wadah tersegel rapi, dan sesuai porsi manifes.
+          </p>
+        </div>
+      )}
 
       <div className="relative pl-6 border-l-2 border-slate-200 space-y-6">
         {steps.map((step, idx) => {
@@ -80,3 +146,4 @@ export const TrackingTimeline: React.FC<TrackingTimelineProps> = ({ referenceId,
     </div>
   );
 };
+

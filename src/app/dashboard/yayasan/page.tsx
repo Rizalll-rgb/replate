@@ -64,9 +64,10 @@ export default function YayasanDashboardPage() {
     type: 'success',
   });
 
-  const matchedSuppliers = [
+  const [matchedSuppliers, setMatchedSuppliers] = useState<any[]>([
     {
       id: 'SM-PAK-KUMIS',
+      sourceProductId: 'SRP-101',
       storeName: 'Warung Bakso Pak Kumis',
       offer: '40 Porsi Nasi Kotak & Lauk Bergizi (Donasi Rp 0)',
       portions: 40,
@@ -79,6 +80,7 @@ export default function YayasanDashboardPage() {
     },
     {
       id: 'SM-ROTIBOY',
+      sourceProductId: 'FOD-002',
       storeName: 'Rotiboy Bakery',
       offer: '25 Porsi Roti Tawar & Pastry Steril (Donasi Rp 0)',
       portions: 25,
@@ -91,6 +93,7 @@ export default function YayasanDashboardPage() {
     },
     {
       id: 'SM-HOTEL-MAJAPAHIT',
+      sourceProductId: 'FOD-003',
       storeName: 'Hotel Majapahit Surabaya',
       offer: '35 Porsi Lauk Buffet Nusantara (Donasi Rp 0)',
       portions: 35,
@@ -101,7 +104,7 @@ export default function YayasanDashboardPage() {
       foodType: 'Makanan Berat Berkualitas',
       hasStoreDriver: false,
     },
-  ];
+  ]);
 
   const [totalPortionsReceived, setTotalPortionsReceived] = useState(185);
   const [activeRequestsCount, setActiveRequestsCount] = useState(2);
@@ -158,6 +161,43 @@ export default function YayasanDashboardPage() {
             }
           }
         } catch (_) {}
+
+        // Sinkronisasi Smart Matching dengan produk surplus donasi riil di modul Eksplor Pangan (Poin 2 & 6)
+        try {
+          const localSurplus = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+          if (Array.isArray(localSurplus) && localSurplus.length > 0) {
+            const donationItems = localSurplus.filter((item: any) => {
+              const isDonation = item.isFree === true || item.discountPrice === 0 || item.price === 0 || item.distributionType === 'FREE' || item.pricingScheme === 'DONATION';
+              const qty = Number(item.remainingQuantity !== undefined ? item.remainingQuantity : (item.quantity || 0));
+              return isDonation && qty > 0;
+            });
+
+            if (donationItems.length > 0) {
+              const mapped = donationItems.map((item: any, idx: number) => {
+                const qty = Number(item.remainingQuantity !== undefined ? item.remainingQuantity : (item.quantity || 0));
+                const store = item.providerName || item.storeName || item.provider?.organizationName || 'Warung Bakso Pak Kumis';
+                return {
+                  id: item.id || `SM-DYN-${idx}`,
+                  sourceProductId: item.id,
+                  storeName: store,
+                  offer: `${qty} Porsi ${item.foodName || item.title || 'Makanan Donasi'} (Donasi Rp 0)`,
+                  portions: qty,
+                  distance: item.distance || '1.2 km',
+                  matchScore: 94 + (idx % 5),
+                  readyTime: `Siap Ambil ${item.pickupTime || '20:30 WIB'}`,
+                  address: item.address || item.pickupAddress || 'Jl. Kusuma Bangsa No. 42, Surabaya',
+                  foodType: item.category || 'Makanan Berat Bergizi',
+                  hasStoreDriver: true,
+                };
+              });
+              setMatchedSuppliers((prev) => {
+                const existingIds = new Set(mapped.map((m: any) => m.sourceProductId));
+                const filteredPrev = prev.filter((p) => !existingIds.has(p.sourceProductId));
+                return [...mapped, ...filteredPrev];
+              });
+            }
+          }
+        } catch (_) {}
       }
     } catch (_) {}
   }, []);
@@ -173,7 +213,7 @@ export default function YayasanDashboardPage() {
     setAllocationModal({
       isOpen: true,
       supplier,
-      portions: supplier.portions || 40,
+      portions: Math.min(supplier.portions || 40, parseInt(recipientCapacity.replace(/\D/g, '')) || 40),
       deliveryMethod: 'RESCUE_PARTNER',
       deliveryTime: '20:30 WIB',
       specialInstructions: '',
@@ -182,6 +222,16 @@ export default function YayasanDashboardPage() {
 
   const handleConfirmClaim = () => {
     if (!allocationModal.supplier) return;
+
+    // Poin 3: Alert validasi kapasitas kuota ready
+    const availableStock = allocationModal.supplier.portions || 0;
+    if (allocationModal.portions > availableStock) {
+      alert(
+        `Peringatan: Jumlah porsi yang Anda minta (${allocationModal.portions} porsi) melebihi kapasitas stok yang ready dari donatur (${availableStock} porsi).\n\nAnda tidak dapat mengeklaim melebihi kuota porsi yang tersedia.`
+      );
+      return;
+    }
+
     setIsProcessingClaim(true);
     setActionLoader({ isOpen: true, message: 'Memproses Klaim Alokasi...', submessage: 'Menerbitkan tiket QR serah terima' });
 
@@ -189,35 +239,26 @@ export default function YayasanDashboardPage() {
       try {
         const now = new Date();
         const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} WIB`;
-        // Poin 6: Standardized resi code
         const resiCode = `RPL-YYS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
         const isCommunity = allocationModal.deliveryMethod === 'RESCUE_PARTNER';
         const isProviderDirect = allocationModal.deliveryMethod === 'PROVIDER_DELIVERY';
         const isPickup = allocationModal.deliveryMethod === 'SELF_PICKUP';
 
+        // Poin 7 & 8: Status awal yang tepat
         const claimStatus = isPickup 
           ? 'READY_FOR_PICKUP' 
           : isCommunity 
             ? 'WAITING_RESCUE_POOL' 
-            : 'IN_TRANSIT';
+            : 'AWAITING_DRIVER_PLOTTING';
 
         const methodLabel = isPickup 
           ? 'Ambil Sendiri (Self-Pickup)' 
           : isCommunity 
             ? 'Dikirim Kurir Komunitas (Pool Siaga)' 
-            : 'Dikirim Kurir Toko (Driver Internal)';
+            : 'Dikirim Kurir Toko (Menunggu Penugasan Driver Toko)';
 
-        const driverInfo = isProviderDirect ? {
-          name: 'Pak Sugiono (Driver Armada Toko)',
-          phone: '081298765432',
-          vehicle: 'Motor Box Delivery (L 3319 AB)',
-          photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-          status: 'Driver Internal Toko',
-          rating: '4.8',
-          completedTrips: '89 Pengiriman',
-        } : null;
-
+        // Poin 10: Jangan tampilkan data driver dummy sebelum toko plotting
         const newClaim = {
           id: `${resiCode}-${Date.now()}`,
           code: resiCode,
@@ -239,13 +280,47 @@ export default function YayasanDashboardPage() {
           totalAmount: 0,
           qrPayload: `REPLATE-YYS-${resiCode}`,
           hygieneStatus: 'LOLOS AUDIT BPOM 8-POIN',
-          driverInfo,
-          courierName: isProviderDirect ? 'Pak Sugiono (Driver Armada Toko)' : isCommunity ? 'Budi Santoso (Relawan ID #RC-881)' : undefined,
-          courierVehicle: isProviderDirect ? 'Motor Box Delivery (L 3319 AB)' : isCommunity ? 'Motor Box Cooler Steril (L 8912 RC)' : undefined,
-          courierPhone: isProviderDirect ? '081298765432' : isCommunity ? '081298765432' : undefined,
+          driverInfo: null,
+          courierName: isPickup 
+            ? 'Pengurus Lembaga (Ambil Mandiri)' 
+            : isCommunity 
+            ? 'Pool Siaga Relawan Replate' 
+            : 'Menunggu Penugasan Driver Toko',
+          courierVehicle: isPickup ? 'Kendaraan Lembaga / Pengurus' : undefined,
+          courierPhone: undefined,
           providerPhone: '081398765432',
           providerPic: 'Bpk. Bambang (Manager Toko)',
         };
+
+        // Poin 6: Pengurangan stok dinamis pada replate_local_surplus
+        try {
+          const localSurplus = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+          const sId = allocationModal.supplier.sourceProductId || allocationModal.supplier.id;
+          let found = false;
+          const updatedSurplus = localSurplus.map((item: any) => {
+            if (item.id === sId || item.foodName === allocationModal.supplier.offer || item.title === allocationModal.supplier.offer) {
+              found = true;
+              const current = Number(item.remainingQuantity !== undefined ? item.remainingQuantity : (item.quantity || 0));
+              const nextQty = Math.max(0, current - allocationModal.portions);
+              return { ...item, remainingQuantity: nextQty, status: nextQty <= 0 ? 'FULLY_CLAIMED' : item.status };
+            }
+            return item;
+          });
+          if (found) {
+            localStorage.setItem('replate_local_surplus', JSON.stringify(updatedSurplus));
+          }
+        } catch (_) {}
+
+        // Kurangi stok di state matchedSuppliers
+        setMatchedSuppliers((prev) =>
+          prev.map((s) => {
+            if (s.id === allocationModal.supplier.id) {
+              const nextP = Math.max(0, s.portions - allocationModal.portions);
+              return { ...s, portions: nextP, offer: `${nextP} Porsi ${s.foodType} (Donasi Rp 0)` };
+            }
+            return s;
+          }).filter((s) => s.portions > 0)
+        );
 
         const existingClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
         localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingClaims]));
@@ -256,14 +331,14 @@ export default function YayasanDashboardPage() {
         setActionLoader({ isOpen: false, message: '' });
         setAllocationModal((prev) => ({ ...prev, isOpen: false }));
 
-        // Poin 3: Show success modal instead of direct redirect
+        // Poin 2: Tampilkan modal sukses dengan alur lanjut pelacakan
         setSuccessModal({ isOpen: true, claim: newClaim });
       } catch (err) {
         setIsProcessingClaim(false);
         setActionLoader({ isOpen: false, message: '' });
         setToastState({ isOpen: true, message: 'Terjadi kendala saat memproses klaim alokasi.', type: 'error' });
       }
-    }, 1200);
+    }, 1000);
   };
 
 
@@ -521,20 +596,37 @@ export default function YayasanDashboardPage() {
             {/* Form Fields */}
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Jumlah Porsi Alokasi (Kapasitas Panti: {recipientCapacity})
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-slate-700">
+                    Jumlah Porsi Alokasi (Stok Ready: {allocationModal.supplier.portions} Porsi):
+                  </label>
+                  <span className="text-[10px] text-emerald-700 font-bold">
+                    Kapasitas Panti: {recipientCapacity}
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     min={1}
-                    max={100}
+                    max={allocationModal.supplier.portions || 100}
                     value={allocationModal.portions}
-                    onChange={(e) => setAllocationModal((prev) => ({ ...prev, portions: parseInt(e.target.value) || 1 }))}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-bold"
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setAllocationModal((prev) => ({ ...prev, portions: val }));
+                    }}
+                    className={`w-full px-3 py-2 text-xs border rounded-xl focus:outline-none focus:ring-2 font-bold ${
+                      allocationModal.portions > (allocationModal.supplier.portions || 0)
+                        ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-500'
+                        : 'border-slate-300 focus:ring-[#1B3A5C]'
+                    }`}
                   />
                   <span className="text-xs font-bold text-slate-500 shrink-0">Porsi Makanan</span>
                 </div>
+                {allocationModal.portions > (allocationModal.supplier.portions || 0) && (
+                  <p className="text-[10.5px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                    <span>⚠️ Melebihi stok ready ({allocationModal.supplier.portions} porsi). Anda tidak dapat mengeklaim melebihi kuota donatur.</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -713,9 +805,9 @@ export default function YayasanDashboardPage() {
                   variant="gold"
                   size="sm"
                   leftIcon={<TicketIcon size={13} className="text-slate-950" />}
-                  className="w-full font-black text-xs text-slate-950 shadow-xs cursor-pointer"
+                  className="w-full font-black text-xs text-slate-950 shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Buka Modul Klaim 
+                  <span>Buka Modul Klaim & Lacak Penyaluran →</span>
                 </Button>
               </Link>
             </div>

@@ -35,6 +35,7 @@ export default function ProviderClaimsPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'PAYMENT_VERIFY' | 'PENDING_PICKUP' | 'IN_TRANSIT' | 'COMPLETED'>('PAYMENT_VERIFY');
+  const [cardPageIndex, setCardPageIndex] = useState<number>(0);
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -60,6 +61,11 @@ export default function ProviderClaimsPage() {
 
   // In-Workspace Live Courier Tracking & Audit Log Modal (Point 1 & 7)
   const [liveTrackingModal, setLiveTrackingModal] = useState<{ isOpen: boolean; claim: any | null }>({
+    isOpen: false,
+    claim: null,
+  });
+
+  const [deliveryProofModal, setDeliveryProofModal] = useState<{ isOpen: boolean; claim: any | null }>({
     isOpen: false,
     claim: null,
   });
@@ -333,8 +339,10 @@ export default function ProviderClaimsPage() {
     courierName?: string;
     courierOrg?: string;
     courierPhone?: string;
+    courierVehicle?: string;
     recipientPerson?: string;
     address?: string;
+    driverInfo?: any;
   }>({
     isOpen: false,
     code: '',
@@ -700,6 +708,16 @@ export default function ProviderClaimsPage() {
   };
 
   const openConfirmModal = (tx: (typeof pendingClaims)[0]) => {
+    let plottedDriver = (tx as any).driverInfo || null;
+    if (!plottedDriver) {
+      try {
+        const plottingMap = JSON.parse(localStorage.getItem('replate_driver_plotting') || '{}');
+        if (plottingMap[tx.code?.toUpperCase()]) {
+          plottedDriver = plottingMap[tx.code.toUpperCase()];
+        }
+      } catch (_) {}
+    }
+
     setConfirmModal({
       isOpen: true,
       code: tx.code,
@@ -707,13 +725,18 @@ export default function ProviderClaimsPage() {
       userName: tx.userName,
       quantity: tx.quantity,
       deliveryMethod: tx.deliveryMethod || 'RESCUE_COURIER',
-      courierName: tx.courierName || '',
+      courierName: plottedDriver?.name || tx.courierName || '',
       courierOrg: tx.courierOrg || '',
-      courierPhone: tx.courierPhone || '',
+      courierPhone: plottedDriver?.phone || tx.courierPhone || '',
+      courierVehicle: plottedDriver?.vehicle || (tx as any).courierVehicle || '',
       recipientPerson: tx.recipientPerson || '',
       address: tx.address || '',
+      driverInfo: plottedDriver,
     });
-    setCourierNameInput(tx.courierName || tx.userName);
+    setCourierNameInput(plottedDriver?.name || tx.courierName || tx.userName);
+    if (plottedDriver?.name) {
+      setSelectedStoreDriver(plottedDriver.name);
+    }
     setProofPhoto('https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=500&auto=format&fit=crop&q=60');
   };
 
@@ -828,7 +851,7 @@ export default function ProviderClaimsPage() {
       {/* Dynamic Tabs Navigation Bar (Modern Segmented Pill Container with Descriptive Direction) */}
       <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 flex items-center gap-1 overflow-x-auto no-scrollbar shadow-2xs">
         <button
-          onClick={() => setActiveTab('PAYMENT_VERIFY')}
+          onClick={() => { setActiveTab('PAYMENT_VERIFY'); setCardPageIndex(0); }}
           className={`flex-1 min-w-[125px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'PAYMENT_VERIFY'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
@@ -843,7 +866,7 @@ export default function ProviderClaimsPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab('PENDING_PICKUP')}
+          onClick={() => { setActiveTab('PENDING_PICKUP'); setCardPageIndex(0); }}
           className={`flex-1 min-w-[130px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'PENDING_PICKUP'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
@@ -859,7 +882,7 @@ export default function ProviderClaimsPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab('IN_TRANSIT')}
+          onClick={() => { setActiveTab('IN_TRANSIT'); setCardPageIndex(0); }}
           className={`flex-1 min-w-[130px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'IN_TRANSIT'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
@@ -875,7 +898,7 @@ export default function ProviderClaimsPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab('COMPLETED')}
+          onClick={() => { setActiveTab('COMPLETED'); setCardPageIndex(0); }}
           className={`flex-1 min-w-[100px] py-2 px-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'COMPLETED'
               ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
@@ -917,25 +940,67 @@ export default function ProviderClaimsPage() {
               );
             }
 
+            const CARDS_PER_PAGE = 3;
+            const totalCardPages = Math.ceil(currentList.length / CARDS_PER_PAGE) || 1;
+            const safePageIndex = Math.min(cardPageIndex, totalCardPages - 1);
+            const visibleCards = currentList.slice(safePageIndex * CARDS_PER_PAGE, (safePageIndex + 1) * CARDS_PER_PAGE);
+
             return (
               <div className="space-y-3">
-                {/* Mobile Stepper / Swipe Indicator (Hanya tampil jika ada lebih dari 1 kartu) */}
-                {currentList.length > 1 && (
-                  <div className="sm:hidden flex items-center justify-between text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                    <span className="flex items-center gap-1.5 text-slate-700">
-                      <PackageIcon size={13} className="text-[#1B3A5C]" />
-                      <span>{currentList.length} Transaksi di Tab Ini</span>
-                    </span>
-                    <span className="font-black flex items-center gap-1 bg-amber-100/90 text-amber-950 px-2 py-0.5 rounded-lg text-[10.5px]">
-                      <span>Geser Kartu</span>
-                      <span>⇄</span>
-                    </span>
+                {/* 3-Card Slider / Pagination Bar (Poin 8: Tampilan rapi per 3 kartu) */}
+                {currentList.length > CARDS_PER_PAGE && (
+                  <div className="flex items-center justify-between bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-xs">
+                    <div className="flex items-center gap-2 font-bold text-slate-700">
+                      <PackageIcon size={14} className="text-[#1B3A5C]" />
+                      <span>
+                        {currentList.length} Transaksi • Slide {safePageIndex + 1} dari {totalCardPages} (3 Kartu / Slide)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={safePageIndex === 0}
+                        onClick={() => setCardPageIndex((p) => Math.max(0, p - 1))}
+                        className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all ${
+                          safePageIndex === 0
+                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer shadow-2xs'
+                        }`}
+                      >
+                        ← Sebelumnya
+                      </button>
+                      <div className="flex items-center gap-1 px-1">
+                        {Array.from({ length: totalCardPages }).map((_, pIdx) => (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => setCardPageIndex(pIdx)}
+                            className={`h-2 rounded-full transition-all cursor-pointer ${
+                              safePageIndex === pIdx ? 'bg-[#1B3A5C] w-4' : 'bg-slate-300 hover:bg-slate-400 w-2'
+                            }`}
+                            title={`Ke Slide ${pIdx + 1}`}
+                          />
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={safePageIndex >= totalCardPages - 1}
+                        onClick={() => setCardPageIndex((p) => Math.min(totalCardPages - 1, p + 1))}
+                        className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all ${
+                          safePageIndex >= totalCardPages - 1
+                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer shadow-2xs'
+                        }`}
+                      >
+                        Berikutnya →
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/* Cards Container: Single card width on mobile with smooth swipe, vertical stack on desktop */}
-                <div className="flex sm:flex-col gap-4 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory no-scrollbar pb-2 sm:pb-0">
-                  {currentList.map((tx, idx) => {
+                {/* Responsive 3-Card Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {visibleCards.map((tx, idx) => {
                     const displayQty = tx.quantity
                       ? (String(tx.quantity).includes('Porsi') || String(tx.quantity).includes('Pcs') || String(tx.quantity).includes('Box')
                           ? String(tx.quantity)
@@ -945,9 +1010,9 @@ export default function ProviderClaimsPage() {
                     return (
                       <div
                         key={`${tx.code}-${idx}`}
-                        className="w-full min-w-full sm:min-w-0 snap-center shrink-0 sm:shrink p-3 sm:p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:border-[#1B3A5C]/40 transition-all space-y-2"
+                        className="p-3.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:border-[#1B3A5C]/40 transition-all flex flex-col justify-between space-y-2.5"
                       >
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2 flex-wrap min-w-0">
                               <span className="font-extrabold text-[#1B3A5C] text-sm truncate">{tx.foodName}</span>
@@ -955,10 +1020,21 @@ export default function ProviderClaimsPage() {
                                 {displayQty}
                               </Badge>
                             </div>
+                            {/* Poin 5: Kurir Menuju Toko HANYA untuk RESCUE_COURIER. Driver toko stand by di outlet */}
                             {activeTab === 'PENDING_PICKUP' && (
-                              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
-                                <BikeIcon size={11} /> Kurir Menuju Toko
-                              </span>
+                              tx.deliveryMethod === 'RESCUE_COURIER' ? (
+                                <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
+                                  <BikeIcon size={11} /> Kurir Relawan Menuju Toko
+                                </span>
+                              ) : (tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY') ? (
+                                <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
+                                  <TruckIcon size={11} /> Armada Toko Siaga
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
+                                  <PackageIcon size={11} /> Siap Ambil Mandiri
+                                </span>
+                              )
                             )}
                             {tx.status === 'WAITING_STORE_DISPATCH' && (
                               <span className="px-2 py-0.5 bg-amber-100 text-amber-950 border border-amber-300 text-[10px] font-black rounded-md flex items-center gap-1 shrink-0 animate-pulse">
@@ -972,7 +1048,7 @@ export default function ProviderClaimsPage() {
                             )}
                             {activeTab === 'IN_TRANSIT' && (
                               <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0">
-                                <TruckIcon size={11} /> OTW ke Panti/Penerima
+                                <TruckIcon size={11} /> OTW ke Lembaga Penerima
                               </span>
                             )}
                           </div>
@@ -980,9 +1056,10 @@ export default function ProviderClaimsPage() {
                           <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
                             <span className="font-mono font-bold text-[#1B3A5C]">{tx.code}</span>
                             <span>•</span>
-                            <span className="text-slate-700 font-semibold">{tx.recipientPerson || tx.userName}</span>
+                            <span className="text-slate-700 font-semibold truncate max-w-[120px]">{tx.recipientPerson || tx.userName}</span>
                             <span>•</span>
                             <span>{tx.deliveryMethod === 'SHELTER_PICKUP' || tx.deliveryMethod === 'SELF_PICKUP' ? 'Ambil Mandiri' : tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' ? 'Diantar Kurir Toko' : 'Kurir Relawan'}</span>
+                            {/* Poin 6: Status terintegrasi rapi */}
                             {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status === 'AWAITING_RESCUE_PICKUP' && (
                               <span className="px-1.5 py-0.2 bg-purple-100 text-purple-900 rounded text-[9.5px] font-bold">
                                 Menunggu Driver
@@ -991,15 +1068,20 @@ export default function ProviderClaimsPage() {
                           </div>
                         </div>
 
-                        {/* Compact Volunteer Courier Strip */}
+                        {/* Compact Volunteer Courier Strip (Poin 6: Status badge nempel di foto kurir) */}
                         {tx.deliveryMethod === 'RESCUE_COURIER' && tx.status !== 'AWAITING_RESCUE_PICKUP' && (
                           <div className="p-2 bg-purple-50/90 rounded-xl border border-purple-200 flex items-center justify-between gap-2 text-xs">
                             <div className="flex items-center gap-2 min-w-0">
-                              <img
-                                src={tx.courierAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
-                                alt={tx.courierName || 'Kurir Relawan'}
-                                className="w-7 h-7 rounded-full object-cover border border-purple-500 shadow-2xs shrink-0"
-                              />
+                              <div className="relative shrink-0">
+                                <img
+                                  src={tx.courierAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60'}
+                                  alt={tx.courierName || 'Kurir Relawan'}
+                                  className="w-8 h-8 rounded-full object-cover border-2 border-purple-500 shadow-2xs shrink-0"
+                                />
+                                <span className="absolute -bottom-1 -right-1 px-1 py-0.2 bg-purple-700 text-white text-[8px] font-black rounded-full border border-white shadow-xs">
+                                  OTW
+                                </span>
+                              </div>
                               <div className="min-w-0 leading-tight">
                                 <div className="flex items-center gap-1.5">
                                   <strong className="text-purple-950 font-bold text-xs truncate">
@@ -1029,34 +1111,35 @@ export default function ProviderClaimsPage() {
                           </div>
                         )}
 
-                {/* ACTION FOOTER BAR: Clean side-by-side layout (Secondary on Left, Primary on Right) */}
-                <div className="flex items-center justify-between gap-2 w-full pt-2.5 mt-1 border-t border-slate-200/80 shrink-0">
-                  {/* Left Side: Contextual Secondary Actions (Tiket QR, Surat Jalan, Audit Log) */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="font-bold text-xs border-slate-300 hover:bg-slate-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
-                      onClick={() => setIssuedTicketModal({ isOpen: true, claim: tx })}
-                    >
-                      <TicketIcon size={13} className="text-[#1B3A5C]" />
-                      <span>Tiket QR</span>
-                    </Button>
+                        {/* ACTION FOOTER BAR: Clean side-by-side layout (Secondary on Left, Primary on Right) */}
+                        <div className="flex items-center justify-between gap-2 w-full pt-2.5 mt-1 border-t border-slate-200/80 shrink-0">
+                          {/* Left Side: Contextual Secondary Actions (Tiket QR, Surat Jalan, Audit Log) */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="font-bold text-xs border-slate-300 hover:bg-slate-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                              onClick={() => setIssuedTicketModal({ isOpen: true, claim: tx })}
+                            >
+                              <TicketIcon size={13} className="text-[#1B3A5C]" />
+                              <span>Tiket QR</span>
+                            </Button>
 
-                    {(tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' || tx.status === 'WAITING_STORE_DISPATCH') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="font-black text-xs border-blue-300 text-blue-900 bg-blue-50/80 hover:bg-blue-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
-                        onClick={() => {
-                          setPlotDriverModal({ isOpen: true, claim: tx });
-                          setSelectedPlotDriverId(storeDriversList[0].id);
-                        }}
-                      >
-                        <TruckIcon size={13} className="text-blue-700" />
-                        <span>Plot Driver Toko</span>
-                      </Button>
-                    )}
+                            {/* Poin 9: Tombol Plot Driver Toko HANYA muncul pada tab Siap Handover (PENDING_PICKUP) */}
+                            {activeTab === 'PENDING_PICKUP' && (tx.deliveryMethod === 'PROVIDER_DIRECT' || tx.deliveryMethod === 'COURIER_DELIVERY' || tx.status === 'WAITING_STORE_DISPATCH') && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="font-black text-xs border-blue-300 text-blue-900 bg-blue-50/80 hover:bg-blue-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                                onClick={() => {
+                                  setPlotDriverModal({ isOpen: true, claim: tx });
+                                  setSelectedPlotDriverId(storeDriversList[0].id);
+                                }}
+                              >
+                                <TruckIcon size={13} className="text-blue-700" />
+                                <span>Plot Driver Toko</span>
+                              </Button>
+                            )}
 
                     {activeTab === 'IN_TRANSIT' && tx.deliveryMethod === 'PROVIDER_DIRECT' && (
                       <>
@@ -1082,15 +1165,26 @@ export default function ProviderClaimsPage() {
                     )}
 
                     {activeTab === 'COMPLETED' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
-                        onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
-                      >
-                        <ClockIcon size={13} />
-                        <span>Audit Log</span>
-                      </Button>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="font-bold text-xs border-blue-200 text-blue-800 hover:bg-blue-50 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                          onClick={() => setLiveTrackingModal({ isOpen: true, claim: tx })}
+                        >
+                          <ClockIcon size={13} className="text-blue-700" />
+                          <span>Lacak Alur / Timeline</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="font-bold text-xs border-emerald-200 text-emerald-800 hover:bg-emerald-50 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl cursor-pointer"
+                          onClick={() => setDeliveryProofModal({ isOpen: true, claim: tx })}
+                        >
+                          <CheckIcon size={13} className="text-emerald-700" />
+                          <span>Bukti Pengiriman</span>
+                        </Button>
+                      </div>
                     )}
                   </div>
 
@@ -1413,37 +1507,81 @@ export default function ProviderClaimsPage() {
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <div>
-                        <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
-                        <select
-                          className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-                          value={selectedStoreDriver}
-                          onChange={(e) => {
-                            setSelectedStoreDriver(e.target.value);
-                            setCourierNameInput(e.target.value);
-                          }}
-                        >
-                          {storeDriversList.map((drv) => (
-                            <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
-                              {drv.name} - {drv.vehicle}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    /* Poin 7: Jika driver toko sudah di-plotting via kartu, tampilkan info driver tanpa dropdown dobel */
+                    confirmModal.driverInfo || (confirmModal.courierName && (confirmModal.courierName.toLowerCase().includes('driver') || confirmModal.courierName.toLowerCase().includes('mas') || confirmModal.courierName.toLowerCase().includes('pak'))) ? (
+                      <div className="p-3 bg-blue-50/90 rounded-xl border border-blue-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black text-blue-800 uppercase tracking-wider block">
+                            DRIVER TOKO TELAH DI-PLOTTING:
+                          </span>
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-md flex items-center gap-1">
+                            <CheckIcon size={11} /> Siap Handover
+                          </span>
+                        </div>
+                        <div className="text-xs space-y-1 bg-white p-2.5 rounded-lg border border-slate-200">
+                          <div>
+                            <span className="text-slate-400 text-[10px] block">Driver yang Ditugaskan:</span>
+                            <strong className="text-[#1B3A5C] text-sm">{confirmModal.courierName}</strong>
+                          </div>
+                          {confirmModal.courierVehicle && (
+                            <div>
+                              <span className="text-slate-400 text-[10px] block">Kendaraan Armada:</span>
+                              <strong className="text-slate-700">{confirmModal.courierVehicle}</strong>
+                            </div>
+                          )}
+                          {confirmModal.courierPhone && (
+                            <div>
+                              <span className="text-slate-400 text-[10px] block">Kontak Driver:</span>
+                              <strong className="text-slate-700">{confirmModal.courierPhone}</strong>
+                            </div>
+                          )}
+                        </div>
 
-                      <a
-                        href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                          `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
-                        )}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
-                      >
-                        <ChatIcon size={14} />
-                        <span>Kirim Link Surat Jalan WA ke Driver Toko </span>
-                      </a>
-                    </>
+                        <a
+                          href={`https://wa.me/${(confirmModal.courierPhone || '081234567890').replace(/\D/g, '')}?text=${encodeURIComponent(
+                            `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-1"
+                        >
+                          <ChatIcon size={14} />
+                          <span>Kirim Surat Jalan WA ke Driver Toko</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="font-bold text-slate-800 block mb-1">Pilih Driver Armada Toko yang Ditugaskan:</label>
+                          <select
+                            className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C] focus:outline-none"
+                            value={selectedStoreDriver}
+                            onChange={(e) => {
+                              setSelectedStoreDriver(e.target.value);
+                              setCourierNameInput(e.target.value);
+                            }}
+                          >
+                            {storeDriversList.map((drv) => (
+                              <option key={drv.id} value={`${drv.name} (${drv.vehicle})`}>
+                                {drv.name} - {drv.vehicle}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <a
+                          href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                            `Halo Mas Driver, ini link Surat Jalan Digital Replate untuk pengantaran pesanan ${confirmModal.code} (${confirmModal.foodName}): https://replate.id/driver-manifest/${confirmModal.code}`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 text-center mt-2"
+                        >
+                          <ChatIcon size={14} />
+                          <span>Kirim Link Surat Jalan WA ke Driver Toko </span>
+                        </a>
+                      </>
+                    )
                   )}
                 </div>
               </div>
@@ -1788,6 +1926,31 @@ export default function ProviderClaimsPage() {
               </span>
             </div>
 
+            {/* Banner Bukti Pengiriman Terverifikasi (Poin 13) */}
+            {liveTrackingModal.claim.status === 'COMPLETED' && (
+              <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckIcon size={18} className="text-emerald-700 shrink-0" />
+                  <div>
+                    <strong className="text-xs text-emerald-900 block font-black">
+                      Penyaluran Makanan Selesai & Terverifikasi
+                    </strong>
+                    <span className="text-[11px] text-emerald-700">
+                      Dokumentasi foto serah terima dan verifikasi penerima telah tersimpan sah di sistem.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryProofModal({ isOpen: true, claim: liveTrackingModal.claim })}
+                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-xs transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                >
+                  <span>Lihat Bukti Pengiriman</span>
+                  <span>→</span>
+                </button>
+              </div>
+            )}
+
             {/* Courier / Driver Profile & Contact */}
             <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${liveTrackingModal.claim.deliveryMethod === 'PROVIDER_DIRECT' ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'}`}>
               <div className="flex items-center gap-3">
@@ -2116,6 +2279,83 @@ export default function ProviderClaimsPage() {
               </Button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Modal Bukti Pengiriman & Serah Terima (Poin 13) */}
+      {deliveryProofModal.isOpen && (
+        <Modal
+          isOpen={deliveryProofModal.isOpen}
+          onClose={() => setDeliveryProofModal({ isOpen: false, claim: null })}
+          title={`Bukti Pengiriman & Serah Terima: ${deliveryProofModal.claim?.code || deliveryProofModal.claim?.id || ''}`}
+          size="md"
+        >
+          {deliveryProofModal.claim && (() => {
+            const claim = deliveryProofModal.claim;
+            return (
+              <div className="space-y-4 text-xs text-slate-800">
+                <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <CheckIcon size={18} />
+                  </div>
+                  <div>
+                    <strong className="text-emerald-950 font-black text-xs block">
+                      Serah Terima Sukses & Terverifikasi
+                    </strong>
+                    <span className="text-[11px] text-emerald-800">
+                      Diserahkan pada {claim.time || '19:40 WIB'} · Lolos verifikasi kode QR & SOP BPOM
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-slate-900 block text-[11px]">
+                    Foto Dokumentasi Serah Terima:
+                  </label>
+                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 flex items-center justify-center">
+                    <img
+                      src={claim.proofImage || 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800&auto=format&fit=crop&q=80'}
+                      alt="Bukti Serah Terima"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
+                      <span className="text-white text-[10px] font-bold">
+                        📍 Lokasi Penerima: {claim.address || 'Panti Asuhan Kasih Ibu, Gubeng Surabaya'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block font-medium">Penerima Manfaat:</span>
+                    <strong className="text-slate-900">{claim.recipientPerson || claim.userName || 'Penerima Terdaftar'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Diserahkan Oleh:</span>
+                    <strong className="text-slate-900">{claim.courierName || 'Armada Driver Mitra'}</strong>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t border-slate-200">
+                    <span className="text-slate-400 block font-medium">Catatan Serah Terima:</span>
+                    <p className="text-slate-700 font-medium">
+                      Paket donasi makanan telah diterima utuh, higienis, dan sesuai dengan porsi yang tertera di surat jalan.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2 border-t border-slate-100">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeliveryProofModal({ isOpen: false, claim: null })}
+                    className="text-xs font-bold"
+                  >
+                    Tutup
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
         </Modal>
       )}
 

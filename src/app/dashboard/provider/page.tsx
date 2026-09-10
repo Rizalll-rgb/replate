@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/Badge';
 import { QRGenerator } from '@/components/qr/QRGenerator';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { useSession } from 'next-auth/react';
-import { SHARED_PANTI_NEEDS } from '@/lib/pantiData';
+import { SHARED_PANTI_NEEDS, deduplicatePantiNeeds } from '@/lib/pantiData';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
+import { calculateDistance } from '@/lib/utils';
 import {
   PlusIcon,
   MinusIcon,
@@ -94,11 +95,48 @@ export default function ProviderOverviewPage() {
 
   // Smart Matching Priority Preference Filter (Poin 1 & 13)
   const [matchingPriorityFilter, setMatchingPriorityFilter] = useState<'OVERALL' | 'DISTANCE' | 'URGENCY' | 'CAPACITY'>('OVERALL');
+  const [providerLat, setProviderLat] = useState<number>(-7.2575);
+  const [providerLng, setProviderLng] = useState<number>(112.7521);
+  const [syncRadius, setSyncRadius] = useState<number>(15);
 
-  // Dynamic Daily Matched Panti List synchronized with Explore Page (Single Source of Truth)
-  const matchedPantiList = SHARED_PANTI_NEEDS;
+  // Dynamic Daily Matched Beneficiaries filtered strictly by SuperAdmin Radius & Real GPS Distance
+  const matchedPantiList = useMemo(() => {
+    let allNeeds = [...SHARED_PANTI_NEEDS];
+    try {
+      const customPantiReqs = localStorage.getItem('replate_panti_requests');
+      if (customPantiReqs) {
+        const parsed = JSON.parse(customPantiReqs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          allNeeds = deduplicatePantiNeeds([...parsed, ...SHARED_PANTI_NEEDS]);
+        }
+      }
+    } catch (_) {}
+
+    const maxRadius = syncRadius || 15;
+    const withDistance = allNeeds.map((panti) => {
+      const pLat = panti.lat || -7.2575;
+      const pLng = panti.lng || 112.7521;
+      const distKm = calculateDistance(providerLat, providerLng, pLat, pLng);
+      const formattedDist = distKm < 1 ? `${Math.round(distKm * 1000)} m` : `${distKm.toFixed(1)} km`;
+      return {
+        ...panti,
+        distanceKm: distKm,
+        distance: `${formattedDist} (${panti.location})`,
+      };
+    });
+
+    // Strictly filter within SuperAdmin's defined radius (defaults to 15km)
+    const inRadius = withDistance.filter((p) => p.distanceKm <= maxRadius);
+    return inRadius.length > 0 ? inRadius : withDistance.filter((p) => p.location.toLowerCase().includes('surabaya'));
+  }, [providerLat, providerLng, syncRadius]);
 
   useEffect(() => {
+    // Read SuperAdmin radius
+    try {
+      const radius = localStorage.getItem('replate_admin_sync_radius');
+      if (radius) setSyncRadius(parseInt(radius));
+    } catch (_) {}
+
     // Dynamic Date
     const now = new Date();
     const formatted = now.toLocaleDateString('id-ID', {
@@ -109,13 +147,18 @@ export default function ProviderOverviewPage() {
     });
     setTodayFormatted(formatted);
 
-    // Profile & Name
+    // Profile & Name & GPS
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
         if (parsed.entityName) setProviderName(parsed.entityName);
-        if (parsed.address) setProviderAddress(parsed.address);
+        if (parsed.address) {
+          setProviderAddress(parsed.address);
+          const resolved = resolveIndonesianAddress(parsed.address);
+          setProviderLat(parsed.lat || parsed.latitude || resolved.lat);
+          setProviderLng(parsed.lng || parsed.longitude || resolved.lng);
+        }
       }
     } catch (_) {}
 
@@ -215,30 +258,28 @@ export default function ProviderOverviewPage() {
       return uniqueCompletedCodes.size;
     };
 
-    if (isFresh) {
-      const activeItems = deduplicateProducts(localItems);
-      setActiveSurplusCount(activeItems.length);
-      setAvailableProducts(activeItems);
+    // For demo / non-fresh accounts, ALWAYS merge default demo items with local items so adding a new surplus doesn't wipe default cards
+    const initialCombined = isFresh
+      ? deduplicateProducts(localItems)
+      : deduplicateProducts([...localItems, ...defaultCatalog]);
 
-      const calculatedWeight = activeItems.reduce((acc, curr) => {
-        const qty = Number(curr.quantity || 15);
+    setActiveSurplusCount(initialCombined.length);
+    setAvailableProducts(initialCombined);
+
+    const calcWeight = (list: any[]) =>
+      list.reduce((acc: number, curr: any) => {
+        const qty = Number(curr.remainingQuantity !== undefined ? curr.remainingQuantity : (curr.quantity || 15));
         const weightUnit = Number(curr.weightPerUnitKg || 0.4);
         return acc + qty * weightUnit;
       }, 0);
-      setTotalRescuedKg(Math.round(calculatedWeight * 10) / 10);
-      setCompletedClaimsCount(computeCompletedClaims());
-      return;
-    }
 
-    // Load provider items from local storage first for 0ms render
-    if (localItems.length > 0) {
-      const activeItems = deduplicateProducts(localItems);
-      setActiveSurplusCount(activeItems.length);
-      setAvailableProducts(activeItems);
-    } else {
-      setAvailableProducts(defaultCatalog);
-      setActiveSurplusCount(defaultCatalog.length);
+    const initialWeight = calcWeight(initialCombined);
+    if (initialWeight > 0) {
+      setTotalRescuedKg(Math.round(initialWeight * 10) / 10);
     }
+    setCompletedClaimsCount(computeCompletedClaims());
+
+    if (isFresh) return;
 
     const providerQuery = session?.user?.id ? `&providerId=${session.user.id}` : '';
     fetch(`/api/surplus?status=${providerQuery}`)
@@ -251,35 +292,26 @@ export default function ProviderOverviewPage() {
           itemsList = data.data;
         }
 
-        const combined = deduplicateProducts([...localItems, ...itemsList]);
+        const combined = isFresh
+          ? deduplicateProducts([...localItems, ...itemsList])
+          : deduplicateProducts([...localItems, ...itemsList, ...defaultCatalog]);
+
         if (combined.length > 0) {
           setActiveSurplusCount(combined.length);
           setAvailableProducts(combined);
-        } else {
-          setAvailableProducts(defaultCatalog);
-          setActiveSurplusCount(defaultCatalog.length);
-        }
-
-        const currentActive = combined.length > 0 ? combined : defaultCatalog;
-        const calculatedWeight = currentActive.reduce((acc: number, curr: any) => {
-          const qty = Number(curr.quantity || 15);
-          const weightUnit = Number(curr.weightPerUnitKg || 0.4);
-          return acc + qty * weightUnit;
-        }, 0);
-
-        if (calculatedWeight > 0) {
-          setTotalRescuedKg(Math.round(calculatedWeight * 10) / 10);
+          const weight = calcWeight(combined);
+          if (weight > 0) setTotalRescuedKg(Math.round(weight * 10) / 10);
         }
       })
       .catch(() => {
-        if (localItems.length > 0) {
-          const dedupedLocal = deduplicateProducts(localItems);
-          setActiveSurplusCount(dedupedLocal.length);
-          setAvailableProducts(dedupedLocal);
-        }
+        const fallbackActive = isFresh
+          ? deduplicateProducts(localItems)
+          : deduplicateProducts([...localItems, ...defaultCatalog]);
+        setActiveSurplusCount(fallbackActive.length);
+        setAvailableProducts(fallbackActive);
+        const weight = calcWeight(fallbackActive);
+        if (weight > 0) setTotalRescuedKg(Math.round(weight * 10) / 10);
       });
-
-    setCompletedClaimsCount(computeCompletedClaims());
   }, [session]);
 
   const handleOpenAllocationModal = (panti: any) => {
@@ -395,21 +427,21 @@ export default function ProviderOverviewPage() {
       code: ticketCode,
       claimCode: ticketCode,
       foodName: selectedProduct.foodName,
-      userName: `${allocateModal.panti.pantiName} (Yayasan)`,
+      userName: `${allocateModal.panti.pantiName} (Lembaga Penerima)`,
       customerName: allocateModal.panti.pantiName,
       recipientPerson: allocateModal.panti.contactPerson,
       recipientPhone: allocateModal.panti.contactPhone,
-      recipientType: 'Panti Asuhan Anak / Yayasan Sosial',
+      recipientType: 'Lembaga Penerima Manfaat / Yayasan Sosial',
       quantity: `${allocateModal.portions} Porsi`,
       quantityUnit: 'Porsi',
       amountPaid: 0,
       totalPrice: 0,
       status: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? 'AWAITING_RESCUE_PICKUP' : 'READY_FOR_PICKUP',
       deliveryMethod: allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery || 'RESCUE_COURIER',
-      courierName: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Pengurus Panti (Ambil Mandiri)',
-      courierOrg: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? 'Pool Siaga Relawan Replate' : 'Armada Panti Asuhan',
+      courierName: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Pengurus Lembaga (Ambil Mandiri)',
+      courierOrg: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? 'Pool Siaga Relawan Replate' : 'Armada Lembaga Penerima',
       courierPhone: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : allocateModal.panti.contactPhone,
-      courierVehicle: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Kendaraan Panti Asuhan',
+      courierVehicle: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Kendaraan Lembaga Penerima',
       shelterName: allocateModal.panti.pantiName,
       contactPhone: allocateModal.panti.contactPhone,
       claimedAt: new Date().toISOString(),
@@ -424,17 +456,57 @@ export default function ProviderOverviewPage() {
       const existingClaims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
       localStorage.setItem('replate_claims', JSON.stringify([newClaim, ...existingClaims]));
 
-      // 2. Deduct portions from local surplus if present
+      // 2. Deduct portions from local surplus dynamically
       const localSurplus = JSON.parse(localStorage.getItem('replate_local_surplus') || '[]');
+      let foundInLocal = false;
       const updatedSurplus = localSurplus.map((item: any) => {
         if (item.id === selectedProduct.id) {
-          const currentQty = Number(item.remainingQuantity || item.quantity || 0);
+          foundInLocal = true;
+          const currentQty = Number(item.remainingQuantity !== undefined ? item.remainingQuantity : (item.quantity || 0));
           const newQty = Math.max(0, currentQty - allocateModal.portions);
           return { ...item, remainingQuantity: newQty, quantity: newQty };
         }
         return item;
       });
+
+      if (!foundInLocal) {
+        const currentQty = Number(selectedProduct.remainingQuantity !== undefined ? selectedProduct.remainingQuantity : (selectedProduct.quantity || 0));
+        const newQty = Math.max(0, currentQty - allocateModal.portions);
+        updatedSurplus.unshift({
+          ...selectedProduct,
+          remainingQuantity: newQty,
+          quantity: newQty,
+        });
+      }
       localStorage.setItem('replate_local_surplus', JSON.stringify(updatedSurplus));
+
+      // 3. Dynamically update availableProducts state in provider workspace immediately
+      setAvailableProducts((prev) =>
+        prev.map((p) => {
+          if (p.id === selectedProduct.id) {
+            const currentQty = Number(p.remainingQuantity !== undefined ? p.remainingQuantity : (p.quantity || 0));
+            const newQty = Math.max(0, currentQty - allocateModal.portions);
+            return { ...p, remainingQuantity: newQty, quantity: newQty };
+          }
+          return p;
+        })
+      );
+
+      // 4. Update panti requests fulfillment
+      const customPantiReqs = localStorage.getItem('replate_panti_requests');
+      if (customPantiReqs) {
+        const parsed = JSON.parse(customPantiReqs);
+        if (Array.isArray(parsed)) {
+          const updatedPanti = parsed.map((n: any) => {
+            if (n.id === allocateModal.panti?.id) {
+              const currentFulfilled = parseInt(String(n.fulfilledQuantity || '0').replace(/\D/g, '')) || 0;
+              return { ...n, fulfilledQuantity: `${currentFulfilled + allocateModal.portions} Porsi` };
+            }
+            return n;
+          });
+          localStorage.setItem('replate_panti_requests', JSON.stringify(updatedPanti));
+        }
+      }
     } catch (_) {}
 
     setCompletedClaimsCount((prev) => prev + 1);
@@ -464,6 +536,23 @@ export default function ProviderOverviewPage() {
       });
     }, 650);
   };
+
+  const sortedPantiList = useMemo(() => {
+    return [...matchedPantiList].sort((a, b) => {
+      if (matchingPriorityFilter === 'DISTANCE') {
+        const distA = a.distanceKm !== undefined ? a.distanceKm : parseFloat(a.distance) || 0;
+        const distB = b.distanceKm !== undefined ? b.distanceKm : parseFloat(b.distance) || 0;
+        return distA - distB;
+      }
+      if (matchingPriorityFilter === 'URGENCY') {
+        return a.cutoffTime.localeCompare(b.cutoffTime);
+      }
+      if (matchingPriorityFilter === 'CAPACITY') {
+        return b.beneficiariesCount - a.beneficiariesCount;
+      }
+      return b.matchScore - a.matchScore;
+    });
+  }, [matchedPantiList, matchingPriorityFilter]);
 
   return (
     <div className="space-y-5 sm:space-y-8 max-w-6xl mx-auto pb-12">
@@ -601,46 +690,51 @@ export default function ProviderOverviewPage() {
         </div>
       </div>
 
-      {/* SMART MATCHING 2.0: REKOMENDASI ALOKASI DONASI CERDAS KE PANTI TERDEKAT */}
-      <section className="space-y-3 sm:space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] sm:text-[10px] font-black text-[#D4A843] uppercase tracking-widest block">
-                SMART MATCHING ENGINE 2.0 (LIVE DAILY ALGORITHM)
+      {/* SMART MATCHING 2.0: REKOMENDASI ALOKASI DONASI CERDAS KE LEMBAGA TERDEKAT (DESKTOP-FIRST REVAMP) */}
+      <section className="space-y-4">
+        {/* Section Header Bar: Spacious & Informative */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                SMART MATCHING ENGINE 2.0 • AI ALLOCATION
               </span>
-              <span className="inline-flex items-center gap-1 text-[8.5px] sm:text-[9px] bg-emerald-500/10 text-emerald-700 font-black px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-50 text-emerald-700 font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                ACTIVE
+                <span>AKTIF • RADIUS {syncRadius} KM</span>
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-black text-[#1B3A5C]">
+            <h3 className="text-base sm:text-xl font-black text-[#1B3A5C] tracking-tight">
               Rekomendasi Penyaluran Donasi Cerdas Hari Ini
             </h3>
+            <p className="text-xs text-slate-500 font-medium max-w-2xl">
+              Algoritma AI secara langsung memadukan ketersediaan surplus makanan toko Anda dengan kebutuhan mendesak lembaga penerima manfaat di sekitar outlet ({providerAddress.split(',')[0]}).
+            </p>
           </div>
-          
-          {/* Dynamic AI Ranking Priority Filter Buttons (Horizontal swipe on mobile) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-nowrap sm:flex-wrap">
-            <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-bold mr-1 shrink-0">Urutkan:</span>
+
+          {/* AI Ranking Priority Filter Buttons */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/80">
+            <span className="text-[11px] text-slate-500 font-bold px-1.5 shrink-0">Urutkan:</span>
             {[
-              { key: 'OVERALL', label: 'Tertinggi', icon: TargetIcon },
-              { key: 'DISTANCE', label: 'Terdekat', icon: MapPinIcon },
-              { key: 'URGENCY', label: 'Darurat', icon: ClockIcon },
-              { key: 'CAPACITY', label: 'Terbesar', icon: PackageIcon },
+              { key: 'OVERALL', label: 'Skor Tertinggi', icon: TargetIcon },
+              { key: 'DISTANCE', label: 'Jarak Terdekat', icon: MapPinIcon },
+              { key: 'URGENCY', label: 'Paling Darurat', icon: ClockIcon },
+              { key: 'CAPACITY', label: 'Kuota Terbesar', icon: PackageIcon },
             ].map((filter) => {
               const IconComp = filter.icon;
+              const isActive = matchingPriorityFilter === filter.key;
               return (
                 <button
                   key={filter.key}
                   type="button"
                   onClick={() => setMatchingPriorityFilter(filter.key as any)}
-                  className={`px-2.5 py-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
-                    matchingPriorityFilter === filter.key
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                    isActive
                       ? 'bg-[#1B3A5C] text-white shadow-xs'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                      : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100'
                   }`}
                 >
-                  <IconComp size={12} />
+                  <IconComp size={13} className={isActive ? 'text-[#D4A843]' : 'text-slate-500'} />
                   <span>{filter.label}</span>
                 </button>
               );
@@ -648,108 +742,211 @@ export default function ProviderOverviewPage() {
           </div>
         </div>
 
-        {/* Panti Cards: Horizontal Peek Carousel on mobile, 2-column grid on desktop */}
-        <div className="flex md:grid md:grid-cols-2 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-2">
-          {[...matchedPantiList].sort((a, b) => {
-            if (matchingPriorityFilter === 'DISTANCE') {
-              return parseFloat(a.distance) - parseFloat(b.distance);
-            }
-            if (matchingPriorityFilter === 'URGENCY') {
-              return a.cutoffTime.localeCompare(b.cutoffTime);
-            }
-            if (matchingPriorityFilter === 'CAPACITY') {
-              return b.beneficiariesCount - a.beneficiariesCount;
-            }
-            return b.matchScore - a.matchScore;
-          }).map((panti) => (
-            <div
-              key={panti.id}
-              className="w-[88vw] max-w-[340px] md:w-auto shrink-0 snap-start p-3.5 sm:p-4 bg-gradient-to-br from-white to-blue-50/40 rounded-3xl border-2 border-blue-200 shadow-xs flex flex-col justify-between space-y-2.5"
-            >
-              {/* Header: Skor, Jarak & Urgensi */}
-              <div className="flex items-center justify-between gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10.5px] rounded-md font-mono shadow-2xs">
-                    {panti.matchScore}% Match
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-bold flex items-center gap-0.5">
-                    <MapPinIcon size={11} className="text-slate-400" />
-                    <span>{panti.distance}</span>
-                  </span>
-                </div>
-                <span className="px-2 py-0.5 bg-red-500 text-white font-black text-[9px] rounded-md shadow-2xs shrink-0">
-                  {panti.urgency}
-                </span>
-              </div>
-
-              {/* Identitas Panti & Kebutuhan */}
-              <div>
-                <h4 className="font-black text-sm sm:text-base text-[#1B3A5C] truncate">{panti.pantiName}</h4>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 mt-0.5">
-                  <span className="text-emerald-800 font-bold truncate">{panti.needTitle}</span>
-                  <span>•</span>
-                  <span className="text-slate-500 shrink-0">{panti.beneficiariesCount} Jiwa</span>
-                </div>
-              </div>
-
-              {/* Preferensi Pengiriman Pill */}
-              <div className="flex items-center gap-1.5">
-                <span className="px-2 py-0.5 bg-amber-100 text-amber-900 rounded-md font-bold text-[9.5px] truncate max-w-[170px]">
-                  {panti.deliveryLabel}
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium truncate flex-1">
-                  {panti.address.split(',')[0]}
-                </span>
-              </div>
-
-              {/* Top AI Match Reason (Single Line) */}
-              <div className="px-2.5 py-1.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[10.5px] text-slate-700 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <span className="truncate font-medium">{panti.reasons[0] || 'Kebutuhan porsi & jarak sangat cocok'}</span>
-              </div>
-
-              {/* Batas Waktu & Action Buttons */}
-              <div className="pt-2 border-t border-slate-200 space-y-2">
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-amber-900 font-bold font-mono flex items-center gap-1">
-                    <ClockIcon size={11} />
-                    <span>Batas: {panti.cutoffTime} WIB</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedPantiForFormula(panti);
-                      setIsFormulaModalOpen(true);
-                    }}
-                    className="text-[10px] font-bold text-blue-700 hover:underline cursor-pointer"
-                  >
-                    Rincian Skor 
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedShelterProfile(panti)}
-                    className="py-2 px-2.5 bg-white hover:bg-slate-50 text-[#1B3A5C] font-bold text-xs rounded-xl border border-slate-200 shadow-2xs flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0"
-                    title="Lihat profil detail lembaga dan peta lokasi"
-                  >
-                    <MapPinIcon size={12} />
-                    <span>Detail</span>
-                  </button>
-                  <Button
-                    variant="gold"
-                    size="sm"
-                    onClick={() => handleOpenAllocationModal(panti)}
-                    className="flex-1 font-black text-xs text-slate-950 py-2 shadow-md cursor-pointer"
-                  >
-                    Sanggupi Donasi 
-                  </Button>
-                </div>
-              </div>
+        {/* Responsive Desktop-First Grid (1 Column Mobile, 2 Generous Columns on Desktop >= 1024px) */}
+        {sortedPantiList.length === 0 ? (
+          <div className="p-8 sm:p-12 bg-white rounded-3xl border border-slate-200 text-center space-y-3">
+            <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto">
+              <TargetIcon size={28} />
             </div>
-          ))}
-        </div>
+            <h4 className="font-black text-base text-[#1B3A5C]">Tidak Ada Rekomendasi di Radius Ini</h4>
+            <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
+              Belum ada permohonan donasi mendesak dari lembaga penerima manfaat dalam radius {syncRadius} km saat ini. Anda dapat memperluas radius di pengaturan.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+            {sortedPantiList.map((panti) => {
+              const targetQty = panti.targetQuantity || 50;
+              const fulfilledQty = parseInt(String(panti.fulfilledQuantity || '0').replace(/\D/g, '')) || 0;
+              const progressPercent = Math.min(100, Math.round((fulfilledQty / targetQty) * 100));
+              const remainingNeeded = Math.max(0, targetQty - fulfilledQty);
+
+              return (
+                <div
+                  key={panti.id}
+                  className="bg-white rounded-3xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-[#1B3A5C]/40 transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+                >
+                  {/* Upper Body: Visual Institution Banner & Detailed Information */}
+                  <div className="p-4 sm:p-5 space-y-4">
+                    {/* Top Row: Institution Photo + Identity + Match Badges */}
+                    <div className="flex items-start gap-3.5 sm:gap-4">
+                      {/* Institution Thumbnail with Fallback & Beneficiaries Badge */}
+                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs shrink-0">
+                        <img
+                          src={panti.imageUrl || 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60'}
+                          alt={panti.pantiName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-slate-950/85 text-white text-[9.5px] font-mono font-bold rounded-md">
+                          {panti.beneficiariesCount} Jiwa
+                        </span>
+                      </div>
+
+                      {/* Middle Identity & Category */}
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 bg-blue-50 text-blue-900 border border-blue-200/80 rounded-md text-[10px] font-black uppercase tracking-wider">
+                              {panti.shelterType}
+                            </span>
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-md text-[10px] font-bold flex items-center gap-0.5">
+                              <ShieldCheckIcon size={11} className="text-emerald-600" />
+                              <span>{panti.legalStatus || 'Terverifikasi Dinsos'}</span>
+                            </span>
+                          </div>
+
+                          {/* Match Score Badge */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="px-2.5 py-1 bg-[#1B3A5C] text-[#D4A843] font-black text-xs rounded-xl font-mono shadow-2xs flex items-center gap-1">
+                              <SparklesIcon size={12} className="text-[#D4A843]" />
+                              <span>{panti.matchScore}% Match</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <h4 className="font-black text-base sm:text-lg text-[#1B3A5C] leading-snug truncate group-hover:text-blue-900 transition-colors">
+                          {panti.pantiName}
+                        </h4>
+
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium flex-wrap">
+                          <span className="flex items-center gap-1 text-slate-700 font-bold">
+                            <MapPinIcon size={12} className="text-[#1B3A5C]" />
+                            <span>{panti.distance}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="truncate max-w-[220px] sm:max-w-[280px] text-slate-500">
+                            {panti.address}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Urgent Need Box & Quota Fulfillment Progress Bar */}
+                    <div className="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="p-1.5 bg-amber-100 text-amber-900 rounded-lg shrink-0">
+                            <PackageIcon size={15} />
+                          </span>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                              Kebutuhan Menu Mendesak:
+                            </span>
+                            <strong className="text-xs sm:text-sm font-extrabold text-[#1B3A5C] truncate block">
+                              {panti.needTitle}
+                            </strong>
+                          </div>
+                        </div>
+
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 border ${
+                          panti.urgency === 'HIGH'
+                            ? 'bg-rose-50 text-rose-800 border-rose-200'
+                            : 'bg-amber-50 text-amber-900 border-amber-200'
+                        }`}>
+                          {panti.urgency === 'HIGH' ? '🔥 Sangat Mendesak' : '⚡ Prioritas Hari Ini'}
+                        </span>
+                      </div>
+
+                      {/* Progress Bar of Target vs Fulfilled */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] font-bold">
+                          <span className="text-slate-600">
+                            Terpenuhi: <strong className="text-[#1B3A5C]">{fulfilledQty}</strong> dari <strong>{targetQty} Porsi</strong>
+                          </span>
+                          <span className="text-emerald-700 font-black">
+                            {progressPercent}% • Butuh {remainingNeeded} porsi lagi
+                          </span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-500 to-[#1B3A5C] rounded-full transition-all duration-500"
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Logistics Delivery Chip */}
+                      <div className="flex items-center justify-between text-[11px] pt-1 text-slate-600 border-t border-slate-200/60">
+                        <span className="flex items-center gap-1.5 font-semibold text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200/60">
+                          <BikeIcon size={13} className="text-purple-700" />
+                          <span className="truncate max-w-[220px]">{panti.deliveryLabel}</span>
+                        </span>
+                        <span className="text-[10.5px] text-slate-500 font-medium">
+                          Kontak PIC: <strong className="text-slate-800">{panti.contactPerson}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* AI Match Reasons Chips (Showing 2 bullet factors with high clarity) */}
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                        Faktor Rekomendasi Algoritma AI Replate:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        {panti.reasons.slice(0, 2).map((reason: string, rIdx: number) => (
+                          <div
+                            key={rIdx}
+                            className="px-2.5 py-1.5 bg-blue-50/70 text-blue-950 rounded-xl border border-blue-100 text-[11px] font-medium flex items-center gap-1.5"
+                          >
+                            <CheckIcon size={12} className="text-blue-700 shrink-0" />
+                            <span className="truncate">{reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Action Footer Bar: Desktop Ergonomics */}
+                  <div className="px-4 sm:px-5 py-3.5 bg-slate-50/90 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    {/* Left: Deadline & Formula Score link */}
+                    <div className="flex items-center justify-between sm:justify-start gap-3">
+                      <div className="flex items-center gap-1.5 text-xs text-amber-950 font-bold font-mono bg-amber-100/70 px-2.5 py-1 rounded-lg border border-amber-200">
+                        <ClockIcon size={13} className="text-amber-700" />
+                        <span>Batas: {panti.cutoffTime} WIB</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPantiForFormula(panti);
+                          setIsFormulaModalOpen(true);
+                        }}
+                        className="text-xs font-bold text-blue-700 hover:text-blue-900 hover:underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span>Rincian Skor AI</span>
+                        <span>→</span>
+                      </button>
+                    </div>
+
+                    {/* Right: Action Buttons (Detail & Sanggupi Donasi) */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedShelterProfile(panti)}
+                        className="py-2 px-3 bg-white hover:bg-slate-100 text-[#1B3A5C] font-extrabold text-xs rounded-xl border border-slate-300 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        title="Lihat profil detail lembaga dan peta lokasi GPS"
+                      >
+                        <MapPinIcon size={13} />
+                        <span>Profil & Peta</span>
+                      </button>
+
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        onClick={() => handleOpenAllocationModal(panti)}
+                        className="font-black text-xs text-slate-950 py-2 px-4 shadow-sm bg-amber-400 hover:bg-amber-500 border border-amber-500 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <PackageIcon size={13} />
+                        <span>Sanggupi Donasi</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Quick Action Navigation Cards (Desktop only, mobile has quick icon grid at top) */}
@@ -1022,7 +1219,7 @@ export default function ProviderOverviewPage() {
               hygieneChecked: true,
             })
           }
-          title={`Alur Sanggupi Donasi: ${allocateModal.panti?.pantiName || 'Panti Asuhan'}`}
+          title={`Alur Sanggupi Donasi: ${allocateModal.panti?.pantiName || 'Lembaga Penerima Manfaat'}`}
           size="lg"
         >
           {allocateModal.panti && (
@@ -1080,7 +1277,7 @@ export default function ProviderOverviewPage() {
                     categoryScore = 5;
                     nutritionLabel = 'Tidak Sesuai (Makanan Berat ≠ Susu Bayi)';
                     isMismatch = true;
-                    mismatchReason = 'Panti asuhan ini membutuhkan asupan Susu Formula Balita & Nutrisi Bayi. Menu surplus yang Anda pilih tidak dapat dikonsumsi oleh balita.';
+                    mismatchReason = 'Lembaga penerima ini membutuhkan asupan Susu Formula Balita & Nutrisi Bayi. Menu surplus yang Anda pilih tidak dapat dikonsumsi oleh balita.';
                   }
                 } else if (isPantiBakery) {
                   if (isProdBakery) {

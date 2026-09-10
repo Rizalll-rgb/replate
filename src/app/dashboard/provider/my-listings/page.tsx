@@ -105,6 +105,45 @@ export default function MyListingsPage() {
       return;
     }
 
+    const fallback: any[] = [
+      {
+        id: 'SRP-101',
+        foodName: 'Bakso Sapi Komplit',
+        description: 'Bakso daging sapi asli komplit tahu dan mie. Baru dimasak sore ini.',
+        foodCategory: 'MEALS',
+        quantity: 15,
+        remainingQuantity: 15,
+        quantityUnit: 'porsi',
+        price: 5000,
+        originalPrice: 18000,
+        status: 'AVAILABLE',
+        distributionType: 'SALE',
+        address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+        pickupDeadline: new Date(Date.now() + 5 * 3600000).toISOString(),
+        photos: ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'],
+        provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
+        providerName: 'Warung Bakso Pak Kumis',
+      },
+      {
+        id: 'SRP-102',
+        foodName: 'Buah Potong Segar',
+        description: 'Aneka melon, semangka, dan pepaya potong higienis kemasan boks.',
+        foodCategory: 'PRODUCE',
+        quantity: 10,
+        remainingQuantity: 10,
+        quantityUnit: 'porsi',
+        price: 0,
+        originalPrice: 12000,
+        status: 'AVAILABLE',
+        distributionType: 'FREE',
+        address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+        pickupDeadline: new Date(Date.now() + 3 * 3600000).toISOString(),
+        photos: ['https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80'],
+        provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
+        providerName: 'Warung Bakso Pak Kumis',
+      },
+    ];
+
     const providerQuery = session?.user?.id ? `&providerId=${session.user.id}` : '';
     fetch(`/api/surplus?status=${providerQuery}`)
       .then((res) => res.json())
@@ -116,45 +155,6 @@ export default function MyListingsPage() {
           itemsList = data.data;
         }
 
-        const fallback = [
-          {
-            id: 'SRP-101',
-            foodName: 'Bakso Sapi Komplit',
-            description: 'Bakso daging sapi asli komplit tahu dan mie. Baru dimasak sore ini.',
-            foodCategory: 'MEALS',
-            quantity: 15,
-            remainingQuantity: 15,
-            quantityUnit: 'porsi',
-            price: 5000,
-            originalPrice: 18000,
-            status: 'AVAILABLE',
-            distributionType: 'SALE',
-            address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
-            pickupDeadline: new Date(Date.now() + 5 * 3600000).toISOString(),
-            photos: ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'],
-            provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
-            providerName: 'Warung Bakso Pak Kumis',
-          },
-          {
-            id: 'SRP-102',
-            foodName: 'Buah Potong Segar',
-            description: 'Aneka melon, semangka, dan pepaya potong higienis kemasan boks.',
-            foodCategory: 'PRODUCE',
-            quantity: 10,
-            remainingQuantity: 10,
-            quantityUnit: 'porsi',
-            price: 0,
-            originalPrice: 12000,
-            status: 'AVAILABLE',
-            distributionType: 'FREE',
-            address: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
-            pickupDeadline: new Date(Date.now() + 3 * 3600000).toISOString(),
-            photos: ['https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80'],
-            provider: { name: 'Warung Bakso Pak Kumis', organizationName: 'Warung Bakso Pak Kumis' },
-            providerName: 'Warung Bakso Pak Kumis',
-          },
-        ];
-
         // Deduplicate by ID: local items take priority over API items
         const combined = [...localItems, ...itemsList];
         const deduped = Array.from(
@@ -164,11 +164,9 @@ export default function MyListingsPage() {
           }, new Map<string, any>()).values()
         );
 
-        // Only use fallback if we have zero items (both local and API empty)
-        const hasLocalOrApi = deduped.length > 0;
-        // Remove fallback items that already exist locally
+        // For demo accounts, preserve demo fallback items alongside local/API items
         const localIds = new Set(localItems.map((i: any) => i.id));
-        const safeFallback = hasLocalOrApi ? [] : fallback.filter((f) => !localIds.has(f.id));
+        const safeFallback = isFresh ? [] : fallback.filter((f: any) => !localIds.has(f.id));
 
         const normalizedCombined = [...deduped, ...safeFallback].map((item: any) => ({
           ...item,
@@ -180,16 +178,16 @@ export default function MyListingsPage() {
         setFoods(normalizedCombined.length > 0 ? normalizedCombined : fallback);
       })
       .catch(() => {
-        if (localItems.length > 0) {
-          const normalizedLocal = localItems.map((item) => ({
-            ...item,
-            category: item.category || item.foodCategory || 'MEALS',
-            providerName: item.providerName || (session?.user?.name) || 'Warung Bakso Pak Kumis',
-            imageUrl: extractPhoto(item),
-            photos: [extractPhoto(item)],
-          }));
-          setFoods(normalizedLocal);
-        }
+        const localIds = new Set(localItems.map((i: any) => i.id));
+        const safeFallback = isFresh ? [] : fallback.filter((f: any) => !localIds.has(f.id));
+        const normalized = [...localItems, ...safeFallback].map((item: any) => ({
+          ...item,
+          category: item.category || item.foodCategory || 'MEALS',
+          providerName: item.providerName || (session?.user?.name) || 'Warung Bakso Pak Kumis',
+          imageUrl: extractPhoto(item),
+          photos: [extractPhoto(item)],
+        }));
+        setFoods(normalized.length > 0 ? normalized : fallback);
       });
   };
 
@@ -666,7 +664,7 @@ export default function MyListingsPage() {
                 className="w-4 h-4 text-emerald-600 rounded"
               />
               <span className="font-black text-emerald-900 text-xs">
-                Donasi Bebas Biaya (Rp 0 / Gratis Khusus Panti Asuhan & Dhuafa)
+                Donasi Bebas Biaya (Rp 0 / Gratis Khusus Lembaga Sosial & Dhuafa)
               </span>
             </label>
 

@@ -61,6 +61,31 @@ export const SURABAYA_REGIONS = [
     { value: 'surabaya_utara', label: 'Surabaya Utara' },
 ] as const;
 
+export const INDONESIA_CITIES_REGIONS = [
+    { value: 'Surabaya Pusat', label: 'Surabaya Pusat (Genteng, Tegalsari, Gubeng)', city: 'Surabaya', province: 'Jawa Timur', lat: -7.2575, lng: 112.7521 },
+    { value: 'Surabaya Timur', label: 'Surabaya Timur (Rungkut, Sukolilo, Mulyorejo)', city: 'Surabaya', province: 'Jawa Timur', lat: -7.2890, lng: 112.7830 },
+    { value: 'Surabaya Barat', label: 'Surabaya Barat (Wiyung, Tandes, Sambikerep)', city: 'Surabaya', province: 'Jawa Timur', lat: -7.2750, lng: 112.6750 },
+    { value: 'Surabaya Selatan', label: 'Surabaya Selatan (Wonokromo, Gayungan, Jambangan)', city: 'Surabaya', province: 'Jawa Timur', lat: -7.3100, lng: 112.7300 },
+    { value: 'Surabaya Utara', label: 'Surabaya Utara (Kenjeran, Pabean, Semampir)', city: 'Surabaya', province: 'Jawa Timur', lat: -7.2150, lng: 112.7450 },
+    { value: 'Sidoarjo', label: 'Sidoarjo (Waru, Gedangan, Kota Sidoarjo)', city: 'Sidoarjo', province: 'Jawa Timur', lat: -7.4478, lng: 112.7183 },
+    { value: 'Gresik', label: 'Gresik (Kebomas, Manyar, Driyorejo)', city: 'Gresik', province: 'Jawa Timur', lat: -7.1566, lng: 112.6555 },
+    { value: 'Malang Raya', label: 'Malang Raya (Klojen, Lowokwaru, Kota Batu)', city: 'Malang', province: 'Jawa Timur', lat: -7.9797, lng: 112.6304 },
+    { value: 'Jakarta Pusat', label: 'DKI Jakarta - Jakarta Pusat (Menteng, Tanah Abang)', city: 'Jakarta Pusat', province: 'DKI Jakarta', lat: -6.1805, lng: 106.8284 },
+    { value: 'Jakarta Selatan', label: 'DKI Jakarta - Jakarta Selatan (Tebet, Kebayoran, Cilandak)', city: 'Jakarta Selatan', province: 'DKI Jakarta', lat: -6.2615, lng: 106.8106 },
+    { value: 'Jakarta Barat', label: 'DKI Jakarta - Jakarta Barat (Grogol, Kembangan, Kebon Jeruk)', city: 'Jakarta Barat', province: 'DKI Jakarta', lat: -6.1683, lng: 106.7588 },
+    { value: 'Jakarta Timur', label: 'DKI Jakarta - Jakarta Timur (Jatinegara, Cakung, Duren Sawit)', city: 'Jakarta Timur', province: 'DKI Jakarta', lat: -6.2250, lng: 106.9004 },
+    { value: 'Jakarta Utara', label: 'DKI Jakarta - Jakarta Utara (Kelapa Gading, Pluit, Tanjung Priok)', city: 'Jakarta Utara', province: 'DKI Jakarta', lat: -6.1384, lng: 106.8640 },
+    { value: 'Jabodetabek', label: 'Jabodetabek (Bekasi, Depok, Tangerang, Bogor)', city: 'Tangerang', province: 'Banten', lat: -6.1783, lng: 106.6319 },
+    { value: 'Bandung Raya', label: 'Bandung Raya (Coblong, Dago, Sukasari, Cimahi)', city: 'Bandung', province: 'Jawa Barat', lat: -6.9175, lng: 107.6191 },
+    { value: 'Semarang', label: 'Semarang (Candisari, Banyumanik, Gajahmungkur)', city: 'Semarang', province: 'Jawa Tengah', lat: -6.9932, lng: 110.4203 },
+    { value: 'Solo / Surakarta', label: 'Solo / Surakarta (Banjarsari, Laweyan, Jebres)', city: 'Surakarta', province: 'Jawa Tengah', lat: -7.5755, lng: 110.8243 },
+    { value: 'DI Yogyakarta', label: 'DI Yogyakarta & Sleman (Depok, Gondomanan, Danurejan)', city: 'Yogyakarta', province: 'DI Yogyakarta', lat: -7.7956, lng: 110.3695 },
+    { value: 'Medan', label: 'Medan (Medan Baru, Medan Kota, Petisah)', city: 'Medan', province: 'Sumatera Utara', lat: 3.5952, lng: 98.6722 },
+    { value: 'Palembang', label: 'Palembang (Ilir Barat, Seberang Ulu, Sukarami)', city: 'Palembang', province: 'Sumatera Selatan', lat: -2.9909, lng: 104.7565 },
+    { value: 'Denpasar & Badung', label: 'Denpasar & Badung (Kuta, Sanur, Denpasar Selatan)', city: 'Denpasar', province: 'Bali', lat: -8.6705, lng: 115.2126 },
+    { value: 'Makassar', label: 'Makassar (Panakkukang, Tamalanrea, Ujung Pandang)', city: 'Makassar', province: 'Sulawesi Selatan', lat: -5.1477, lng: 119.4327 },
+] as const;
+
 // ============================================
 // STATUS LABELS
 // ============================================
