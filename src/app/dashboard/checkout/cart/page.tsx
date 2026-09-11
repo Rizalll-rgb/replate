@@ -361,13 +361,13 @@ export default function CheckoutCartPage() {
         onClose={() => setToastState(prev => ({ ...prev, isOpen: false }))}
       />
 
-      <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      <div className="space-y-6 max-w-4xl mx-auto pb-40 lg:pb-12">
         <div className="border-b border-slate-200 pb-4">
-          <h1 className="text-2xl font-black text-[#1B3A5C]">Checkout</h1>
-          <p className="text-sm text-slate-500 font-medium">Selesaikan pesanan dari tas klaim Anda.</p>
+          <h1 className="text-xl lg:text-2xl font-black text-[#1B3A5C]">Checkout</h1>
+          <p className="text-xs lg:text-sm text-slate-500 font-medium">Selesaikan pesanan dari tas klaim Anda.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Alamat — Poin 8: replace  emoji with MapPinIcon */}
             <div className="bg-white border-t-[3px] border-t-emerald-500 rounded-b-3xl border-x border-b border-slate-200 p-5 space-y-4 shadow-sm text-sm">
@@ -493,8 +493,8 @@ export default function CheckoutCartPage() {
             </div>
           </div>
 
-          {/* Summary */}
-          <div className="lg:col-span-1 space-y-4">
+          {/* Summary — Desktop Only */}
+          <div className="hidden lg:block lg:col-span-1 space-y-4">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-24">
               <h3 className="text-lg font-black text-slate-800 mb-6">Ringkasan Pesanan</h3>
               <div className="space-y-3 text-sm mb-6">
@@ -526,6 +526,38 @@ export default function CheckoutCartPage() {
                 {isCheckingOut ? 'Memproses...' : paymentMethod === 'QRIS' && !isFree ? 'Lanjut Bayar QRIS' : 'Buat Pesanan'}
               </Button>
             </div>
+          </div>
+        </div>
+
+        {/* ====== MOBILE STICKY BOTTOM PAYMENT BAR ====== */}
+        <div className="lg:hidden fixed bottom-[60px] left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-pb animate-fade-in-up">
+          <div className="px-4 py-2.5 flex items-center justify-between gap-3">
+            {/* Left: Total */}
+            <div className="min-w-0">
+              <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Total Tagihan</p>
+              <p className="text-lg font-black text-[#1B3A5C] leading-tight">Rp {totalAmount.toLocaleString('id-ID')}</p>
+              {deliveryFee > 0 && (
+                <p className="text-[9px] text-slate-400 font-medium">Termasuk ongkir Rp {deliveryFee.toLocaleString('id-ID')}</p>
+              )}
+            </div>
+            
+            {/* Right: Action Button */}
+            <button
+              onClick={handleCheckout}
+              disabled={isCheckingOut}
+              className="shrink-0 bg-gradient-to-r from-[#D4A843] to-[#B8902E] hover:from-[#B8902E] hover:to-[#8C6D22] text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg shadow-[#D4A843]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.97]"
+            >
+              {isCheckingOut ? (
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                  Proses...
+                </span>
+              ) : paymentMethod === 'QRIS' && !isFree ? (
+                'Bayar QRIS'
+              ) : (
+                'Buat Pesanan'
+              )}
+            </button>
           </div>
         </div>
 

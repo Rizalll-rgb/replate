@@ -4,6 +4,7 @@ import { PageTransition } from '@/components/layout/PageTransition';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { PWARoleRedirect } from '@/components/pwa/PWARoleRedirect';
 import { PWASplashScreen } from '@/components/pwa/PWASplashScreen';
+import { PWAPullToRefresh } from '@/components/pwa/PWAPullToRefresh';
 
 export const metadata: Metadata = {
   title: 'Replate — Where Surplus Finds Purpose',
@@ -55,6 +56,7 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body className="font-sans antialiased bg-[#F8F9FA] text-slate-900">
         <AuthProvider>
+          <PWAPullToRefresh />
           <PWASplashScreen />
           <PWARoleRedirect />
           <PageTransition>{children}</PageTransition>

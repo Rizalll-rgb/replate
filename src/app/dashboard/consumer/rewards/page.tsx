@@ -70,11 +70,11 @@ const REWARDS_CATALOG: RewardItem[] = [
   },
   {
     id: 'rew-3',
-    title: 'Penanaman 1 Bibit Pohon Mangrove Wonorejo',
+    title: 'Penanaman 1 Bibit Pohon Mangrove Nusantara',
     category: 'DONATION',
     pointsCost: 100,
-    description: 'Konversikan poin dampak Anda untuk aksi iklim nyata bersama Komunitas Mangrove Wonorejo Rungkut.',
-    provider: 'Eco Action Surabaya & Replate',
+    description: 'Konversikan poin dampak Anda untuk aksi iklim nyata bersama Jaringan Konservasi Pesisir Nusantara.',
+    provider: 'Eco Action Indonesia & Replate',
     validUntil: 'Program Berkelanjutan',
     badge: 'Aksi Lingkungan',
     imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=500&auto=format&fit=crop&q=60',
@@ -366,145 +366,166 @@ export default function EcoPointsRewardsPage() {
         </div>
       </main>
 
-      {/* Gojek-Style Slide-Up Bottom Sheet Confirmation Modal */}
+      {/* Gojek-Style Slide-Up Bottom Sheet Confirmation Modal with Sticky Action Footer */}
       {confirmModalOpen && selectedReward && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 p-5 space-y-4 max-h-[90vh] overflow-y-auto font-sans">
-            {/* Drag handle */}
-            <div className="flex justify-center -mt-1 sm:hidden">
-              <div className="w-10 h-1 rounded-full bg-slate-300" />
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
-                  <Gift className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Konfirmasi Penukaran
-                  </span>
-                  <h3 className="text-sm font-black text-[#1B3A5C]">
-                    Detail Voucer &amp; Hadiah
-                  </h3>
-                </div>
+          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col max-h-[85vh] sm:max-h-[90vh] font-sans overflow-hidden">
+            {/* Top Bar / Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 shrink-0 space-y-2">
+              <div className="flex justify-center -mt-1 sm:hidden">
+                <div className="w-10 h-1 rounded-full bg-slate-300" />
               </div>
-              <button
-                type="button"
-                onClick={() => setConfirmModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            {redeemSuccess ? (
-              /* Success State */
-              <div className="space-y-4 py-2 text-center">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-base font-black text-slate-900">
-                    Penukaran Hadiah Berhasil!
-                  </h4>
-                  <p className="text-xs text-slate-600 font-medium">
-                    Voucer <strong>{selectedReward.title}</strong> telah tersimpan di akun Anda.
-                  </p>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1 text-left">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Poin Ditukar:</span>
-                    <strong className="text-amber-700 font-mono">-{selectedReward.pointsCost} Poin</strong>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
+                    <Gift className="w-4 h-4 text-amber-700" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Sisa Saldo:</span>
-                    <strong className="text-slate-800 font-mono">{ecoPoints} Poin</strong>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Konfirmasi Penukaran
+                    </span>
+                    <h3 className="text-sm font-black text-[#1B3A5C]">
+                      Detail Voucer &amp; Hadiah
+                    </h3>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setConfirmModalOpen(false)}
-                  className="w-full py-3 bg-[#1B3A5C] text-white font-black text-xs rounded-xl shadow-xs cursor-pointer active:scale-95"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 cursor-pointer transition-colors"
                 >
-                  Selesai &amp; Gunakan Voucer
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              /* Confirmation Detail State */
-              <div className="space-y-3 text-xs">
-                {/* Reward summary */}
-                <div className="flex gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                  <img
-                    src={selectedReward.imageUrl}
-                    alt={selectedReward.title}
-                    className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200"
-                  />
-                  <div className="min-w-0 space-y-0.5">
-                    <span className="text-[10px] text-slate-400 font-bold block truncate">
-                      {selectedReward.provider}
-                    </span>
-                    <h4 className="font-black text-xs text-slate-900 leading-tight">
-                      {selectedReward.title}
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
+              {redeemSuccess ? (
+                /* Success State */
+                <div className="space-y-4 py-2 text-center">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-base font-black text-slate-900">
+                      Penukaran Hadiah Berhasil!
                     </h4>
-                    <div className="flex items-center gap-1 text-amber-700 font-black font-mono pt-1">
-                      <Coins className="w-3.5 h-3.5" />
-                      <span>{selectedReward.pointsCost} EcoPoints</span>
+                    <p className="text-xs text-slate-600 font-medium">
+                      Voucer <strong>{selectedReward.title}</strong> telah tersimpan di akun Anda.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1.5 text-left">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Poin Ditukar:</span>
+                      <strong className="text-amber-700 font-mono">-{selectedReward.pointsCost} Poin</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Sisa Saldo:</span>
+                      <strong className="text-slate-800 font-mono">{ecoPoints} Poin</strong>
                     </div>
                   </div>
                 </div>
-
-                {/* Balance check */}
-                <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200 space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Saldo Poin Anda:</span>
-                    <strong className="text-slate-900 font-mono">{ecoPoints} Poin</strong>
+              ) : (
+                /* Confirmation Detail State */
+                <>
+                  {/* Reward summary */}
+                  <div className="flex gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                    <img
+                      src={selectedReward.imageUrl}
+                      alt={selectedReward.title}
+                      className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200"
+                    />
+                    <div className="min-w-0 space-y-0.5">
+                      <span className="text-[10px] text-slate-400 font-bold block truncate">
+                        {selectedReward.provider}
+                      </span>
+                      <h4 className="font-black text-xs text-slate-900 leading-tight">
+                        {selectedReward.title}
+                      </h4>
+                      <div className="flex items-center gap-1 text-amber-700 font-black font-mono pt-1">
+                        <Coins className="w-3.5 h-3.5" />
+                        <span>{selectedReward.pointsCost} EcoPoints</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Biaya Penukaran:</span>
-                    <strong className="text-amber-700 font-mono">-{selectedReward.pointsCost} Poin</strong>
-                  </div>
-                  <div className="flex justify-between pt-1 border-t border-amber-200/80 font-bold">
-                    <span className="text-slate-700">Sisa Saldo Setelah Tukar:</span>
-                    <strong className="text-[#1B3A5C] font-mono">{ecoPoints - selectedReward.pointsCost} Poin</strong>
-                  </div>
-                </div>
 
-                {/* Terms & Conditions */}
-                <div className="space-y-1.5">
-                  <span className="font-black text-slate-700 text-[11px] block">
-                    Syarat &amp; Ketentuan:
-                  </span>
-                  <ul className="space-y-1 text-slate-600 text-[10.5px]">
-                    {selectedReward.terms.map((t, idx) => (
-                      <li key={idx} className="flex items-start gap-1.5">
-                        <span className="text-emerald-600 font-black shrink-0">•</span>
-                        <span>{t}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                  {/* Balance check */}
+                  <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200 space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Saldo Poin Anda:</span>
+                      <strong className="text-slate-900 font-mono">{ecoPoints} Poin</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Biaya Penukaran:</span>
+                      <strong className="text-amber-700 font-mono">-{selectedReward.pointsCost} Poin</strong>
+                    </div>
+                    <div className="flex justify-between pt-1 border-t border-amber-200/80 font-bold">
+                      <span className="text-slate-700">Sisa Saldo Setelah Tukar:</span>
+                      <strong className={ecoPoints >= selectedReward.pointsCost ? 'text-emerald-700 font-mono' : 'text-rose-600 font-mono'}>
+                        {ecoPoints - selectedReward.pointsCost} Poin
+                      </strong>
+                    </div>
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="pt-2 flex gap-2">
+                  {/* Insufficient Points Warning */}
+                  {ecoPoints < selectedReward.pointsCost && (
+                    <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-[11px] text-rose-700 font-medium">
+                      EcoPoints Anda belum mencukupi untuk menukarkan hadiah ini. Selamatkan lebih banyak porsi surplus untuk menambah poin!
+                    </div>
+                  )}
+
+                  {/* Terms & Conditions */}
+                  <div className="space-y-1.5">
+                    <span className="font-black text-slate-700 text-[11px] block">
+                      Syarat &amp; Ketentuan:
+                    </span>
+                    <ul className="space-y-1 text-slate-600 text-[10.5px]">
+                      {selectedReward.terms.map((t, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <span className="text-emerald-600 font-black shrink-0">•</span>
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Sticky Bottom Action Buttons - Guaranteed Visible on Mobile */}
+            <div className="p-4 sm:p-5 bg-white border-t border-slate-200 shrink-0 flex gap-2.5">
+              {redeemSuccess ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmModalOpen(false)}
+                  className="w-full py-3 bg-[#1B3A5C] hover:bg-[#234b75] text-white font-black text-xs rounded-xl shadow-xs cursor-pointer active:scale-95 transition-all"
+                >
+                  Selesai &amp; Gunakan Voucer
+                </button>
+              ) : (
+                <>
                   <button
                     type="button"
                     onClick={() => setConfirmModalOpen(false)}
-                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl cursor-pointer"
+                    className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
                   >
                     Batal
                   </button>
 
                   <button
                     type="button"
+                    disabled={ecoPoints < selectedReward.pointsCost}
                     onClick={handleConfirmRedeem}
-                    className="flex-1 py-2.5 bg-gradient-to-r from-[#D4A843] to-[#E5B954] text-slate-950 font-black rounded-xl shadow-xs cursor-pointer active:scale-95 transition-all"
+                    className="flex-1 py-3 bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-105 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-black text-xs rounded-xl shadow-xs cursor-pointer active:scale-95 transition-all flex items-center justify-center gap-1.5"
                   >
-                    Konfirmasi Tukar
+                    <Coins className="w-4 h-4 text-slate-950" />
+                    <span>{ecoPoints >= selectedReward.pointsCost ? 'Konfirmasi Tukar Sekarang' : 'Poin Tidak Cukup'}</span>
                   </button>
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

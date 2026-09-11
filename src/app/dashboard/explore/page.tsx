@@ -30,6 +30,9 @@ import {
   Store,
   UtensilsCrossed,
   Star,
+  Radio,
+  Compass,
+  Navigation,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -37,6 +40,7 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
+import { RadarView } from '@/components/food/RadarView';
 import { QRGenerator } from '@/components/qr/QRGenerator';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed, deduplicatePantiNeeds } from '@/lib/pantiData';
@@ -128,6 +132,16 @@ export default function WorkspaceExplorePage() {
   
   const [syncRadius, setSyncRadius] = useState<number | null>(null);
   const [showAIAnalyticsDetails, setShowAIAnalyticsDetails] = useState(false);
+
+  // Flash Rescue Mode (Point 13) — items expiring < 2 hours, 70-80% discount
+  const [isFlashRescueMode, setIsFlashRescueMode] = useState(false);
+  const [flashCountdown, setFlashCountdown] = useState({ hours: 1, minutes: 45, seconds: 20 });
+
+  // Peta Radar Mode (Point 14) — interactive map radar view
+  const [isRadarView, setIsRadarView] = useState(false);
+  const [radarRadius, setRadarRadius] = useState<2 | 5 | 10>(5);
+  const [radarFilter, setRadarFilter] = useState<'ALL' | 'DONATION' | 'RESCUE'>('ALL');
+  const [selectedRadarItem, setSelectedRadarItem] = useState<FoodItem | null>(null);
 
   // Mobile Explorer States & Synchronization (Point 2)
   const [cartCount, setCartCount] = useState<number>(0);
@@ -378,9 +392,39 @@ export default function WorkspaceExplorePage() {
         if (qParam) {
           setSearchQuery(qParam);
         }
+
+        // Point 13: Flash Rescue filter
+        const filterParam = params.get('filter');
+        if (filterParam && filterParam.toLowerCase() === 'flash') {
+          setIsFlashRescueMode(true);
+          setActiveTab('RESCUE_SALE');
+        }
+
+        // Point 14: Peta Radar view
+        const viewParam = params.get('view');
+        if (viewParam && viewParam.toLowerCase() === 'radar') {
+          setIsRadarView(true);
+        }
       }
     } catch (_) {}
   }, []);
+
+  // Flash Rescue live countdown timer (Point 13)
+  useEffect(() => {
+    if (!isFlashRescueMode) return;
+    const timer = setInterval(() => {
+      setFlashCountdown(prev => {
+        let { hours, minutes, seconds } = prev;
+        seconds -= 1;
+        if (seconds < 0) { seconds = 59; minutes -= 1; }
+        if (minutes < 0) { minutes = 59; hours -= 1; }
+        if (hours < 0) { hours = 0; minutes = 0; seconds = 0; }
+        return { hours, minutes, seconds };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isFlashRescueMode]);
+
 
   const [foods, setFoods] = useState<FoodItem[]>(MOCK_SURPLUS_FOODS as unknown as FoodItem[]);
 
@@ -594,6 +638,12 @@ export default function WorkspaceExplorePage() {
     if (activeTab === 'PANTI_NEEDS') return false; // Panti needs tab shows its own grid
     if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
     if (activeTab === 'DONATION' && !item.isFree) return false;
+    if (isFlashRescueMode) {
+      if (item.isFree) return false;
+      const discountPct = item.originalPrice > 0 ? Math.round(((item.originalPrice - item.discountPrice) / item.originalPrice) * 100) : 0;
+      // High discount surplus (< 2 jam / darurat, discount >= 50% or price <= 15000)
+      if (discountPct < 50 && item.discountPrice > 15000) return false;
+    }
     if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -601,6 +651,17 @@ export default function WorkspaceExplorePage() {
     }
     return true;
   });
+
+  // Radar Items filtered by radius and radar filter (Point 14)
+  const radarItems = useMemo(() => {
+    return foods.filter((item) => {
+      const d = parseFloat(item.distance?.replace(/[^0-9.]/g, '') || '1.5');
+      if (d > radarRadius) return false;
+      if (radarFilter === 'DONATION' && !item.isFree) return false;
+      if (radarFilter === 'RESCUE' && item.isFree) return false;
+      return true;
+    });
+  }, [foods, radarRadius, radarFilter]);
 
   // Grouped foods by Store / Merchant for GoFood-style mobile experience (Point 5)
   const groupedByStore = useMemo(() => {
@@ -1140,6 +1201,65 @@ export default function WorkspaceExplorePage() {
 
       {/* Food Grid Content */}
       <div className="space-y-4 sm:space-y-6">
+        {/* Flash Rescue Mode Clearance Banner (Point 13) */}
+        {isFlashRescueMode && (
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#E65100] via-[#F4511E] to-[#C2185B] rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-white/20 animate-fade-in-up">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                <Zap className="w-6 h-6 text-amber-200 animate-bounce" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-amber-300 text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1 border border-white/20">
+                    <Flame className="w-3 h-3 text-amber-300" />
+                    <span>FLASH RESCUE DARURAT (&lt; 2 JAM)</span>
+                  </span>
+                  <span className="text-[10px] font-bold text-white/90 bg-white/20 px-2 py-0.5 rounded-full">
+                    Diskon Tertinggi 70% - 80%
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-white">
+                  Penyelamatan Surplus Resto &amp; Bakery Sebelum Jam Tutup
+                </h3>
+                <p className="text-xs text-white/90 font-medium max-w-xl leading-relaxed">
+                  Makanan surplus higienis berstandar BPOM dengan batas penjemputan singkat. Beli dengan harga hemat dan selamatkan sebelum mubazir!
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 self-stretch sm:self-auto justify-between sm:justify-start">
+              {/* Live Countdown */}
+              <div className="bg-black/30 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 text-center">
+                <span className="text-[9px] uppercase tracking-wider text-amber-200 font-bold block">Waktu Tersisa</span>
+                <span className="text-base font-black font-mono text-white tracking-widest">
+                  {String(flashCountdown.hours).padStart(2, '0')}:{String(flashCountdown.minutes).padStart(2, '0')}:{String(flashCountdown.seconds).padStart(2, '0')}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsFlashRescueMode(false)}
+                className="px-3.5 py-2 rounded-xl bg-white text-slate-950 font-black text-xs hover:bg-amber-100 transition-all cursor-pointer shadow-md"
+              >
+                ✕ Lihat Semua
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Radar View on Desktop (Point 14) */}
+        {isRadarView && (
+          <div className="pb-2">
+            <RadarView
+              items={foods}
+              userAddress={consumerAddress}
+              onClose={() => setIsRadarView(false)}
+              onSelectFood={handleOpenFoodDetail}
+              onClaimFood={handleBuyNow}
+            />
+          </div>
+        )}
+
         {/* Provider Seller Centre Banner Notice */}
         {(session?.user?.role?.toUpperCase().includes('PROVIDER') || false) && (
           <div className="p-3 sm:p-4 bg-amber-50/90 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 text-xs shadow-xs">
@@ -1174,6 +1294,19 @@ export default function WorkspaceExplorePage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full sm:max-w-xs px-3.5 py-2 sm:py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
               />
+              {/* Peta Radar Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setIsRadarView(!isRadarView)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 ${
+                  isRadarView
+                    ? 'bg-emerald-600 text-white shadow-emerald-900/20'
+                    : 'bg-slate-900 hover:bg-slate-800 text-[#D4A843]'
+                }`}
+              >
+                <Compass className="w-4 h-4" />
+                <span>{isRadarView ? 'Tutup Peta Radar' : 'Peta Radar Live'}</span>
+              </button>
               {syncRadius && (
                 <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold whitespace-nowrap">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -1572,22 +1705,63 @@ export default function WorkspaceExplorePage() {
 
           {/* Contextual Gojek-Style Promo Banner */}
           {activeTab === 'RESCUE_SALE' && (
-            <div className="p-3 bg-gradient-to-r from-amber-500 via-amber-600 to-[#1B3A5C] rounded-2xl text-white shadow-xs flex items-center justify-between gap-2.5">
-              <div className="space-y-0.5 min-w-0">
-                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 text-white inline-block">
-                  RESCUE SALE HINGGA 70%
-                </span>
-                <h4 className="text-xs font-black text-white leading-tight">
-                  Porsi Resto &amp; Bakery Lezat Sebelum Tutup
-                </h4>
-                <p className="text-[10px] text-white/90 leading-snug line-clamp-1">
-                  Kualitas premium teruji sensorik standar BPOM RI.
-                </p>
+            isFlashRescueMode ? (
+              /* Flash Rescue Active Banner (Point 13) */
+              <div className="p-3 bg-gradient-to-r from-[#E65100] via-[#F4511E] to-[#C2185B] rounded-2xl text-white shadow-md flex flex-col gap-2.5 border border-white/20 animate-fade-in-up">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-xs text-amber-200 inline-flex items-center gap-1 border border-white/20">
+                    <Zap className="w-2.5 h-2.5 text-amber-300 animate-bounce" />
+                    <span>FLASH RESCUE (&lt; 2 JAM)</span>
+                  </span>
+                  {/* Live Countdown Clock */}
+                  <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-lg text-[10px] font-mono font-black text-amber-200">
+                    <Clock className="w-3 h-3 text-amber-300" />
+                    <span>
+                      {String(flashCountdown.hours).padStart(2, '0')}:{String(flashCountdown.minutes).padStart(2, '0')}:{String(flashCountdown.seconds).padStart(2, '0')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-black text-white leading-tight">
+                    Porsi Lezat Diskon 70% - 80% Menjelang Jam Tutup
+                  </h4>
+                  <p className="text-[10px] text-white/90 leading-snug">
+                    Makanan surplus premium standar BPOM harus diselamatkan sebelum kedaluwarsa. Ambil cepat!
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-white/20">
+                  <span className="text-[9px] font-bold text-amber-200">
+                    Menampilkan ({filteredFoods.length}) menu flash
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsFlashRescueMode(false)}
+                    className="px-2 py-0.5 rounded bg-white text-slate-950 font-black text-[10px] cursor-pointer active:scale-95 transition-transform"
+                  >
+                    ✕ Lihat Semua Menu
+                  </button>
+                </div>
               </div>
-              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <Flame className="w-5 h-5 text-amber-200" />
+            ) : (
+              <div className="p-3 bg-gradient-to-r from-amber-500 via-amber-600 to-[#1B3A5C] rounded-2xl text-white shadow-xs flex items-center justify-between gap-2.5">
+                <div className="space-y-0.5 min-w-0">
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-white/20 text-white inline-block">
+                    RESCUE SALE HINGGA 70%
+                  </span>
+                  <h4 className="text-xs font-black text-white leading-tight">
+                    Porsi Resto &amp; Bakery Lezat Sebelum Tutup
+                  </h4>
+                  <p className="text-[10px] text-white/90 leading-snug line-clamp-1">
+                    Kualitas premium teruji sensorik standar BPOM RI.
+                  </p>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                  <Flame className="w-5 h-5 text-amber-200" />
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {activeTab === 'DONATION' && (
@@ -1651,15 +1825,15 @@ export default function WorkspaceExplorePage() {
             </div>
           )}
 
-          {/* View Mode Switcher: Berdasarkan Toko (Ala Gojek GoFood) vs Semua Menu (Point 5) */}
+          {/* View Mode Switcher: Berdasarkan Toko vs Semua Menu vs Peta Radar (Points 5 & 14) */}
           {activeTab !== 'PANTI_NEEDS' && (
             <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl overflow-x-auto no-scrollbar">
                 <button
                   type="button"
-                  onClick={() => setMobileViewMode('TOKO')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                    mobileViewMode === 'TOKO'
+                  onClick={() => { setMobileViewMode('TOKO'); setIsRadarView(false); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    mobileViewMode === 'TOKO' && !isRadarView
                       ? 'bg-[#1B3A5C] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
@@ -1670,9 +1844,9 @@ export default function WorkspaceExplorePage() {
 
                 <button
                   type="button"
-                  onClick={() => setMobileViewMode('SEMUA_MENU')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                    mobileViewMode === 'SEMUA_MENU'
+                  onClick={() => { setMobileViewMode('SEMUA_MENU'); setIsRadarView(false); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    mobileViewMode === 'SEMUA_MENU' && !isRadarView
                       ? 'bg-[#1B3A5C] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
@@ -1680,11 +1854,37 @@ export default function WorkspaceExplorePage() {
                   <UtensilsCrossed className="w-3.5 h-3.5" />
                   <span>Semua Menu ({filteredFoods.length})</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsRadarView(!isRadarView)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    isRadarView
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Peta Radar</span>
+                </button>
               </div>
 
-              <span className="text-[10px] font-bold text-slate-400">
+              <span className="text-[10px] font-bold text-slate-400 shrink-0 ml-1">
                 &lt;{syncRadius || 15} km
               </span>
+            </div>
+          )}
+
+          {/* Radar View Mode on Mobile (Point 14) */}
+          {isRadarView && (
+            <div className="pt-1">
+              <RadarView
+                items={foods}
+                userAddress={consumerAddress}
+                onClose={() => setIsRadarView(false)}
+                onSelectFood={handleOpenFoodDetail}
+                onClaimFood={handleBuyNow}
+              />
             </div>
           )}
 

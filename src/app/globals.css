@@ -540,3 +540,62 @@ input, textarea, select {
   scrollbar-width: none !important;  /* Firefox */
 }
 
+/* ============================================
+   GLOBAL MICRO-INTERACTIONS & SMOOTH TRANSITIONS
+   ============================================ */
+
+/* Disable default mobile browser blue tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  overscroll-behavior-y: contain; /* Prevents default browser reload pull */
+  scroll-behavior: smooth;
+}
+
+/* Universal tactile touch feedback for buttons and interactive items */
+button,
+a,
+[role="button"],
+.btn-interactive,
+.card-interactive {
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+button:active:not(:disabled),
+a[role="button"]:active,
+.btn-interactive:active {
+  transform: scale(0.965);
+}
+
+.card-interactive:active {
+  transform: scale(0.985);
+}
+
+/* Smooth Image Loading */
+img {
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Shimmer Loading Effect */
+@keyframes replateShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: replateShimmer 1.5s infinite;
+}
+

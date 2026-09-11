@@ -674,34 +674,36 @@ export default function MyClaimsPage() {
                     {/* Status Pill */}
                     <div className="shrink-0">
                       {isDone ? (
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-black text-[10px] rounded-full inline-flex items-center gap-1">
-                          <CheckIcon size={10} className="text-emerald-600" />
+                        <span className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold text-[10.5px] rounded-full inline-flex items-center gap-1 border border-slate-200">
+                          <CheckIcon size={11} className="text-emerald-600" />
                           <span>Selesai</span>
                         </span>
                       ) : isReady ? (
-                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 font-black text-[10px] rounded-full inline-flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="px-2.5 py-1 bg-emerald-600 text-white font-black text-[10.5px] rounded-full inline-flex items-center gap-1.5 shadow-xs">
+                          <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
                           <span>Siap Ambil</span>
                         </span>
                       ) : isPickedUp ? (
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 font-black text-[10px] rounded-full">
-                          Telah Diambil
+                        <span className="px-2.5 py-1 bg-blue-600 text-white font-black text-[10.5px] rounded-full inline-flex items-center gap-1.5 shadow-xs">
+                          <CheckIcon size={11} className="text-white" />
+                          <span>Telah Diambil</span>
                         </span>
                       ) : isCourier ? (
-                        <span className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-200 font-black text-[10px] rounded-full inline-flex items-center gap-1">
-                          <BikeIcon size={10} />
+                        <span className="px-2.5 py-1 bg-purple-600 text-white font-black text-[10.5px] rounded-full inline-flex items-center gap-1.5 shadow-xs">
+                          <BikeIcon size={12} className="text-white" />
                           <span>Kurir Toko</span>
                         </span>
                       ) : isPaymentPending ? (
-                        <span className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 font-black text-[10px] rounded-full">
-                          Menunggu Bayar
+                        <span className="px-2.5 py-1 bg-amber-500 text-slate-950 font-black text-[10.5px] rounded-full inline-flex items-center gap-1.5 shadow-xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-pulse"></span>
+                          <span>Menunggu Bayar</span>
                         </span>
                       ) : isAwaitingVerification ? (
-                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200 font-black text-[10px] rounded-full">
-                          Verifikasi Kasir
+                        <span className="px-2.5 py-1 bg-indigo-600 text-white font-black text-[10.5px] rounded-full inline-flex items-center gap-1.5 shadow-xs">
+                          <span>Verifikasi Kasir</span>
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold text-[10px] rounded-full">
+                        <span className="px-2.5 py-1 bg-slate-200 text-slate-800 font-black text-[10.5px] rounded-full">
                           Diproses
                         </span>
                       )}
@@ -727,7 +729,9 @@ export default function MyClaimsPage() {
                       </div>
 
                       <div className="shrink-0 text-right">
-                        <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-bold block">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-md font-extrabold block ${
+                          isCourier ? 'bg-purple-100 text-purple-900 border border-purple-200' : 'bg-amber-100 text-amber-900 border border-amber-200'
+                        }`}>
                           {isCourier ? 'Kurir Toko' : 'Ambil di Gerai'}
                         </span>
                       </div>
@@ -746,16 +750,16 @@ export default function MyClaimsPage() {
                     </div>
                   </div>
 
-                  {/* Action Buttons Row */}
+                  {/* Action Buttons Row — Ergonomic Thumb-Friendly (Point 7) */}
                   <div className="p-3 bg-slate-50/70 space-y-2">
                     <div className="flex items-center gap-2">
                       {/* QR Barcode Button (Main Primary for Pickup) */}
                       {!isDone && !isCourier && (
                         <button
                           onClick={() => setQrModal({ isOpen: true, claim })}
-                          className="flex-1 py-2 px-3 bg-[#D4A843] hover:bg-[#c49839] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                          className="flex-1 py-3 px-4 bg-[#D4A843] hover:bg-[#c49839] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md shadow-amber-900/15 transition-all active:scale-[0.97] cursor-pointer"
                         >
-                          <QrCodeIcon size={14} className="text-slate-950" />
+                          <QrCodeIcon size={16} className="text-slate-950" />
                           <span>Buka Barcode QR</span>
                         </button>
                       )}
@@ -764,9 +768,9 @@ export default function MyClaimsPage() {
                       {!isDone && isCourier && (
                         <button
                           onClick={() => setTrackingModal(claim)}
-                          className="flex-1 py-2 px-3 bg-[#1B3A5C] hover:bg-[#254f7d] text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                          className="flex-1 py-3 px-4 bg-[#1B3A5C] hover:bg-[#254f7d] text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md shadow-[#1B3A5C]/20 transition-all active:scale-[0.97] cursor-pointer"
                         >
-                          <BikeIcon size={14} />
+                          <BikeIcon size={16} />
                           <span>Lacak Kurir Toko</span>
                         </button>
                       )}
@@ -775,9 +779,9 @@ export default function MyClaimsPage() {
                       {(isReady || isPickedUp) && !isCourier && (
                         <button
                           onClick={() => setConfirmPickupModal({ isOpen: true, claim })}
-                          className="py-2 px-3 bg-[#1B3A5C] text-white font-black text-xs rounded-xl flex items-center justify-center gap-1 shadow-xs hover:bg-[#254f7d] cursor-pointer"
+                          className="py-3 px-4 bg-[#1B3A5C] text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-[#1B3A5C]/20 hover:bg-[#254f7d] active:scale-[0.97] transition-all cursor-pointer shrink-0"
                         >
-                          <CheckIcon size={13} />
+                          <CheckIcon size={14} />
                           <span>Selesai</span>
                         </button>
                       )}
@@ -787,16 +791,16 @@ export default function MyClaimsPage() {
                         <>
                           <button
                             onClick={() => setDeliveryProofModal({ isOpen: true, claim })}
-                            className="flex-1 py-2 px-3 bg-white border border-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1 hover:bg-slate-50 cursor-pointer shadow-xs"
+                            className="flex-1 py-3 px-3 bg-white border border-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer shadow-xs"
                           >
-                            <CheckIcon size={13} className="text-emerald-600" />
+                            <CheckIcon size={14} className="text-emerald-600" />
                             <span>Bukti Serah</span>
                           </button>
                           <button
                             onClick={() => handleOpenReview(claim)}
-                            className="flex-1 py-2 px-3 bg-[#D4A843] hover:bg-[#c49839] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            className="flex-1 py-3 px-3 bg-[#D4A843] hover:bg-[#c49839] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-amber-900/15 active:scale-[0.97] transition-all cursor-pointer"
                           >
-                            <SparklesIcon size={13} />
+                            <SparklesIcon size={14} />
                             <span>Beri Ulasan</span>
                           </button>
                         </>

@@ -39,6 +39,8 @@ import {
   BookOpen,
   Building2,
   Handshake,
+  Leaf,
+  MessageCircle,
 } from 'lucide-react';
 import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
@@ -93,6 +95,7 @@ export default function ConsumerDashboardPage() {
   const [isBPOMModalOpen, setIsBPOMModalOpen] = useState(false);
   const [isPahlawanInfoModalOpen, setIsPahlawanInfoModalOpen] = useState(false);
   const [isStatusExplanationModalOpen, setIsStatusExplanationModalOpen] = useState(false);
+  const [isPartnershipModalOpen, setIsPartnershipModalOpen] = useState(false);
 
   // Loader & Toast
   const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({
@@ -122,29 +125,29 @@ export default function ConsumerDashboardPage() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Rotating Hero Campaign Banner (Mobile)
+  // Rotating Hero Campaign Banner (Mobile) - Vibrant SuperApp Gradients
   const [bannerIndex, setBannerIndex] = useState(0);
   const heroBanners = [
     {
       badge: 'Gerakan Pahlawan Pangan',
-      title: '520+ Porsi Terselamatkan Hari Ini di Surabaya',
-      desc: 'Mencegah 1.300 kg jejak emisi gas metana dari TPA Benowo. Belanja cerdas sambil jaga bumi!',
-      accentColor: 'from-[#1B3A5C] via-[#163859] to-[#0E4A3B]',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+      title: '520+ Porsi Terselamatkan Hari Ini di Seluruh Kota',
+      desc: 'Mencegah 1.300 kg jejak emisi gas metana dari Tempat Pembuangan Akhir (TPA) nasional. Belanja cerdas sambil jaga bumi!',
+      accentColor: 'from-emerald-600 via-teal-600 to-cyan-700',
+      badgeColor: 'bg-emerald-400/25 text-emerald-100 border-emerald-300/50',
     },
     {
-      badge: 'Mitra Resto & Bakery Baru',
-      title: 'Dapur Cokelat & Hotel Bumi Sedia Rescue Sale',
-      desc: 'Nikmati hidangan artisan dan pastry berkualitas hotel bintang 5 dengan diskon hingga 70%.',
-      accentColor: 'from-[#4A3215] via-[#2F2111] to-[#142A42]',
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+      badge: 'Flash Rescue Sale',
+      title: 'Diskon Spesial Hingga 70% Menjelang Toko Tutup',
+      desc: 'Nikmati hidangan artisan dan pastry berkualitas hotel serta resto terkemuka sebelum kedaluwarsa.',
+      accentColor: 'from-amber-500 via-orange-600 to-rose-600',
+      badgeColor: 'bg-amber-300/30 text-amber-100 border-amber-200/50',
     },
     {
       badge: 'Gamifikasi Hijau',
       title: 'Kumpulkan EcoPoints, Tukar Bibit Mangrove',
-      desc: 'Setiap 1 porsi yang kamu selamatkan menghasilkan 40 EcoPoints untuk program restorasi mangrove Surabaya.',
-      accentColor: 'from-[#0C3B2E] via-[#104D3C] to-[#153450]',
-      badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-400/40',
+      desc: 'Setiap 1 porsi yang kamu selamatkan menghasilkan 40 EcoPoints untuk program restorasi mangrove nusantara.',
+      accentColor: 'from-indigo-600 via-purple-600 to-pink-600',
+      badgeColor: 'bg-pink-400/25 text-pink-100 border-pink-300/50',
     },
   ];
 
@@ -745,57 +748,72 @@ export default function ConsumerDashboardPage() {
       {/* CREATIVE LIGHT BACKGROUND WITH WARM ACCENTS & SEAMLESS TRANSITIONS        */}
       {/* ========================================================================= */}
       <div className="block md:hidden bg-slate-50 text-slate-800 font-sans pb-24 space-y-4">
-        {/* Mobile Header Bar */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 py-3 space-y-2.5 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            {/* Location Pill synced with registered profile */}
-            <button
-              type="button"
-              onClick={() => setIsLocationModalOpen(true)}
-              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 px-3 py-1.5 rounded-full transition-all cursor-pointer text-left max-w-[65%]"
-            >
-              <MapPin className="w-3.5 h-3.5 text-[#1B3A5C] shrink-0" />
-              <div className="min-w-0">
-                <span className="text-[9.5px] text-slate-500 block leading-tight font-medium">Zona Penjemputan Akun</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-black text-slate-800 truncate">{consumerAddress}</span>
-                  <span className="text-[10px] text-slate-500 font-bold shrink-0">(&lt;{syncRadius} km)</span>
-                </div>
+        {/* Mobile Header Bar - Redmi Note 15 Safe Spacing & 3-Row Hierarchy */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-5 py-2.5 space-y-2.5 shadow-2xs">
+          {/* Row 1: Brand & Greeting on Left, Tas Klaim & Avatar with Safe Edge Margin on Right */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#1B3A5C] to-[#254d79] flex items-center justify-center text-white shadow-xs shrink-0">
+                <Leaf className="w-4 h-4 text-[#D4A843]" />
               </div>
-            </button>
+              <div className="min-w-0">
+                <span className="text-[10px] text-slate-400 font-bold block leading-none">Halo Pahlawan,</span>
+                <h2 className="text-sm font-black text-[#1B3A5C] truncate tracking-tight mt-0.5">
+                  {consumerName.split(' ')[0] || 'Konsumen'} 👋
+                </h2>
+              </div>
+            </div>
 
-            {/* Action Buttons: Tas Klaim + Avatar Button (Profilku Ala Gojek) */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
               <Link href="/dashboard/cart">
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-105 active:scale-95 text-slate-950 font-black text-xs transition-all shadow-xs cursor-pointer relative"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D4A843] to-[#E5B954] hover:brightness-105 active:scale-95 text-slate-950 font-black text-xs transition-all shadow-xs cursor-pointer relative"
                   title="Tas Klaim"
                 >
-                  <ShoppingBag className="w-4 h-4 text-slate-950" />
-                  <span>Tas</span>
+                  <ShoppingBag className="w-3.5 h-3.5 text-slate-950" />
+                  <span className="text-[11px]">Tas</span>
                   {cartCount > 0 && (
-                    <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-black leading-none">
+                    <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9px] font-black leading-none">
                       {cartCount}
                     </span>
                   )}
                 </button>
               </Link>
 
-              {/* Avatar Icon Button: Opens Gojek Profile Drawer */}
+              {/* Avatar Icon Button: Opens Gojek Profile Drawer with Safe Padding from Bezel */}
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new Event('replate_open_profile_drawer'))}
-                className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1B3A5C] to-[#2C5282] text-white flex items-center justify-center font-black text-xs shadow-xs border border-white/60 active:scale-95 transition-all cursor-pointer relative"
+                className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#1B3A5C] via-[#244b74] to-[#2C5282] text-white flex items-center justify-center font-black text-xs shadow-xs border-2 border-white active:scale-95 transition-all cursor-pointer relative shrink-0"
                 title="Buka Profil & Pengaturan (Ala Gojek)"
               >
                 <User className="w-4 h-4 text-[#D4A843]" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
               </button>
             </div>
           </div>
 
-          {/* Real-time Search Input */}
+          {/* Row 2: Location / Pickup Zone Pill (Full Width, Tap to Change) */}
+          <button
+            type="button"
+            onClick={() => setIsLocationModalOpen(true)}
+            className="w-full flex items-center justify-between gap-2 bg-slate-100 hover:bg-slate-200/90 border border-slate-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer text-left"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <MapPin className="w-3.5 h-3.5 text-[#1B3A5C] shrink-0" />
+              <div className="min-w-0 flex items-center gap-1.5">
+                <span className="text-[10px] text-slate-500 font-semibold shrink-0">Lokasi:</span>
+                <span className="text-xs font-black text-slate-800 truncate">{consumerAddress}</span>
+                <span className="text-[10px] text-slate-500 font-bold shrink-0">(&lt;{syncRadius} km)</span>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-[#1B3A5C] bg-white px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
+              Ubah
+            </span>
+          </button>
+
+          {/* Row 3: Real-time Search Input */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -806,7 +824,7 @@ export default function ConsumerDashboardPage() {
                 setCurrentPage(1);
               }}
               placeholder="Cari roti artisan, nasi box, buah surplus..."
-              className="w-full pl-10 pr-9 py-2 bg-slate-100 border border-slate-200 focus:border-[#1B3A5C] focus:bg-white focus:ring-1 focus:ring-[#1B3A5C] rounded-2xl text-xs text-slate-900 placeholder:text-slate-400 font-medium transition-all outline-hidden"
+              className="w-full pl-10 pr-9 py-2 bg-slate-100 border border-slate-200 focus:border-[#1B3A5C] focus:bg-white focus:ring-1 focus:ring-[#1B3A5C] rounded-xl text-xs text-slate-900 placeholder:text-slate-400 font-medium transition-all outline-hidden"
             />
             {searchQuery && (
               <button
@@ -997,7 +1015,7 @@ export default function ConsumerDashboardPage() {
               {/* 7. Peta Radar */}
               <button
                 type="button"
-                onClick={() => router.push('/dashboard/explore')}
+                onClick={() => router.push('/dashboard/explore?view=radar')}
                 className="flex flex-col items-center p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 border border-slate-200 transition-all cursor-pointer text-center group"
               >
                 <div className="w-10 h-10 rounded-xl bg-indigo-100 group-hover:bg-indigo-200 border border-indigo-200 flex items-center justify-center mb-1 text-indigo-700 transition-colors">
@@ -1022,7 +1040,7 @@ export default function ConsumerDashboardPage() {
             </div>
           </section>
 
-          {/* Highlight Promo Banner Carousel (Swipeable Horizontal Slider - Point 7) */}
+          {/* Highlight Promo Banner Carousel (Swipeable Horizontal Slider - Vibrant SuperApp Style) */}
           <section className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black text-[#1B3A5C] uppercase tracking-wider block">
@@ -1040,29 +1058,29 @@ export default function ConsumerDashboardPage() {
               {/* Slide 1: Flash Rescue */}
               <div
                 onClick={() => router.push('/dashboard/explore?tab=RESCUE_SALE&filter=flash')}
-                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#1B3A5C] via-[#1E436D] to-[#0E4A3B] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-rose-600 via-orange-600 to-amber-500 text-white rounded-2xl p-4 shadow-md shadow-rose-950/15 border border-white/20 flex flex-col justify-between cursor-pointer hover:brightness-105 active:scale-98 transition-all"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500 text-white shadow-xs inline-flex items-center gap-1">
-                      <Flame className="w-2.5 h-2.5" />
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-xs text-amber-200 shadow-xs inline-flex items-center gap-1 border border-white/20">
+                      <Flame className="w-2.5 h-2.5 text-amber-300" />
                       <span>DISKON S.D 70%</span>
                     </span>
-                    <span className="text-[9px] font-bold text-amber-300">Hari Ini</span>
+                    <span className="text-[9px] font-black text-amber-100 bg-white/20 px-1.5 py-0.5 rounded">Hari Ini</span>
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
                     Flash Rescue Spesial Malam
                   </h4>
-                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                  <p className="text-[10.5px] text-rose-50 leading-snug line-clamp-2">
                     Selamatkan surplus kuliner resto &amp; bakery favorit terdekat sebelum jam tutup dengan diskon besar.
                   </p>
                 </div>
                 <div className="pt-3 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-[#D4A843] flex items-center gap-1">
+                  <span className="text-[10px] font-black text-amber-200 flex items-center gap-1">
                     <span>Ambil Promo</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
-                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] text-white/80 bg-black/25 px-1.5 py-0.5 rounded">
                     1 / 4
                   </span>
                 </div>
@@ -1071,29 +1089,29 @@ export default function ConsumerDashboardPage() {
               {/* Slide 2: Donasi Rp 0 */}
               <div
                 onClick={() => router.push('/dashboard/explore?tab=DONATION')}
-                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#0D3F33] via-[#125845] to-[#1B3A5C] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white rounded-2xl p-4 shadow-md shadow-emerald-950/15 border border-white/20 flex flex-col justify-between cursor-pointer hover:brightness-105 active:scale-98 transition-all"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs inline-flex items-center gap-1">
-                      <Gift className="w-2.5 h-2.5" />
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-xs text-emerald-200 shadow-xs inline-flex items-center gap-1 border border-white/20">
+                      <Gift className="w-2.5 h-2.5 text-emerald-300" />
                       <span>GRATIS RP 0</span>
                     </span>
-                    <span className="text-[9px] font-bold text-emerald-300">Mitra Resmi</span>
+                    <span className="text-[9px] font-black text-emerald-100 bg-white/20 px-1.5 py-0.5 rounded">Mitra Resmi</span>
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
                     Donasi Pangan Bebas Biaya
                   </h4>
-                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                  <p className="text-[10.5px] text-emerald-50 leading-snug line-clamp-2">
                     Surplus makanan siap konsumsi bebas biaya dari donatur terverifikasi, aman berstandar higienis BPOM.
                   </p>
                 </div>
                 <div className="pt-3 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-emerald-300 flex items-center gap-1">
+                  <span className="text-[10px] font-black text-emerald-200 flex items-center gap-1">
                     <span>Klaim Donasi</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
-                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] text-white/80 bg-black/25 px-1.5 py-0.5 rounded">
                     2 / 4
                   </span>
                 </div>
@@ -1102,29 +1120,29 @@ export default function ConsumerDashboardPage() {
               {/* Slide 3: Double EcoPoints */}
               <div
                 onClick={() => router.push('/dashboard/consumer/rewards')}
-                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#2F1F4E] via-[#422271] to-[#1B3A5C] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white rounded-2xl p-4 shadow-md shadow-purple-950/15 border border-white/20 flex flex-col justify-between cursor-pointer hover:brightness-105 active:scale-98 transition-all"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs inline-flex items-center gap-1">
-                      <Coins className="w-2.5 h-2.5" />
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-xs text-pink-200 shadow-xs inline-flex items-center gap-1 border border-white/20">
+                      <Coins className="w-2.5 h-2.5 text-amber-300" />
                       <span>DOUBLE REWARD</span>
                     </span>
-                    <span className="text-[9px] font-bold text-amber-300">Gamifikasi</span>
+                    <span className="text-[9px] font-black text-pink-100 bg-white/20 px-1.5 py-0.5 rounded">Gamifikasi</span>
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
                     Gandakan EcoPoints Penyelamatan
                   </h4>
-                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                  <p className="text-[10.5px] text-purple-50 leading-snug line-clamp-2">
                     Kumpulkan poin pahlawan pangan setiap kali bertransaksi, tukarkan voucher sembako &amp; merchandise.
                   </p>
                 </div>
                 <div className="pt-3 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-amber-300 flex items-center gap-1">
+                  <span className="text-[10px] font-black text-amber-200 flex items-center gap-1">
                     <span>Katalog Hadiah</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
-                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] text-white/80 bg-black/25 px-1.5 py-0.5 rounded">
                     3 / 4
                   </span>
                 </div>
@@ -1132,30 +1150,30 @@ export default function ConsumerDashboardPage() {
 
               {/* Slide 4: Kerjasama Mitra F&B */}
               <div
-                onClick={() => router.push('/dashboard/provider/register')}
-                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-[#19324D] via-[#10404C] to-[#1B3A5C] text-white rounded-2xl p-4 shadow-md border border-white/10 flex flex-col justify-between cursor-pointer hover:brightness-105 transition-all"
+                onClick={() => setIsPartnershipModalOpen(true)}
+                className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white rounded-2xl p-4 shadow-md shadow-blue-950/15 border border-white/20 flex flex-col justify-between cursor-pointer hover:brightness-105 active:scale-98 transition-all"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-teal-400 text-slate-950 shadow-xs inline-flex items-center gap-1">
-                      <Building2 className="w-2.5 h-2.5" />
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-xs text-sky-200 shadow-xs inline-flex items-center gap-1 border border-white/20">
+                      <Building2 className="w-2.5 h-2.5 text-sky-300" />
                       <span>KEMITRAAN F&amp;B</span>
                     </span>
-                    <span className="text-[9px] font-bold text-teal-300">Zero Waste</span>
+                    <span className="text-[9px] font-black text-sky-100 bg-white/20 px-1.5 py-0.5 rounded">Zero Waste</span>
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
                     Mitra Resto &amp; Toko Roti
                   </h4>
-                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-2">
+                  <p className="text-[10.5px] text-blue-50 leading-snug line-clamp-2">
                     Daftarkan gerai kuliner Anda, kurangi susut pangan harian, dan jangkau konsumen baru di kotamu.
                   </p>
                 </div>
                 <div className="pt-3 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-teal-300 flex items-center gap-1">
-                    <span>Daftar Gerai</span>
+                  <span className="text-[10px] font-black text-sky-200 flex items-center gap-1">
+                    <span>Gabung Mitra</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
-                  <span className="text-[9px] text-slate-300 bg-black/20 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] text-white/80 bg-black/25 px-1.5 py-0.5 rounded">
                     4 / 4
                   </span>
                 </div>
@@ -1532,7 +1550,7 @@ export default function ConsumerDashboardPage() {
 
               {/* Card 4: Kerjasama Gerai & Mitra */}
               <div
-                onClick={() => router.push('/dashboard/provider/register')}
+                onClick={() => setIsPartnershipModalOpen(true)}
                 className="bg-gradient-to-br from-indigo-50 to-purple-50/70 border border-indigo-200/80 hover:border-indigo-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
               >
                 <div className="space-y-1.5">
@@ -1547,7 +1565,7 @@ export default function ConsumerDashboardPage() {
                   </p>
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-black text-indigo-800 pt-1 border-t border-indigo-200/60">
-                  <span>Daftar Mitra</span>
+                  <span>Gabung Mitra</span>
                   <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
@@ -1573,7 +1591,7 @@ export default function ConsumerDashboardPage() {
               <span>Siapa itu Pahlawan Pangan Replate?</span>
             </div>
             <p className="text-[11px] text-emerald-800 leading-relaxed">
-              <strong>Pahlawan Pangan</strong> adalah gelar apresiasi bagi setiap konsumen Replate yang aktif menyelamatkan makanan surplus layak konsumsi (Rescue Sale) atau mengklaim donasi pangan. Anda adalah garda terdepan pencegahan emisi gas metana di TPA Benowo Surabaya.
+              <strong>Pahlawan Pangan</strong> adalah gelar apresiasi bagi setiap konsumen Replate yang aktif menyelamatkan makanan surplus layak konsumsi (Rescue Sale) atau mengklaim donasi pangan. Anda adalah garda terdepan pencegahan emisi gas metana di Tempat Pembuangan Akhir (TPA) nasional.
             </p>
           </div>
 
@@ -1591,11 +1609,11 @@ export default function ConsumerDashboardPage() {
             <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
               <div className="flex items-center gap-1.5 font-black text-slate-900">
                 <Award className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Manfaat & Cara Penukaran Poin:</span>
+                <span>Manfaat &amp; Cara Penukaran Poin:</span>
               </div>
               <ul className="text-[11px] text-slate-600 list-disc list-inside space-y-0.5">
                 <li><strong>100 Poin:</strong> Voucher potongan belanja Rescue Sale Rp 10.000.</li>
-                <li><strong>150 Poin:</strong> Donasi 1 bibit pohon mangrove di Ekowisata Wonorejo Surabaya.</li>
+                <li><strong>150 Poin:</strong> Donasi 1 bibit pohon mangrove di program konservasi pesisir nusantara.</li>
                 <li><strong>Lencana Digital:</strong> Meningkatkan level status kontribusi hijau akun Anda.</li>
               </ul>
             </div>
@@ -1831,6 +1849,75 @@ export default function ConsumerDashboardPage() {
           >
             Tutup Informasi
           </button>
+        </div>
+      </Modal>
+
+      {/* MODAL: KERJASAMA KEMITRAAN FOOD PROVIDER (F&B, HOTEL, KATERING) */}
+      <Modal
+        isOpen={isPartnershipModalOpen}
+        onClose={() => setIsPartnershipModalOpen(false)}
+        title="Kemitraan Mitra Pangan Replate"
+      >
+        <div className="space-y-4 text-xs text-slate-700">
+          <div className="p-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-teal-50 border border-indigo-200 rounded-2xl space-y-2">
+            <div className="flex items-center gap-2 text-indigo-900 font-black text-sm">
+              <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
+              <span>Gabung Ekosistem Zero Food Waste</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Daftarkan restoran, bakery, hotel, katering, atau supermarket Anda ke platform Replate. Ubah potensi susut makanan menjadi pendapatan tambahan dan dampak sosial nyata.
+            </p>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-slate-900 block font-bold">Monetisasi Surplus Layak Konsumsi</strong>
+                <span className="text-[11px] text-slate-600">Jual stok makanan prima menjelang tutup toko lewat fitur Rescue Sale dengan diskon terukur.</span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-slate-900 block font-bold">Sertifikat Dampak ESG &amp; SDGs</strong>
+                <span className="text-[11px] text-slate-600">Dapatkan laporan audit pengurangan emisi gas metana &amp; jejak karbon resmi untuk brand Anda.</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setIsPartnershipModalOpen(false);
+                router.push('/register?role=FOOD_PROVIDER');
+              }}
+              className="w-full py-3 bg-gradient-to-r from-[#1B3A5C] to-[#254d79] hover:brightness-110 active:scale-98 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
+            >
+              <Handshake className="w-4 h-4 text-[#D4A843]" />
+              <span>Daftar Sebagai Mitra Pangan (Food Provider)</span>
+            </button>
+
+            <a
+              href="https://wa.me/6281234567890?text=Halo%20Tim%20Kemitraan%20Replate,%20saya%20ingin%20berkonsultasi%20mengenai%20kemitraan%20gerai%20F%26B."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-600" />
+              <span>Konsultasi Hotline WhatsApp Kemitraan</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setIsPartnershipModalOpen(false)}
+              className="w-full py-2 text-slate-500 hover:text-slate-700 font-bold text-xs cursor-pointer text-center"
+            >
+              Batal &amp; Kembali
+            </button>
+          </div>
         </div>
       </Modal>
 

@@ -286,11 +286,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
                     {item.badge}
                   </span>
                 )}
+                {item.href === '/notifications' && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white animate-pulse" />
+                )}
               </div>
               <span className={`text-[10px] mt-1 tracking-tight ${isActive ? 'font-black text-[#1B3A5C]' : 'text-slate-600'}`}>{item.label}</span>
-              {isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D4A843] mt-0.5" />
-              )}
             </Link>
           );
         })}
