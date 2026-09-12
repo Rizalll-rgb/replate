@@ -839,12 +839,22 @@ export default function ProviderOverviewPage() {
                           </div>
                         </div>
 
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 border w-fit sm:w-auto ${
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 border w-fit sm:w-auto inline-flex items-center gap-1 ${
                           panti.urgency === 'HIGH'
                             ? 'bg-rose-50 text-rose-800 border-rose-200'
                             : 'bg-amber-50 text-amber-900 border-amber-200'
                         }`}>
-                          {panti.urgency === 'HIGH' ? '🔥 Sangat Mendesak' : '⚡ Prioritas Hari Ini'}
+                          {panti.urgency === 'HIGH' ? (
+                            <>
+                              <AlertTriangleIcon size={12} className="text-rose-600 shrink-0" />
+                              <span>Sangat Mendesak</span>
+                            </>
+                          ) : (
+                            <>
+                              <SparklesIcon size={12} className="text-amber-600 shrink-0" />
+                              <span>Prioritas Hari Ini</span>
+                            </>
+                          )}
                         </span>
                       </div>
 

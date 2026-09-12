@@ -6,6 +6,7 @@ import { Clock, Printer } from 'lucide-react';
 
 export interface QRGeneratorProps {
   value: string;
+  size?: number;
   codeTitle?: string;
   codeSubtitle?: string;
   recipientName?: string;
@@ -22,6 +23,7 @@ export interface QRGeneratorProps {
 
 export const QRGenerator: React.FC<QRGeneratorProps> = ({
   value,
+  size = 180,
   codeTitle = 'REPLATE DIGITAL MANIFEST & QR PASS',
   codeSubtitle = 'Tunjukkan QR Code ini kepada Petugas / Driver saat serah terima',
   recipientName,
@@ -157,7 +159,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
         <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#1B3A5C]/30 shadow-xs flex flex-col items-center justify-center">
           <QRCodeSVG
             value={typeof window !== 'undefined' ? `${window.location.origin}/track/${value}` : `https://replate.id/track/${value}`}
-            size={180}
+            size={size}
             level="M"
             includeMargin={true}
             fgColor="#000000"

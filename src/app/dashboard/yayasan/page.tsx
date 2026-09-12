@@ -19,6 +19,7 @@ import {
   TruckIcon,
   BoltIcon,
   TicketIcon,
+  AlertTriangleIcon,
 } from '@/components/ui/Icon';
 
 export default function YayasanDashboardPage() {
@@ -624,7 +625,8 @@ export default function YayasanDashboardPage() {
                 </div>
                 {allocationModal.portions > (allocationModal.supplier.portions || 0) && (
                   <p className="text-[10.5px] text-rose-600 font-bold mt-1 flex items-center gap-1">
-                    <span>⚠️ Melebihi stok ready ({allocationModal.supplier.portions} porsi). Anda tidak dapat mengeklaim melebihi kuota donatur.</span>
+                    <AlertTriangleIcon size={12} className="text-rose-600 shrink-0" />
+                    <span>Melebihi stok ready ({allocationModal.supplier.portions} porsi). Anda tidak dapat mengeklaim melebihi kuota donatur.</span>
                   </p>
                 )}
               </div>

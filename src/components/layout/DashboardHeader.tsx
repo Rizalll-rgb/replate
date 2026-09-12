@@ -79,6 +79,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
 
   const handleLogout = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('replate_') || key.startsWith('replate-'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      }
       document.cookie.split(";").forEach((c) => {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });

@@ -3,13 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
-import { Check, ClipboardList } from 'lucide-react';
-
+import { Logo } from '@/components/ui/Logo';
+import {
+  Check,
+  ClipboardList,
+  Search,
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+  Clock,
+  Building2,
+  Store,
+  Phone,
+  Mail,
+  MapPin,
+  Sparkles,
+  AlertCircle,
+  FileText,
+  UserCheck,
+  ChevronRight,
+  ExternalLink,
+} from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import DashboardLayout from '@/app/dashboard/layout';
 
 export default function TrackRegistrationStatusPage() {
   const router = useRouter();
@@ -23,21 +39,19 @@ export default function TrackRegistrationStatusPage() {
   const [isSearched, setIsSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Dynamic step completion flags — NOT hardcoded
+  // Dynamic step completion flags
   const [stepFlags, setStepFlags] = useState({
-    step1_registered: false,    // Has registration data (profile exists)
-    step2_profileFilled: false, // Has address/GPS data filled
-    step3_docsUploaded: false,  // Has docs uploaded
-    step4_audited: false,       // Audit completed (APPROVED_ACTIVE)
-    step5_activated: false,     // Account activated (APPROVED_ACTIVE)
+    step1_registered: false,
+    step2_profileFilled: false,
+    step3_docsUploaded: false,
+    step4_audited: false,
+    step5_activated: false,
   });
 
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
         const queryId = new URLSearchParams(window.location.search).get('id');
-
-        // Only auto-search if an explicit ID query param was passed in the URL (e.g. from onboarding redirect)
         if (queryId && queryId.trim().length > 0) {
           executeSearch(queryId.trim());
         }
@@ -49,7 +63,7 @@ export default function TrackRegistrationStatusPage() {
     setErrorMessage('');
     const cleanQuery = targetQuery.trim();
     if (!cleanQuery) {
-      setErrorMessage('Silakan masukkan Kode Tracking atau Email Anda terlebih dahulu.');
+      setErrorMessage('Silakan masukkan Kode Tracking atau Email akun Anda.');
       return;
     }
 
@@ -99,7 +113,7 @@ export default function TrackRegistrationStatusPage() {
       console.error('API Tracker error:', err);
     }
 
-    // Fallback to localStorage if API fails or user not found in DB
+    // Fallback to localStorage if API fails or user not in DB
     try {
       const storedProfile = localStorage.getItem('replate_onboarding_profile');
       const storedDocs = localStorage.getItem('replate_onboarding_docs');
@@ -144,7 +158,7 @@ export default function TrackRegistrationStatusPage() {
       }
 
       setDocsStatus(resolvedDocsStatus);
-      setSubmittedTime(resolvedSubmittedTime);
+      setSubmittedTime(resolvedSubmittedTime || 'Hari ini');
 
       const isApprovedStatus = resolvedDocsStatus === 'APPROVED_ACTIVE';
       const step1 = profileFromStorage || !!storedProfile || cleanQuery.length > 5;
@@ -191,291 +205,386 @@ export default function TrackRegistrationStatusPage() {
 
   const isApproved = docsStatus === 'APPROVED_ACTIVE';
 
-  // Helper: render a single step node
-  const renderStep = (
+  const completedStepsCount = [
+    stepFlags.step1_registered,
+    stepFlags.step2_profileFilled,
+    stepFlags.step3_docsUploaded,
+    stepFlags.step4_audited,
+    stepFlags.step5_activated,
+  ].filter(Boolean).length;
+
+  const progressPercentage = Math.round((completedStepsCount / 5) * 100);
+
+  // Stepper Node Item for Mobile-First Vertical Stepper
+  const renderMobileStep = (
     stepNum: number,
     completed: boolean,
     isCurrent: boolean,
-    label: React.ReactNode,
-    sub: React.ReactNode
+    title: string,
+    desc: string,
+    isLast: boolean = false
   ) => {
-    const bgClass = completed
-      ? 'bg-emerald-500 border-emerald-400 text-slate-950'
-      : isCurrent
-      ? 'bg-amber-400 border-amber-300 text-slate-950 animate-pulse'
-      : 'bg-slate-800 border-slate-600 text-slate-400';
-
-    const labelClass = completed
-      ? 'text-emerald-300 font-extrabold'
-      : isCurrent
-      ? 'text-amber-300 font-extrabold'
-      : 'text-slate-400 font-medium';
-
     return (
-      <div className="relative">
-        <span className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 font-black text-[11px] flex items-center justify-center ${bgClass}`}>
-          {completed ? <Check className="w-3.5 h-3.5" /> : stepNum}
-        </span>
-        <div className="font-bold">
-          <span className={labelClass}>{label}</span>
-          <span className="text-[10px] text-slate-300 font-mono block font-normal">{sub}</span>
+      <div className="relative flex items-start gap-3.5">
+        {/* Step Circle & Connector */}
+        <div className="flex flex-col items-center shrink-0">
+          <div
+            className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-xs ${
+              completed
+                ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40'
+                : isCurrent
+                ? 'bg-[#D4A843] text-slate-950 animate-pulse ring-2 ring-[#D4A843]/40'
+                : 'bg-slate-800 text-slate-400 border border-slate-700'
+            }`}
+          >
+            {completed ? <Check className="w-4 h-4 stroke-[3]" /> : stepNum}
+          </div>
+          {!isLast && (
+            <div
+              className={`w-0.5 h-10 transition-colors ${
+                completed ? 'bg-emerald-500/80' : 'bg-slate-700/60'
+              }`}
+            />
+          )}
+        </div>
+
+        {/* Step Text Info */}
+        <div className="pt-0.5 space-y-0.5 pb-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-xs font-black tracking-tight ${
+                completed
+                  ? 'text-emerald-400'
+                  : isCurrent
+                  ? 'text-[#D4A843]'
+                  : 'text-slate-400'
+              }`}
+            >
+              {title}
+            </span>
+            {completed && (
+              <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2 py-0.2 rounded-md border border-emerald-500/30">
+                SELESAI
+              </span>
+            )}
+            {isCurrent && (
+              <span className="text-[9px] bg-amber-500/20 text-amber-300 font-extrabold px-2 py-0.2 rounded-md border border-amber-500/30">
+                PROSES
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-300 leading-snug font-medium">{desc}</p>
         </div>
       </div>
     );
   };
 
-  const content = (
-    <div className="min-h-screen flex flex-col font-sans w-full bg-transparent">
-      {!session && <Navbar />}
+  return (
+    <div className="min-h-screen bg-[#0F1923] text-white flex flex-col font-sans relative overflow-x-hidden">
+      {/* Soft Ambient Background Elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-[#D4A843]/10 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[20%] left-[-10%] w-80 sm:w-[450px] h-80 sm:h-[450px] rounded-full bg-[#1B3A5C]/35 blur-[120px] pointer-events-none" />
 
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 py-12">
-        <div className="max-w-2xl w-full space-y-6">
-          {/* Header Card */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-xs">
-              <span>REPLATE GOVERNANCE TRACKER 24/7</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#1B3A5C] tracking-tight">
-              Pengecekan Status Pendaftaran Akun
-            </h1>
-            <p className="text-xs text-slate-600 font-medium max-w-md mx-auto">
-              Pantau status peninjauan berkas legalitas dan lisensi platform Anda secara real-time kapan saja.
-            </p>
+      {/* Poin 7: Mobile-First Sticky App Header Bar */}
+      <header className="sticky top-0 z-40 bg-[#142C47]/90 backdrop-blur-md border-b border-[#2C5A8F]/60 px-4 py-3 sm:px-6">
+        <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white font-bold p-1 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#D4A843]" />
+            <span>Kembali ke Login</span>
+          </Link>
+
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">
+              Live Governance 24/7
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container - Mobile First Padded Container */}
+      <main className="flex-1 w-full max-w-xl mx-auto px-4 py-6 sm:py-8 space-y-5 relative z-10">
+        {/* Title Header Card */}
+        <div className="text-center space-y-2">
+          <div className="flex justify-center mb-1">
+            <Logo variant="light" size="sm" />
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-[#D4A843]/30 rounded-full text-[10px] font-black uppercase tracking-wider text-[#D4A843]">
+            <Sparkles className="w-3 h-3" />
+            <span>Audit & Verification Tracker</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            Status Pendaftaran Akun
+          </h1>
+          <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
+            Pantau proses verifikasi berkas legalitas, sertifikasi BPOM, dan aktivasi akun Replate Anda secara real-time.
+          </p>
+        </div>
+
+        {/* Poin 7: Mobile-Friendly Search Box */}
+        <form
+          onSubmit={handleSearch}
+          className="bg-[#142C47]/95 border border-[#2C5A8F] rounded-2xl p-3 sm:p-4 shadow-xl space-y-2.5"
+        >
+          <label className="text-[11px] font-extrabold text-[#D4A843] uppercase tracking-wider block">
+            Lacak dengan Kode Registrasi atau Email:
+          </label>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Contoh: REPLATE-REG-2026-9812 atau email"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-[#0F1923] border border-slate-700 text-white placeholder:text-slate-500 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#D4A843] font-mono transition-all"
+            />
           </div>
 
-          {/* Search Bar Input */}
-          <form onSubmit={handleSearch} className="bg-white p-4 rounded-2xl border border-slate-300 shadow-md flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Ketik Kode Tracking (contoh: REPLATE-REG-2026-9812), Email, atau No. WA"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-4 py-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl text-xs font-bold focus:outline-none focus:border-[#1B3A5C] focus:bg-white font-mono"
-              />
-            </div>
-            <Button variant="gold" size="md" type="submit" className="font-black text-xs text-slate-950 py-3 px-6 shadow-xs shrink-0 cursor-pointer">
-              <span>Cari Status →</span>
-            </Button>
-          </form>
+          <Button
+            variant="gold"
+            size="md"
+            type="submit"
+            className="w-full py-2.5 text-xs font-black text-slate-950 shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+          >
+            <span>Cek Status Sekarang</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
 
           {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl text-center">
+            <p className="text-[11px] text-rose-300 font-bold bg-rose-950/80 p-2 rounded-lg border border-rose-800 text-center">
               {errorMessage}
-            </div>
+            </p>
           )}
 
-          {/* Initial Clean Empty State (When not searched yet) */}
-          {!isSearched && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-xs">
-              <div className="w-14 h-14 bg-slate-100 border border-slate-200 text-[#1B3A5C] rounded-2xl flex items-center justify-center mx-auto shadow-xs">
-                <ClipboardList className="w-7 h-7 text-[#1B3A5C]" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-black text-[#1B3A5C]">
-                  Belum Ada Kode Tracking yang Dicari
-                </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
-                  Ketik Kode Registrasi (yang didapat saat mendaftar) atau Email akun Anda pada kolom di atas untuk melacak perkembangan audit.
-                </p>
-              </div>
-
-              {/* Quick Preset Buttons for Evaluation */}
-              <div className="pt-3 border-t border-slate-100 space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 block">
-                  Atau coba klik contoh simulasi akun terdaftar:
-                </span>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => executeSearch('REPLATE-REG-2026-9812')}
-                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer"
-                  >
-                    REPLATE-REG-2026-9812 (Bakso Pak Kumis)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => executeSearch('panti.kasih.ibu@replate.id')}
-                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer"
-                  >
-                    panti.kasih.ibu@replate.id
-                  </button>
-                </div>
-              </div>
+          {/* Quick Preset Buttons for Evaluator / Jury */}
+          <div className="pt-1.5 border-t border-slate-800/80 space-y-1.5">
+            <span className="text-[10px] font-bold text-slate-400 block text-center">
+              Atau coba simulasi akun terdaftar:
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => executeSearch('REPLATE-REG-2026-9812')}
+                className="px-2.5 py-1 bg-slate-800/80 hover:bg-[#1B3A5C] text-slate-200 border border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+              >
+                <Store className="w-3 h-3 text-[#D4A843]" />
+                <span>Bakso Pak Kumis</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => executeSearch('panti.kasih.ibu@replate.id')}
+                className="px-2.5 py-1 bg-slate-800/80 hover:bg-[#1B3A5C] text-slate-200 border border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+              >
+                <Building2 className="w-3 h-3 text-emerald-400" />
+                <span>Panti Kasih Ibu</span>
+              </button>
             </div>
-          )}
+          </div>
+        </form>
 
-          {/* Real-time Timeline Status Card (Only shown after search) */}
-          {isSearched && profile && (
-            <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+        {/* Initial Empty State */}
+        {!isSearched && (
+          <div className="bg-[#142C47]/60 border border-[#2C5A8F]/40 rounded-3xl p-6 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#0F1923] border border-slate-700 text-[#D4A843] flex items-center justify-center mx-auto shadow-inner">
+              <ClipboardList className="w-6 h-6 text-[#D4A843]" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-black text-white">Belum Ada Pelacakan Aktif</h3>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                Ketikkan kode registrasi (dari email pendaftaran Anda) atau klik tombol simulasi di atas untuk melihat status audit berkas.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Real-Time Live Status Card (When Searched) */}
+        {isSearched && profile && (
+          <div className="space-y-4">
+            {/* Status Summary Banner */}
+            <div className="bg-[#142C47] border-2 border-[#2C5A8F] rounded-2xl p-4 sm:p-5 shadow-2xl space-y-4">
               {/* Header Info */}
-              <div className="border-b border-[#2C5A8F] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <span className="text-xs font-mono font-black text-amber-300 block uppercase tracking-wider bg-slate-900/70 px-3 py-1 rounded-lg border border-amber-400/30 w-fit mb-1">
-                    KODE TRACKING: {regId}
+              <div className="flex items-start justify-between gap-3 flex-wrap border-b border-slate-800 pb-3">
+                <div className="space-y-1 min-w-0">
+                  <span className="text-[10px] font-mono font-black text-amber-300 uppercase tracking-wider bg-[#0F1923] px-2.5 py-1 rounded-md border border-amber-400/30 inline-block">
+                    KODE: {regId}
                   </span>
-                  <h3 className="text-xl font-black text-white">{profile.entityName || 'Entitas Terdaftar'}</h3>
-                  <span className="text-xs text-slate-300 font-medium block">
-                    Penanggung Jawab: {profile.contactPerson || 'Pengurus'} ({profile.phone || '0812-xxxx-xxxx'})
-                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-white truncate">
+                    {profile.entityName || 'Entitas Terdaftar'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                    <span className="truncate">{profile.contactPerson || 'Pengurus'}</span>
+                    <span>•</span>
+                    <span className="font-mono text-slate-400">{profile.phone || '-'}</span>
+                  </div>
                 </div>
 
                 <div className="shrink-0">
                   {isApproved ? (
-                    <span className="px-3.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
-                      AKUN RESMI AKTIF
+                    <span className="px-3 py-1 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>RESMI AKTIF</span>
                     </span>
                   ) : stepFlags.step3_docsUploaded ? (
-                    <span className="px-3.5 py-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-block">
-                      AUDIT SEDANG BERLANGSUNG
+                    <span className="px-3 py-1 bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>AUDIT BERJALAN</span>
                     </span>
                   ) : (
-                    <span className="px-3.5 py-1.5 bg-slate-600 text-slate-200 font-black text-xs rounded-xl shadow-xs inline-block">
-                      PENDAFTARAN BELUM LENGKAP
+                    <span className="px-3 py-1 bg-slate-700 text-slate-300 font-black text-xs rounded-xl inline-flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>BELUM LENGKAP</span>
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Dynamic 5-Step Timeline */}
-              <div className="space-y-4 text-xs">
-                <span className="font-black text-amber-300 uppercase tracking-wider block">
-                  Timeline Proses Verifikasi Governance:
+              {/* Progress Bar */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] font-bold">
+                  <span className="text-slate-300">Kemajuan Verifikasi</span>
+                  <span className="text-[#D4A843] font-mono">
+                    {completedStepsCount} / 5 Langkah ({progressPercentage}%)
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-[#0F1923] rounded-full overflow-hidden p-0.5 border border-slate-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-emerald-400 transition-all duration-500"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Native Stepper Timeline */}
+              <div className="pt-2 space-y-1">
+                <span className="text-[11px] font-black text-amber-300 uppercase tracking-wider block mb-3">
+                  Timeline Tahapan Verifikasi Governance:
                 </span>
 
-                <div className="relative pl-6 space-y-5 border-l-2 border-[#2C5A8F]">
-                  {/* Step 1: Registrasi */}
-                  {renderStep(
+                <div className="space-y-0.5 pl-1">
+                  {renderMobileStep(
                     1,
                     stepFlags.step1_registered,
                     !stepFlags.step1_registered,
-                    '1. Registrasi Akun & Verifikasi OTP WA',
+                    '1. Registrasi Akun & OTP WhatsApp',
                     stepFlags.step1_registered
                       ? `Tercatat pada ${submittedTime || 'sesi onboarding ini'}`
-                      : 'Belum ada data registrasi ditemukan'
+                      : 'Data akun belum ditemukan'
                   )}
 
-                  {/* Step 2: Profil & GPS */}
-                  {renderStep(
+                  {renderMobileStep(
                     2,
                     stepFlags.step2_profileFilled,
                     stepFlags.step1_registered && !stepFlags.step2_profileFilled,
-                    '2. Pengisian Profil Usaha & Alamat GPS',
+                    '2. Profil Lembaga & Koordinat GPS',
                     stepFlags.step2_profileFilled
                       ? `Lokasi: ${profile.address || 'Surabaya'}`
-                      : 'Profil & alamat GPS belum diisi'
+                      : 'Menunggu pengisian profil alamat dan titik GPS'
                   )}
 
-                  {/* Step 3: Berkas Legalitas */}
-                  {renderStep(
+                  {renderMobileStep(
                     3,
                     stepFlags.step3_docsUploaded,
                     stepFlags.step2_profileFilled && !stepFlags.step3_docsUploaded,
-                    '3. Unggah Berkas Legalitas (NIB, KTP, Foto)',
+                    '3. Unggah Berkas Legalitas (NIB / KTP)',
                     stepFlags.step3_docsUploaded
-                      ? '3 Berkas Fisik Wajib Terunggah Lengkap'
-                      : 'Berkas legalitas belum diunggah'
+                      ? 'Dokumen legalitas wajib telah terunggah'
+                      : 'Menunggu pengunggahan berkas legalitas usaha'
                   )}
 
-                  {/* Step 4: Audit */}
-                  {renderStep(
+                  {renderMobileStep(
                     4,
                     stepFlags.step4_audited,
                     stepFlags.step3_docsUploaded && !stepFlags.step4_audited,
-                    '4. Audit Keabsahan Oleh Tim Governance Admin',
+                    '4. Audit Keabsahan Tim Governance BPOM',
                     stepFlags.step4_audited
-                      ? 'Audit Selesai & Valid'
+                      ? 'Audit keabsahan selesai & disetujui'
                       : stepFlags.step3_docsUploaded
-                      ? 'Estimasi Waktu Audit: Maksimal 1x24 Jam Kerja'
-                      : 'Menunggu kelengkapan berkas legalitas'
+                      ? 'Proses audit sedang berlangsung (Maksimal 1x24 Jam Kerja)'
+                      : 'Menunggu kelengkapan dokumen'
                   )}
 
-                  {/* Step 5: Aktivasi */}
-                  {renderStep(
+                  {renderMobileStep(
                     5,
                     stepFlags.step5_activated,
                     false,
-                    '5. Aktivasi Akun & Penerbitan Sertifikat BPOM Replate',
+                    '5. Penerbitan Lisensi & Akun Aktif Penuh',
                     stepFlags.step5_activated
-                      ? 'Akun telah dapat digunakan penuh'
-                      : 'Menunggu Penyelesaian Audit Step 4'
+                      ? 'Akun telah aktif dan dapat langsung bertransaksi'
+                      : 'Menunggu penyelesaian tahap audit 4',
+                    true
                   )}
                 </div>
               </div>
 
-              {/* Progress indicator */}
-              {!isApproved && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                    <span>Progress Pendaftaran</span>
-                    <span>
-                      {[
-                        stepFlags.step1_registered,
-                        stepFlags.step2_profileFilled,
-                        stepFlags.step3_docsUploaded,
-                        stepFlags.step4_audited,
-                        stepFlags.step5_activated,
-                      ].filter(Boolean).length} / 5 Langkah
-                    </span>
+              {/* Registered Entity Quick Details */}
+              <div className="p-3.5 bg-[#0F1923] rounded-xl border border-slate-800 space-y-2 text-xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                  Informasi Entitas Terdaftar:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-3.5 h-3.5 text-[#D4A843] shrink-0" />
+                    <span className="truncate">{profile.category || 'Usaha / Lembaga'}</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${([
-                          stepFlags.step1_registered,
-                          stepFlags.step2_profileFilled,
-                          stepFlags.step3_docsUploaded,
-                          stepFlags.step4_audited,
-                          stepFlags.step5_activated,
-                        ].filter(Boolean).length / 5) * 100}%`
-                      }}
-                    />
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                    <span className="truncate">{profile.email || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="truncate">{profile.address || 'Surabaya'}</span>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Action Box */}
-              {!isApproved ? (
-                <div className="p-4 bg-[#0F1923] border border-[#2C5A8F] rounded-2xl space-y-2.5 text-center shadow-lg pt-3">
-                  <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider block">
-                    SIMULASI TESTING ACC SUPERADMIN
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleSimulateApprove}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>Simulasi SuperAdmin ACC & Aktifkan Akun →</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="pt-2">
-                  <Link href="/login">
-                    <Button variant="gold" size="lg" className="w-full font-black text-slate-950 py-3 text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg">
-                      <span>Masuk Ke Halaman Login →</span>
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              {/* Action Buttons */}
+              <div className="pt-2">
+                {!isApproved ? (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={handleSimulateApprove}
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Simulasi SuperAdmin ACC & Aktifkan Akun</span>
+                    </button>
+                    <p className="text-[10px] text-slate-400 text-center font-medium">
+                      Gunakan tombol simulasi di atas untuk menguji alur persetujuan audit secara instan.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Link href="/login" className="block w-full">
+                      <Button
+                        variant="gold"
+                        size="md"
+                        className="w-full py-3 text-xs font-black text-slate-950 flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99]"
+                      >
+                        <UserCheck className="w-4 h-4" />
+                        <span>Akun Telah Aktif! Masuk ke Halaman Login →</span>
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-          {/* Footer Card */}
-          <div className="text-center pt-6 pb-4">
-            <p className="text-[11px] font-bold text-slate-500 font-mono">
-              SISTEM TERINTEGRASI REPLATE ID &copy; {new Date().getFullYear()}
-            </p>
           </div>
+        )}
+
+        {/* Footer info */}
+        <div className="text-center pt-4 pb-8 space-y-1 text-slate-500">
+          <p className="text-[11px] font-bold font-mono">
+            REPLATE GOVERNANCE SYSTEM &copy; {new Date().getFullYear()}
+          </p>
+          <p className="text-[10px]">
+            Terkoneksi dengan Database Pengawasan Dinsos RI & Standarisasi Higiene BPOM
+          </p>
         </div>
       </main>
-
-      {!session && <Footer />}
     </div>
   );
-
-  if (session) {
-    return <DashboardLayout>{content}</DashboardLayout>;
-  }
-
-  return content;
 }

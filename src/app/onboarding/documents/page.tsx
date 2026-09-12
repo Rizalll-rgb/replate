@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Modal } from '@/components/ui/Modal';
+import { ShieldCheck, FileText, Sparkles, Upload, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function OnboardingDocumentsPage() {
   const router = useRouter();
@@ -80,30 +81,31 @@ export default function OnboardingDocumentsPage() {
   const sampleStoreImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80';
 
   return (
-    <div className="min-h-screen bg-[#0F1923] text-white flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
-      <div className="w-full max-w-3xl space-y-6 relative z-10">
+    <div className="min-h-screen bg-[#0F1923] text-white flex flex-col items-center justify-center p-3 sm:p-6 font-sans relative overflow-x-hidden w-full max-w-full box-border">
+      <div className="w-full max-w-3xl space-y-6 relative z-10 box-border px-1">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-2">
             <Logo variant="light" size="lg" />
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#D4A843] text-slate-950 font-black text-[10.5px] sm:text-xs uppercase tracking-wider rounded-xl shadow-md max-w-full text-center break-words">
             <span>LANGKAH 3 DARI 4 — UPLOAD DOKUMEN LEGALITAS REPLATE</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight break-words text-center px-1">
             Unggah Berkas Legalitas {isBeneficiary ? 'Yayasan / Panti' : isVolunteer ? 'Komunitas / Organisasi Food Rescue' : 'Outlet Provider'}
           </h1>
-          <p className="text-xs text-slate-300 font-medium max-w-md mx-auto">
+          <p className="text-xs text-slate-300 font-medium max-w-md mx-auto break-words text-center px-1">
             Tim Admin Replate Surabaya akan memverifikasi keabsahan dokumen untuk menjamin integritas mitra.
           </p>
         </div>
 
         {/* High Contrast Container Card */}
-        <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <span> Verifikasi 3 Berkas Asli Wajib</span>
+        <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-3.5 sm:p-6 md:p-8 shadow-2xl space-y-6 w-full max-w-full box-border">
+          <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Verifikasi 3 Berkas Asli Wajib</span>
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => {
@@ -111,9 +113,10 @@ export default function OnboardingDocumentsPage() {
                   setKtpDoc(sampleKtpImage);
                   setStorePhoto(sampleStoreImage);
                 }}
-                className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
+                className="px-2.5 py-1.5 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
               >
-                 Gunakan Berkas Contoh Demo
+                <Sparkles className="w-3 h-3 text-[#D4A843]" />
+                <span>Gunakan Berkas Contoh Demo</span>
               </button>
               <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/40 font-black px-2.5 py-1 rounded-lg">
                 REQUIRED AUDIT
@@ -122,38 +125,40 @@ export default function OnboardingDocumentsPage() {
           </div>
 
           {validationError && (
-            <div className="p-4 bg-red-900/90 border-2 border-red-400 text-white font-black text-xs rounded-xl shadow-lg animate-bounce">
-              {validationError}
+            <div className="p-4 bg-red-900/90 border-2 border-red-400 text-white font-black text-xs rounded-xl shadow-lg animate-bounce flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-200 shrink-0" />
+              <span>{validationError}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmitDocuments} className="space-y-5 text-xs">
+          <form onSubmit={handleSubmitDocuments} className="space-y-5 text-xs w-full max-w-full box-border">
             {/* Berkas 1 */}
-            <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-amber-300 text-xs">
-                  1. {isBeneficiary ? 'Akta Pendirian Yayasan / Surat Keterangan Panti:' : isVolunteer ? 'Akta Pendirian Komunitas / SK Pengesahan / Surat Keterangan Komunitas:' : 'NIB / Surat Izin Usaha Resmi OSS (BPOM Verified):'}
+            <div className="p-3.5 sm:p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3 w-full max-w-full box-border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <span className="font-extrabold text-amber-300 text-xs break-words">
+                  1. {isBeneficiary ? 'Akta Pendirian Yayasan / Surat Keterangan Panti:' : isVolunteer ? 'Akta Pendirian Komunitas / SK Pengesahan Komunitas:' : 'NIB / Surat Izin Usaha Resmi OSS (BPOM Verified):'}
                 </span>
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${nibDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
-                  {nibDoc ? ' TERUNGGAH' : 'WAJIB'}
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border self-start sm:self-auto shrink-0 ${nibDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
+                  {nibDoc ? 'TERUNGGAH' : 'WAJIB'}
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                 <strong>Ketentuan:</strong> {isVolunteer ? 'Surat Keterangan Komunitas / SK Pengesahan Organisasi dari Kemenkumham / Camat setempat.' : 'Pastikan nomor NIB 13-digit dan QR Code sertifikat OSS terlihat utuh tanpa terpotong.'}
+              <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800 break-words">
+                <strong>Ketentuan:</strong> {isVolunteer ? 'Surat Keterangan Komunitas / SK Pengesahan Organisasi dari Kemenkumham / Camat setempat.' : 'Pastikan nomor NIB 13-digit dan QR Code sertifikat OSS terlihat utuh tanpa terpotong.'}
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-24 h-16 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 shrink-0 flex items-center justify-center">
+                  <div className="w-20 sm:w-24 h-14 sm:h-16 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 shrink-0 flex items-center justify-center">
                     {nibDoc ? (
                       <img src={nibDoc} alt="Preview Berkas 1" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[10px] text-slate-500 italic">Belum diunggah</span>
                     )}
                   </div>
-                  <label className="px-4 py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md">
-                    <span> Select File & Upload </span>
+                  <label className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md inline-flex items-center gap-1.5">
+                    <Upload className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                    <span>Select File & Upload</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -165,7 +170,7 @@ export default function OnboardingDocumentsPage() {
                   </label>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {nibDoc && (
                     <button
                       type="button"
@@ -178,9 +183,10 @@ export default function OnboardingDocumentsPage() {
                           hintText: 'Berkas ini telah tersimpan dan siap diaudit oleh Admin Replate.',
                         })
                       }
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                     >
-                      Lihat Preview Berkas
+                      <Eye className="w-3.5 h-3.5 text-white" />
+                      <span>Lihat Preview</span>
                     </button>
                   )}
                   <button
@@ -194,40 +200,42 @@ export default function OnboardingDocumentsPage() {
                         hintText: isVolunteer ? 'Contoh Surat Keterangan Komunitas / Organisasi Relawan.' : 'Contoh NIB OSS resmi dengan QR Code dan stempel digital BPOM yang jelas.',
                       })
                     }
-                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
-                     Lihat Contoh Valid
+                    <FileText className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Lihat Contoh Valid</span>
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Berkas 2 */}
-            <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-amber-300 text-xs">
+            <div className="p-3.5 sm:p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3 w-full max-w-full box-border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <span className="font-extrabold text-amber-300 text-xs break-words">
                   2. {isVolunteer ? 'Foto KTP Ketua / Koordinator Komunitas Relawan:' : 'Foto KTP Penanggung Jawab (PJ) Operasional:'}
                 </span>
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${ktpDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
-                  {ktpDoc ? ' TERUNGGAH' : 'WAJIB'}
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border self-start sm:self-auto shrink-0 ${ktpDoc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
+                  {ktpDoc ? 'TERUNGGAH' : 'WAJIB'}
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                 <strong>Ketentuan:</strong> Foto KTP Ketua / Koordinator asli (Bukan fotokopi). NIK 16-digit dan foto wajib terbaca tajam.
+              <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800 break-words">
+                <strong>Ketentuan:</strong> Foto KTP Ketua / Koordinator asli (Bukan fotokopi). NIK 16-digit dan foto wajib terbaca tajam.
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-24 h-16 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 shrink-0 flex items-center justify-center">
+                  <div className="w-20 sm:w-24 h-14 sm:h-16 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 shrink-0 flex items-center justify-center">
                     {ktpDoc ? (
                       <img src={ktpDoc} alt="Preview Berkas 2" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[10px] text-slate-500 italic">Belum diunggah</span>
                     )}
                   </div>
-                  <label className="px-4 py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md">
-                    <span> Select File & Upload </span>
+                  <label className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md inline-flex items-center gap-1.5">
+                    <Upload className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                    <span>Select File & Upload</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -239,7 +247,7 @@ export default function OnboardingDocumentsPage() {
                   </label>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {ktpDoc && (
                     <button
                       type="button"
@@ -252,9 +260,10 @@ export default function OnboardingDocumentsPage() {
                           hintText: 'KTP Ketua / Koordinator komunitas telah diunggah.',
                         })
                       }
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                     >
-                      Lihat Preview Berkas
+                      <Eye className="w-3.5 h-3.5 text-white" />
+                      <span>Lihat Preview</span>
                     </button>
                   )}
                   <button
@@ -268,40 +277,42 @@ export default function OnboardingDocumentsPage() {
                         hintText: 'Contoh KTP asli tanpa pantulan cahaya dan NIK terbaca tajam.',
                       })
                     }
-                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
-                     Lihat Contoh Valid
+                    <FileText className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Lihat Contoh Valid</span>
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Berkas 3 */}
-            <div className="p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-amber-300 text-xs">
-                  3. {isBeneficiary ? 'Foto Plang Bangunan Panti Asuhan & Anak Asuh:' : isVolunteer ? 'Foto Posko Utama / Basecamp Logistik Komunitas Surabaya:' : 'Foto Etalase / Plang Bangunan Outlet Fisik:'}
+            <div className="p-3.5 sm:p-4 bg-[#142C47] rounded-xl border border-slate-700 space-y-3 w-full max-w-full box-border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <span className="font-extrabold text-amber-300 text-xs break-words">
+                  3. {isBeneficiary ? 'Foto Plang Bangunan Panti Asuhan & Anak Asuh:' : isVolunteer ? 'Foto Posko Utama / Basecamp Logistik Komunitas:' : 'Foto Etalase / Plang Bangunan Outlet Fisik:'}
                 </span>
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border ${storePhoto ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
-                  {storePhoto ? ' TERUNGGAH' : 'WAJIB'}
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded border self-start sm:self-auto shrink-0 ${storePhoto ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500' : 'bg-red-500/20 text-red-300 border-red-500'}`}>
+                  {storePhoto ? 'TERUNGGAH' : 'WAJIB'}
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                 <strong>Ketentuan:</strong> {isVolunteer ? 'Foto tampak depan posko utama / sekretariat komunitas relawan yang menampilkan spanduk/logo komunitas.' : 'Foto tampak depan bangunan fisik / etalase toko yang menampilkan nama usaha secara jelas.'}
+              <p className="text-[11px] text-slate-300 font-medium italic bg-slate-900/60 p-2 rounded-lg border border-slate-800 break-words">
+                <strong>Ketentuan:</strong> {isVolunteer ? 'Foto tampak depan posko utama / sekretariat komunitas relawan yang menampilkan spanduk/logo komunitas.' : 'Foto tampak depan bangunan fisik / etalase toko yang menampilkan nama usaha secara jelas.'}
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-24 h-16 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 shrink-0 flex items-center justify-center">
+                  <div className="w-20 sm:w-24 h-14 sm:h-16 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 shrink-0 flex items-center justify-center">
                     {storePhoto ? (
                       <img src={storePhoto} alt="Preview Berkas 3" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[10px] text-slate-500 italic">Belum diunggah</span>
                     )}
                   </div>
-                  <label className="px-4 py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md">
-                    <span> Select File & Upload </span>
+                  <label className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black rounded-xl cursor-pointer text-xs transition-all shadow-md inline-flex items-center gap-1.5">
+                    <Upload className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                    <span>Select File & Upload</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -313,7 +324,7 @@ export default function OnboardingDocumentsPage() {
                   </label>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {storePhoto && (
                     <button
                       type="button"
@@ -326,9 +337,10 @@ export default function OnboardingDocumentsPage() {
                           hintText: 'Foto etalase/plang bangunan fisik usaha Anda.',
                         })
                       }
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer"
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                     >
-                      Lihat Preview Berkas
+                      <Eye className="w-3.5 h-3.5 text-white" />
+                      <span>Lihat Preview</span>
                     </button>
                   )}
                   <button
@@ -342,17 +354,18 @@ export default function OnboardingDocumentsPage() {
                         hintText: 'Foto tampak depan toko fisik yang memperlihatkan merek usaha.',
                       })
                     }
-                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer"
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs rounded-xl border border-amber-400/40 transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
-                     Lihat Contoh Valid
+                    <FileText className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Lihat Contoh Valid</span>
                   </button>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-[#2C5A8F] flex justify-end">
-              <Button variant="gold" size="md" type="submit" className="font-black text-xs py-3 px-6 shadow-md">
-                <span>Kirim Berkas Ke Tim Admin Replate </span>
+              <Button variant="gold" size="md" type="submit" className="w-full sm:w-auto font-black text-xs py-3 px-6 shadow-md cursor-pointer text-center">
+                <span>Kirim Berkas Ke Tim Admin Replate</span>
               </Button>
             </div>
           </form>

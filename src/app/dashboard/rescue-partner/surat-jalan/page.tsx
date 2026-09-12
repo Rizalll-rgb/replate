@@ -20,7 +20,10 @@ import {
   QrCode,
   Truck,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Check,
+  MapPin,
+  Target
 } from 'lucide-react';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 
@@ -391,7 +394,12 @@ export default function SuratJalanPage() {
               </p>
             </div>
             <div className="text-[10px] font-bold text-amber-300">
-              {isOtwPickup ? '✓ Sedang Dalam Perjalanan Jemput' : 'Klik untuk Mulai Jalan →'}
+              {isOtwPickup ? (
+                <span className="inline-flex items-center gap-1">
+                  <Check size={12} className="text-amber-300" />
+                  <span>Sedang Dalam Perjalanan Jemput</span>
+                </span>
+              ) : 'Klik untuk Mulai Jalan →'}
             </div>
           </button>
 
@@ -417,7 +425,12 @@ export default function SuratJalanPage() {
               </p>
             </div>
             <div className="text-[10px] font-bold text-amber-300">
-              {isInTransitToShelter ? '✓ Makanan Berhasil Diambil' : 'Buka Scanner Kamera →'}
+              {isInTransitToShelter ? (
+                <span className="inline-flex items-center gap-1">
+                  <Check size={12} className="text-amber-300" />
+                  <span>Makanan Berhasil Diambil</span>
+                </span>
+              ) : 'Buka Scanner Kamera →'}
             </div>
           </button>
 
@@ -443,7 +456,12 @@ export default function SuratJalanPage() {
               </p>
             </div>
             <div className="text-[10px] font-black text-slate-950">
-              {isCompleted ? '✓ Telah Selesai Diterima Panti' : 'Unggah Foto Serah Terima →'}
+              {isCompleted ? (
+                <span className="inline-flex items-center gap-1">
+                  <Check size={12} className="text-slate-950" />
+                  <span>Telah Selesai Diterima Panti</span>
+                </span>
+              ) : 'Unggah Foto Serah Terima →'}
             </div>
           </button>
         </div>
@@ -502,8 +520,9 @@ export default function SuratJalanPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Lokasi Toko */}
             <div className="space-y-2">
-              <span className="text-xs font-black uppercase text-[#D4A843] tracking-wider flex items-center gap-1">
-                <span>📍 TITIK 1: PENJEMPUTAN (PENYEDIA PANGAN)</span>
+              <span className="text-xs font-black uppercase text-[#D4A843] tracking-wider inline-flex items-center gap-1.5">
+                <MapPin size={13} className="text-[#D4A843] shrink-0" />
+                <span>TITIK 1: PENJEMPUTAN (PENYEDIA PANGAN)</span>
               </span>
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
                 <h3 className="font-black text-[#1B3A5C] text-base">{task.providerName}</h3>
@@ -540,8 +559,9 @@ export default function SuratJalanPage() {
 
             {/* Lokasi Panti Tujuan */}
             <div className="space-y-2">
-              <span className="text-xs font-black uppercase text-emerald-600 tracking-wider flex items-center gap-1">
-                <span>🎯 TITIK 2: PENGANTARAN (PENERIMA MANFAAT)</span>
+              <span className="text-xs font-black uppercase text-emerald-600 tracking-wider inline-flex items-center gap-1.5">
+                <Target size={13} className="text-emerald-600 shrink-0" />
+                <span>TITIK 2: PENGANTARAN (PENERIMA MANFAAT)</span>
               </span>
               <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2 text-xs">
                 <h3 className="font-black text-emerald-950 text-base">{task.shelterName}</h3>

@@ -5,6 +5,7 @@ import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { CheckIcon } from '../ui/Icon';
+import { ExternalLink } from 'lucide-react';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import { calculateThermalDecayRUI, FoodSafetyCategory } from '@/lib/thermalRescueEngine';
 
@@ -142,13 +143,13 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Spesifikasi Makanan & Lokasi: ${foodName}`}
+      title={`Spesifikasi Makanan: ${foodName}`}
       size="lg"
       footer={modalFooter}
     >
-      <div className="space-y-4 text-xs text-slate-800">
+      <div className="space-y-3.5 text-xs text-slate-800">
         {/* Header Badges */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="primary">{category}</Badge>
             <Badge variant="success" size="sm">
@@ -191,78 +192,76 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             ? 'bg-amber-50 border-amber-200 text-amber-900'
             : 'bg-emerald-50 border-emerald-200 text-emerald-900'
         }`}>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
+          <div className="space-y-0.5 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-black text-xs px-2 py-0.5 rounded-md bg-white border border-current shadow-2xs">
                 RUI {thermalRui.rescueUrgencyIndex} / 100
               </span>
               <span className="font-extrabold text-xs">
                 {thermalRui.urgencyLevel === 'CRITICAL_RESCUE'
-                  ? 'Kritis: Wajib Segera Dikonsumsi / Dijemput'
+                  ? 'Kritis: Segera Dijemput'
                   : thermalRui.urgencyLevel === 'HIGH_PRIORITY'
-                  ? 'Tinggi: Prioritas Penjemputan Utama'
-                  : 'SOP BPOM: Mutu & Kualitas Sangat Baik'}
+                  ? 'Prioritas Penjemputan'
+                  : 'SOP BPOM: Kualitas Prima'}
               </span>
             </div>
             <p className="text-[11px] opacity-80 font-medium">
-              Toleransi aman suhu tropis: sisa ~{thermalRui.remainingSafeMinutes} menit ({thermalRui.effectiveMaxHours} jam batas BPOM). {thermalRui.recommendedDispatchAction}
+              Toleransi suhu tropis: sisa ~{thermalRui.remainingSafeMinutes} menit ({thermalRui.effectiveMaxHours} jam batas BPOM).
             </p>
           </div>
           <div className="text-left sm:text-right shrink-0">
             <span className="text-[10px] font-bold block opacity-70">Uji Organoleptik:</span>
             <span className="text-[11px] font-extrabold text-[#1B3A5C] bg-white px-2 py-1 rounded-lg border border-slate-200 block">
-              Aroma, Tekstur & Warna Segar
+              Aroma, Tekstur Segar
             </span>
           </div>
         </div>
 
         {/* Pickup Deadline Alert Box */}
-        <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between text-amber-900">
-          <div className="flex items-center gap-2">
-            <span className="font-black">Batas Maksimal Penjemputan:</span>
-          </div>
-          <span className="font-black text-amber-900 font-mono text-sm">{formattedDeadline}</span>
+        <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-amber-900">
+          <span className="font-black text-xs">Batas Maksimal Penjemputan:</span>
+          <span className="font-black text-amber-900 font-mono text-xs sm:text-sm">{formattedDeadline}</span>
         </div>
 
-        {/* 6-Grid Technical Specifications including Methane CH4 Prevention */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-          <div>
-            <span className="text-slate-500 block font-medium">Sisa Stok Kuantitas:</span>
-            <span className="font-black text-[#1B3A5C] text-sm">{qtyVal} {qtyUnit}</span>
+        {/* 6-Grid Technical Specifications */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 text-[11px]">
+          <div className="min-w-0">
+            <span className="text-slate-500 block font-medium truncate">Sisa Stok:</span>
+            <span className="font-black text-[#1B3A5C] text-xs sm:text-sm truncate block">{qtyVal} {qtyUnit}</span>
           </div>
-          <div>
-            <span className="text-slate-500 block font-medium">Kondisi Penyimpanan:</span>
-            <span className="font-bold text-slate-800">
+          <div className="min-w-0">
+            <span className="text-slate-500 block font-medium truncate">Penyimpanan:</span>
+            <span className="font-bold text-slate-800 text-xs truncate block">
               {storageCondition === 'ROOM_TEMP'
-                ? 'Suhu Ruangan (>60°C / Hangat)'
+                ? 'Suhu Ruangan'
                 : storageCondition === 'REFRIGERATED'
-                ? 'Pendingin Chiller (<4°C)'
+                ? 'Chiller (<4°C)'
                 : 'Beku Freezer'}
             </span>
           </div>
-          <div>
-            <span className="text-slate-500 block font-medium">Kemasan Produk:</span>
-            <span className="font-bold text-slate-800">
-              {packagingType === 'PACKAGED' ? 'Terkemas Utuh & Tersegel' : 'Wadah Steril Food Grade'}
+          <div className="min-w-0">
+            <span className="text-slate-500 block font-medium truncate">Kemasan:</span>
+            <span className="font-bold text-slate-800 text-xs truncate block">
+              {packagingType === 'PACKAGED' ? 'Terkemas Segel' : 'Wadah Steril'}
             </span>
           </div>
-          <div>
-            <span className="text-slate-500 block font-medium">Perkiraan Berat Total:</span>
-            <span className="font-bold text-slate-800">{estWeight} kg</span>
+          <div className="min-w-0">
+            <span className="text-slate-500 block font-medium truncate">Berat Total:</span>
+            <span className="font-bold text-slate-800 text-xs truncate block">{estWeight} kg</span>
           </div>
-          <div>
-            <span className="text-slate-500 block font-medium">Reduksi Emisi CO2e:</span>
-            <span className="font-bold text-emerald-700 font-mono">{estCo2Saved} kg CO2e</span>
+          <div className="min-w-0">
+            <span className="text-slate-500 block font-medium truncate">Reduksi CO2e:</span>
+            <span className="font-bold text-emerald-700 font-mono text-xs truncate block">{estCo2Saved} kg</span>
           </div>
-          <div>
-            <span className="text-slate-500 block font-medium">Metana CH4 Tercegah:</span>
-            <span className="font-bold text-cyan-700 font-mono">{estCh4Saved} kg CH4</span>
+          <div className="min-w-0">
+            <span className="text-slate-500 block font-medium truncate">Metana Tercegah:</span>
+            <span className="font-bold text-cyan-700 font-mono text-xs truncate block">{estCh4Saved} kg CH4</span>
           </div>
         </div>
 
         {/* Provider Contact & Direct WhatsApp Button */}
-        <div className="border border-slate-200 bg-blue-50/50 p-4 rounded-2xl space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-100 pb-2">
+        <div className="border border-slate-200 bg-blue-50/50 p-3.5 sm:p-4 rounded-2xl space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-blue-100 pb-2">
             <div>
               <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-wider block">MITRA PENYEDIA PANGAN</span>
               <h5 className="font-black text-sm text-[#1B3A5C]">{providerOrg}</h5>
@@ -273,11 +272,11 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div>
               <span className="text-slate-500 block font-medium">No. WhatsApp Outlet:</span>
-              <span className="font-mono font-bold text-slate-800">{providerPhone}</span>
+              <span className="font-mono font-bold text-slate-800 break-all">{providerPhone}</span>
             </div>
             <div>
-              <span className="text-slate-500 block font-medium">Alamat Lengkap Outlet:</span>
-              <span className="font-bold text-slate-800">{address}</span>
+              <span className="text-slate-500 block font-medium">Alamat Lengkap:</span>
+              <span className="font-bold text-slate-800 break-words">{address}</span>
             </div>
           </div>
 
@@ -285,9 +284,9 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
             href={`https://wa.me/${providerPhone.replace(/^0/, '62')}?text=Halo%20Admin%20${encodeURIComponent(providerOrg)},%20saya%20tertarik%20mengklaim%20surplus%20${encodeURIComponent(foodName)}%20via%20Replate`}
             target="_blank"
             rel="noreferrer"
-            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
+            className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors text-center"
           >
-            <span>Hubungi WhatsApp Outlet / Toko (Koordinasi Penjemputan) </span>
+            <span>Hubungi WhatsApp Outlet (Koordinasi Penjemputan)</span>
           </a>
         </div>
 
@@ -323,9 +322,10 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ isOpen, onClos
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || `${latitude},${longitude}`)}`}
               target="_blank"
               rel="noreferrer"
-              className="text-[10px] font-black text-blue-600 hover:underline shrink-0"
+              className="text-[10px] font-black text-blue-600 hover:underline shrink-0 inline-flex items-center gap-1"
             >
-              Buka di Google Maps ↗
+              <span>Buka di Google Maps</span>
+              <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         </div>

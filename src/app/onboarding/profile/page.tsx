@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
-import { Check } from 'lucide-react';
+import { Check, HelpCircle, MapPin, Tag, ShieldCheck, Sparkles, Building2, Store } from 'lucide-react';
 import {
   resolveIndonesianAddress,
   reverseGeocodeIndonesianCoords,
@@ -62,7 +62,7 @@ export default function OnboardingProfilePage() {
       else if (detectedRole === 'RESCUE_VOLUNTEER') defaultCategory = 'COMMUNITY_ORGANIZATION';
       else if (detectedRole === 'FOOD_CONSUMER') defaultCategory = 'STUDENT';
 
-      // Load registered user if available
+      // Load registered user if available (from step 1 register)
       let reg: any = null;
       try {
         const raw = localStorage.getItem('replate_registered_user');
@@ -83,7 +83,8 @@ export default function OnboardingProfilePage() {
           : '31 - 50 Porsi / Hari';
 
       setFormData({
-        entityName: initialName,
+        // Poin 1: Untuk Consumer, nama pribadi menjadi nama entitas. Untuk Provider/Yayasan/Relawan, biarkan kosong agar diisi nama toko/instansi
+        entityName: detectedRole === 'FOOD_CONSUMER' ? initialName : '',
         category: defaultCategory,
         province: 'Jawa Timur',
         city: '',
@@ -92,6 +93,7 @@ export default function OnboardingProfilePage() {
         houseNumber: '',
         rtRw: '',
         landmark: '',
+        // Poin 1: Auto-fill nama penanggung jawab & nomor WhatsApp dari data register di langkah 1
         contactPerson: initialName,
         phone: initialPhone,
         capacity: defaultCapacity,
@@ -226,7 +228,9 @@ export default function OnboardingProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalName = role === 'FOOD_CONSUMER' ? (formData.entityName || formData.contactPerson) : formData.entityName;
+    const finalName = role === 'FOOD_CONSUMER' ? (formData.entityName || formData.contactPerson || registeredUser?.name || '') : formData.entityName;
+    const finalContactPerson = formData.contactPerson || registeredUser?.name || finalName;
+    const finalPhone = formData.phone || registeredUser?.phone || '';
     const resolvedGeo = resolveIndonesianAddress(formData.address || '');
     const resolvedLat = formData.lat || resolvedGeo.lat;
     const resolvedLng = formData.lng || resolvedGeo.lng;
@@ -235,7 +239,8 @@ export default function OnboardingProfilePage() {
       ...formData,
       name: finalName,
       entityName: finalName,
-      contactPerson: finalName,
+      contactPerson: finalContactPerson,
+      phone: finalPhone,
       email: registeredUser?.email || (role === 'FOOD_CONSUMER' ? 'konsumen@replate.id' : 'mitra@replate.id'),
       role,
       province: formData.province || resolvedGeo.province || 'Jawa Timur',
@@ -306,31 +311,31 @@ export default function OnboardingProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1923] text-white flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
-      <div className="w-full max-w-2xl space-y-6 relative z-10">
+    <div className="min-h-screen bg-[#0F1923] text-white flex flex-col items-center justify-center p-3 sm:p-6 font-sans relative overflow-x-hidden w-full max-w-full box-border">
+      <div className="w-full max-w-2xl space-y-6 relative z-10 box-border px-1">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-2">
             <Logo variant="light" size="lg" />
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#D4A843] text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#D4A843] text-slate-950 font-black text-[10.5px] sm:text-xs uppercase tracking-wider rounded-xl shadow-md max-w-full text-center break-words">
             <span>
               {isConsumer
                 ? 'LANGKAH 2 DARI 2 — SETUP PROFIL KONSUMEN PRIBADI'
                 : 'LANGKAH 2 DARI 4 — SETUP PROFIL ENTITAS OPERASIONAL'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight break-words text-center px-1">
             {isConsumer
               ? 'Lengkapi Profil Akun Food Consumer (Pribadi)'
               : `Lengkapi Profil Operasional ${
                   isBeneficiary
                     ? 'Food Beneficiary (Panti / Yayasan)'
                     : isVolunteer
-                    ? 'Food Rescue Volunteer (Organisasi / Komunitas)'
+                    ? 'Food Rescue Volunteer (Komunitas Relawan)'
                     : 'Food Provider (Restoran / Hotel / Supermarket)'
                 }`}
           </h1>
-          <p className="text-xs text-slate-300 font-medium max-w-md mx-auto">
+          <p className="text-xs text-slate-300 font-medium max-w-md mx-auto break-words text-center px-1">
             {isConsumer
               ? 'Informasi nama dan alamat ini digunakan untuk tiket klaim QR serta penentuan radius restoran terdekat dari tempat tinggal Anda.'
               : 'Informasi identitas dan kontak ini akan terintegrasi langsung pada surat jalan logistik & sertifikat transparansi IPCC.'}
@@ -338,18 +343,19 @@ export default function OnboardingProfilePage() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h3 className="text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+        <div className="bg-[#1B3A5C] border-2 border-[#2C5A8F] text-white rounded-2xl p-3.5 sm:p-6 md:p-8 shadow-2xl space-y-6 w-full max-w-full box-border">
+          <div className="border-b border-[#2C5A8F] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <h3 className="text-sm sm:text-base font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
               <span>{isConsumer ? 'Detail Profil Pribadi Konsumen' : 'Detail Identitas Operasional Resmi'}</span>
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={handleQuickFillDemo}
-                className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer inline-flex items-center gap-1"
               >
-                 Isi Contoh Simulasi Demo
+                <Sparkles className="w-3 h-3 text-[#D4A843]" />
+                <span>Isi Contoh Simulasi Demo</span>
               </button>
               <span className="text-xs bg-slate-900 text-amber-300 font-extrabold px-3 py-1 rounded-lg border border-slate-700">
                 Peran: {formatRoleLabel(role)}
@@ -363,14 +369,22 @@ export default function OnboardingProfilePage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+          <form onSubmit={handleSubmit} className="space-y-5 text-xs w-full max-w-full box-border">
             {isConsumer ? (
               /* STREAMLINED CLEAN CONSUMER FORM */
               <>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                    1. Nama Lengkap Pengguna:
-                  </label>
+                  <div className="flex items-center justify-between gap-1 flex-wrap">
+                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                      1. Nama Lengkap Pengguna:
+                    </label>
+                    {registeredUser?.name && (
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/40 inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span>Terisi Otomatis Dari Pendaftaran</span>
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     value={formData.entityName}
@@ -381,11 +395,11 @@ export default function OnboardingProfilePage() {
                         contactPerson: e.target.value,
                       })
                     }
-                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300 box-border"
                     placeholder="Contoh: Farhan Ramadhan"
                     required
                   />
-                  <span className="text-[10px] text-slate-300">
+                  <span className="text-[10px] text-slate-300 block">
                     Nama ini akan digunakan pada resi penjemputan makanan dan tiket pesanan Anda.
                   </span>
                 </div>
@@ -411,7 +425,7 @@ export default function OnboardingProfilePage() {
                           capacity: labelMap[val] || val,
                         });
                       }}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
                     >
                       <option value="STUDENT">Mahasiswa / Anak Kos / Pelajar</option>
                       <option value="WORKER">Pekerja / Karyawan / Mandiri</option>
@@ -421,27 +435,27 @@ export default function OnboardingProfilePage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
                       <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
                         3. No. WhatsApp Aktif:
                       </label>
-                      <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/40 flex items-center gap-1">
-                        <Check className="w-2.5 h-2.5" />
-                        <span>OTP Verified</span>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/40 inline-flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5 text-emerald-400" />
+                        <span>Terisi Otomatis (OTP Verified)</span>
                       </span>
                     </div>
                     <input
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
                       placeholder="Contoh: 0812-3456-7890"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="space-y-3 p-4 bg-[#142C47] rounded-xl border border-slate-700">
+                <div className="space-y-3 p-3.5 sm:p-4 bg-[#142C47] rounded-xl border border-slate-700 w-full max-w-full box-border">
                   <div className="space-y-1.5">
                     <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
                       4. Alamat Domisili Pengantaran / Penjemputan Makanan:
@@ -450,12 +464,13 @@ export default function OnboardingProfilePage() {
                       rows={2}
                       value={formData.address}
                       onChange={(e) => handleAddressChange(e.target.value)}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
                       placeholder="Contoh: Jl. Raya Sarangan No. 45, Plaosan, Magetan / Jl. Ketintang No. 12, Surabaya..."
                       required
                     />
-                    <p className="text-[11px] text-amber-200/90 font-medium">
-                      💡 Ketik alamat Anda. Sistem otomatis mendeteksi Kota dan Kecamatan di bawah.
+                    <p className="text-[11px] text-amber-200/90 font-medium flex items-center gap-1.5">
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                      <span>Ketik alamat Anda. Sistem otomatis mendeteksi Kota dan Kecamatan di bawah.</span>
                     </p>
                   </div>
 
@@ -466,7 +481,7 @@ export default function OnboardingProfilePage() {
                         type="text"
                         value={formData.province}
                         onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                         required
                       />
                     </div>
@@ -476,7 +491,7 @@ export default function OnboardingProfilePage() {
                         type="text"
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                         placeholder="Contoh: Kabupaten Magetan"
                         required
                       />
@@ -487,7 +502,7 @@ export default function OnboardingProfilePage() {
                         type="text"
                         value={formData.district}
                         onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                         placeholder="Contoh: Plaosan"
                         required
                       />
@@ -511,7 +526,7 @@ export default function OnboardingProfilePage() {
                     type="text"
                     value={formData.entityName}
                     onChange={(e) => setFormData({ ...formData, entityName: e.target.value })}
-                    className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300 box-border"
                     placeholder={
                       isBeneficiary
                         ? 'Contoh: Panti Asuhan Kasih Ibu'
@@ -531,7 +546,7 @@ export default function OnboardingProfilePage() {
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
                     >
                       {isBeneficiary ? (
                         <>
@@ -562,40 +577,40 @@ export default function OnboardingProfilePage() {
                       {isBeneficiary
                         ? 'Jumlah Anak Asuh / Lansia:'
                         : isVolunteer
-                        ? 'Jumlah Anggota Kurir Relawan Aktif:'
+                        ? 'Jumlah Anggota Tim Relawan Aktif:'
                         : 'Kapasitas Porsi / Hari:'}
                     </label>
                     {isBeneficiary ? (
                       <select
                         value={formData.capacity}
                         onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                        className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer"
+                        className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer box-border"
                         required
                       >
                         <option value="">-- Pilih Jumlah Penerima Manfaat --</option>
-                        <option value="1 - 25 Jiwa">1 - 25 Jiwa (Panti Asuhan / Rumah Singgah Kecil)</option>
+                        <option value="1 - 25 Jiwa">1 - 25 Jiwa (Panti Asuhan / Shelter Kecil)</option>
                         <option value="26 - 50 Jiwa">26 - 50 Jiwa (Panti Asuhan Menengah)</option>
-                        <option value="51 - 100 Jiwa">51 - 100 Jiwa (Panti Asuhan Skala Besar / Asrama)</option>
+                        <option value="51 - 100 Jiwa">51 - 100 Jiwa (Panti Asuhan Skala Besar)</option>
                         <option value="> 100 Jiwa">&gt; 100 Jiwa (Kompleks Panti Asuhan & Lansia)</option>
                       </select>
                     ) : isVolunteer ? (
                       <select
                         value={formData.capacity}
                         onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                        className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer"
+                        className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer box-border"
                         required
                       >
                         <option value="">-- Pilih Jumlah Tim Relawan --</option>
                         <option value="1 - 5 Relawan">1 - 5 Kurir Relawan (Komunitas Perintis)</option>
                         <option value="6 - 15 Relawan">6 - 15 Kurir Relawan (Tim Logistik Wilayah)</option>
                         <option value="16 - 30 Relawan">16 - 30 Kurir Relawan (Armada Komunitas Aktif)</option>
-                        <option value="> 30 Relawan">&gt; 30 Kurir Relawan (Organisasi Logistik Skala Kota)</option>
+                        <option value="> 30 Relawan">&gt; 30 Kurir Relawan (Organisasi Skala Kota)</option>
                       </select>
                     ) : (
                       <select
                         value={formData.capacity}
                         onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                        className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer"
+                        className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none cursor-pointer box-border"
                         required
                       >
                         <option value="">-- Pilih Kapasitas Porsi per Hari --</option>
@@ -610,7 +625,7 @@ export default function OnboardingProfilePage() {
                   </div>
                 </div>
 
-                <div className="space-y-3 p-4 bg-[#142C47] rounded-xl border border-slate-700">
+                <div className="space-y-3 p-3.5 sm:p-4 bg-[#142C47] rounded-xl border border-slate-700 w-full max-w-full box-border">
                   <div className="space-y-1.5">
                     <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
                       4.{' '}
@@ -622,15 +637,18 @@ export default function OnboardingProfilePage() {
                       rows={2}
                       value={formData.address}
                       onChange={(e) => handleAddressChange(e.target.value)}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
                       placeholder="Contoh: Jl. Raya Sarangan No. 45, Plaosan, Magetan / Jl. Raya Gubeng No. 88, Surabaya..."
                       required
                     />
 
                     {/* Micro-Location Details: No. Bangunan, RT / RW, & Patokan Kurir */}
-                    <div className="p-3 bg-white/10 backdrop-blur-xs border border-amber-300/40 rounded-xl space-y-2.5">
-                      <div className="flex items-center justify-between text-[11px] text-amber-300 font-bold">
-                        <span>🏷️ Detail Tambahan (Nomor, RT/RW, Patokan):</span>
+                    <div className="p-3 bg-white/10 backdrop-blur-xs border border-amber-300/40 rounded-xl space-y-2.5 w-full max-w-full box-border">
+                      <div className="flex items-center justify-between text-[11px] text-amber-300 font-bold flex-wrap gap-1">
+                        <span className="inline-flex items-center gap-1">
+                          <Tag className="w-3 h-3 text-amber-300 shrink-0" />
+                          <span>Detail Tambahan (Nomor, RT/RW, Patokan):</span>
+                        </span>
                         <span className="text-[10px] text-slate-300">Otomatis gabung ke alamat</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -640,7 +658,7 @@ export default function OnboardingProfilePage() {
                             type="text"
                             value={formData.houseNumber || ''}
                             onChange={(e) => handleMicroDetailChange('houseNumber', e.target.value)}
-                            className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                            className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                             placeholder="Contoh: No. 45 / Blok B-12"
                           />
                         </div>
@@ -650,7 +668,7 @@ export default function OnboardingProfilePage() {
                             type="text"
                             value={formData.rtRw || ''}
                             onChange={(e) => handleMicroDetailChange('rtRw', e.target.value)}
-                            className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                            className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                             placeholder="Contoh: RT 03 / RW 05"
                           />
                         </div>
@@ -660,15 +678,16 @@ export default function OnboardingProfilePage() {
                             type="text"
                             value={formData.landmark || ''}
                             onChange={(e) => handleMicroDetailChange('landmark', e.target.value)}
-                            className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                            className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                             placeholder="Contoh: Sebelah Apotek, Pagar Putih"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <p className="text-[11px] text-amber-200/90 font-medium">
-                      💡 Ketik alamat Anda atau sesuaikan Nomor, RT/RW, dan Patokan di atas untuk akurasi pengantaran kurir.
+                    <p className="text-[11px] text-amber-200/90 font-medium flex items-start gap-1.5">
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-300 shrink-0 mt-0.5" />
+                      <span>Ketik alamat Anda atau sesuaikan Nomor, RT/RW, dan Patokan di atas untuk akurasi pengantaran kurir.</span>
                     </p>
                   </div>
 
@@ -679,7 +698,7 @@ export default function OnboardingProfilePage() {
                         type="text"
                         value={formData.province}
                         onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                         required
                       />
                     </div>
@@ -689,7 +708,7 @@ export default function OnboardingProfilePage() {
                         type="text"
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                         placeholder="Contoh: Kabupaten Magetan"
                         required
                       />
@@ -700,7 +719,7 @@ export default function OnboardingProfilePage() {
                         type="text"
                         value={formData.district}
                         onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                        className="w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none"
+                        className="w-full max-w-full p-2 bg-white text-slate-900 font-bold text-xs rounded-lg border border-amber-400 focus:outline-none box-border"
                         placeholder="Contoh: Plaosan"
                         required
                       />
@@ -709,9 +728,10 @@ export default function OnboardingProfilePage() {
 
                   {/* Visual Click-to-Pin Interactive Mini Map for Onboarding */}
                   <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-xs flex-wrap gap-1">
                       <span className="text-amber-300 font-bold flex items-center gap-1.5">
-                        <span>📍 Peta Penanda Titik Lokasi GPS:</span>
+                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span>Peta Penanda Titik Lokasi GPS:</span>
                       </span>
                       <span className="text-[10.5px] font-mono text-slate-300 font-bold">
                         GPS: {formData.lat || -7.2754}, {formData.lng || 112.7541}
@@ -770,52 +790,76 @@ export default function OnboardingProfilePage() {
                         src={`https://maps.google.com/maps?q=${formData.lat || -7.2754},${formData.lng || 112.7541}&z=15&output=embed`}
                         className="w-full h-full filter saturate-150 pointer-events-none"
                       />
-                      <div className="absolute top-2 left-2 bg-[#1B3A5C]/90 text-white px-2.5 py-1 rounded-lg text-[9.5px] font-black shadow-md flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>Klik peta untuk menggeser pin & isi otomatis alamat</span>
+                      <div className="absolute top-2 left-2 bg-[#1B3A5C]/90 text-white px-2.5 py-1 rounded-lg text-[9px] sm:text-[9.5px] font-black shadow-md flex items-center gap-1.5 max-w-[88%] truncate">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                        <span className="truncate">Klik peta untuk menggeser pin & isi otomatis alamat</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Field 5: Auto-fill penanggung jawab */}
                   <div className="space-y-1.5">
-                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                      5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Ketua / Koordinator Komunitas (PJ):' : 'Nama Penanggung Jawab Outlet:'}
-                    </label>
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                        5. {isBeneficiary ? 'Nama Ketua / Pengurus Panti:' : isVolunteer ? 'Nama Koordinator Komunitas (PJ):' : 'Nama Penanggung Jawab Outlet:'}
+                      </label>
+                      {registeredUser?.name && (
+                        <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/40 inline-flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span>Terisi Otomatis Dari Pendaftaran</span>
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={formData.contactPerson}
                       onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                      placeholder="Contoh: Mas Doni (Penanggung Jawab Outlet)"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
+                      placeholder="Nama Penanggung Jawab Resmi"
                       required
                     />
+                    <p className="text-[10.5px] text-slate-300 leading-tight">
+                      Sesuai data PIC penanggung jawab yang Anda daftarkan di formulir awal pendaftaran.
+                    </p>
                   </div>
 
+                  {/* Field 6: Auto-fill nomor WhatsApp */}
                   <div className="space-y-1.5">
-                    <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
-                      6. No. WhatsApp Aktif (OTP Verified):
-                    </label>
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <label className="text-xs text-amber-300 font-black uppercase tracking-wider block">
+                        6. No. WhatsApp Aktif:
+                      </label>
+                      {registeredUser?.phone && (
+                        <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/40 inline-flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span>Terisi Otomatis (OTP Verified)</span>
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none"
-                      placeholder="Contoh: 0812-3456-7890"
+                      className="w-full max-w-full p-3 bg-white text-slate-900 font-black text-sm rounded-xl border-2 border-amber-400 shadow-sm focus:outline-none box-border"
+                      placeholder="08xxxxxxxxxx"
                       required
                     />
+                    <p className="text-[10.5px] text-slate-300 leading-tight">
+                      Nomor telepon WhatsApp aktif yang telah lolos verifikasi OTP awal.
+                    </p>
                   </div>
                 </div>
               </>
             )}
 
             <div className="pt-4 border-t border-[#2C5A8F] flex justify-end">
-              <Button variant="gold" size="md" type="submit" isLoading={loading} className="font-black text-xs py-3 px-6 shadow-md cursor-pointer">
+              <Button variant="gold" size="md" type="submit" isLoading={loading} className="w-full sm:w-auto font-black text-xs py-3 px-6 shadow-md cursor-pointer text-center">
                 <span>
                   {isConsumer
-                    ? 'Selesaikan Registrasi & Masuk Dashboard Consumer '
-                    : 'Lanjut Ke Upload Dokumen Legalitas '}
+                    ? 'Selesaikan Registrasi & Masuk Dashboard Consumer'
+                    : 'Lanjut Ke Upload Dokumen Legalitas'}
                 </span>
               </Button>
             </div>
