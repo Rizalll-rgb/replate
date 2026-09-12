@@ -8,6 +8,7 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { QRGenerator } from '@/components/qr/QRGenerator';
+import { QRCodeSVG } from 'qrcode.react';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
   MapPinIcon,
@@ -645,11 +646,11 @@ export default function CheckoutCartPage() {
 
                   {/* Real QR Barcode Rendered via QRGenerator */}
                   <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border border-slate-200 bg-white p-1 flex items-center justify-center">
-                    <QRGenerator
+                    <QRCodeSVG
                       value={`00020101021226580016ID.CO.REPLATE.WWW0118RPL-CNS-2026-889152045812530336054${totalAmount}5802ID59${(providerQris.merchantName || items[0]?.providerName || 'REPLATE SURABAYA').slice(0, 25)}6008SURABAYA62070703A016304`}
                       size={180}
-                      codeTitle=""
-                      codeSubtitle=""
+                      level="M"
+                      includeMargin={true}
                     />
                   </div>
 

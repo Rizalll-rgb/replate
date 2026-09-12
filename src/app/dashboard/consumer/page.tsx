@@ -375,6 +375,13 @@ export default function ConsumerDashboardPage() {
   // Filtered Foods computation based on search & category
   const filteredFoods = useMemo(() => {
     return foods.filter((item) => {
+      // Sembunyikan item khusus Panti/Yayasan untuk konsumen reguler
+      if (item.type === 'DONATION' || item.isFree || item.category === 'BAHAN_MENTAH') {
+        const rawRole = (session?.user as any)?.role || (typeof window !== 'undefined' ? localStorage.getItem('replate_role') : '');
+        const isBeneficiary = String(rawRole).toUpperCase().includes('BENEFICIARY') || String(rawRole).toUpperCase().includes('YAYASAN') || (typeof window !== 'undefined' && localStorage.getItem('replate_consumer_verification_status') === 'BENEFICIARY_VERIFIED');
+        if (!isBeneficiary) return false;
+      }
+
       const matchSearch =
         searchQuery.trim() === '' ||
         (item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -386,7 +393,7 @@ export default function ConsumerDashboardPage() {
       if (activeCategoryFilter === 'ALL') return true;
       if (activeCategoryFilter === 'RESCUE_SALE') return !item.isFree && item.price > 0 && item.originalPrice > item.price;
       if (activeCategoryFilter === 'FREE') return item.isFree || item.price === 0;
-      if (activeCategoryFilter === 'MINUMAN_SUSU') return item.category === 'MINUMAN_SUSU' || (item.title && item.title.toLowerCase().includes('susu')) || (item.title && item.title.toLowerCase().includes('jus')) || (item.title && item.title.toLowerCase().includes('kopi')) || (item.title && item.title.toLowerCase().includes('teh')) || (item.title && item.title.toLowerCase().includes('drink'));
+      if (activeCategoryFilter === 'MINUMAN_SUSU') return item.category === 'MINUMAN_SUSU' || item.category === 'DAIRY' || item.category === 'BEVERAGES' || (item.title && item.title.toLowerCase().includes('susu')) || (item.title && item.title.toLowerCase().includes('jus')) || (item.title && item.title.toLowerCase().includes('kopi')) || (item.title && item.title.toLowerCase().includes('teh')) || (item.title && item.title.toLowerCase().includes('drink'));
       if (activeCategoryFilter === 'FLASH') return item.originalPrice > item.price && (item.originalPrice - item.price) / item.originalPrice >= 0.5;
       if (activeCategoryFilter === 'BAKERY') return item.category === 'BAKERY' || item.category === 'ROTI_KUE' || (item.title && item.title.toLowerCase().includes('roti'));
       if (activeCategoryFilter === 'PRODUCE') return item.category === 'PRODUCE' || item.category === 'BUAH_SAYUR' || (item.title && item.title.toLowerCase().includes('buah')) || (item.title && item.title.toLowerCase().includes('sayur'));

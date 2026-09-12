@@ -132,14 +132,7 @@ export const GojekProfileDrawer: React.FC<GojekProfileDrawerProps> = ({
     onClose();
     try {
       if (typeof window !== 'undefined') {
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.startsWith('replate_') || key.startsWith('replate-'))) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach((k) => localStorage.removeItem(k));
+        localStorage.clear();
         document.cookie = 'replate_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       }
     } catch (_) {}

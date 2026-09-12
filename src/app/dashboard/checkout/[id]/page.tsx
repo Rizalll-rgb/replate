@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { Modal } from '@/components/ui/Modal';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { QRGenerator } from '@/components/qr/QRGenerator';
+import { QRCodeSVG } from 'qrcode.react';
 import Image from 'next/image';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import {
@@ -998,13 +999,13 @@ export default function CheckoutPage() {
                   <p className="text-[9.5px] text-slate-400 font-mono mt-0.5">NMID: {providerQris.nmid || 'ID1020268891001'}</p>
                 </div>
 
-                {/* Real QR Barcode Rendered via QRGenerator */}
+                {/* Real QR Barcode Rendered via QRCodeSVG */}
                 <div className="w-48 h-48 mx-auto rounded-xl overflow-hidden border border-slate-200 bg-white p-1 flex items-center justify-center">
-                  <QRGenerator
+                  <QRCodeSVG
                     value={`00020101021226580016ID.CO.REPLATE.WWW0118${uploadProofModal.resiCode || 'RPL-CNS-2026-8891'}52045812530336054${totalAmount}5802ID59${(providerQris.merchantName || item?.providerName || 'REPLATE SURABAYA').slice(0, 25)}6008SURABAYA62070703A016304`}
                     size={180}
-                    codeTitle=""
-                    codeSubtitle=""
+                    level="M"
+                    includeMargin={true}
                   />
                 </div>
 
