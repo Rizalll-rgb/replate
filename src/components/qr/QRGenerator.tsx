@@ -41,40 +41,28 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   /** Download as PNG using canvas */
   const handleDownloadPNG = async () => {
     try {
-      const svgEl = printAreaRef.current?.querySelector('svg');
-      if (!svgEl) return;
+      if (!printAreaRef.current) return;
+      
+      // Dynamically import html2canvas to prevent SSR issues
+      const html2canvas = (await import('html2canvas')).default;
 
-      const svgData = new XMLSerializer().serializeToString(svgEl);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
+      const canvas = await html2canvas(printAreaRef.current, {
+        scale: 3, // High resolution
+        useCORS: true,
+        backgroundColor: '#FFFFFF',
+        ignoreElements: (element) => element.classList.contains('no-print')
+      });
 
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const scale = 3; // high res
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.scale(scale, scale);
-        ctx.drawImage(img, 0, 0);
-
-        canvas.toBlob((blob) => {
-          if (!blob) return;
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = `Replate_QR_${value.replace(/[^a-zA-Z0-9-]/g, '_')}.png`;
-          a.click();
-          URL.revokeObjectURL(a.href);
-          setDownloaded(true);
-          setTimeout(() => setDownloaded(false), 3000);
-        }, 'image/png', 1.0);
-
-        URL.revokeObjectURL(url);
-      };
-      img.src = url;
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Replate_QR_${value.replace(/[^a-zA-Z0-9-]/g, '_')}.png`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        setDownloaded(true);
+        setTimeout(() => setDownloaded(false), 3000);
+      }, 'image/png', 1.0);
     } catch (_) {
       // Fallback to print
       handlePrintIsolated();

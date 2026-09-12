@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 interface BottomNavProps {
   user?: {
     role?: string | null;
+    email?: string | null;
   } | null;
 }
 
@@ -31,14 +32,29 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
 
       // Sync role from onboarding profile or session
       const profile = localStorage.getItem('replate_onboarding_profile');
+      let isDemoCookie = false;
+      let demoRole = null;
+      if (typeof document !== 'undefined') {
+        const match = document.cookie.match(/replate_demo_session=([^;]+)/);
+        if (match) {
+          isDemoCookie = true;
+          demoRole = match[1];
+        }
+      }
+
       if (profile) {
         const parsed = JSON.parse(profile);
-        if (parsed.role) setRole(parsed.role);
-        setHasDemoSession(true);
-      } else if (propUser?.role || session?.user?.role) {
-        setRole(propUser?.role || session?.user?.role || 'CONSUMER');
-      } else if (typeof document !== 'undefined' && document.cookie.includes('replate_demo_session')) {
-        setHasDemoSession(true);
+        const userEmail = propUser?.email || session?.user?.email;
+        if (!isDemoCookie || parsed.email === userEmail) {
+          if (parsed.role) setRole(parsed.role);
+          setHasDemoSession(true);
+        } else {
+          setRole(demoRole || propUser?.role || session?.user?.role || 'CONSUMER');
+          if (isDemoCookie) setHasDemoSession(true);
+        }
+      } else if (demoRole || propUser?.role || session?.user?.role) {
+        setRole(demoRole || propUser?.role || session?.user?.role || 'CONSUMER');
+        if (isDemoCookie) setHasDemoSession(true);
       }
     } catch (_) {}
   }, [propUser, session, pathname]);

@@ -39,11 +39,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         const parsed = JSON.parse(p);
-        if (parsed.entityName) setOrgName(parsed.entityName);
-        else if (parsed.name) setOrgName(parsed.name);
-        if (parsed.email) setUserEmail(parsed.email);
-        else if (regUser?.email) setUserEmail(regUser.email);
-        return;
+        const isDemoCookie = typeof document !== 'undefined' ? document.cookie.includes('replate_demo_session') : false;
+        if (!isDemoCookie || parsed.email === user?.email) {
+          if (parsed.entityName) setOrgName(parsed.entityName);
+          else if (parsed.name) setOrgName(parsed.name);
+          if (parsed.email) setUserEmail(parsed.email);
+          else if (regUser?.email) setUserEmail(regUser.email);
+          return;
+        }
       }
       if (regUser) {
         if (regUser.name) setOrgName(regUser.name);

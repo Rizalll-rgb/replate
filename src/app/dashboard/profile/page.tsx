@@ -1548,13 +1548,18 @@ export default function DashboardProfilePage() {
       if (savedAvatar) setProfileAvatar(savedAvatar);
 
       // 0. Cek Sesi Demo Aktif & Sesi Login
-      const rawDemo = localStorage.getItem('replate_demo_session');
+      const rawDemoLocal = localStorage.getItem('replate_demo_session');
+      const rawDemoCookie = typeof document !== 'undefined' ? document.cookie.match(/replate_demo_session=([^;]+)/) : null;
       let demoSession: any = null;
-      if (rawDemo) {
-        try { demoSession = JSON.parse(rawDemo); } catch (_) {}
+      
+      if (rawDemoLocal) {
+        try { demoSession = JSON.parse(rawDemoLocal); } catch (_) {}
+      } else if (rawDemoCookie) {
+        demoSession = { role: rawDemoCookie[1] };
       }
+      
       const activeEmail = demoSession?.email || session?.user?.email;
-      const activeRole = demoSession?.role || session?.user?.role || localStorage.getItem('replate_role');
+      const activeRole = demoSession?.role || session?.user?.role || localStorage.getItem('replate_role') || (rawDemoCookie ? rawDemoCookie[1] : null);
 
       // 1. Cek akun terdaftar pengguna asli (Hanya dipakai jika email cocok dengan sesi aktif)
       let regUser: any = null;
