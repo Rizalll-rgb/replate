@@ -330,8 +330,9 @@ export default function PartnerActivePickupsPage() {
     const map = new Map<string, any>();
     activePickups.forEach(p => {
       if (p.assignedDriver) {
-        if (!map.has(p.assignedDriver.id)) {
-          map.set(p.assignedDriver.id, p.assignedDriver);
+        const key = p.assignedDriver.id || p.assignedDriver.name;
+        if (!map.has(key)) {
+          map.set(key, p.assignedDriver);
         }
       }
     });
@@ -1106,7 +1107,7 @@ export default function PartnerActivePickupsPage() {
                       >
                         {uniqueActiveDrivers.length === 0 && <option value="">Belum ada tugas aktif</option>}
                         {uniqueActiveDrivers.map(d => (
-                          <option key={d.id} value={d.id}>{d.name} ({d.vehicle?.split(' ')[0] || 'Motor'})</option>
+                          <option key={d.id || d.name} value={d.id || d.name}>{d.name} ({d.vehicle?.split(' ')[0] || 'Motor'})</option>
                         ))}
                       </select>
                     </div>
