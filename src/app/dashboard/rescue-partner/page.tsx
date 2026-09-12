@@ -114,8 +114,8 @@ export default function PartnerOverviewPage() {
             </p>
           </div>
 
-          {/* Action Chips: Touch-friendly with horizontal scroll on mobile */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 flex-nowrap w-full lg:w-auto shrink-0">
+          {/* Action Chips: Touch-friendly with horizontal scroll on mobile, wraps on desktop */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full lg:w-auto lg:flex-wrap lg:justify-end">
             {/* Direct to Driver Profile / Fleet Tab (Requirement Rescue #2) */}
             <Link href="/dashboard/profile?tab=FLEET" className="shrink-0">
               <Button
@@ -149,6 +149,18 @@ export default function PartnerOverviewPage() {
               >
                 <BoltIcon size={14} className="text-slate-950" />
                 <span>Pool Tugas Masuk ({isFreshAccount ? '0' : pendingPoolCount})</span>
+              </Button>
+            </Link>
+
+            {/* New: Bursa Penyaluran Proaktif */}
+            <Link href="/dashboard/rescue-partner/exchange" className="shrink-0">
+              <Button
+                variant="primary"
+                size="sm"
+                className="font-bold text-xs py-2 px-3.5 rounded-xl border-none bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1.5 shadow-xs cursor-pointer whitespace-nowrap"
+              >
+                <SearchIcon size={14} className="text-white" />
+                <span>Bursa Penyaluran Panti</span>
               </Button>
             </Link>
 

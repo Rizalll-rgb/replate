@@ -1867,7 +1867,7 @@ export default function DashboardProfilePage() {
       isPhoneVerified: false,
       vehicleType: newDriver.vehicleType,
       plateNumber: newDriver.plateNumber || 'L 0000 XX',
-      status: 'APPROVED',
+      status: 'PENDING',
       docs: {
         driverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60',
         vehiclePhoto: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=60',

@@ -517,10 +517,11 @@ export default function YayasanDashboardPage() {
         {/* Horizontal Peek Carousel on mobile, 3-column grid on desktop */}
         <div className="flex md:grid lg:grid-cols-3 md:grid-cols-2 lg:gap-6 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-2 md:pb-6">
           {matchedSuppliers.map((supplier, idx) => (
-            <div
+            <Card
               key={idx}
-              className="w-[85vw] max-w-[340px] md:max-w-none md:w-auto shrink-0 snap-start p-4 sm:p-5 lg:p-5 xl:p-6 bg-gradient-to-br from-white to-emerald-50/40 md:from-white md:to-emerald-50/20 rounded-2xl sm:rounded-3xl border-2 border-emerald-300 shadow-xs md:shadow-md md:hover:shadow-2xl md:hover:-translate-y-1 md:hover:border-emerald-400 transition-all duration-300 flex flex-col justify-between space-y-3 sm:space-y-4 md:space-y-5 relative overflow-hidden group"
+              className="w-[85vw] max-w-[340px] md:max-w-none md:w-auto shrink-0 snap-start !bg-gradient-to-br from-white to-emerald-50/40 md:from-white md:to-emerald-50/20 !rounded-2xl sm:!rounded-3xl border-2 !border-emerald-300 shadow-xs md:shadow-md md:hover:shadow-2xl md:hover:-translate-y-1 md:hover:border-emerald-400 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group !p-0"
             >
+              <CardBody className="p-4 sm:p-5 lg:p-5 xl:p-6 space-y-3 sm:space-y-4 md:space-y-5 !bg-transparent h-full flex flex-col justify-between">
               {/* Decorative element for desktop only */}
               <div className="hidden md:block absolute top-0 right-0 -mr-12 -mt-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500 pointer-events-none"></div>
 
@@ -564,7 +565,8 @@ export default function YayasanDashboardPage() {
                   </Button>
                 </div>
               </div>
-            </div>
+              </CardBody>
+            </Card>
           ))}
         </div>
       </section>

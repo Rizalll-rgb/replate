@@ -106,6 +106,7 @@ export default function AdminApprovalsPage() {
   // Sync consumer verification queue from localStorage & registered users
   useEffect(() => {
     try {
+      // Sync Consumer Queue
       const savedQueueStr = localStorage.getItem('replate_admin_consumer_queue');
       if (savedQueueStr) {
         const savedQueue = JSON.parse(savedQueueStr);
@@ -116,6 +117,7 @@ export default function AdminApprovalsPage() {
         }
       }
 
+      // Sync Registered User (Mitra/Consumer)
       const regUserStr = localStorage.getItem('replate_registered_user');
       if (regUserStr) {
         const reg = JSON.parse(regUserStr);
@@ -148,6 +150,39 @@ export default function AdminApprovalsPage() {
               status: 'PENDING',
             };
             setPendingUsers((prev) => (prev.some((u) => u.email === reg.email) ? prev : [pendingItem, ...prev]));
+          }
+        }
+      }
+
+      // Sync Provider Fleet (Pending Verifications)
+      const savedFleetStr = localStorage.getItem('replate_provider_fleet_list');
+      if (savedFleetStr) {
+        const savedFleet = JSON.parse(savedFleetStr);
+        if (Array.isArray(savedFleet)) {
+          const pendingFleet = savedFleet
+            .filter((f) => f.status === 'PENDING_VERIFICATION')
+            .map((f) => ({
+              id: f.id,
+              providerName: 'Mitra Outlet Replate',
+              driverName: f.driverName,
+              driverPhone: f.driverPhone,
+              vehicleType: f.vehicleType,
+              plateNumber: f.plateNumber,
+              ktpPhoto: f.docs?.ktpPhoto || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+              simPhoto: f.docs?.simPhoto || 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60',
+              stnkPhoto: f.docs?.stnkPhoto || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop&q=60',
+              driverPhoto: f.docs?.driverPhoto,
+              vehiclePhoto: f.docs?.vehiclePhoto,
+              status: f.status,
+              submittedAt: 'Baru Saja',
+            }));
+          
+          if (pendingFleet.length > 0) {
+            setFleetQueue((prev) => {
+              const map = new Map();
+              [...prev, ...pendingFleet].forEach((item) => map.set(item.id, item));
+              return Array.from(map.values());
+            });
           }
         }
       }
@@ -270,6 +305,26 @@ export default function AdminApprovalsPage() {
       isOpen: true,
       message: ' Permohonan verifikasi rentan ditolak. Akun dikembalikan ke Konsumen Biasa (Rescue Sale).',
       type: 'error',
+    });
+  };
+
+  const handleApproveFleet = (id: string, plateNumber: string) => {
+    setFleetQueue((prev) => prev.filter((item) => item.id !== id));
+    setInspectFleetModal({ isOpen: false, fleet: null });
+    try {
+      const savedFleetStr = localStorage.getItem('replate_provider_fleet_list');
+      if (savedFleetStr) {
+        let savedFleet = JSON.parse(savedFleetStr);
+        if (Array.isArray(savedFleet)) {
+          savedFleet = savedFleet.map(f => f.id === id ? { ...f, status: 'APPROVED' } : f);
+          localStorage.setItem('replate_provider_fleet_list', JSON.stringify(savedFleet));
+        }
+      }
+    } catch (_) {}
+    setToastState({
+      isOpen: true,
+      message: ` Armada Toko (${plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
+      type: 'success',
     });
   };
 
@@ -579,14 +634,7 @@ export default function AdminApprovalsPage() {
                             variant="gold"
                             size="sm"
                             className="text-xs font-black text-slate-950 shadow-xs"
-                            onClick={() => {
-                              setFleetQueue(fleetQueue.filter((item) => item.id !== flt.id));
-                              setToastState({
-                                isOpen: true,
-                                message: `Armada Toko (${flt.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
-                                type: 'success',
-                              });
-                            }}
+                            onClick={() => handleApproveFleet(flt.id, flt.plateNumber)}
                           >
                             Setujui Armada Toko
                           </Button>
@@ -679,15 +727,7 @@ export default function AdminApprovalsPage() {
                 variant="gold"
                 size="sm"
                 className="font-black text-slate-950"
-                onClick={() => {
-                  setFleetQueue(fleetQueue.filter((item) => item.id !== inspectFleetModal.fleet.id));
-                  setInspectFleetModal({ isOpen: false, fleet: null });
-                  setToastState({
-                    isOpen: true,
-                    message: ` Armada Toko (${inspectFleetModal.fleet.plateNumber}) Berhasil Disetujui & Diberi Lisensi Direct Delivery!`,
-                    type: 'success',
-                  });
-                }}
+                onClick={() => handleApproveFleet(inspectFleetModal.fleet.id, inspectFleetModal.fleet.plateNumber)}
               >
                 Setujui Armada Toko & Terbitkan Lisensi 
               </Button>

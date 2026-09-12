@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function FAQPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,7 +109,9 @@ export default function FAQPage() {
                 className="w-full p-4 text-left flex items-center justify-between font-extrabold text-sm text-[#1B3A5C] hover:bg-slate-50 transition-colors"
               >
                 <span className="pr-4"> {faq.q}</span>
-                <span className="text-lg text-slate-400 font-mono shrink-0">{openIndex === idx ? '−' : '+'}</span>
+                <span className="text-slate-400 shrink-0">
+                  {openIndex === idx ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </span>
               </button>
               {openIndex === idx && (
                 <div className="px-4 pb-4 pt-1 text-xs text-slate-600 border-t border-slate-100 leading-relaxed bg-slate-50/50 font-medium">

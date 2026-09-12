@@ -1160,17 +1160,19 @@ export default function WorkspaceExplorePage() {
           <span>Rescue Sale (Murah)</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('DONATION')}
-          className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            activeTab === 'DONATION'
-              ? 'bg-[#1B3A5C] text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-950 font-bold'
-          }`}
-        >
-          <span>Donasi (Rp 0)</span>
-        </button>
+        {!isConsumer && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('DONATION')}
+            className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'DONATION'
+                ? 'bg-[#1B3A5C] text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-950 font-bold'
+            }`}
+          >
+            <span>Donasi (Rp 0)</span>
+          </button>
+        )}
 
         {/* Rescue Partner Action */}
         {(session?.user?.role?.toUpperCase().includes('RESCUE') || session?.user?.role?.toUpperCase().includes('VOLUNTEER')) && (
@@ -1399,71 +1401,7 @@ export default function WorkspaceExplorePage() {
             </button>
           </div>
 
-          {/* Filter Controls Panti */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-black text-[#1B3A5C]">Metode:</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setFilterPantiMethod('ALL')}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                    filterPantiMethod === 'ALL'
-                      ? 'bg-[#1B3A5C] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  Semua
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterPantiMethod('SELF_PICKUP')}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                    filterPantiMethod === 'SELF_PICKUP'
-                      ? 'bg-[#1B3A5C] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  <span>Ambil Sendiri</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterPantiMethod('PARTNER_DELIVERY')}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                    filterPantiMethod === 'PARTNER_DELIVERY'
-                      ? 'bg-[#1B3A5C] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  <span>Diantar Partner / Toko</span>
-                </button>
-              </div>
-
-              <span className="font-black text-[#1B3A5C] ml-2">Urgensi:</span>
-              <select
-                value={filterPantiUrgency}
-                onChange={(e) => setFilterPantiUrgency(e.target.value)}
-                className="rounded-xl border border-slate-300 text-xs px-3 py-1.5 bg-white font-bold text-[#1B3A5C] focus:outline-none"
-              >
-                <option value="ALL">Semua Urgensi</option>
-                <option value="HIGH">Urgent (Hari Ini)</option>
-                <option value="MEDIUM">Membutuhkan</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2 justify-between md:justify-end">
-              <span className="text-[11px] font-bold text-slate-500">
-                Menampilkan {filteredPantiNeeds.length} dari {pantiNeeds.length} Lembaga
-              </span>
-              <button
-                type="button"
-                onClick={() => router.push('/dashboard/yayasan/claims?openRequest=true')}
-                className="px-3.5 py-1.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer shrink-0"
-              >
-                + Ajukan Permintaan Pangan
-              </button>
-            </div>
-          </div>
+          {/* Filter Controls Panti removed as requested */}
 
           {/* Grid Permintaan Panti (Rich Cards identical to http://localhost:3000/explore) */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
@@ -1660,7 +1598,7 @@ export default function WorkspaceExplorePage() {
 
         <div className="px-3 space-y-3">
           {/* Main Service Tabs — Consumer only gets 2 tabs, Panti is hidden (Point 8) */}
-          <div className={`grid ${isConsumer ? 'grid-cols-2' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
+          <div className={`grid ${isConsumer ? 'grid-cols-1' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
             <button
               type="button"
               onClick={() => setActiveTab('RESCUE_SALE')}
@@ -1674,18 +1612,20 @@ export default function WorkspaceExplorePage() {
               <span className="block text-[8px] opacity-80 font-bold">Hemat 70%</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('DONATION')}
-              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
-                activeTab === 'DONATION'
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
-              }`}
-            >
-              <span>Donasi Rp 0</span>
-              <span className="block text-[8px] opacity-80 font-bold">Gratis</span>
-            </button>
+            {!isConsumer && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('DONATION')}
+                className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                  activeTab === 'DONATION'
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'text-slate-700 hover:bg-slate-200/60'
+                }`}
+              >
+                <span>Donasi Rp 0</span>
+                <span className="block text-[8px] opacity-80 font-bold">Gratis</span>
+              </button>
+            )}
 
             {!isConsumer && (
               <button

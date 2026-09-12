@@ -672,11 +672,13 @@ export default function CheckoutPage() {
                 <span className="text-[10px] text-slate-400 font-normal">Opsional</span>
               </label>
               <textarea
+                id="orderNotes"
+                name="orderNotes"
                 rows={2}
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
                 placeholder="Tulis instruksi khusus (misal: saus dipisah, kemasan jangan ditumpuk, titip di resepsionis)..."
-                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] bg-slate-50 placeholder:text-slate-400 font-medium"
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] bg-slate-50 placeholder:text-slate-400 font-medium relative z-10"
               />
             </div>
           </div>

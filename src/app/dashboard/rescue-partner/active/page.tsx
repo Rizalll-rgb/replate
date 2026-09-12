@@ -29,7 +29,7 @@ import {
   RouteWaypoint,
   OptimizedClusterPlan,
 } from '@/lib/clusterRoutingEngine';
-import { Navigation, Fuel, TrendingDown, Sparkles, FileText, ChevronLeft, ChevronRight, Info, UserCheck, Shield, Package } from 'lucide-react';
+import { Navigation, Fuel, TrendingDown, Sparkles, FileText, ChevronLeft, ChevronRight, Info, UserCheck, Shield, Package, AlertCircle } from 'lucide-react';
 
 export default function PartnerActivePickupsPage() {
   const [showScanner, setShowScanner] = useState(false);
@@ -323,28 +323,55 @@ export default function PartnerActivePickupsPage() {
   };
 
   // Pilar 4: 2-Opt Multi-Hop Routing State
-  const [selectedFleet, setSelectedFleet] = useState<FleetType>('MOTORCYCLE_COOLBOX');
+  const [selectedRouteDriverId, setSelectedRouteDriverId] = useState<string>('');
   const [showRouteOptimizer, setShowRouteOptimizer] = useState<boolean>(true);
 
-  const { pickupsList, dropoffsList } = React.useMemo(() => {
+  const uniqueActiveDrivers = React.useMemo(() => {
+    const map = new Map<string, any>();
+    activePickups.forEach(p => {
+      if (p.assignedDriver) {
+        if (!map.has(p.assignedDriver.id)) {
+          map.set(p.assignedDriver.id, p.assignedDriver);
+        }
+      }
+    });
+    return Array.from(map.values());
+  }, [activePickups]);
+
+  // Auto-select first driver if empty
+  useEffect(() => {
+    if (!selectedRouteDriverId && uniqueActiveDrivers.length > 0) {
+      setSelectedRouteDriverId(uniqueActiveDrivers[0].id);
+    }
+  }, [uniqueActiveDrivers, selectedRouteDriverId]);
+
+  const { pickupsList, dropoffsList, activeFleetType } = React.useMemo(() => {
     const picks: RouteWaypoint[] = [];
     const drops: RouteWaypoint[] = [];
     
-    // Filter pickups to only those matching the selectedFleet capability and assigned vehicle
-    const fleetFiltered = activePickups.filter((pickup) => {
-      const v = (pickup.assignedDriver?.vehicle || '').toUpperCase();
-      if (selectedFleet === 'MOTORCYCLE_COOLBOX') {
-        return v.includes('MOTOR') || (!v.includes('MOBIL') && !v.includes('VAN'));
-      } else if (selectedFleet === 'CAR_STERILE_BOX') {
-        return v.includes('MOBIL') || v.includes('CAR');
-      } else {
-        return v.includes('VAN') || v.includes('TRUCK');
-      }
+    // Filter pickups to only those matching the selected driver
+    const driverPickups = activePickups.filter((pickup) => {
+      return pickup.assignedDriver?.id === selectedRouteDriverId;
     });
 
-    const targetList = fleetFiltered.length > 0 ? fleetFiltered : activePickups.slice(0, selectedFleet === 'MOTORCYCLE_COOLBOX' ? 1 : 2);
+    let fleetType: FleetType = 'MOTORCYCLE_COOLBOX';
+    if (driverPickups.length > 0 && driverPickups[0].assignedDriver?.vehicle) {
+      const v = driverPickups[0].assignedDriver.vehicle.toUpperCase();
+      if (v.includes('MOBIL') || v.includes('CAR')) fleetType = 'CAR_STERILE_BOX';
+      else if (v.includes('VAN') || v.includes('TRUCK')) fleetType = 'VAN_LOGISTICS';
+    }
 
-    targetList.forEach((pickup, idx) => {
+    driverPickups.forEach((pickup, idx) => {
+      let w = 20;
+      if (pickup.quantity && typeof pickup.quantity === 'string') {
+        const match = pickup.quantity.match(/\((\d+)\s*kg\)/i);
+        if (match && match[1]) w = parseInt(match[1]);
+      } else if (pickup.totalWeightKg) {
+        w = pickup.totalWeightKg;
+      } else {
+        w = fleetType === 'MOTORCYCLE_COOLBOX' ? 12 : fleetType === 'CAR_STERILE_BOX' ? 45 : 95;
+      }
+
       picks.push({
         id: `pick-${pickup.code}`,
         name: `${pickup.providerName} (${pickup.foodName})`,
@@ -352,7 +379,7 @@ export default function PartnerActivePickupsPage() {
         type: 'PICKUP',
         lat: -7.2600 + (idx * 0.012),
         lng: 112.7450 + (idx * 0.008),
-        weightKg: selectedFleet === 'MOTORCYCLE_COOLBOX' ? 12 : selectedFleet === 'CAR_STERILE_BOX' ? 45 : 95,
+        weightKg: w,
         portions: 30,
         rescueUrgencyIndex: pickup.status === 'IN_TRANSIT' ? 88 : 74,
       });
@@ -363,13 +390,13 @@ export default function PartnerActivePickupsPage() {
         type: 'DROPOFF',
         lat: -7.2750 + (idx * 0.015),
         lng: 112.7550 + (idx * 0.012),
-        weightKg: selectedFleet === 'MOTORCYCLE_COOLBOX' ? 12 : selectedFleet === 'CAR_STERILE_BOX' ? 45 : 95,
+        weightKg: w,
         portions: 30,
         rescueUrgencyIndex: 60,
       });
     });
-    return { pickupsList: picks, dropoffsList: drops };
-  }, [activePickups, selectedFleet]);
+    return { pickupsList: picks, dropoffsList: drops, activeFleetType: fleetType };
+  }, [activePickups, selectedRouteDriverId]);
 
   const optimizedPlan: OptimizedClusterPlan | null = React.useMemo(() => {
     if (pickupsList.length === 0) return null;
@@ -381,8 +408,8 @@ export default function PartnerActivePickupsPage() {
       type: 'DEPOT',
       address: 'Genteng, Surabaya',
     };
-    return optimizeClusterRoute(depot, pickupsList, dropoffsList, selectedFleet);
-  }, [selectedFleet, pickupsList, dropoffsList]);
+    return optimizeClusterRoute(depot, pickupsList, dropoffsList, activeFleetType);
+  }, [activeFleetType, pickupsList, dropoffsList]);
 
   // Pagination calculation (Requirement Rescue #7)
   const paginatedActivePickups = React.useMemo(() => {
@@ -408,7 +435,7 @@ export default function PartnerActivePickupsPage() {
           const savedClaims = JSON.parse(savedClaimsStr);
           if (Array.isArray(savedClaims) && savedClaims.length > 0) {
             const pending = savedClaims
-              .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED')
+              .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED' && c.courierName !== 'Pengambil Mandiri' && c.courierName !== 'Menunggu Penugasan Driver Toko')
               .map((c: any) => ({
                 code: c.claimCode || c.id,
                 foodName: c.foodName,
@@ -422,7 +449,7 @@ export default function PartnerActivePickupsPage() {
               }));
 
             const completed = savedClaims
-              .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
+              .filter((c: any) => (c.status === 'COMPLETED' || c.status === 'VERIFIED') && c.courierName !== 'Pengambil Mandiri' && c.courierName !== 'Menunggu Penugasan Driver Toko')
               .map((c: any) => ({
                 code: c.claimCode || c.id,
                 foodName: c.foodName,
@@ -451,7 +478,7 @@ export default function PartnerActivePickupsPage() {
         const savedClaims = JSON.parse(savedClaimsStr);
         if (Array.isArray(savedClaims) && savedClaims.length > 0) {
           const pending = savedClaims
-            .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED')
+            .filter((c: any) => c.status !== 'COMPLETED' && c.status !== 'VERIFIED' && c.courierName !== 'Pengambil Mandiri' && c.courierName !== 'Menunggu Penugasan Driver Toko')
             .map((c: any) => ({
               code: c.claimCode || c.id,
               foodName: c.foodName,
@@ -475,7 +502,7 @@ export default function PartnerActivePickupsPage() {
             }));
 
           const completed = savedClaims
-            .filter((c: any) => c.status === 'COMPLETED' || c.status === 'VERIFIED')
+            .filter((c: any) => (c.status === 'COMPLETED' || c.status === 'VERIFIED') && c.courierName !== 'Pengambil Mandiri' && c.courierName !== 'Menunggu Penugasan Driver Toko')
             .map((c: any) => ({
               code: c.claimCode || c.id,
               foodName: c.foodName,
@@ -658,77 +685,13 @@ export default function PartnerActivePickupsPage() {
         </Card>
       )}
 
-      {/* Tabs Filter & In-Module View Switcher (Requirement Rescue #9) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200">
-        {/* Tab Navigation: POOL, ACTIVE, COMPLETED */}
-        <div className="flex border-b border-slate-200 text-xs font-bold overflow-x-auto no-scrollbar gap-1">
-          <button
-            onClick={() => setActiveTab('POOL')}
-            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'POOL'
-                ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            <BoltIcon size={13} className={activeTab === 'POOL' ? 'text-[#D4A843]' : 'text-slate-400'} />
-            <span>Pool Tugas Masuk ({matches.length})</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('ACTIVE'); setActivePage(1); }}
-            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'ACTIVE'
-                ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            <TruckIcon size={13} className={activeTab === 'ACTIVE' ? 'text-[#D4A843]' : 'text-slate-400'} />
-            <span>Rute Aktif & Multi-Hop ({activePickups.length})</span>
-          </button>
-          <button
-            onClick={() => { setActiveTab('COMPLETED'); setCompletedPage(1); }}
-            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'COMPLETED'
-                ? 'bg-[#1B3A5C] text-white font-black shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            <CheckIcon size={13} className={activeTab === 'COMPLETED' ? 'text-emerald-400' : 'text-slate-400'} />
-            <span>Riwayat Selesai ({completedPickups.length})</span>
-          </button>
+      {/* 1. POOL TUGAS MASUK */}
+      <div className="space-y-6 pt-6 border-t border-slate-200">
+        <div className="flex items-center gap-2">
+           <BoltIcon className="text-[#D4A843] w-6 h-6"/>
+           <h2 className="text-xl font-black text-[#1B3A5C]">Pool Tugas Masuk ({matches.length})</h2>
         </div>
-
-        {activeTab === 'ACTIVE' && (
-          <div className="flex items-center gap-2 pb-2 sm:pb-0">
-            <span className="text-[11px] text-slate-500 font-bold hidden sm:inline">Mode Tampilan:</span>
-            <button
-              onClick={() => setActiveViewMode('CARDS')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeViewMode === 'CARDS'
-                  ? 'bg-slate-900 text-white shadow-xs font-black'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <span>Daftar Kartu Tugas ({activePickups.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveViewMode('LIVE_TRACKING')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeViewMode === 'LIVE_TRACKING'
-                  ? 'bg-emerald-600 text-white shadow-xs font-black'
-                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
-              }`}
-            >
-              <MapIcon size={13} />
-              <span>Peta Live Tracking Rute</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* List Penjemputan / Pengantaran Aktif */}
-      <div className="space-y-4">
-        {activeTab === 'POOL' ? (
-          <div className="space-y-6">
+        <div className="space-y-6">
             {/* Driver Roster & On-Duty Toggle Bar */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -821,7 +784,11 @@ export default function PartnerActivePickupsPage() {
                         {/* Header: Title, Score & Urgency */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-black text-[10px] text-slate-400 tracking-widest uppercase block mb-1">
+                              Ringkasan Tugas Rescue Logistik
+                            </span>
+                            <h3 className="font-black text-base sm:text-lg text-[#1B3A5C]">{match.foodName}</h3>
+                            <div className="flex items-center gap-2 flex-wrap pt-1">
                               <span className="px-2 py-0.5 bg-[#1B3A5C] text-[#D4A843] font-black text-[10px] rounded-md font-mono inline-flex items-center gap-1">
                                 <Sparkles className="w-3 h-3 text-[#D4A843]" />
                                 <span>{match.matchScore || 96}% Cocok</span>
@@ -836,7 +803,6 @@ export default function PartnerActivePickupsPage() {
                                 {match.pickupTime}
                               </span>
                             </div>
-                            <h3 className="font-black text-base sm:text-lg text-[#1B3A5C]">{match.foodName}</h3>
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -850,29 +816,37 @@ export default function PartnerActivePickupsPage() {
                         {/* Complete Specifications Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {/* Box 1: Provider */}
-                          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                            <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">
-                              Titik Penjemputan (Provider / Toko):
+                          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-blue-100 rounded-bl-full opacity-50 pointer-events-none" />
+                            <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block flex items-center gap-1">
+                              <MapPinIcon size={10} className="text-blue-500" />
+                              Outlet Penjemputan (Toko):
                             </span>
                             <strong className="text-xs font-bold text-slate-900 block">{match.providerName}</strong>
-                            <p className="text-slate-600 text-[11px] flex items-start gap-1">
-                              <MapPinIcon size={12} className="text-red-500 shrink-0 mt-0.5" />
-                              <span>{match.providerAddress}</span>
+                            <p className="text-slate-600 text-[11px] leading-relaxed">
+                              {match.providerAddress}
                             </p>
-                            <p className="text-slate-500 text-[11px]">Telp: <strong className="text-slate-800">{match.providerPhone || '0812-3456-7890'}</strong></p>
+                            <div className="flex items-center gap-3 pt-1">
+                              <p className="text-slate-500 text-[10px]">Telp: <strong className="text-slate-800">{match.providerPhone || '0812-3456-7890'}</strong></p>
+                              <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[9px] font-bold border border-blue-100">Cek Lokasi Maps</span>
+                            </div>
                           </div>
 
                           {/* Box 2: Beneficiary Shelter */}
-                          <div className="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1">
-                            <span className="text-[10px] uppercase font-black tracking-wider text-emerald-800 block">
-                              Tujuan Pengantaran (Lembaga Penerima):
+                          <div className="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-100 rounded-bl-full opacity-50 pointer-events-none" />
+                            <span className="text-[10px] uppercase font-black tracking-wider text-emerald-800 block flex items-center gap-1">
+                              <MapPinIcon size={10} className="text-emerald-500" />
+                              Tujuan Pengantaran (Panti):
                             </span>
                             <strong className="text-xs font-bold text-emerald-950 block">{match.matchedUserName || match.shelterName}</strong>
-                            <p className="text-emerald-900 text-[11px] flex items-start gap-1">
-                              <MapPinIcon size={12} className="text-emerald-600 shrink-0 mt-0.5" />
-                              <span>{match.shelterAddress}</span>
+                            <p className="text-emerald-900 text-[11px] leading-relaxed">
+                              {match.shelterAddress}
                             </p>
-                            <p className="text-emerald-800 text-[11px]">Telp: <strong className="text-emerald-950">{match.shelterPhone || '0819-8765-4321'}</strong></p>
+                            <div className="flex items-center gap-3 pt-1">
+                              <p className="text-emerald-800 text-[10px]">Telp: <strong className="text-emerald-950">{match.shelterPhone || '0819-8765-4321'}</strong></p>
+                              <span className="text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded text-[9px] font-bold border border-emerald-200">Panduan Rute</span>
+                            </div>
                           </div>
                         </div>
 
@@ -924,7 +898,42 @@ export default function PartnerActivePickupsPage() {
               )}
             </div>
           </div>
-        ) : activeTab === 'ACTIVE' ? (
+        </div>
+
+      {/* 2. RUTE AKTIF & MULTI-HOP */}
+      <div className="space-y-6 pt-10 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+             <TruckIcon className="text-[#D4A843] w-6 h-6"/>
+             <h2 className="text-xl font-black text-[#1B3A5C]">Rute Aktif & Multi-Hop ({activePickups.length})</h2>
+          </div>
+          <div className="flex items-center gap-2 pb-2 sm:pb-0">
+            <span className="text-[11px] text-slate-500 font-bold hidden sm:inline">Mode Tampilan:</span>
+            <button
+              onClick={() => setActiveViewMode('CARDS')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeViewMode === 'CARDS'
+                  ? 'bg-slate-900 text-white shadow-xs font-black'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <span>Daftar Kartu ({activePickups.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveViewMode('LIVE_TRACKING')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeViewMode === 'LIVE_TRACKING'
+                  ? 'bg-emerald-600 text-white shadow-xs font-black'
+                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              <MapIcon size={13} />
+              <span>Peta Live Tracking</span>
+            </button>
+          </div>
+        </div>
+
+        {
           activePickups.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-3 shadow-xs">
               <div className="w-14 h-14 bg-blue-50 rounded-2xl border border-blue-200 text-blue-600 flex items-center justify-center mx-auto text-2xl">
@@ -1087,17 +1096,18 @@ export default function PartnerActivePickupsPage() {
                       </div>
                     </div>
 
-                    {/* Fleet Selector */}
+                    {/* Driver Selector */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-slate-400 font-semibold hidden sm:inline">Armada:</span>
+                      <span className="text-xs text-slate-400 font-semibold hidden sm:inline">Driver Rute:</span>
                       <select
-                        value={selectedFleet}
-                        onChange={(e) => setSelectedFleet(e.target.value as FleetType)}
-                        className="bg-slate-900 border border-slate-700 text-xs font-bold text-white rounded-xl p-2 focus:ring-2 focus:ring-[#D4A843]"
+                        value={selectedRouteDriverId}
+                        onChange={(e) => setSelectedRouteDriverId(e.target.value)}
+                        className="bg-slate-900 border border-slate-700 text-xs font-bold text-white rounded-xl p-2 focus:ring-2 focus:ring-[#D4A843] max-w-[200px] truncate"
                       >
-                        <option value="MOTORCYCLE_COOLBOX">Motor Box Cooler (25 kg)</option>
-                        <option value="CAR_STERILE_BOX">Mobil Steril (150 kg)</option>
-                        <option value="VAN_LOGISTICS">Van Logistik (500 kg)</option>
+                        {uniqueActiveDrivers.length === 0 && <option value="">Belum ada tugas aktif</option>}
+                        {uniqueActiveDrivers.map(d => (
+                          <option key={d.id} value={d.id}>{d.name} ({d.vehicle?.split(' ')[0] || 'Motor'})</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -1352,9 +1362,17 @@ export default function PartnerActivePickupsPage() {
               </div>
             )}
             </>
-          )
-        ) : (
-          completedPickups.length === 0 ? (
+          )}
+        </div>
+
+      {/* 3. RIWAYAT SELESAI */}
+      <div className="space-y-6 pt-10 border-t border-slate-200">
+        <div className="flex items-center gap-2">
+           <CheckIcon className="text-emerald-500 w-6 h-6"/>
+           <h2 className="text-xl font-black text-[#1B3A5C]">Riwayat Selesai ({completedPickups.length})</h2>
+        </div>
+        
+        {completedPickups.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300 p-8 space-y-2 shadow-xs">
               <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-xl">
                 
@@ -1481,8 +1499,7 @@ export default function PartnerActivePickupsPage() {
               </div>
             )}
             </>
-          )
-        )}
+          )}
       </div>
 
       {/* MODAL PLOT DRIVER UNTUK POOL TUGAS */}
@@ -1524,6 +1541,14 @@ export default function PartnerActivePickupsPage() {
               </div>
             )}
 
+            {/* Driver ON/OFF Warning Banner */}
+            <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-900 flex items-start gap-2">
+               <AlertCircle size={14} className="mt-0.5 shrink-0 text-blue-700" />
+               <p className="text-[10px] leading-relaxed">
+                 <strong>Penting:</strong> Tidak semua armada siap jalan. Driver dengan status <span className="bg-slate-200 text-slate-600 font-bold px-1 py-0.5 rounded">OFF-DUTY</span> sedang tidak aktif. Anda hanya dapat memplot driver yang sedang <span className="bg-emerald-100 text-emerald-800 font-bold px-1 py-0.5 rounded">ON-DUTY</span>.
+               </p>
+            </div>
+
             {/* Driver Options Selection */}
             <div className="space-y-2">
               <label className="font-extrabold text-[#1B3A5C] block">
@@ -1539,16 +1564,16 @@ export default function PartnerActivePickupsPage() {
                     <div
                       key={drv.id}
                       onClick={() => {
-                        if (!isOffDuty) {
+                        if (!isOffDuty && !isUnderCapacity) {
                           setSelectedDriverId(drv.id);
                         }
                       }}
-                      className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
+                      className={`p-3 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
                         isSelected
-                          ? 'border-[#1B3A5C] bg-blue-50/60 ring-2 ring-[#1B3A5C]/20 shadow-xs'
-                          : isOffDuty
+                          ? 'border-[#1B3A5C] bg-blue-50/60 ring-2 ring-[#1B3A5C]/20 shadow-xs cursor-pointer'
+                          : isOffDuty || isUnderCapacity
                           ? 'border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                          : 'border-slate-200 bg-white hover:bg-slate-50 cursor-pointer'
                       }`}
                     >
                       <div className="flex items-center gap-3">

@@ -13,6 +13,7 @@ import { useSession } from 'next-auth/react';
 import { SHARED_PANTI_NEEDS, deduplicatePantiNeeds } from '@/lib/pantiData';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import { calculateDistance } from '@/lib/utils';
+import { Card, CardBody } from '@/components/ui/Card';
 import {
   PlusIcon,
   MinusIcon,
@@ -762,12 +763,12 @@ export default function ProviderOverviewPage() {
               const remainingNeeded = Math.max(0, targetQty - fulfilledQty);
 
               return (
-                <div
+                <Card
                   key={panti.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-[#1B3A5C]/40 transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+                  className="!rounded-3xl border-slate-200/90 shadow-xs hover:shadow-md hover:border-[#1B3A5C]/40 transition-all duration-200 flex flex-col justify-between overflow-hidden group !p-0"
                 >
                   {/* Upper Body: Visual Institution Banner & Detailed Information */}
-                  <div className="p-4 sm:p-5 space-y-4">
+                  <CardBody className="p-4 sm:p-5 space-y-4 !bg-transparent">
                     {/* Top Row: Institution Photo + Identity + Match Badges */}
                     <div className="flex items-start gap-3.5 sm:gap-4">
                       {/* Institution Thumbnail with Fallback & Beneficiaries Badge */}
@@ -905,7 +906,7 @@ export default function ProviderOverviewPage() {
                         ))}
                       </div>
                     </div>
-                  </div>
+                  </CardBody>
 
                   {/* Card Action Footer Bar: Desktop Ergonomics */}
                   <div className="px-4 sm:px-5 py-3.5 bg-slate-50/90 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -952,7 +953,7 @@ export default function ProviderOverviewPage() {
                       </Button>
                     </div>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>

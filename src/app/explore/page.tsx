@@ -13,6 +13,7 @@ import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
 import { FoodCard } from '@/components/food/FoodCard';
+import { Card, CardBody } from '@/components/ui/Card';
 import { CheckIcon } from '@/components/ui/Icon';
 import { MapPin, Utensils, ExternalLink } from 'lucide-react';
 import { SHARED_PANTI_NEEDS, SharedPantiNeed, deduplicatePantiNeeds } from '@/lib/pantiData';
@@ -649,11 +650,12 @@ export default function ExplorePage() {
                   const percent = Math.min(100, Math.round((fulfilledNum / targetNum) * 100));
 
                   return (
-                    <div
+                    <Card
                       key={need.id}
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-[#1B3A5C]/40 transition-all flex flex-col justify-between group cursor-pointer"
+                      className="!rounded-2xl border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-[#1B3A5C]/40 transition-all flex flex-col justify-between group cursor-pointer !p-0"
                       onClick={() => setSelectedShelterProfile(need)}
                     >
+                      <CardBody className="!p-0 h-full flex flex-col justify-between">
                       {/* Panti Cover Image & Badges */}
                       <div className="relative h-28 sm:h-44 w-full bg-slate-100 overflow-hidden">
                         <img
@@ -742,11 +744,14 @@ export default function ExplorePage() {
                             }}
                             className="w-full sm:w-auto px-2.5 sm:px-3.5 py-1 sm:py-1.5 bg-[#D4A843] hover:bg-amber-400 text-slate-950 font-black text-[10.5px] sm:text-xs rounded-lg sm:rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
                           >
-                            <span>Sanggupi</span>
+                            <span className="text-white text-[10px] sm:text-xs">
+                              Klaim / Penuhi Donasi
+                            </span>
                           </button>
                         </div>
                       </div>
-                    </div>
+                      </CardBody>
+                    </Card>
                   );
                 })}
               </div>
