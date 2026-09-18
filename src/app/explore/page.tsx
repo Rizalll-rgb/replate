@@ -1047,13 +1047,13 @@ export default function ExplorePage() {
               </Button>
             </Link>
 
-            <Link href="/register?redirect=/explore" className="block w-full">
+            <Link href="/login?redirect=/explore" className="block w-full">
               <Button
                 variant="gold"
                 size="md"
                 className="w-full font-black text-xs text-slate-950 py-3 shadow-md"
               >
-                Daftar Akun Baru Gratis 
+                 Coba Akun Demo (5 Peran) 
               </Button>
             </Link>
           </div>

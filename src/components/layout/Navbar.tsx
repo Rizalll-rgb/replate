@@ -135,9 +135,9 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
                 Masuk
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/login">
               <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs text-slate-950">
-                Daftar Akun
+                Coba Akun Demo
               </Button>
             </Link>
           </div>
@@ -202,9 +202,9 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
             </nav>
 
             <div className="pt-3 border-t border-slate-200 space-y-2.5">
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="block w-full">
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block w-full">
                 <Button variant="gold" size="md" className="w-full font-black text-xs text-slate-950 py-3 shadow-sm justify-center">
-                  Daftar Akun Baru
+                  Coba Akun Demo (5 Peran)
                 </Button>
               </Link>
               <div className="flex items-center justify-between gap-2">

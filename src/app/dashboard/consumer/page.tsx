@@ -1922,7 +1922,7 @@ export default function ConsumerDashboardPage() {
               type="button"
               onClick={() => {
                 setIsPartnershipModalOpen(false);
-                router.push('/register?role=FOOD_PROVIDER');
+                router.push('/future-development?feature=register&role=FOOD_PROVIDER');
               }}
               className="w-full py-3 bg-gradient-to-r from-[#1B3A5C] to-[#254d79] hover:brightness-110 active:scale-98 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
             >

@@ -77,14 +77,14 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-3">
-              <Link href={session ? '/explore' : '/register?role=FOOD_CONSUMER'}>
+              <Link href={session ? '/explore' : '/login?role=FOOD_CONSUMER'}>
                 <Button variant="gold" size="lg" className="w-full sm:w-auto text-base px-8 py-3.5 shadow-lg font-bold">
                   Mulai Selamatkan Makanan 
                 </Button>
               </Link>
-              <Link href="/register?role=FOOD_PROVIDER">
+              <Link href="/login?role=FOOD_PROVIDER">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-base text-white border-2 border-white/40 hover:bg-white/10 font-bold">
-                  Daftar Kemitraan Toko 
+                  Coba Demo Mitra Toko 
                 </Button>
               </Link>
             </div>
@@ -171,9 +171,9 @@ export default function Hero() {
                     Salurkan donasi atau jual diskon murah via platform.
                   </p>
                 </div>
-                <Link href="/register">
+                <Link href="/login?role=FOOD_PROVIDER">
                   <Button variant="gold" size="sm" className="font-black text-[10px] text-slate-950 px-3 py-1.5 shadow-xs whitespace-nowrap">
-                    Daftar Mitra 
+                    Coba Demo Mitra 
                   </Button>
                 </Link>
               </div>

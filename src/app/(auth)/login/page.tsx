@@ -37,6 +37,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isTOSOpen, setIsTOSOpen] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(false);
 
   // Poin 2 & 3: 5 Roles dengan Ikon Khusus dan Hint Informatif & Ramah
   const roleConfigs: Record<
@@ -148,7 +149,10 @@ export default function LoginPage() {
 
   const handleRoleTabChange = (role: RoleType) => {
     setActiveRoleTab(role);
-    // Tidak memaksa mengisi input saat tab berganti, menjaga input tetap sesuai keinginan user
+    setFormData({
+      email: roleConfigs[role].demoEmail,
+      password: 'password123',
+    });
   };
 
   const handleFillDemoCredentials = (role: RoleType) => {
@@ -469,83 +473,120 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* FORM LOGIN (Poin 1: Default Kosong) */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Alamat Email Akun</label>
-                <input
-                  type="email"
-                  className={styles.formInput}
-                  placeholder="nama@domain.id atau email terdaftar"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-                {/* Poin 3: Helpful Input Hint */}
-                <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
-                  Masukkan email aktif yang terdaftar di platform Replate.
-                </p>
+            {/* Active Demo Account Highlights Card */}
+            <div className="p-4 rounded-2xl bg-[#0F1923] border border-[#D4A843]/40 space-y-3 shadow-md">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-[#D4A843] flex items-center justify-center shrink-0 border border-[#D4A843]/30">
+                    {roleConfigs[activeRoleTab].icon}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                      Akun Demo Terpilih:
+                    </span>
+                    <strong className="text-sm font-black text-white block">
+                      {roleConfigs[activeRoleTab].mockProfile?.entityName || roleConfigs[activeRoleTab].label}
+                    </strong>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black rounded-lg">
+                  ✓ 100% Data Tersinkronisasi
+                </span>
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Kata Sandi</label>
-                <div className="relative">
+              <div className="p-2.5 bg-[#142C47]/80 rounded-xl border border-slate-700/80 text-[11px] text-slate-300 flex items-center justify-between gap-2">
+                <span className="text-slate-400">Email Demo:</span>
+                <span className="font-mono text-amber-300 font-bold">{roleConfigs[activeRoleTab].demoEmail}</span>
+              </div>
+
+              {/* PRIMARY 1-CLICK DEMO LOGIN BUTTON */}
+              <button
+                type="button"
+                onClick={() => handleQuickDemoClick(activeRoleTab)}
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-[#D4A843] via-[#E5B954] to-[#C29433] hover:brightness-105 active:scale-98 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border border-amber-300/40"
+              >
+                {loading ? (
+                  <span>Mempersiapkan Sesi {roleConfigs[activeRoleTab].label}...</span>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-slate-950" />
+                    <span>Masuk Instan Sebagai {roleConfigs[activeRoleTab].label}</span>
+                    <ArrowRight className="w-4 h-4 text-slate-950" />
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Toggle Manual Credentials */}
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => setShowManualForm(!showManualForm)}
+                className="text-xs text-slate-400 hover:text-slate-200 font-bold underline cursor-pointer"
+              >
+                {showManualForm ? 'Tutup Form Kredensial Manual' : 'Atau Masuk dengan Form Kredensial Email'}
+              </button>
+            </div>
+
+            {/* OPTIONAL COLLAPSIBLE MANUAL LOGIN FORM */}
+            {showManualForm && (
+              <form onSubmit={handleSubmit} className="space-y-4 pt-2 border-t border-slate-800 animate-in fade-in duration-150">
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Alamat Email Akun</label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    className={`${styles.formInput} pr-11`}
-                    placeholder="Masukkan kata sandi akun Anda"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    type="email"
+                    className={styles.formInput}
+                    placeholder="nama@domain.id atau email terdaftar"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4A843] transition-colors p-1.5 rounded-lg flex items-center justify-center cursor-pointer"
-                    title={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-                    aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                  <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+                    Email akun demo terisi otomatis sesuai peran di atas.
+                  </p>
                 </div>
-                {/* Poin 3: Helpful Input Hint */}
-                <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
-                  Kata sandi akun Anda (minimal 6 karakter kombinasi huruf & angka).
-                </p>
-              </div>
 
-              {/* Remember Me & Poin 5: Syarat dan Ketentuan */}
-              <div className="flex items-center justify-between text-xs text-slate-300 flex-wrap gap-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-slate-700 bg-slate-900 text-[#D4A843] focus:ring-[#D4A843]"
-                  />
-                  <span>Ingat saya di perangkat ini</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setIsTOSOpen(true)}
-                  className="text-[#D4A843] hover:underline font-bold cursor-pointer"
-                >
-                  Syarat dan Ketentuan
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Kata Sandi</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className={`${styles.formInput} pr-11`}
+                      placeholder="Masukkan kata sandi akun Anda"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4A843] transition-colors p-1.5 rounded-lg flex items-center justify-center cursor-pointer"
+                      title={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                      aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-300 font-normal mt-1 leading-tight">
+                    Kata sandi akun demo default: <span className="font-mono text-amber-300">password123</span>
+                  </p>
+                </div>
+
+                <button type="submit" className={styles.btnSubmit} disabled={loading}>
+                  {loading ? 'Memproses Autentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label}`}
                 </button>
-              </div>
+              </form>
+            )}
 
-              {/* Submit Button */}
-              <button type="submit" className={styles.btnSubmit} disabled={loading}>
-                {loading ? 'Memproses Autentikasi...' : `Masuk Sebagai ${roleConfigs[activeRoleTab].label}`}
-              </button>
-
-              {/* Poin 4: Google OAuth Redirect ke Future Development */}
-              <div className="relative my-3 text-center">
+            {/* Google OAuth Redirect ke Future Development */}
+            <div className="space-y-2.5 pt-1">
+              <div className="relative my-2 text-center">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-700"></div>
                 </div>
                 <div className="relative inline-block px-3 bg-[#142C47] text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                  Atau Masuk Cepat
+                  Opsi Akses Lainnya
                 </div>
               </div>
 
@@ -573,31 +614,39 @@ export default function LoginPage() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Masuk Dengan Akun Google</span>
+                <span>Masuk Dengan Akun Google (Fase 2)</span>
               </button>
-            </form>
+            </div>
 
-            {/* Poin 5 (b): Inklusif Register Link & Mobile Status Link */}
-            <div className="space-y-2 pt-4 border-t border-slate-800 text-xs text-center lg:text-left text-slate-300">
-              <div>
-                <span>{roleConfigs[activeRoleTab].registerPrompt} </span>
-                <Link
-                  href={`/register?role=${activeRoleTab}`}
-                  className="font-extrabold text-[#D4A843] hover:underline"
-                >
-                  Daftar Akun Baru Sekarang
-                </Link>
+            {/* Registration Future Development Banner */}
+            <div className="p-4 bg-[#0F1923] rounded-2xl border border-amber-500/30 space-y-2 pt-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-[#D4A843] uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-[#D4A843]" />
+                  Pendaftaran Mandiri: Roadmap Future Development
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                  Fase 2 (Q3 2026)
+                </span>
               </div>
-
-              {/* Mobile Tracking Status Link */}
-              <div className="pt-1.5 block lg:hidden text-center">
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Fitur pendaftaran akun mandiri sedang dalam proses integrasi regulasi e-KYC Dukcapil RI dan sertifikasi SOP BPOM terpusat. Untuk keperluan pengujian dan penjurian lomba web development saat ini, seluruh evaluasi diwajibkan menggunakan <strong>5 Akun Demo Siap Pakai</strong> di atas.
+              </p>
+              <div className="pt-1 flex items-center justify-between flex-wrap gap-2">
                 <Link
-                  href="/track-status"
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-extrabold bg-[#0F1923] px-3.5 py-2 rounded-xl border border-amber-400/40 shadow-xs transition-all"
+                  href="/future-development?feature=register"
+                  className="inline-flex items-center gap-1 text-xs font-extrabold text-amber-300 hover:text-amber-200 underline"
                 >
-                  <FileCheck2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Pernah Mendaftar? Cek Live Status Audit</span>
+                  <span>Pelajari Roadmap Registrasi Mandiri (Fase 2)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsTOSOpen(true)}
+                  className="text-[11px] text-slate-400 hover:text-white underline cursor-pointer"
+                >
+                  Syarat &amp; Ketentuan
+                </button>
               </div>
             </div>
           </div>
