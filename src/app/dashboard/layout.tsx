@@ -6,8 +6,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { GojekProfileDrawer } from '@/components/layout/GojekProfileDrawer';
-import { useSession } from 'next-auth/react';
-import { User } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { User, LogOut } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,6 +16,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [profileData, setProfileData] = useState<any>(null);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState<boolean>(false);
   const [isRedirectingRoleMismatch, setIsRedirectingRoleMismatch] = useState<boolean>(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState<boolean>(false);
+
+  const handleLogout = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+      }
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+    } catch (_) {}
+    await signOut({ callbackUrl: '/' });
+  };
 
   useEffect(() => {
     try {
@@ -193,16 +206,64 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               </div>
 
-              {/* Avatar Profile Drawer Trigger Button */}
-              <button
-                type="button"
-                onClick={() => setIsProfileDrawerOpen(true)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer relative shrink-0"
-                title="Buka Profil & Pengaturan (Ala Gojek)"
-              >
-                <User className="w-4 h-4 text-[#1B3A5C]" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Mobile Logout Action Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutConfirmOpen(true)}
+                  className="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 active:scale-95 transition-all cursor-pointer relative shrink-0 shadow-2xs"
+                  title="Keluar dari Akun"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                </button>
+
+                {/* Avatar Profile Drawer Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsProfileDrawerOpen(true)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer relative shrink-0"
+                  title="Buka Profil & Pengaturan (Ala Gojek)"
+                >
+                  <User className="w-4 h-4 text-[#1B3A5C]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Logout Confirmation Modal */}
+          {isLogoutConfirmOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+              <div className="bg-white rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl border border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <LogOut className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900">Keluar dari Akun?</h3>
+                    <p className="text-xs text-slate-500 font-medium">Akhiri sesi login di perangkat ini.</p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  Data profil dan riwayat Anda tetap tersimpan. Anda dapat masuk kembali kapan saja.
+                </p>
+                <div className="flex justify-end gap-2 pt-1 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsLogoutConfirmOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="px-4 py-2 rounded-xl text-xs font-black text-white bg-rose-600 hover:bg-rose-700 shadow-sm cursor-pointer"
+                  >
+                    Ya, Keluar
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

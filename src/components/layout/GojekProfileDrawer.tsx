@@ -131,15 +131,17 @@ export const GojekProfileDrawer: React.FC<GojekProfileDrawerProps> = ({
     router.push(path);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose();
     try {
       if (typeof window !== 'undefined') {
         localStorage.clear();
-        document.cookie = 'replate_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       }
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      });
     } catch (_) {}
-    signOut({ callbackUrl: '/login' });
+    await signOut({ callbackUrl: '/' });
   };
 
   return (

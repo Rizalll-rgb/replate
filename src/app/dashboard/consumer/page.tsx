@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -41,6 +41,7 @@ import {
   Handshake,
   Leaf,
   MessageCircle,
+  LogOut,
 } from 'lucide-react';
 import { FoodGrid } from '@/components/food/FoodGrid';
 import { FoodDetailModal } from '@/components/food/FoodDetailModal';
@@ -96,6 +97,20 @@ export default function ConsumerDashboardPage() {
   const [isPahlawanInfoModalOpen, setIsPahlawanInfoModalOpen] = useState(false);
   const [isStatusExplanationModalOpen, setIsStatusExplanationModalOpen] = useState(false);
   const [isPartnershipModalOpen, setIsPartnershipModalOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLogoutConfirmOpen(false);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+      }
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      });
+    } catch (_) {}
+    await signOut({ callbackUrl: '/' });
+  };
 
   // Loader & Toast
   const [actionLoader, setActionLoader] = useState<{ isOpen: boolean; message: string; submessage?: string }>({
@@ -771,7 +786,7 @@ export default function ConsumerDashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <Link href="/dashboard/cart">
                 <button
                   type="button"
@@ -797,6 +812,16 @@ export default function ConsumerDashboardPage() {
               >
                 <User className="w-4 h-4 text-[#D4A843]" />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+              </button>
+
+              {/* Mobile Quick Logout Button */}
+              <button
+                type="button"
+                onClick={() => setIsLogoutConfirmOpen(true)}
+                className="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center font-bold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer shrink-0"
+                title="Keluar dari Akun"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-600" />
               </button>
             </div>
           </div>
@@ -1955,6 +1980,42 @@ export default function ConsumerDashboardPage() {
         message={actionLoader.message}
         submessage={actionLoader.submessage}
       />
+
+      {/* Mobile Logout Confirmation Modal */}
+      {isLogoutConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 font-sans">
+          <div className="bg-white rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900">Keluar dari Akun?</h3>
+                <p className="text-xs text-slate-500 font-medium">Akhiri sesi login konsumen di perangkat ini.</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+              Data EcoPoints, riwayat klaim, dan domisili tersimpan Anda tetap aman di cloud Replate. Anda dapat masuk kembali kapan saja.
+            </p>
+            <div className="flex justify-end gap-2 pt-1 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsLogoutConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-xs"
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar {

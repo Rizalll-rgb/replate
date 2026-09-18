@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { SuperAppLoader } from '@/components/ui/SuperAppLoader';
 import { ShieldCheckIcon, CheckIcon, SearchIcon, MapPinIcon } from '@/components/ui/Icon';
-import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, HelpCircle, Tag, X, MapPin } from 'lucide-react';
+import { AlertTriangle, Clock, Loader2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, HelpCircle, Tag, X, MapPin, LogOut } from 'lucide-react';
 import {
   resolveIndonesianAddress,
   reverseGeocodeIndonesianCoords,
@@ -1083,6 +1083,20 @@ export default function DashboardProfilePage() {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [mapZoom, setMapZoom] = useState(15);
   const [activeIslandTab, setActiveIslandTab] = useState<'SEMUA' | 'JABODETABEK' | 'JATENG_DIY' | 'JATIM' | 'SUMATERA' | 'BALI_NUSA' | 'KALIMANTAN' | 'SULAWESI_PAPUA'>('SEMUA');
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLogoutConfirmOpen(false);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+      }
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      });
+    } catch (_) {}
+    await signOut({ callbackUrl: '/' });
+  };
 
   const suppressDropdownRef = React.useRef<boolean>(false);
   const searchContainerRef = React.useRef<HTMLDivElement>(null);
@@ -2071,10 +2085,21 @@ export default function DashboardProfilePage() {
           </p>
         </div>
 
-        <span className={`text-xs font-black px-3.5 py-1.5 rounded-full border shadow-xs flex items-center gap-1.5 ${roleInfo.bg}`}>
-          <CheckIcon size={12} />
-          <span>{roleInfo.label}</span>
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-black px-3.5 py-1.5 rounded-full border shadow-xs flex items-center gap-1.5 ${roleInfo.bg}`}>
+            <CheckIcon size={12} />
+            <span>{roleInfo.label}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsLogoutConfirmOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+            title="Keluar dari Akun"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+            <span className="hidden sm:inline">Keluar</span>
+          </button>
+        </div>
       </div>
 
       {/* 4 Rich Core Tabs */}
@@ -3477,6 +3502,71 @@ export default function DashboardProfilePage() {
             )}
           </Card>
         </div>
+      )}
+
+      {/* Sesi Akun & Logout Section (Sangat Jelas & Terlihat di Mobile Pengaturan) */}
+      <div className="bg-rose-50/70 border border-rose-200 rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-rose-900 font-black text-sm">
+            <LogOut className="w-4 h-4 text-rose-600" />
+            <span>Sesi Akun &amp; Keamanan Perangkat</span>
+          </div>
+          <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
+            Ingin berganti akun atau mengakhiri sesi login di perangkat ini? Semua riwayat klaim, pesanan, dan data profil Anda tetap tersimpan dengan aman.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsLogoutConfirmOpen(true)}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Keluar dari Akun (Logout)</span>
+        </button>
+      </div>
+
+      {/* Mobile & Universal Logout Confirmation Modal */}
+      {isLogoutConfirmOpen && (
+        <Modal
+          isOpen={isLogoutConfirmOpen}
+          onClose={() => setIsLogoutConfirmOpen(false)}
+          title="Konfirmasi Keluar Akun"
+          size="sm"
+        >
+          <div className="space-y-4 font-sans">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900">Keluar dari Replate?</h3>
+                <p className="text-xs text-slate-500 font-medium">Sesi akun Anda di perangkat ini akan diakhiri.</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+              Data profil, transaksi aktif, saldo EcoPoints, dan riwayat klaim Anda akan tetap tersimpan secara aman di cloud Replate.
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setIsLogoutConfirmOpen(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="button"
+                onClick={handleLogout}
+                className="bg-rose-600 hover:bg-rose-700 font-black text-xs text-white cursor-pointer shadow-xs"
+              >
+                Ya, Keluar Akun
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {/* Modal Add Store Driver */}
