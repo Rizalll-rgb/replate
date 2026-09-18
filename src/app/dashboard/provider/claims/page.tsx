@@ -32,10 +32,33 @@ import {
 
 export default function ProviderClaimsPage() {
   const router = useRouter();
+  const [isConsumerRedirect, setIsConsumerRedirect] = useState<boolean>(false);
   const [showScanner, setShowScanner] = useState(false);
   const [manualCodeInput, setManualCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'PAYMENT_VERIFY' | 'PENDING_PICKUP' | 'IN_TRANSIT' | 'COMPLETED'>('PAYMENT_VERIFY');
   const [cardPageIndex, setCardPageIndex] = useState<number>(0);
+
+  // Strict Consumer Guard: Food Consumers must never access Kasir & Klaim Toko
+  useEffect(() => {
+    try {
+      let role = '';
+      const onb = localStorage.getItem('replate_onboarding_profile');
+      if (onb) role = JSON.parse(onb).role;
+      if (!role) {
+        const reg = localStorage.getItem('replate_registered_user');
+        if (reg) role = JSON.parse(reg).role;
+      }
+      if (!role) {
+        const c = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+        if (c) role = decodeURIComponent(c[1]);
+      }
+      const r = String(role || '').toUpperCase();
+      if (r.includes('CONSUMER')) {
+        setIsConsumerRedirect(true);
+        router.replace('/dashboard/consumer');
+      }
+    } catch (_) {}
+  }, [router]);
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
     isOpen: false,
@@ -747,6 +770,17 @@ export default function ProviderClaimsPage() {
   const pickupClaims = pendingClaims.filter(
     (c) => c.status !== 'PAYMENT_PROOF_UPLOADED' && c.status !== 'WAITING_PAYMENT_AT_STORE' && c.status !== 'AWAITING_VERIFICATION' && c.status !== 'WAITING_PAYMENT_APPROVAL'
   );
+
+  if (isConsumerRedirect) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 mx-auto border-3 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-extrabold">Mengarahkan ke Dashboard Konsumen...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -11,15 +11,22 @@ import { User } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const [profileData, setProfileData] = useState<any>(null);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState<boolean>(false);
+  const [isRedirectingRoleMismatch, setIsRedirectingRoleMismatch] = useState<boolean>(false);
 
   useEffect(() => {
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
         setProfileData(JSON.parse(p));
+      } else {
+        const reg = localStorage.getItem('replate_registered_user');
+        if (reg) {
+          setProfileData(JSON.parse(reg));
+        }
       }
     } catch (_) {}
   }, [session]);
@@ -32,8 +39,68 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, []);
 
+  // Determine user's real role from local onboarding data, session, or cookie
+  let detectedUserRole = 'FOOD_CONSUMER';
+  try {
+    if (profileData?.role) {
+      detectedUserRole = profileData.role;
+    } else if (typeof window !== 'undefined') {
+      const rawOnb = localStorage.getItem('replate_onboarding_profile');
+      if (rawOnb) {
+        detectedUserRole = JSON.parse(rawOnb).role || 'FOOD_CONSUMER';
+      } else {
+        const rawReg = localStorage.getItem('replate_registered_user');
+        if (rawReg) {
+          detectedUserRole = JSON.parse(rawReg).role || 'FOOD_CONSUMER';
+        } else {
+          const cookieMatch = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+          if (cookieMatch) detectedUserRole = decodeURIComponent(cookieMatch[1]);
+        }
+      }
+    }
+  } catch (_) {}
+
+  if (!detectedUserRole && session?.user?.role) {
+    detectedUserRole = session.user.role;
+  }
+
+  // Cross-role workspace protection: strictly prevent Consumers from entering Provider workspaces
+  useEffect(() => {
+    const upper = String(detectedUserRole || '').toUpperCase();
+    const isConsumer = upper.includes('CONSUMER');
+    const isProvider = upper.includes('PROVIDER');
+    const isBeneficiary = upper.includes('BENEFICIARY') || upper.includes('YAYASAN');
+    const isVolunteer = upper.includes('VOLUNTEER') || upper.includes('RESCUE');
+
+    if (isConsumer && pathname.startsWith('/dashboard/provider')) {
+      setIsRedirectingRoleMismatch(true);
+      router.replace('/dashboard/consumer');
+      return;
+    }
+
+    if (isProvider && pathname.startsWith('/dashboard/consumer')) {
+      setIsRedirectingRoleMismatch(true);
+      router.replace('/dashboard/provider');
+      return;
+    }
+
+    if (isBeneficiary && (pathname.startsWith('/dashboard/provider') || pathname.startsWith('/dashboard/consumer'))) {
+      setIsRedirectingRoleMismatch(true);
+      router.replace('/dashboard/yayasan');
+      return;
+    }
+
+    if (isVolunteer && (pathname.startsWith('/dashboard/provider') || pathname.startsWith('/dashboard/consumer'))) {
+      setIsRedirectingRoleMismatch(true);
+      router.replace('/dashboard/rescue-partner');
+      return;
+    }
+
+    setIsRedirectingRoleMismatch(false);
+  }, [pathname, detectedUserRole, router]);
+
   // Path-based role awareness strictly isolates role experiences and prevents role bleeding
-  let inferredRoleFromPath: string = 'FOOD_PROVIDER';
+  let inferredRoleFromPath: string = detectedUserRole;
   if (pathname.startsWith('/dashboard/consumer')) inferredRoleFromPath = 'FOOD_CONSUMER';
   else if (pathname.startsWith('/dashboard/yayasan')) inferredRoleFromPath = 'FOOD_BENEFICIARY';
   else if (pathname.startsWith('/dashboard/rescue-partner')) inferredRoleFromPath = 'RESCUE_VOLUNTEER';
@@ -42,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Role resolution priority:
   // 1. If currently inside a role-specific workspace, enforce that workspace role
-  // 2. Otherwise use onboarding profile role or session user role
+  // 2. Otherwise use onboarding profile role, session user role, or detected role
   const resolvedRole = pathname.startsWith('/dashboard/consumer')
     ? 'FOOD_CONSUMER'
     : pathname.startsWith('/dashboard/yayasan')
@@ -53,7 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? 'SUPER_ADMIN'
     : pathname.startsWith('/dashboard/provider')
     ? 'FOOD_PROVIDER'
-    : profileData?.role || session?.user?.role || inferredRoleFromPath;
+    : detectedUserRole || profileData?.role || session?.user?.role || inferredRoleFromPath;
 
   const isConsumerContext = String(resolvedRole).toUpperCase().includes('CONSUMER');
 
@@ -139,7 +206,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           )}
 
-          <main className="p-2 sm:p-4 md:p-6 flex-1 overflow-y-auto pb-24 md:pb-6">{children}</main>
+          <main className="p-2 sm:p-4 md:p-6 flex-1 overflow-y-auto pb-24 md:pb-6">
+            {isRedirectingRoleMismatch || (String(detectedUserRole).toUpperCase().includes('CONSUMER') && pathname.startsWith('/dashboard/provider')) ? (
+              <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="text-center space-y-3">
+                  <div className="w-8 h-8 mx-auto border-3 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-slate-500 font-extrabold">Mengarahkan ke Ruang Kerja Konsumen...</p>
+                </div>
+              </div>
+            ) : (
+              children
+            )}
+          </main>
         </div>
       </div>
 

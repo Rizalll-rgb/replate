@@ -36,12 +36,37 @@ import {
 export default function ProviderOverviewPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const [isConsumerRedirect, setIsConsumerRedirect] = useState<boolean>(false);
   const [activeSurplusCount, setActiveSurplusCount] = useState<number>(2);
   const [completedClaimsCount, setCompletedClaimsCount] = useState<number>(3);
   const [totalRescuedKg, setTotalRescuedKg] = useState<number>(42.5);
   const [providerName, setProviderName] = useState<string>('Warung Bakso Pak Kumis');
   const [providerAddress, setProviderAddress] = useState<string>('Surabaya');
   const [todayFormatted, setTodayFormatted] = useState<string>('');
+
+  // Strict Consumer Guard: Food Consumers must never enter Provider Dashboard
+  useEffect(() => {
+    try {
+      let role = '';
+      const onb = localStorage.getItem('replate_onboarding_profile');
+      if (onb) role = JSON.parse(onb).role;
+      if (!role) {
+        const reg = localStorage.getItem('replate_registered_user');
+        if (reg) role = JSON.parse(reg).role;
+      }
+      if (!role) {
+        const c = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+        if (c) role = decodeURIComponent(c[1]);
+      }
+      if (!role && session?.user?.role) role = session.user.role;
+
+      const r = String(role || '').toUpperCase();
+      if (r.includes('CONSUMER')) {
+        setIsConsumerRedirect(true);
+        router.replace('/dashboard/consumer');
+      }
+    } catch (_) {}
+  }, [session, router]);
 
   // Available Surplus Products from Provider Catalog
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
@@ -554,6 +579,17 @@ export default function ProviderOverviewPage() {
       return b.matchScore - a.matchScore;
     });
   }, [matchedPantiList, matchingPriorityFilter]);
+
+  if (isConsumerRedirect) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 mx-auto border-3 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-extrabold">Mengarahkan ke Dashboard Konsumen...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 sm:space-y-8 max-w-6xl mx-auto pb-12">

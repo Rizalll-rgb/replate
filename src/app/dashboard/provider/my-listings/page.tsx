@@ -11,10 +11,35 @@ import { Badge } from '@/components/ui/Badge';
 import { CheckIcon, PlusIcon } from '@/components/ui/Icon';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function MyListingsPage() {
+  const router = useRouter();
   const { data: session } = useSession();
+  const [isConsumerRedirect, setIsConsumerRedirect] = useState<boolean>(false);
   const [foods, setFoods] = useState<any[]>([]);
+
+  // Strict Consumer Guard: Food Consumers must never access Daftar Makanan Toko
+  useEffect(() => {
+    try {
+      let role = '';
+      const onb = localStorage.getItem('replate_onboarding_profile');
+      if (onb) role = JSON.parse(onb).role;
+      if (!role) {
+        const reg = localStorage.getItem('replate_registered_user');
+        if (reg) role = JSON.parse(reg).role;
+      }
+      if (!role) {
+        const c = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+        if (c) role = decodeURIComponent(c[1]);
+      }
+      const r = String(role || '').toUpperCase();
+      if (r.includes('CONSUMER')) {
+        setIsConsumerRedirect(true);
+        router.replace('/dashboard/consumer');
+      }
+    } catch (_) {}
+  }, [router]);
   const [activeTabFilter, setActiveTabFilter] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [selectedFood, setSelectedFood] = useState<any | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -382,6 +407,17 @@ export default function MyListingsPage() {
   const activeFoods = foods.filter((f) => f.status === 'AVAILABLE' || f.status === 'ACTIVE' || !f.status);
   const inactiveFoods = foods.filter((f) => f.status === 'UNAVAILABLE' || f.status === 'INACTIVE');
   const displayedFoods = activeTabFilter === 'ACTIVE' ? activeFoods : inactiveFoods;
+
+  if (isConsumerRedirect) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 mx-auto border-3 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-extrabold">Mengarahkan ke Dashboard Konsumen...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ImpactDashboard } from '@/components/impact/ImpactDashboard';
 import { ImpactChart } from '@/components/impact/ImpactChart';
 import { CertificatePreview } from '@/components/reports/CertificatePreview';
@@ -16,9 +16,33 @@ import {
 import { Leaf, FileCheck, Printer, ShieldCheck, Flame, Sparkles } from 'lucide-react';
 
 function ProviderImpactContent() {
+  const router = useRouter();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
+  const [isConsumerRedirect, setIsConsumerRedirect] = useState<boolean>(false);
   
+  // Strict Consumer Guard: Food Consumers must never access Laporan Dampak Toko
+  useEffect(() => {
+    try {
+      let role = '';
+      const onb = localStorage.getItem('replate_onboarding_profile');
+      if (onb) role = JSON.parse(onb).role;
+      if (!role) {
+        const reg = localStorage.getItem('replate_registered_user');
+        if (reg) role = JSON.parse(reg).role;
+      }
+      if (!role) {
+        const c = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+        if (c) role = decodeURIComponent(c[1]);
+      }
+      const r = String(role || '').toUpperCase();
+      if (r.includes('CONSUMER')) {
+        setIsConsumerRedirect(true);
+        router.replace('/dashboard/consumer');
+      }
+    } catch (_) {}
+  }, [router]);
+
   // Default main tab = ANALYTICS (Poin 5)
   const [activeTab, setActiveTab] = useState<'ANALYTICS' | 'CSR' | 'CERTIFICATE'>('ANALYTICS');
 
@@ -112,6 +136,17 @@ function ProviderImpactContent() {
     totalWeightKg,
     orgName
   );
+
+  if (isConsumerRedirect) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 mx-auto border-3 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-extrabold">Mengarahkan ke Dashboard Konsumen...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

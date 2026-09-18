@@ -978,36 +978,101 @@ export default function DashboardProfilePage() {
     },
   ]);
 
-  const [profileData, setProfileData] = useState({
-    name: 'Warung Bakso Pak Kumis',
-    email: 'mitra@replate.id',
-    role: 'FOOD_PROVIDER',
-    phone: '0812-3456-7890',
-    province: 'Jawa Timur',
-    city: 'Kota Surabaya',
-    district: 'Gubeng',
-    address: 'Jl. Raya Gubeng No. 88, RT 03 / RW 05, Gubeng, Surabaya',
-    houseNumber: 'No. 88',
-    rtRw: 'RT 03 / RW 05',
-    landmark: 'Sebelah Apotek Kimia Farma, Pagar Hijau',
-    entityName: 'Warung Bakso Pak Kumis Surabaya',
-    isVerified: true,
-    nib: 'NIB-9120481023912',
-    businessCategory: 'Restoran / Warung Kuliner',
-    pickupHours: '19:00 - 22:00 WIB',
-    halalCertNo: 'ID35110001298450123',
-    maxRadiusKm: 12,
-    defaultPackaging: 'Kemasan Boks Biodegradable (Steril Food-Grade)',
-    qrisBank: 'Bank Mandiri / BCA',
-    qrisAccountNo: '141-00-9812401-2',
-    qrisNmid: 'ID1020304050607',
-    qrisMerchantName: 'Warung Bakso Pak Kumis Surabaya',
-    qrisImageUrl: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=500&auto=format&fit=crop&q=80',
-    lat: -7.2754,
-    lng: 112.7541,
-    waAlerts: true,
-    autoMatchPanti: true,
-    operationalCoverage: 'Kec. Plaosan & Kab. Magetan (Radius 12 km)',
+  const [profileData, setProfileData] = useState(() => {
+    let initialName = 'Pengguna Replate';
+    let initialEmail = '';
+    let initialRole = 'FOOD_CONSUMER';
+    let initialPhone = '';
+    let initialAddress = '';
+    let initialDistrict = '';
+    let initialCity = 'Surabaya';
+    let initialProvince = 'Jawa Timur';
+    let initialHouseNumber = '';
+    let initialRtRw = '';
+    let initialLandmark = '';
+    let initialEntityName = '';
+    let initialCoverage = '';
+    let initialLat = -7.2575;
+    let initialLng = 112.7521;
+    let initialRadius = 10;
+    let initialCategory = '';
+    let initialPickup = '10:00 - 21:00 WIB';
+    let initialPackaging = 'Boks Makanan Higienis';
+    let initialQrisBank = '';
+    let initialQrisAccount = '';
+    let initialQrisNmid = '';
+    let initialQrisMerchant = '';
+    let initialQrisImage = '';
+
+    if (typeof window !== 'undefined') {
+      try {
+        const rawOnb = localStorage.getItem('replate_onboarding_profile');
+        const rawReg = localStorage.getItem('replate_registered_user');
+        const cookieMatch = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+        const data = rawOnb ? JSON.parse(rawOnb) : rawReg ? JSON.parse(rawReg) : null;
+
+        if (data) {
+          initialName = data.name || data.entityName || initialName;
+          initialEmail = data.email || initialEmail;
+          initialRole = data.role || (cookieMatch ? decodeURIComponent(cookieMatch[1]) : initialRole);
+          initialPhone = data.phone || initialPhone;
+          initialAddress = data.address || initialAddress;
+          initialDistrict = data.district || initialDistrict;
+          initialCity = data.city || initialCity;
+          initialProvince = data.province || initialProvince;
+          initialHouseNumber = data.houseNumber || initialHouseNumber;
+          initialRtRw = data.rtRw || initialRtRw;
+          initialLandmark = data.landmark || initialLandmark;
+          initialEntityName = data.entityName || data.name || initialEntityName;
+          initialCoverage = data.operationalCoverage || initialCoverage;
+          if (data.lat || data.latitude) initialLat = data.lat || data.latitude;
+          if (data.lng || data.longitude) initialLng = data.lng || data.longitude;
+          if (data.maxRadiusKm) initialRadius = data.maxRadiusKm;
+          if (data.businessCategory) initialCategory = data.businessCategory;
+          if (data.pickupHours) initialPickup = data.pickupHours;
+          if (data.defaultPackaging) initialPackaging = data.defaultPackaging;
+          if (data.qrisBank) initialQrisBank = data.qrisBank;
+          if (data.qrisAccountNo) initialQrisAccount = data.qrisAccountNo;
+          if (data.qrisNmid) initialQrisNmid = data.qrisNmid;
+          if (data.qrisMerchantName) initialQrisMerchant = data.qrisMerchantName;
+          if (data.qrisImageUrl) initialQrisImage = data.qrisImageUrl;
+        } else if (cookieMatch) {
+          initialRole = decodeURIComponent(cookieMatch[1]);
+        }
+      } catch (_) {}
+    }
+
+    return {
+      name: initialName,
+      email: initialEmail,
+      role: initialRole,
+      phone: initialPhone,
+      province: initialProvince,
+      city: initialCity,
+      district: initialDistrict,
+      address: initialAddress,
+      houseNumber: initialHouseNumber,
+      rtRw: initialRtRw,
+      landmark: initialLandmark,
+      entityName: initialEntityName,
+      isVerified: true,
+      nib: '',
+      businessCategory: initialCategory,
+      pickupHours: initialPickup,
+      halalCertNo: '',
+      maxRadiusKm: initialRadius,
+      defaultPackaging: initialPackaging,
+      qrisBank: initialQrisBank,
+      qrisAccountNo: initialQrisAccount,
+      qrisNmid: initialQrisNmid,
+      qrisMerchantName: initialQrisMerchant,
+      qrisImageUrl: initialQrisImage,
+      lat: initialLat,
+      lng: initialLng,
+      waAlerts: true,
+      autoMatchPanti: true,
+      operationalCoverage: initialCoverage,
+    };
   });
 
   const [mapSearchQuery, setMapSearchQuery] = useState('');
@@ -1559,32 +1624,35 @@ export default function DashboardProfilePage() {
       }
       
       const activeEmail = demoSession?.email || session?.user?.email;
-      const activeRole = demoSession?.role || session?.user?.role || localStorage.getItem('replate_role') || (rawDemoCookie ? rawDemoCookie[1] : null);
 
-      // 1. Cek akun terdaftar pengguna asli (Hanya dipakai jika email cocok dengan sesi aktif)
-      let regUser: any = null;
-      const rawReg = localStorage.getItem('replate_registered_user');
-      if (rawReg) {
-        try {
-          const parsed = JSON.parse(rawReg);
-          // Jika tidak sedang memakai akun demo lain, gunakan regUser
-          if (!demoSession || parsed.email === activeEmail) {
-            regUser = parsed;
-          }
-        } catch (_) {}
-      }
-
-      // 2. Cek profil onboarding
+      // 1. Cek akun profil onboarding & registrasi asli pengguna (Prioritas Mutlak)
       let onbProfile: any = null;
-      const saved = localStorage.getItem('replate_onboarding_profile');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (!demoSession || parsed.email === activeEmail) {
-            onbProfile = parsed;
-          }
-        } catch (_) {}
-      }
+      try {
+        const saved = localStorage.getItem('replate_onboarding_profile');
+        if (saved) onbProfile = JSON.parse(saved);
+      } catch (_) {}
+
+      let regUser: any = null;
+      try {
+        const rawReg = localStorage.getItem('replate_registered_user');
+        if (rawReg) regUser = JSON.parse(rawReg);
+      } catch (_) {}
+
+      // 2. Tentukan peran aktif pengguna secara akurat (Prioritas utama: Onboarding/Registrasi Pengguna Asli)
+      const storedRoleCookie = typeof document !== 'undefined'
+        ? (document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/))
+        : null;
+      const cookieRole = storedRoleCookie ? decodeURIComponent(storedRoleCookie[1]) : null;
+
+      const resolvedRole =
+        onbProfile?.role ||
+        regUser?.role ||
+        localStorage.getItem('replate_role') ||
+        session?.user?.role ||
+        cookieRole ||
+        'FOOD_CONSUMER';
+
+      const activeRole = resolvedRole;
 
       // Template bawaan jika login via Demo Dummy
       const demoRoleDefaults: Record<string, any> = {
@@ -1667,7 +1735,7 @@ export default function DashboardProfilePage() {
         },
       };
 
-      const matchedDemo = (activeRole && demoRoleDefaults[activeRole]) || (demoSession?.role && demoRoleDefaults[demoSession.role]);
+      const matchedDemo = !onbProfile && !regUser ? (demoRoleDefaults[activeRole] || null) : null;
 
       setProfileData((prev) => {
         const resolvedEmail =
@@ -1675,52 +1743,49 @@ export default function DashboardProfilePage() {
           regUser?.email ||
           matchedDemo?.email ||
           activeEmail ||
-          prev.email;
+          prev.email ||
+          '';
 
         const resolvedName =
           onbProfile?.name ||
           regUser?.name ||
           matchedDemo?.name ||
-          (session?.user?.name && !session.user.name.includes('Pak Kumis') ? session.user.name : prev.name);
+          (session?.user?.name && !session.user.name.includes('Pak Kumis') ? session.user.name : prev.name) ||
+          'Pengguna Replate';
 
         const resolvedEntity =
           onbProfile?.entityName ||
           matchedDemo?.entityName ||
           regUser?.name ||
-          prev.entityName;
+          prev.entityName ||
+          resolvedName;
 
         const resolvedPhone =
           onbProfile?.phone ||
           regUser?.phone ||
           matchedDemo?.phone ||
-          prev.phone;
+          prev.phone ||
+          '';
 
-        const resolvedRole =
-          matchedDemo?.role ||
-          activeRole ||
-          regUser?.role ||
-          onbProfile?.role ||
-          prev.role;
+        let resolvedAddress = onbProfile?.address || regUser?.address || matchedDemo?.address || prev.address || '';
+        let resolvedProvince = onbProfile?.province || matchedDemo?.province || prev.province || 'Jawa Timur';
+        let resolvedCity = onbProfile?.city || matchedDemo?.city || prev.city || 'Surabaya';
+        let resolvedDistrict = onbProfile?.district || matchedDemo?.district || prev.district || '';
+        let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat || -7.2575;
+        let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng || 112.7521;
 
-        let resolvedAddress = onbProfile?.address || matchedDemo?.address || regUser?.address || prev.address;
-        let resolvedProvince = onbProfile?.province || matchedDemo?.province || prev.province;
-        let resolvedCity = onbProfile?.city || matchedDemo?.city || prev.city;
-        let resolvedDistrict = onbProfile?.district || matchedDemo?.district || prev.district;
-        let resolvedLat = onbProfile?.lat || onbProfile?.latitude || prev.lat;
-        let resolvedLng = onbProfile?.lng || onbProfile?.longitude || prev.lng;
+        let resolvedHouseNumber = onbProfile?.houseNumber || prev.houseNumber || '';
+        let resolvedRtRw = onbProfile?.rtRw || prev.rtRw || '';
+        let resolvedLandmark = onbProfile?.landmark || prev.landmark || '';
 
-        let resolvedHouseNumber = onbProfile?.houseNumber || prev.houseNumber;
-        let resolvedRtRw = onbProfile?.rtRw || prev.rtRw;
-        let resolvedLandmark = onbProfile?.landmark || prev.landmark;
-
-        // Auto-deteksi cerdas hierarkis untuk alamat Indonesia
+        // Auto-deteksi cerdas hierarkis untuk alamat Indonesia jika tersedia
         if (resolvedAddress) {
           const res = resolveIndonesianAddress(resolvedAddress);
           resolvedProvince = onbProfile?.province || res.province || prev.province || 'Jawa Timur';
-          resolvedCity = onbProfile?.city || res.city || prev.city;
-          resolvedDistrict = onbProfile?.district || res.district || prev.district;
-          resolvedLat = onbProfile?.lat || onbProfile?.latitude || res.lat;
-          resolvedLng = onbProfile?.lng || onbProfile?.longitude || res.lng;
+          resolvedCity = onbProfile?.city || res.city || prev.city || 'Surabaya';
+          resolvedDistrict = onbProfile?.district || res.district || prev.district || '';
+          resolvedLat = onbProfile?.lat || onbProfile?.latitude || res.lat || resolvedLat;
+          resolvedLng = onbProfile?.lng || onbProfile?.longitude || res.lng || resolvedLng;
           if (res.houseNumber && !resolvedHouseNumber) resolvedHouseNumber = res.houseNumber;
           if (res.rtRw && !resolvedRtRw) resolvedRtRw = res.rtRw;
           if (res.landmark && !resolvedLandmark) resolvedLandmark = res.landmark;
@@ -1728,7 +1793,7 @@ export default function DashboardProfilePage() {
 
         const resolvedCoverage =
           onbProfile?.operationalCoverage ||
-          `${resolvedDistrict ? 'Kec. ' + resolvedDistrict + ', ' : ''}${resolvedCity || 'Kab. Magetan'} (Radius ${prev.maxRadiusKm || 12} km)`;
+          `${resolvedDistrict ? 'Kec. ' + resolvedDistrict + ', ' : ''}${resolvedCity} (Radius ${prev.maxRadiusKm || 10} km)`;
 
         return {
           ...prev,
