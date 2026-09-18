@@ -42,7 +42,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({ user: propUser }) => {
         }
       }
 
-      if (profile) {
+      if (pathname.startsWith('/dashboard/consumer')) {
+        setRole('CONSUMER');
+        setHasDemoSession(true);
+      } else if (pathname.startsWith('/dashboard/yayasan')) {
+        setRole('YAYASAN');
+        setHasDemoSession(true);
+      } else if (pathname.startsWith('/dashboard/rescue-partner')) {
+        setRole('RESCUE_PARTNER');
+        setHasDemoSession(true);
+      } else if (pathname.startsWith('/dashboard/admin')) {
+        setRole('ADMIN');
+        setHasDemoSession(true);
+      } else if (pathname.startsWith('/dashboard/provider')) {
+        setRole('PROVIDER');
+        setHasDemoSession(true);
+      } else if (profile) {
         const parsed = JSON.parse(profile);
         const userEmail = propUser?.email || session?.user?.email;
         if (!isDemoCookie || parsed.email === userEmail) {

@@ -105,6 +105,9 @@ export const GojekProfileDrawer: React.FC<GojekProfileDrawerProps> = ({
 
   const formatRoleBadge = (r: string) => {
     const upper = r.toUpperCase();
+    if (upper.includes('CONSUMER')) {
+      return { label: 'Food Consumer', badgeBg: 'bg-blue-100 text-blue-900 border-blue-300', icon: User };
+    }
     if (upper.includes('PROVIDER')) {
       return { label: 'Food Provider', badgeBg: 'bg-amber-100 text-amber-900 border-amber-300', icon: Building2 };
     }

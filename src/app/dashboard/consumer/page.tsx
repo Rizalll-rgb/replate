@@ -1153,9 +1153,7 @@ export default function ConsumerDashboardPage() {
                     3 / 4
                   </span>
                 </div>
-              </div>
-
-              {/* Slide 4: Kerjasama Mitra F&B */}
+                         {/* Slide 4: Ajak Gerai Kuliner Favoritmu */}
               <div
                 onClick={() => setIsPartnershipModalOpen(true)}
                 className="w-[280px] shrink-0 snap-start bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white rounded-2xl p-4 shadow-md shadow-blue-950/15 border border-white/20 flex flex-col justify-between cursor-pointer hover:brightness-105 active:scale-98 transition-all"
@@ -1164,27 +1162,27 @@ export default function ConsumerDashboardPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-xs text-sky-200 shadow-xs inline-flex items-center gap-1 border border-white/20">
                       <Building2 className="w-2.5 h-2.5 text-sky-300" />
-                      <span>KEMITRAAN F&amp;B</span>
+                      <span>REFERRAL GERAI</span>
                     </span>
                     <span className="text-[9px] font-black text-sky-100 bg-white/20 px-1.5 py-0.5 rounded">Zero Waste</span>
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
-                    Mitra Resto &amp; Toko Roti
+                    Ajak Resto Favoritmu
                   </h4>
                   <p className="text-[10.5px] text-blue-50 leading-snug line-clamp-2">
-                    Daftarkan gerai kuliner Anda, kurangi susut pangan harian, dan jangkau konsumen baru di kotamu.
+                    Punya resto atau toko roti langganan? Ajak bergabung di Replate agar surplus makanannya bisa kamu beli hemat!
                   </p>
                 </div>
                 <div className="pt-3 flex items-center justify-between">
                   <span className="text-[10px] font-black text-sky-200 flex items-center gap-1">
-                    <span>Gabung Mitra</span>
+                    <span>Pelajari Info Mitra</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
                   <span className="text-[9px] text-white/80 bg-black/25 px-1.5 py-0.5 rounded">
                     4 / 4
                   </span>
                 </div>
-              </div>
+              </div>       </div>
             </div>
           </section>
 
@@ -1555,7 +1553,7 @@ export default function ConsumerDashboardPage() {
                 </div>
               </div>
 
-              {/* Card 4: Kerjasama Gerai & Mitra */}
+              {/* Card 4: Rekomendasikan Gerai Langganan */}
               <div
                 onClick={() => setIsPartnershipModalOpen(true)}
                 className="bg-gradient-to-br from-indigo-50 to-purple-50/70 border border-indigo-200/80 hover:border-indigo-300 rounded-xl p-3 flex flex-col justify-between space-y-2 cursor-pointer transition-all hover:shadow-xs active:scale-98 group"
@@ -1565,14 +1563,14 @@ export default function ConsumerDashboardPage() {
                     <Handshake className="w-4 h-4 text-indigo-700" />
                   </div>
                   <h5 className="text-xs font-black text-slate-900 group-hover:text-indigo-800 transition-colors leading-tight">
-                    Kerjasama Mitra
+                    Rekomendasi Resto
                   </h5>
                   <p className="text-[10px] text-slate-600 leading-snug line-clamp-2">
-                    Kolaborasi bisnis F&amp;B, hotel, dan katering dalam ekosistem hijau.
+                    Ajak gerai kuliner langgananmu bergabung dalam ekosistem penyelamatan pangan.
                   </p>
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-black text-indigo-800 pt-1 border-t border-indigo-200/60">
-                  <span>Gabung Mitra</span>
+                  <span>Lihat Info</span>
                   <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
@@ -1859,20 +1857,20 @@ export default function ConsumerDashboardPage() {
         </div>
       </Modal>
 
-      {/* MODAL: KERJASAMA KEMITRAAN FOOD PROVIDER (F&B, HOTEL, KATERING) */}
+      {/* MODAL: INFO KEMITRAAN TOKO & RESTO REPLATE */}
       <Modal
         isOpen={isPartnershipModalOpen}
         onClose={() => setIsPartnershipModalOpen(false)}
-        title="Kemitraan Mitra Pangan Replate"
+        title="Informasi Kemitraan Resto & Toko"
       >
         <div className="space-y-4 text-xs text-slate-700">
           <div className="p-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-teal-50 border border-indigo-200 rounded-2xl space-y-2">
             <div className="flex items-center gap-2 text-indigo-900 font-black text-sm">
               <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
-              <span>Gabung Ekosistem Zero Food Waste</span>
+              <span>Ajak Resto / Toko Roti Bergabung</span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Daftarkan restoran, bakery, hotel, katering, atau supermarket Anda ke platform Replate. Ubah potensi susut makanan menjadi pendapatan tambahan dan dampak sosial nyata.
+              Ketahui bagaimana restoran, bakery, hotel, atau katering dapat menjual makanan berlebih prima dengan potongan harga terukur atau menyalurkannya sebagai donasi.
             </p>
           </div>
 
@@ -1880,16 +1878,16 @@ export default function ConsumerDashboardPage() {
             <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-900 block font-bold">Monetisasi Surplus Layak Konsumsi</strong>
-                <span className="text-[11px] text-slate-600">Jual stok makanan prima menjelang tutup toko lewat fitur Rescue Sale dengan diskon terukur.</span>
+                <strong className="text-slate-900 block font-bold">Monetisasi Surplus Prima</strong>
+                <span className="text-[11px] text-slate-600">Menjual stok makanan prima menjelang tutup gerai via Rescue Sale agar tidak menjadi limbah.</span>
               </div>
             </div>
 
             <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-900 block font-bold">Sertifikat Dampak ESG &amp; SDGs</strong>
-                <span className="text-[11px] text-slate-600">Dapatkan laporan audit pengurangan emisi gas metana &amp; jejak karbon resmi untuk brand Anda.</span>
+                <strong className="text-slate-900 block font-bold">Laporan Audit ESG &amp; SDGs</strong>
+                <span className="text-[11px] text-slate-600">Perhitungan resmi reduksi emisi gas metana dan porsi pangan terselamatkan untuk gerai mitra.</span>
               </div>
             </div>
           </div>
@@ -1904,7 +1902,7 @@ export default function ConsumerDashboardPage() {
               className="w-full py-3 bg-gradient-to-r from-[#1B3A5C] to-[#254d79] hover:brightness-110 active:scale-98 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
             >
               <Handshake className="w-4 h-4 text-[#D4A843]" />
-              <span>Daftar Sebagai Mitra Pangan (Food Provider)</span>
+              <span>Buka Formulir Pendaftaran Mitra Toko</span>
             </button>
 
             <a
@@ -1922,7 +1920,7 @@ export default function ConsumerDashboardPage() {
               onClick={() => setIsPartnershipModalOpen(false)}
               className="w-full py-2 text-slate-500 hover:text-slate-700 font-bold text-xs cursor-pointer text-center"
             >
-              Batal &amp; Kembali
+              Tutup &amp; Kembali
             </button>
           </div>
         </div>

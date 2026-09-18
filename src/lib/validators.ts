@@ -14,7 +14,7 @@ export const registerSchema = z.object({
     email: z.string().email('Email tidak valid'),
     password: z.string().min(8, 'Password minimal 8 karakter'),
     confirmPassword: z.string(),
-    role: z.enum(['PROVIDER', 'CONSUMER', 'RESCUE_PARTNER']),
+    role: z.enum(['PROVIDER', 'CONSUMER', 'RESCUE_PARTNER', 'YAYASAN']),
     phone: z.string().min(10, 'Nomor telepon minimal 10 digit').optional(),
     address: z.string().optional(),
     city: z.string().optional(),

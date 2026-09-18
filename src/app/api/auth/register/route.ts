@@ -56,7 +56,7 @@ export async function POST(request: Request) {
                 name,
                 email,
                 password: hashedPassword,
-                role: role as 'PROVIDER' | 'CONSUMER' | 'RESCUE_PARTNER',
+                role: role as 'PROVIDER' | 'CONSUMER' | 'RESCUE_PARTNER' | 'YAYASAN',
                 status,
                 phone,
                 address,

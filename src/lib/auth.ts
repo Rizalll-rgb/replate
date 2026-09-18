@@ -37,8 +37,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             credentials: {
                 email: { label: 'Email', type: 'email' },
                 password: { label: 'Password', type: 'password' },
+                role: { label: 'Role', type: 'text' },
             },
-            async authorize(credentials) {
+            async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error('Email dan password wajib diisi');
                 }
@@ -139,16 +140,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return matchedDemo;
                 }
 
-                // 3. Autentikasi Tangguh untuk Akun Pengguna Terdaftar Kustom (misal: contactrachicken@gmail.com)
+                // 3. Autentikasi Tangguh untuk Akun Pengguna Terdaftar Kustom (misal: reviewer@gmail.com, konsumen)
                 if (emailInput.includes('@') && credentials.password) {
-                    let inferredRole: UserRole = 'PROVIDER';
+                    let inferredRole: UserRole = 'CONSUMER'; // Default strictly to CONSUMER, preventing accidental PROVIDER role bleed
                     let inferredName = emailInput.split('@')[0].replace(/[._-]/g, ' ');
                     inferredName = inferredName.replace(/\b\w/g, (l) => l.toUpperCase());
 
-                    if (emailInput.includes('panti') || emailInput.includes('yayasan')) inferredRole = 'YAYASAN';
-                    else if (emailInput.includes('volunteer') || emailInput.includes('foodbank')) inferredRole = 'RESCUE_PARTNER';
-                    else if (emailInput.includes('admin')) inferredRole = 'ADMIN';
-                    else if (emailInput.includes('budi') || emailInput.includes('konsumen')) inferredRole = 'CONSUMER';
+                    // Prioritas 1: Role eksplisit yang diteruskan saat signIn({ role: ... })
+                    const explicitRole = String(credentials?.role || '').toUpperCase();
+                    if (explicitRole.includes('CONSUMER')) inferredRole = 'CONSUMER';
+                    else if (explicitRole.includes('PROVIDER')) inferredRole = 'PROVIDER';
+                    else if (explicitRole.includes('YAYASAN') || explicitRole.includes('BENEFICIARY')) inferredRole = 'YAYASAN';
+                    else if (explicitRole.includes('RESCUE') || explicitRole.includes('VOLUNTEER')) inferredRole = 'RESCUE_PARTNER';
+                    else if (explicitRole.includes('ADMIN')) inferredRole = 'ADMIN';
+                    else {
+                        // Prioritas 2: Cek cookie sesi demo / registrasi dari request header
+                        try {
+                            const cookieHeader = (req as any)?.headers?.cookie || '';
+                            const match = cookieHeader.match(/replate_demo_session=([^;]+)/) || cookieHeader.match(/replate_role=([^;]+)/);
+                            if (match) {
+                                const cRole = decodeURIComponent(match[1]).toUpperCase();
+                                if (cRole.includes('CONSUMER')) inferredRole = 'CONSUMER';
+                                else if (cRole.includes('PROVIDER')) inferredRole = 'PROVIDER';
+                                else if (cRole.includes('YAYASAN') || cRole.includes('BENEFICIARY')) inferredRole = 'YAYASAN';
+                                else if (cRole.includes('RESCUE') || cRole.includes('VOLUNTEER')) inferredRole = 'RESCUE_PARTNER';
+                                else if (cRole.includes('ADMIN')) inferredRole = 'ADMIN';
+                            }
+                        } catch (_) {}
+
+                        // Prioritas 3: Heuristik nama/email jika belum ditentukan
+                        if (inferredRole === 'CONSUMER') {
+                            if (emailInput.includes('panti') || emailInput.includes('yayasan')) inferredRole = 'YAYASAN';
+                            else if (emailInput.includes('volunteer') || emailInput.includes('foodbank')) inferredRole = 'RESCUE_PARTNER';
+                            else if (emailInput.includes('admin')) inferredRole = 'ADMIN';
+                            else if (emailInput.includes('resto') || emailInput.includes('bakso') || emailInput.includes('rotiboy') || emailInput.includes('warung') || emailInput.includes('hotel') || emailInput.includes('provider')) inferredRole = 'PROVIDER';
+                        }
+                    }
 
                     return {
                         id: `user-${emailInput.replace(/[^a-zA-Z0-9]/g, '-')}`,

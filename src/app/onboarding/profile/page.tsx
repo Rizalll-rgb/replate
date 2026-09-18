@@ -257,6 +257,8 @@ export default function OnboardingProfilePage() {
 
     try {
       localStorage.setItem('replate_onboarding_profile', JSON.stringify(finalProfile));
+      document.cookie = `replate_demo_session=${role}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `replate_role=${role}; path=/; max-age=604800; SameSite=Lax`;
     } catch (_) {}
 
     if (role === 'FOOD_CONSUMER') {
@@ -273,24 +275,36 @@ export default function OnboardingProfilePage() {
           })
         );
 
+        document.cookie = 'replate_demo_session=FOOD_CONSUMER; path=/; max-age=604800; SameSite=Lax';
+        document.cookie = 'replate_role=FOOD_CONSUMER; path=/; max-age=604800; SameSite=Lax';
+
+        try {
+          await fetch('/api/auth/demo-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'FOOD_CONSUMER', email: registeredUser?.email || finalProfile.email }),
+          });
+        } catch (_) {}
+
         setTimeout(async () => {
           if (registeredUser?.email && registeredUser?.password) {
             try {
               const res = await signIn('credentials', {
                 email: registeredUser.email,
                 password: registeredUser.password,
+                role: 'CONSUMER',
                 redirect: false,
               });
               if (res?.ok) {
-                router.push('/dashboard/consumer');
+                window.location.href = '/dashboard/consumer';
                 return;
               }
             } catch (_) {}
           }
-          router.push('/dashboard/consumer');
-        }, 1000);
+          window.location.href = '/dashboard/consumer';
+        }, 800);
       } catch (_) {
-        router.push('/dashboard/consumer');
+        window.location.href = '/dashboard/consumer';
       }
     } else {
       router.push(`/onboarding/documents?role=${role}`);

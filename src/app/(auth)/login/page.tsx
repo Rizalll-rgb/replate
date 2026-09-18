@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
@@ -169,11 +170,20 @@ export default function LoginPage() {
       const isDemo = isDemoAccount(emailVal);
       let registeredUserRole: string | null = null;
       try {
-        const rawReg = localStorage.getItem('replate_registered_user');
-        if (rawReg) {
-          const parsedReg = JSON.parse(rawReg);
-          if (parsedReg.email && parsedReg.email.toLowerCase() === emailVal.toLowerCase()) {
-            registeredUserRole = parsedReg.role;
+        const p = localStorage.getItem('replate_onboarding_profile');
+        if (p) {
+          const parsedP = JSON.parse(p);
+          if (parsedP.email && parsedP.email.toLowerCase() === emailVal.toLowerCase()) {
+            registeredUserRole = parsedP.role;
+          }
+        }
+        if (!registeredUserRole) {
+          const rawReg = localStorage.getItem('replate_registered_user');
+          if (rawReg) {
+            const parsedReg = JSON.parse(rawReg);
+            if (parsedReg.email && parsedReg.email.toLowerCase() === emailVal.toLowerCase()) {
+              registeredUserRole = parsedReg.role;
+            }
           }
         }
       } catch (_) {}
@@ -191,17 +201,18 @@ export default function LoginPage() {
         }
       } catch (_) {}
 
-      const effectiveRole = registeredUserRole || selectedRole;
+      let effectiveRole = registeredUserRole || selectedRole;
       if (effectiveRole === 'FOOD_BENEFICIARY' || effectiveRole === 'YAYASAN' || emailVal.includes('panti') || emailVal.includes('yayasan')) {
         targetUrl = '/dashboard/yayasan';
       } else if (effectiveRole === 'SUPER_ADMIN' || effectiveRole === 'ADMIN' || emailVal.includes('admin')) {
         targetUrl = '/dashboard/admin';
       } else if (effectiveRole === 'RESCUE_VOLUNTEER' || effectiveRole === 'RESCUE_PARTNER' || emailVal.includes('foodbank') || emailVal.includes('volunteer')) {
         targetUrl = '/dashboard/rescue-partner';
+      } else if (effectiveRole === 'FOOD_CONSUMER' || effectiveRole === 'CONSUMER' || emailVal.includes('budi') || emailVal.includes('consumer') || (!emailVal.includes('pak.kumis') && !emailVal.includes('rotiboy') && !emailVal.includes('majapahit') && !emailVal.includes('provider') && selectedRole === 'FOOD_CONSUMER')) {
+        targetUrl = '/dashboard/consumer';
+        effectiveRole = 'FOOD_CONSUMER';
       } else if (effectiveRole === 'FOOD_PROVIDER' || effectiveRole === 'PROVIDER' || emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
         targetUrl = '/dashboard/provider';
-      } else if (effectiveRole === 'FOOD_CONSUMER' || effectiveRole === 'CONSUMER' || emailVal.includes('budi') || emailVal.includes('consumer')) {
-        targetUrl = '/dashboard/consumer';
       }
 
       // Sync Cookies
@@ -215,6 +226,15 @@ export default function LoginPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role: effectiveRole, email: emailVal }),
+        });
+      } catch (_) {}
+
+      try {
+        await signIn('credentials', {
+          email: emailVal,
+          password: passwordVal,
+          role: effectiveRole,
+          redirect: false,
         });
       } catch (_) {}
 

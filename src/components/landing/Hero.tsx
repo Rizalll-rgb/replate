@@ -77,12 +77,12 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-3">
-              <Link href={session ? '/explore' : '/register'}>
+              <Link href={session ? '/explore' : '/register?role=FOOD_CONSUMER'}>
                 <Button variant="gold" size="lg" className="w-full sm:w-auto text-base px-8 py-3.5 shadow-lg font-bold">
                   Mulai Selamatkan Makanan 
                 </Button>
               </Link>
-              <Link href="/register">
+              <Link href="/register?role=FOOD_PROVIDER">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-base text-white border-2 border-white/40 hover:bg-white/10 font-bold">
                   Daftar Kemitraan Toko 
                 </Button>

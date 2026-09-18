@@ -51,7 +51,10 @@ export const Navbar: React.FC<NavbarProps> = ({ user: propUser }) => {
         }
       } else if (activeUser?.role) {
         const role = String(activeUser.role).toUpperCase();
-        if (role.includes('PROVIDER')) {
+        if (role.includes('CONSUMER')) {
+          setDashboardUrl('/dashboard/consumer');
+          setActiveRoleName('Consumer');
+        } else if (role.includes('PROVIDER')) {
           setDashboardUrl('/dashboard/provider');
           setActiveRoleName('Food Provider');
         } else if (role.includes('BENEFICIARY') || role.includes('YAYASAN')) {

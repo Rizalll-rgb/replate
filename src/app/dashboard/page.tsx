@@ -13,19 +13,28 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === 'loading') return;
 
-    let effectiveRole: any = session?.user?.role;
+    let effectiveRole: any = null;
+    try {
+      const p = localStorage.getItem('replate_onboarding_profile');
+      if (p) {
+        const parsed = JSON.parse(p);
+        if (parsed.role) effectiveRole = parsed.role;
+      }
+      if (!effectiveRole) {
+        const rawReg = localStorage.getItem('replate_registered_user');
+        if (rawReg) {
+          const parsedReg = JSON.parse(rawReg);
+          if (parsedReg.role) effectiveRole = parsedReg.role;
+        }
+      }
+      if (!effectiveRole) {
+        const match = document.cookie.match(/replate_demo_session=([^;]+)/) || document.cookie.match(/replate_role=([^;]+)/);
+        if (match) effectiveRole = decodeURIComponent(match[1]);
+      }
+    } catch (_) {}
+
     if (!effectiveRole) {
-      try {
-        const p = localStorage.getItem('replate_onboarding_profile');
-        if (p) {
-          const parsed = JSON.parse(p);
-          if (parsed.role) effectiveRole = parsed.role;
-        }
-        if (!effectiveRole) {
-          const match = document.cookie.match(/replate_demo_session=([^;]+)/);
-          if (match) effectiveRole = match[1];
-        }
-      } catch (_) {}
+      effectiveRole = session?.user?.role;
     }
 
     if (!effectiveRole && !session?.user) {
@@ -42,8 +51,10 @@ export default function DashboardPage() {
       router.push('/dashboard/rescue-partner');
     } else if (role.includes('CONSUMER')) {
       router.push('/dashboard/consumer');
-    } else {
+    } else if (role.includes('PROVIDER')) {
       router.push('/dashboard/provider');
+    } else {
+      router.push('/dashboard/consumer');
     }
   }, [session, status, router]);
 

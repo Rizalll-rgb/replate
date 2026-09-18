@@ -66,6 +66,18 @@ export default function DonationPage() {
     }
   };
 
+  const handleDonateClick = (e: React.MouseEvent, partnerId: number) => {
+    if (!session?.user) {
+      return;
+    }
+    const userRole = String(session.user.role || '').toUpperCase();
+    if (userRole.includes('CONSUMER')) {
+      e.preventDefault();
+      setAlertMsg("Akun Food Consumer fokus pada klaim makanan hemat & donasi pangan. Penyaluran surplus makanan massal dilakukan melalui akun Food Provider (Restoran / Toko).");
+      return;
+    }
+  };
+
   const filteredOrgs = organizations.filter(org => {
     if (activeCategory === "Semua") return true;
     if (activeCategory === "Panti" && org.type.includes("Panti")) return true;
@@ -150,7 +162,10 @@ export default function DonationPage() {
                   </div>
                   
                   <div className="shrink-0">
-                    <Link href={`/dashboard/provider/add-surplus?partner=${o.id}`}>
+                    <Link
+                      href={`/dashboard/provider/add-surplus?partner=${o.id}`}
+                      onClick={(e) => handleDonateClick(e, o.id)}
+                    >
                       <Button variant="outline" className="border-[#1B3A5C] text-[#1B3A5C] hover:bg-[#1B3A5C] hover:text-white font-bold rounded-xl">
                         Donasikan
                       </Button>

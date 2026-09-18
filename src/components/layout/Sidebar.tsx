@@ -293,12 +293,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
     },
   ];
 
-  let links = providerLinks;
+  let links = consumerLinks;
   const roleUp = (role || '').toUpperCase();
-  if (roleUp.includes('CONSUMER')) links = consumerLinks;
-  if (roleUp.includes('YAYASAN') || roleUp.includes('BENEFICIARY')) links = yayasanLinks;
-  if (roleUp.includes('RESCUE') || roleUp.includes('VOLUNTEER') || roleUp.includes('PARTNER')) links = partnerLinks;
-  if (roleUp.includes('ADMIN')) links = adminLinks;
+  if (roleUp.includes('PROVIDER')) links = providerLinks;
+  else if (roleUp.includes('CONSUMER')) links = consumerLinks;
+  else if (roleUp.includes('YAYASAN') || roleUp.includes('BENEFICIARY')) links = yayasanLinks;
+  else if (roleUp.includes('RESCUE') || roleUp.includes('VOLUNTEER') || roleUp.includes('PARTNER')) links = partnerLinks;
+  else if (roleUp.includes('ADMIN')) links = adminLinks;
 
   const allLinks: NavLinkItem[] = [
     ...links,
@@ -307,12 +308,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
   const formatRoleDisplay = (r: string) => {
     const up = (r || '').toUpperCase();
+    if (up.includes('CONSUMER')) return 'Food Consumer';
     if (up.includes('PROVIDER')) return 'Food Provider';
     if (up.includes('BENEFICIARY') || up.includes('YAYASAN')) return 'Food Beneficiary';
-    if (up.includes('CONSUMER')) return 'Food Consumer';
     if (up.includes('VOLUNTEER') || up.includes('RESCUE')) return 'Rescue Volunteer';
     if (up.includes('ADMIN')) return 'SuperAdmin';
-    return r.replace(/_/g, ' ');
+    return 'Food Consumer';
   };
 
   return (

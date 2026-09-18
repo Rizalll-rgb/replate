@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../auth.module.css';
 import { Logo } from '@/components/ui/Logo';
@@ -28,7 +28,6 @@ type Role = 'FOOD_PROVIDER' | 'FOOD_BENEFICIARY' | 'FOOD_CONSUMER' | 'RESCUE_VOL
 export default function RegisterPage() {
   const router = useRouter();
 
-  // Poin 1: Seluruh field registrasi bersih dan kosong secara default
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,6 +38,25 @@ export default function RegisterPage() {
     address: '',
     organizationName: '',
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get('role');
+      if (roleParam) {
+        const up = roleParam.toUpperCase();
+        if (up === 'FOOD_CONSUMER' || up === 'CONSUMER') {
+          setFormData((prev) => ({ ...prev, role: 'FOOD_CONSUMER' }));
+        } else if (up === 'FOOD_BENEFICIARY' || up === 'YAYASAN' || up === 'BENEFICIARY') {
+          setFormData((prev) => ({ ...prev, role: 'FOOD_BENEFICIARY' }));
+        } else if (up === 'RESCUE_VOLUNTEER' || up === 'VOLUNTEER' || up === 'RESCUE_PARTNER') {
+          setFormData((prev) => ({ ...prev, role: 'RESCUE_VOLUNTEER' }));
+        } else if (up === 'FOOD_PROVIDER' || up === 'PROVIDER') {
+          setFormData((prev) => ({ ...prev, role: 'FOOD_PROVIDER' }));
+        }
+      }
+    }
+  }, []);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -153,19 +171,21 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      const targetPrismaRole =
+        formData.role === 'FOOD_PROVIDER'
+          ? 'PROVIDER'
+          : formData.role === 'FOOD_BENEFICIARY'
+          ? 'YAYASAN'
+          : formData.role === 'RESCUE_VOLUNTEER'
+          ? 'RESCUE_PARTNER'
+          : 'CONSUMER';
+
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          role:
-            formData.role === 'FOOD_PROVIDER'
-              ? 'PROVIDER'
-              : formData.role === 'FOOD_BENEFICIARY'
-              ? 'RESCUE_PARTNER'
-              : formData.role === 'RESCUE_VOLUNTEER'
-              ? 'RESCUE_PARTNER'
-              : 'CONSUMER',
+          role: targetPrismaRole,
         }),
       });
 
@@ -197,6 +217,16 @@ export default function RegisterPage() {
         localStorage.removeItem('replate_tas_klaim');
         localStorage.removeItem('replate_local_surplus');
         localStorage.removeItem('replate_panti_requests');
+
+        // Sinkronisasi cookie & API sesi demo seketika
+        document.cookie = `replate_demo_session=${formData.role}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `replate_role=${formData.role}; path=/; max-age=604800; SameSite=Lax`;
+
+        await fetch('/api/auth/demo-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: formData.role, email: formData.email }),
+        });
       } catch (_) {}
 
       setSuccess('Pendaftaran akun berhasil diverifikasi! Kami sedang mengarahkan Anda ke pengisian profil...');

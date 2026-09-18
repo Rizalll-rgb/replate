@@ -32,16 +32,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, []);
 
-  // Dynamic user session synchronized with registered onboarding profile & NextAuth session
+  // Path-based role awareness strictly isolates role experiences and prevents role bleeding
+  let inferredRoleFromPath: string = 'FOOD_PROVIDER';
+  if (pathname.startsWith('/dashboard/consumer')) inferredRoleFromPath = 'FOOD_CONSUMER';
+  else if (pathname.startsWith('/dashboard/yayasan')) inferredRoleFromPath = 'FOOD_BENEFICIARY';
+  else if (pathname.startsWith('/dashboard/rescue-partner')) inferredRoleFromPath = 'RESCUE_VOLUNTEER';
+  else if (pathname.startsWith('/dashboard/admin')) inferredRoleFromPath = 'SUPER_ADMIN';
+  else if (pathname.startsWith('/dashboard/provider')) inferredRoleFromPath = 'FOOD_PROVIDER';
+
+  // Role resolution priority:
+  // 1. If currently inside a role-specific workspace, enforce that workspace role
+  // 2. Otherwise use onboarding profile role or session user role
+  const resolvedRole = pathname.startsWith('/dashboard/consumer')
+    ? 'FOOD_CONSUMER'
+    : pathname.startsWith('/dashboard/yayasan')
+    ? 'FOOD_BENEFICIARY'
+    : pathname.startsWith('/dashboard/rescue-partner')
+    ? 'RESCUE_VOLUNTEER'
+    : pathname.startsWith('/dashboard/admin')
+    ? 'SUPER_ADMIN'
+    : pathname.startsWith('/dashboard/provider')
+    ? 'FOOD_PROVIDER'
+    : profileData?.role || session?.user?.role || inferredRoleFromPath;
+
+  const isConsumerContext = String(resolvedRole).toUpperCase().includes('CONSUMER');
+
   const currentUser = {
     id: session?.user?.id || 'usr-registered',
-    name: profileData?.entityName || profileData?.contactPerson || session?.user?.name || 'Mitra Replate',
-    email: profileData?.email || session?.user?.email || 'mitra@replate.id',
-    role: profileData?.role || session?.user?.role || 'FOOD_PROVIDER',
+    name:
+      profileData?.entityName ||
+      profileData?.contactPerson ||
+      profileData?.name ||
+      session?.user?.name ||
+      (isConsumerContext ? 'Konsumen Replate' : 'Mitra Replate'),
+    email: profileData?.email || session?.user?.email || (isConsumerContext ? 'konsumen@replate.id' : 'mitra@replate.id'),
+    role: resolvedRole,
     status: 'APPROVED',
     phone: profileData?.phone || '0812-3456-7890',
-    address: profileData?.address || 'Surabaya, Jawa Timur',
-    city: 'Surabaya',
+    address: profileData?.address || (isConsumerContext ? 'Gubeng, Surabaya' : 'Surabaya, Jawa Timur'),
+    city: profileData?.city || 'Surabaya',
     profileImage: session?.user?.image || null,
   };
 
