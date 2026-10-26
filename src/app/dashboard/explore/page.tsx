@@ -58,6 +58,7 @@ interface FoodItem {
   discountPrice: number;
   quantity: string;
   pickupTime: string;
+  pickupDeadline?: string | Date;
   distance: string;
   category: string;
   isFree: boolean;
@@ -508,6 +509,7 @@ export default function WorkspaceExplorePage() {
       discountPrice,
       quantity: quantityStr,
       pickupTime: item.pickupTime || 'Hari ini 19:00 - 21:00 WIB',
+      pickupDeadline: item.pickupDeadline || item.expiryDate || null,
       distance: item.distance || '1.2 km',
       category: normalizeCategory(item.foodCategory || item.category),
       isFree: isDonation,
@@ -635,6 +637,25 @@ export default function WorkspaceExplorePage() {
   ];
 
   const filteredFoods = foods.filter((item) => {
+    // Feedback 2: Otomatis card kedaluwarsa terhapus dari katalog publik
+    if (item.status === 'EXPIRED') return false;
+    if (item.pickupDeadline) {
+      const d = new Date(item.pickupDeadline).getTime();
+      if (!isNaN(d) && d <= Date.now()) return false;
+    }
+    if (item.pickupTime) {
+      const timeMatches = item.pickupTime.match(/(\d{1,2})[:.](\d{2})/g);
+      if (timeMatches && timeMatches.length > 0) {
+        const lastTime = timeMatches[timeMatches.length - 1];
+        const parts = lastTime.split(/[:.]/).map(Number);
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          const todayEnd = new Date();
+          todayEnd.setHours(parts[0], parts[1], 0, 0);
+          if (todayEnd.getTime() <= Date.now()) return false;
+        }
+      }
+    }
+
     if (activeTab === 'PANTI_NEEDS') return false; // Panti needs tab shows its own grid
     if (activeTab === 'RESCUE_SALE' && item.isFree) return false;
     if (activeTab === 'DONATION' && !item.isFree) return false;
@@ -1364,8 +1385,11 @@ export default function WorkspaceExplorePage() {
                   originalPrice={item.originalPrice}
                   isFree={item.isFree}
                   pickupTime={item.pickupTime}
+                  pickupDeadline={item.pickupDeadline}
                   distance={item.distance}
                   imageUrl={item.imageUrl}
+                  status={item.status}
+                  hideIfExpired={true}
                   onDetail={() => handleOpenFoodDetail(item)}
                   onManage={showManage ? () => router.push('/dashboard/provider/my-listings') : undefined}
                   onClaim={showClaim ? () => handleBuyNow(item) : undefined}

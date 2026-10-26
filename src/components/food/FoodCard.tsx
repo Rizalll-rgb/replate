@@ -17,7 +17,7 @@ export interface FoodCardProps {
   price?: number | null;
   discountPrice?: number | null;
   originalPrice?: number | null;
-  pickupDeadline?: string;
+  pickupDeadline?: string | Date;
   pickupTime?: string;
   address?: string;
   providerName?: string;
@@ -29,6 +29,8 @@ export interface FoodCardProps {
   photo?: string;
   isFree?: boolean;
   distance?: string;
+  hideIfExpired?: boolean;
+  isVerifiedProvider?: boolean;
   onClaim?: (id: string) => void;
   onAddToCart?: (id: string) => void;
   onDetail?: (id: string) => void;
@@ -44,6 +46,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
     onDetail,
     onManage,
     customActionLabel,
+    hideIfExpired = true,
   } = props;
 
   const title = props.title || props.foodName || 'Makanan Surplus';
@@ -55,6 +58,23 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
     'Warung Bakso Pak Kumis';
   const category = props.category || props.foodCategory || 'MEALS';
   
+  // Check Verified Provider Badge from subscription or props
+  const isVerified = useMemo(() => {
+    if (props.isVerifiedProvider) return true;
+    if (typeof window !== 'undefined') {
+      try {
+        const sub = localStorage.getItem('replate_provider_subscription');
+        if (sub) {
+          const parsed = JSON.parse(sub);
+          if (parsed.status === 'ACTIVE' && (parsed.planId === 'BUSINESS' || parsed.planId === 'GROWTH')) {
+            return true;
+          }
+        }
+      } catch (_) {}
+    }
+    return (props as any).isVerified || false;
+  }, [props.isVerifiedProvider, (props as any).isVerified]);
+
   // Out of Stock detection
   let rawQtyNum = 1;
   if (typeof props.quantity === 'number') {
@@ -87,6 +107,72 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
   const discountPrice = props.discountPrice !== undefined && props.discountPrice !== null ? props.discountPrice : (props.price || 0);
   const originalPrice = props.originalPrice || undefined;
 
+  // Deadline & Auto-Expiration Calculation
+  const deadlineInfo = useMemo(() => {
+    const now = new Date();
+    let targetDate: Date | null = null;
+
+    if (props.pickupDeadline) {
+      const parsed = new Date(props.pickupDeadline);
+      if (!isNaN(parsed.getTime())) {
+        targetDate = parsed;
+      }
+    }
+
+    if (!targetDate && props.pickupTime) {
+      // Try to parse end time from string like "19:30 - 21:30 WIB" or "21:30 WIB"
+      const timeMatches = props.pickupTime.match(/(\d{1,2})[:.](\d{2})/g);
+      if (timeMatches && timeMatches.length > 0) {
+        const lastTime = timeMatches[timeMatches.length - 1];
+        const parts = lastTime.split(/[:.]/).map(Number);
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          const d = new Date();
+          d.setHours(parts[0], parts[1], 0, 0);
+          targetDate = d;
+        }
+      }
+    }
+
+    // Default fallback: 3 hours from now if no deadline provided
+    if (!targetDate) {
+      targetDate = new Date(now.getTime() + 3 * 3600 * 1000);
+    }
+
+    const diffMs = targetDate.getTime() - now.getTime();
+    const isPast = diffMs <= 0 || props.status === 'EXPIRED';
+    const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    const timeFormatted = targetDate.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    let countdownLabel = '';
+    if (isPast) {
+      countdownLabel = 'Kedaluwarsa';
+    } else if (hours > 0) {
+      countdownLabel = `Sisa ${hours}j ${minutes}m`;
+    } else {
+      countdownLabel = `Sisa ${minutes} menit!`;
+    }
+
+    return {
+      targetDate,
+      isExpired: isPast,
+      diffMinutes: totalMinutes,
+      timeFormatted,
+      countdownLabel,
+      isUrgent: !isPast && totalMinutes <= 75,
+    };
+  }, [props.pickupDeadline, props.pickupTime, props.status]);
+
+  // Auto-remove expired card from public exploration
+  if (hideIfExpired && deadlineInfo.isExpired && !onManage) {
+    return null;
+  }
+
   // Pilar 3 BPOM Thermal RUI calculation
   let safetyCat: FoodSafetyCategory = 'COOKED_MEALS';
   const rawCat = (category || props.foodCategory || '').toUpperCase();
@@ -108,19 +194,12 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
       category: safetyCat,
       ambientTemperatureC: 31,
       portions: rawQtyNum,
-      cookedOrPackedTime: (props as any).createdAt || new Date(),
+      cookedOrPackedTime: (props as any).createdAt || new Date(Date.now() - 60 * 60 * 1000),
     });
   }, [safetyCat, rawQtyNum, (props as any).createdAt]);
 
-  let pickupTimeStr = props.pickupTime || 'Hari ini';
-  if (!props.pickupTime && props.pickupDeadline) {
-    try {
-      const deadlineDate = new Date(props.pickupDeadline);
-      if (!isNaN(deadlineDate.getTime())) {
-        pickupTimeStr = `Hari ini ${deadlineDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`;
-      }
-    } catch (_) {}
-  }
+  // Synchronized BPOM & Pickup Deadline Status
+  const isBpomUrgent = deadlineInfo.isUrgent || ruiResult.rescueUrgencyIndex >= 65 || deadlineInfo.diffMinutes <= 60;
 
   const defaultPhotos: Record<string, string> = {
     MEALS: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
@@ -145,6 +224,8 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
       className={`bg-white rounded-2xl border overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group ${
         isOutOfStock
           ? 'border-slate-300 bg-slate-50/70 opacity-90'
+          : deadlineInfo.isUrgent
+          ? 'border-amber-300 hover:border-amber-500'
           : 'border-slate-200 hover:border-[#1B3A5C]/40'
       } ${onDetail ? 'cursor-pointer' : ''}`}
       onClick={() => onDetail && onDetail(id)}
@@ -167,6 +248,7 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
           </div>
         )}
 
+        {/* Top Badges */}
         <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 flex flex-wrap gap-1 sm:gap-1.5 z-20">
           <span className={`text-[8.5px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg shadow-xs ${
             isOutOfStock
@@ -184,30 +266,32 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
           }`}>
             {quantityStr}
           </span>
-          {/* BPOM Rescue Urgency Index Badge */}
+          {/* Synchronized BPOM Safety & Deadline Badge */}
           {!isOutOfStock && (
             <span
               className={`text-[8.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg backdrop-blur-xs flex items-center gap-0.5 sm:gap-1 ${
-                ruiResult.rescueUrgencyIndex >= 70
-                  ? 'bg-rose-600/90 text-white border border-rose-400/50 shadow-xs'
-                  : 'bg-emerald-900/85 text-emerald-200 border border-emerald-400/30'
+                isBpomUrgent
+                  ? 'bg-rose-600/95 text-white border border-rose-400/50 shadow-xs'
+                  : 'bg-emerald-900/90 text-emerald-200 border border-emerald-400/30'
               }`}
-              title={`Rescue Urgency Index BPOM: ${ruiResult.rescueUrgencyIndex}/100. ${ruiResult.recommendedDispatchAction}`}
+              title={`Standar Keamanan Pangan BPOM: Batas konsumsi s/d ${deadlineInfo.timeFormatted} WIB (${deadlineInfo.countdownLabel}). Mutu terjaga.`}
             >
-              {ruiResult.rescueUrgencyIndex >= 70 ? (
+              {isBpomUrgent ? (
                 <>
                   <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300 fill-amber-300 animate-pulse shrink-0" />
-                  <span>RUI {ruiResult.rescueUrgencyIndex} • Urgen</span>
+                  <span>BPOM Urgen • {deadlineInfo.countdownLabel}</span>
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400 shrink-0" />
-                  <span>BPOM {Math.max(0, Math.round(ruiResult.remainingSafeMinutes / 60))}j Aman</span>
+                  <span>BPOM Aman • s/d {deadlineInfo.timeFormatted}</span>
                 </>
               )}
             </span>
           )}
         </div>
+
+        {/* Distance Badge */}
         {props.distance && (
           <span className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 text-[8.5px] sm:text-[10px] bg-slate-900/80 text-amber-300 font-bold px-1.5 py-0.5 rounded-md backdrop-blur-xs flex items-center gap-0.5 sm:gap-1 z-20">
             <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 shrink-0" />
@@ -216,25 +300,52 @@ export const FoodCard: React.FC<FoodCardProps> = (props) => {
         )}
       </div>
 
-      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2.5 flex-1 flex flex-col justify-between">
-        <div className="space-y-0.5 sm:space-y-1">
-          <span className="text-[9.5px] sm:text-[11px] font-semibold text-slate-500 block truncate">
-            {providerName}
-          </span>
+      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2 flex-1 flex flex-col justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9.5px] sm:text-[11px] font-semibold text-slate-500 truncate">
+              {providerName}
+            </span>
+            {isVerified && (
+              <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[8.5px] font-black shrink-0" title="Mitra Terverifikasi Replate">
+                <ShieldCheck className="w-2.5 h-2.5 text-blue-600" />
+                Verified
+              </span>
+            )}
+          </div>
+          
           <h4 className={`font-extrabold text-xs sm:text-base line-clamp-1 leading-snug transition-colors ${
             isOutOfStock ? 'text-slate-500 line-through' : 'text-[#1B3A5C] group-hover:text-blue-900'
           }`}>
             {title}
           </h4>
-          <p className="text-[9.5px] sm:text-[11px] text-slate-500 font-medium truncate flex items-center gap-1">
-            <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400 shrink-0" />
-            <span>{isOutOfStock ? 'Porsi telah habis terbagi' : pickupTimeStr}</span>
+
+          {/* Prominent Pickup Deadline Banner (Feedback 1: Batas waktu ambil tampil di setiap card produk) */}
+          <div className={`p-1.5 rounded-lg border flex items-center justify-between gap-1 text-[9.5px] sm:text-[11px] font-bold ${
+            isOutOfStock
+              ? 'bg-slate-100 border-slate-200 text-slate-400'
+              : deadlineInfo.isUrgent
+              ? 'bg-amber-50 border-amber-300 text-amber-900'
+              : 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+          }`}>
+            <div className="flex items-center gap-1 truncate">
+              <Clock className={`w-3 h-3 shrink-0 ${
+                isOutOfStock ? 'text-slate-400' : deadlineInfo.isUrgent ? 'text-amber-600 animate-spin-slow' : 'text-emerald-700'
+              }`} />
+              <span className="truncate">
+                {isOutOfStock
+                  ? 'Habis terdistribusi'
+                  : `Batas Ambil: s/d ${deadlineInfo.timeFormatted} WIB`}
+              </span>
+            </div>
             {!isOutOfStock && (
-              <span className="text-slate-400 text-[9px] font-semibold">
-                (Batas aman: ~{ruiResult.effectiveMaxHours}j)
+              <span className={`px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black shrink-0 ${
+                deadlineInfo.isUrgent ? 'bg-amber-200 text-amber-950' : 'bg-emerald-200 text-emerald-900'
+              }`}>
+                {deadlineInfo.countdownLabel}
               </span>
             )}
-          </p>
+          </div>
         </div>
 
         {/* Quick detail secondary link */}

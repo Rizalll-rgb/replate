@@ -45,6 +45,7 @@ export default function CheckoutCartPage() {
   const [paymentMethod, setPaymentMethod] = useState<string>('QRIS');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isBeneficiaryRole, setIsBeneficiaryRole] = useState(false);
+  const [isProtectionSelected, setIsProtectionSelected] = useState<boolean>(true);
 
   // Poin 7: QRIS Flow States
   const [qrisModal, setQrisModal] = useState(false);
@@ -152,9 +153,29 @@ export default function CheckoutCartPage() {
 
   const subtotal = items.reduce((acc, curr) => acc + (curr.isFree ? 0 : curr.price * curr.quantity), 0);
   const totalItemsCount = items.reduce((acc, curr) => acc + curr.quantity, 0);
-  const deliveryFee = deliveryMethod === 'COURIER_DELIVERY' ? 5000 : 0;
-  const totalAmount = subtotal + deliveryFee;
   const isFree = subtotal === 0;
+
+  let distanceKm = 2.5;
+  if (items[0]?.distance) {
+    const match = items[0].distance.match(/[\d.]+/);
+    if (match) {
+      const parsed = parseFloat(match[0]);
+      if (!isNaN(parsed) && parsed > 0) distanceKm = parsed;
+    }
+  }
+
+  // Skema Biaya Baru REPLATE:
+  // 1. Ongkir = distance × Rp2.000/km (100% Hak Driver)
+  const deliveryFee = deliveryMethod === 'SELF_PICKUP' ? 0 : Math.max(2000, Math.round(distanceKm * 2000));
+  // 2. Biaya Layanan: Rp2.000 per transaksi
+  const serviceFee = 2000;
+  // 3. Biaya Proteksi Risiko: Rp1.000 (opsional)
+  const protectionFee = isProtectionSelected ? 1000 : 0;
+  // Total Tagihan Konsumen
+  const totalAmount = subtotal + deliveryFee + serviceFee + protectionFee;
+  // 4. Biaya Admin Provider: 10% dari transaksi surplus komersial
+  const adminFee = isFree ? 0 : Math.round(subtotal * 0.10);
+  const providerEarnings = subtotal - adminFee;
 
   const buildNewClaim = (resiCode: string, status: string, proofUrl?: string) => {
     const resolvedDest = resolveIndonesianAddress(address);
@@ -170,6 +191,14 @@ export default function CheckoutCartPage() {
       providerAddress: items[0]?.providerAddress || items[0]?.address,
       providerLat: items[0]?.lat || items[0]?.latitude || resolvedProv.lat,
       providerLng: items[0]?.lng || items[0]?.longitude || resolvedProv.lng,
+      subtotal,
+      deliveryFee,
+      serviceFee,
+      protectionFee,
+      adminFee,
+      providerEarnings,
+      driverFee: deliveryFee,
+      distanceKm,
       totalAmount,
       quantity: `${totalItemsCount} Porsi`,
       deliveryMethod,
@@ -440,9 +469,35 @@ export default function CheckoutCartPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-bold text-slate-900">{deliveryMethod === 'SELF_PICKUP' ? 'Rp 0' : 'Rp 5.000'}</span>
+                  <span className="font-bold text-slate-900">{deliveryMethod === 'SELF_PICKUP' ? 'Rp 0' : `Rp ${deliveryFee.toLocaleString('id-ID')}`}</span>
                   <span className="text-slate-400 group-hover:translate-x-1 transition-transform"><ChevronRight /></span>
                 </div>
+              </div>
+
+              {/* Proteksi Risiko Pangan Higienis (Feedback 4: Biaya Proteksi Opsional Rp1.000) */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isProtectionSelected}
+                    onChange={(e) => setIsProtectionSelected(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-[#1B3A5C] focus:ring-[#1B3A5C] border-slate-300"
+                  />
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-extrabold text-xs text-slate-900">Proteksi Pangan Higienis</span>
+                      <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[9.5px] font-black rounded">
+                        Rekomendasi
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Garansi ganti rugi / refund 100% jika makanan basi, rusak, atau tidak layak konsumsi saat diterima.
+                    </p>
+                  </div>
+                </label>
+                <span className="font-black text-xs text-[#1B3A5C] shrink-0">
+                  +Rp 1.000
+                </span>
               </div>
 
               {/* Catatan Pesanan */}
@@ -494,32 +549,121 @@ export default function CheckoutCartPage() {
                 </div>
               )}
             </div>
+
+            {/* Rincian Biaya Khusus Tampilan Mobile & Tablet */}
+            <div className="lg:hidden bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-sm text-sm">
+              <h4 className="font-black text-sm text-[#1B3A5C] uppercase tracking-wider">Rincian Pembayaran</h4>
+              
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Subtotal Makanan ({totalItemsCount} Porsi)</span>
+                  <span className="font-bold text-slate-800">{isFree ? 'Rp 0 (Donasi)' : `Rp ${subtotal.toLocaleString('id-ID')}`}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <div>
+                    <span>Biaya Pengantaran</span>
+                    {deliveryMethod !== 'SELF_PICKUP' && (
+                      <span className="block text-[10px] text-slate-400">({distanceKm} km x Rp 2.000 • 100% Hak Driver)</span>
+                    )}
+                  </div>
+                  <span className="font-bold text-slate-800">Rp {deliveryFee.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <div>
+                    <span>Biaya Layanan Replate</span>
+                    <span className="block text-[10px] text-slate-400">Pemeliharaan ekosistem</span>
+                  </div>
+                  <span className="font-bold text-slate-800">Rp {serviceFee.toLocaleString('id-ID')}</span>
+                </div>
+                {isProtectionSelected && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Proteksi Pangan Higienis</span>
+                    <span className="font-bold text-slate-800">Rp 1.000</span>
+                  </div>
+                )}
+                <div className="border-t border-slate-200 pt-2 flex justify-between items-center text-sm">
+                  <span className="font-bold text-slate-800">Total Pembayaran</span>
+                  <span className="font-black text-base text-[#1B3A5C]">Rp {totalAmount.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+
+              {!isFree && (
+                <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-[10.5px] text-blue-900 space-y-1">
+                  <span className="font-black block text-blue-950 uppercase tracking-wider text-[9.5px]">
+                    Transparansi Bagi Hasil
+                  </span>
+                  <p className="leading-snug">
+                    • <strong>Provider Toko:</strong> Rp {providerEarnings.toLocaleString('id-ID')} (setelah Biaya Admin platform 10% = Rp {adminFee.toLocaleString('id-ID')}).
+                  </p>
+                  {deliveryFee > 0 && (
+                    <p className="leading-snug">
+                      • <strong>Driver Pengantar:</strong> 100% ongkir (Rp {deliveryFee.toLocaleString('id-ID')}) dialokasikan ke driver. Replate 0% margin.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Summary — Desktop Only */}
           <div className="hidden lg:block lg:col-span-1 space-y-4">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-24">
               <h3 className="text-lg font-black text-slate-800 mb-6">Ringkasan Pesanan</h3>
-              <div className="space-y-3 text-sm mb-6">
+              <div className="space-y-2.5 text-xs sm:text-sm mb-6">
                 <div className="flex justify-between text-slate-600">
                   <span>Total Item</span>
                   <span className="font-bold text-slate-800">{totalItemsCount} Porsi</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Total Harga</span>
-                  <span className="font-bold text-slate-800">Rp {subtotal.toLocaleString('id-ID')}</span>
+                  <span>Harga Makanan Surplus</span>
+                  <span className="font-bold text-slate-800">{isFree ? 'Rp 0 (Donasi)' : `Rp ${subtotal.toLocaleString('id-ID')}`}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Biaya Pengantaran</span>
+                  <div>
+                    <span>Biaya Pengantaran</span>
+                    {deliveryMethod !== 'SELF_PICKUP' && (
+                      <span className="block text-[10px] text-slate-400">({distanceKm} km x Rp 2.000 • 100% Hak Driver)</span>
+                    )}
+                  </div>
                   <span className="font-bold text-slate-800">Rp {deliveryFee.toLocaleString('id-ID')}</span>
                 </div>
+                <div className="flex justify-between text-slate-600">
+                  <div>
+                    <span>Biaya Layanan Replate</span>
+                    <span className="block text-[10px] text-slate-400">Pemeliharaan ekosistem</span>
+                  </div>
+                  <span className="font-bold text-slate-800">Rp {serviceFee.toLocaleString('id-ID')}</span>
+                </div>
+                {isProtectionSelected && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Proteksi Pangan Higienis</span>
+                    <span className="font-bold text-slate-800">Rp 1.000</span>
+                  </div>
+                )}
               </div>
-              <div className="border-t border-slate-200 pt-4 mb-6">
+              <div className="border-t border-slate-200 pt-4 mb-4">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-slate-800">Total Tagihan</span>
                   <span className="text-2xl font-black text-[#1B3A5C]">Rp {totalAmount.toLocaleString('id-ID')}</span>
                 </div>
               </div>
+
+              {/* Transparansi Bagi Hasil Provider & Driver */}
+              {!isFree && (
+                <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-2xl text-[10.5px] text-blue-900 space-y-1 mb-4">
+                  <span className="font-black block text-blue-950 uppercase tracking-wider text-[9.5px]">
+                    Transparansi Bagi Hasil
+                  </span>
+                  <p className="leading-snug">
+                    • <strong>Provider Toko:</strong> Rp {providerEarnings.toLocaleString('id-ID')} (setelah Biaya Admin platform 10% = Rp {adminFee.toLocaleString('id-ID')}).
+                  </p>
+                  {deliveryFee > 0 && (
+                    <p className="leading-snug">
+                      • <strong>Driver Pengantar:</strong> 100% ongkir (Rp {deliveryFee.toLocaleString('id-ID')}) dialokasikan ke driver. Replate 0% margin.
+                    </p>
+                  )}
+                </div>
+              )}
               <Button
                 variant="gold"
                 className="w-full font-black py-3 text-sm shadow-md text-slate-950"
@@ -571,7 +715,7 @@ export default function CheckoutCartPage() {
             <div className="space-y-3">
               {[
                 { id: 'SELF_PICKUP', label: 'Ambil Mandiri (Self-Pickup)', desc: 'Bebas ongkir. Ambil pesanan langsung di gerai provider.', price: 'Rp 0' },
-                { id: 'COURIER_DELIVERY', label: 'Diantar Armada Toko (Driver Provider)', desc: 'Pengantaran oleh armada/driver internal pihak toko.', price: 'Rp 5.000' },
+                { id: 'COURIER_DELIVERY', label: 'Diantar Armada Toko (Driver Provider)', desc: `Pengantaran aman armada toko (${distanceKm} km x Rp 2.000/km). 100% ongkir hak driver, Replate 0% komisi.`, price: `Rp ${deliveryFee.toLocaleString('id-ID')}` },
               ].map((opt) => (
                 <label key={opt.id} className={`p-4 rounded-2xl border-2 flex items-start gap-4 cursor-pointer transition-all ${deliveryMethod === opt.id ? 'bg-amber-50/50 border-[#D4A843] shadow-sm' : 'bg-white border-slate-200 hover:border-amber-200'}`}>
                   <input type="radio" name="deliveryMethodModal" checked={deliveryMethod === opt.id as any} onChange={() => { setDeliveryMethod(opt.id as any); setIsDeliveryModalOpen(false); }} className="mt-0.5 w-4 h-4 text-[#1B3A5C]" />
@@ -584,6 +728,9 @@ export default function CheckoutCartPage() {
                   </div>
                 </label>
               ))}
+            </div>
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-[11px] text-emerald-900">
+              <strong>Skema Ongkir REPLATE:</strong> “REPLATE tidak mengambil margin dari biaya distribusi; biaya pengiriman sepenuhnya dialokasikan kepada pihak yang melakukan pengantaran.”
             </div>
           </div>
         </Modal>

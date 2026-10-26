@@ -64,8 +64,16 @@ function ProviderImpactContent() {
   const [totalWeightKg, setTotalWeightKg] = useState<number>(42.5);
   const [totalSurplusCount, setTotalSurplusCount] = useState<number>(2);
   const [totalBeneficiaries, setTotalBeneficiaries] = useState<number>(106);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [customStartPeriod, setCustomStartPeriod] = useState<string>('Agustus 2026');
+  const [customEndPeriod, setCustomEndPeriod] = useState<string>('Oktober 2026');
 
   useEffect(() => {
+    try {
+      const sub = localStorage.getItem('replate_provider_subscription');
+      if (sub) setSubscription(JSON.parse(sub));
+    } catch (_) {}
+
     try {
       const p = localStorage.getItem('replate_onboarding_profile');
       if (p) {
@@ -273,14 +281,82 @@ function ProviderImpactContent() {
 
       {/* Tab 2: Isolated CSR Report */}
       {activeTab === 'CSR' && (
-        <CSRReportPreview
-          organizationName={orgName}
-          period="Agustus 2026"
-          totalSurplusCount={totalSurplusCount}
-          totalWeightKg={totalWeightKg}
-          totalCo2SavedKg={totalCo2SavedKg}
-          totalBeneficiaries={totalBeneficiaries}
-        />
+        <div className="space-y-4">
+          {/* Subscription or Pay-Per-Use Header Alert */}
+          <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs no-print">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-[#1B3A5C]">
+                  {subscription?.status === 'ACTIVE'
+                    ? `Paket Aktif: ${subscription.planName}`
+                    : 'Akses Pay-per-use / Core Platform'}
+                </span>
+                {subscription?.status === 'ACTIVE' ? (
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-md">
+                    Custom Periode Bebas
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-black rounded-md">
+                    Rp 25.000 / Report
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-500 text-[11px]">
+                {subscription?.status === 'ACTIVE'
+                  ? 'Sebagai pelanggan Replate Business / Growth, Anda bebas menentukan rentang bulan pelaporan kapan saja.'
+                  : 'Provider dapat mengunduh laporan per bulan (Rp25.000/report) atau upgrade ke paket Business untuk custom periode bebas.'}
+              </p>
+            </div>
+
+            {subscription?.status === 'ACTIVE' ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                  <span>Dari:</span>
+                  <select
+                    value={customStartPeriod}
+                    onChange={(e) => setCustomStartPeriod(e.target.value)}
+                    className="border border-slate-300 rounded-lg px-2 py-1 bg-white text-xs"
+                  >
+                    <option value="Januari 2026">Januari 2026</option>
+                    <option value="April 2026">April 2026</option>
+                    <option value="Juni 2026">Juni 2026</option>
+                    <option value="Agustus 2026">Agustus 2026</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                  <span>Sampai:</span>
+                  <select
+                    value={customEndPeriod}
+                    onChange={(e) => setCustomEndPeriod(e.target.value)}
+                    className="border border-slate-300 rounded-lg px-2 py-1 bg-white text-xs"
+                  >
+                    <option value="Agustus 2026">Agustus 2026</option>
+                    <option value="September 2026">September 2026</option>
+                    <option value="Oktober 2026">Oktober 2026</option>
+                    <option value="Desember 2026">Desember 2026</option>
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/provider/subscription')}
+                className="px-3.5 py-1.5 bg-[#1B3A5C] text-[#D4A843] font-black text-xs rounded-xl hover:brightness-110 transition-all shrink-0 cursor-pointer"
+              >
+                Upgrade Paket Bebas Periode
+              </button>
+            )}
+          </div>
+
+          <CSRReportPreview
+            organizationName={orgName}
+            period={subscription?.status === 'ACTIVE' ? `${customStartPeriod} - ${customEndPeriod}` : 'Agustus 2026'}
+            totalSurplusCount={totalSurplusCount}
+            totalWeightKg={totalWeightKg}
+            totalCo2SavedKg={totalCo2SavedKg}
+            totalBeneficiaries={totalBeneficiaries}
+          />
+        </div>
       )}
 
       {/* Tab 3: Isolated Certificate */}
