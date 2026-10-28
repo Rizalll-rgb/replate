@@ -46,9 +46,9 @@ export default function DashboardPage() {
     if (role.includes('ADMIN')) {
       router.push('/dashboard/admin');
     } else if (role.includes('YAYASAN') || role.includes('BENEFICIARY')) {
-      router.push('/dashboard/yayasan');
+      router.push('/dashboard/beneficiary');
     } else if (role.includes('RESCUE') || role.includes('VOLUNTEER')) {
-      router.push('/dashboard/rescue-partner');
+      router.push('/dashboard/rescue');
     } else if (role.includes('CONSUMER')) {
       router.push('/dashboard/consumer');
     } else if (role.includes('PROVIDER')) {

@@ -99,13 +99,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (isBeneficiary && (pathname.startsWith('/dashboard/provider') || pathname.startsWith('/dashboard/consumer'))) {
       setIsRedirectingRoleMismatch(true);
-      router.replace('/dashboard/yayasan');
+      router.replace('/dashboard/beneficiary');
       return;
     }
 
     if (isVolunteer && (pathname.startsWith('/dashboard/provider') || pathname.startsWith('/dashboard/consumer'))) {
       setIsRedirectingRoleMismatch(true);
-      router.replace('/dashboard/rescue-partner');
+      router.replace('/dashboard/rescue');
       return;
     }
 
@@ -115,8 +115,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Path-based role awareness strictly isolates role experiences and prevents role bleeding
   let inferredRoleFromPath: string = detectedUserRole;
   if (pathname.startsWith('/dashboard/consumer')) inferredRoleFromPath = 'FOOD_CONSUMER';
-  else if (pathname.startsWith('/dashboard/yayasan')) inferredRoleFromPath = 'FOOD_BENEFICIARY';
-  else if (pathname.startsWith('/dashboard/rescue-partner')) inferredRoleFromPath = 'RESCUE_VOLUNTEER';
+  else if (pathname.startsWith('/dashboard/yayasan') || pathname.startsWith('/dashboard/beneficiary')) inferredRoleFromPath = 'FOOD_BENEFICIARY';
+  else if (pathname.startsWith('/dashboard/rescue-partner') || pathname.startsWith('/dashboard/rescue')) inferredRoleFromPath = 'RESCUE_VOLUNTEER';
   else if (pathname.startsWith('/dashboard/admin')) inferredRoleFromPath = 'SUPER_ADMIN';
   else if (pathname.startsWith('/dashboard/provider')) inferredRoleFromPath = 'FOOD_PROVIDER';
 
@@ -125,9 +125,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // 2. Otherwise use onboarding profile role, session user role, or detected role
   const resolvedRole = pathname.startsWith('/dashboard/consumer')
     ? 'FOOD_CONSUMER'
-    : pathname.startsWith('/dashboard/yayasan')
+    : pathname.startsWith('/dashboard/yayasan') || pathname.startsWith('/dashboard/beneficiary')
     ? 'FOOD_BENEFICIARY'
-    : pathname.startsWith('/dashboard/rescue-partner')
+    : pathname.startsWith('/dashboard/rescue-partner') || pathname.startsWith('/dashboard/rescue')
     ? 'RESCUE_VOLUNTEER'
     : pathname.startsWith('/dashboard/admin')
     ? 'SUPER_ADMIN'

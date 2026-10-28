@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Avatar } from '../ui/Avatar';
 import { signOut } from 'next-auth/react';
 import { Toast } from '../ui/Toast';
+import { OutletSwitcher } from './OutletSwitcher';
+import { usePathname } from 'next/navigation';
 
 export interface DashboardHeaderProps {
   user?: {
@@ -23,6 +25,7 @@ export interface DashboardHeaderProps {
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 'Dashboard Overview' }) => {
   const router = useRouter();
+  const pathname = usePathname() || '';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -135,6 +138,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
   }, []);
 
   const userRole = formatRoleLabel(user?.role);
+  const isProviderSection = userRole === 'Food Provider' || pathname.includes('/provider') || pathname.includes('/outlets');
 
   return (
     <>
@@ -147,6 +151,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          {/* Multi-Outlet Branch Switcher for Food Provider */}
+          {isProviderSection && <OutletSwitcher />}
+
           {/* Cart Icon for Consumer & Beneficiary */}
           {(userRole === 'Food Consumer' || userRole === 'Food Beneficiary') && (
             <button

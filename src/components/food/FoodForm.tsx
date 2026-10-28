@@ -15,6 +15,14 @@ import {
 import { RescueReadinessForm, RescueReadinessChecklist, FormValidationSignals } from './RescueReadinessForm';
 import { resolveIndonesianAddress } from '@/lib/geoResolver';
 import { calculateIppcEsgImpact } from '@/lib/esgCarbonEngine';
+import { Store, Check } from 'lucide-react';
+import Link from 'next/link';
+import {
+  OutletItem,
+  getStoredOutlets,
+  getActiveOutlet,
+  isGrowthTierActive,
+} from '@/lib/outletManager';
 
 export interface FoodFormData {
   foodName: string;
@@ -32,6 +40,9 @@ export interface FoodFormData {
   address: string;
   latitude: number;
   longitude: number;
+  outletId?: string;
+  outletName?: string;
+  outletContact?: string;
   photos?: string[];
   rescueReadiness: RescueReadinessChecklist;
 }
@@ -44,6 +55,9 @@ export interface FoodFormProps {
 export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false }) => {
   const [defaultAddress, setDefaultAddress] = useState('Jl. Raya Sarangan, Kwarigan, Sidorejo, Magetan');
   const [useDefaultAddress, setUseDefaultAddress] = useState(true);
+  const [outlets, setOutlets] = useState<OutletItem[]>([]);
+  const [selectedOutletId, setSelectedOutletId] = useState<string>('');
+  const [isGrowth, setIsGrowth] = useState<boolean>(false);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'
   );
@@ -53,6 +67,44 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
   const [allowSelfPickup, setAllowSelfPickup] = useState<boolean>(true);
   const [allowRescueCourier, setAllowRescueCourier] = useState<boolean>(true);
   const [allowDirectFleet, setAllowDirectFleet] = useState<boolean>(true);
+
+  React.useEffect(() => {
+    try {
+      const growth = isGrowthTierActive();
+      setIsGrowth(growth);
+      const list = getStoredOutlets();
+      setOutlets(list);
+      const active = getActiveOutlet();
+      if (active) {
+        setSelectedOutletId(active.id);
+        setDefaultAddress(active.address);
+        setFormData((prev) => ({
+          ...prev,
+          address: active.address,
+          latitude: active.latitude,
+          longitude: active.longitude,
+          outletId: active.id,
+          outletName: active.name,
+          outletContact: active.contactPhone,
+        }));
+      }
+    } catch (_) {}
+  }, []);
+
+  const handleSelectOutlet = (outlet: OutletItem) => {
+    setSelectedOutletId(outlet.id);
+    setDefaultAddress(outlet.address);
+    setUseDefaultAddress(true);
+    setFormData((prev) => ({
+      ...prev,
+      address: outlet.address,
+      latitude: outlet.latitude,
+      longitude: outlet.longitude,
+      outletId: outlet.id,
+      outletName: outlet.name,
+      outletContact: outlet.contactPhone,
+    }));
+  };
 
   React.useEffect(() => {
     try {
@@ -328,6 +380,9 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       address: finalAddress,
       latitude: formData.latitude || resolvedGeo.lat,
       longitude: formData.longitude || resolvedGeo.lng,
+      outletId: formData.outletId || selectedOutletId,
+      outletName: formData.outletName || outlets.find((o) => o.id === selectedOutletId)?.name,
+      outletContact: formData.outletContact || outlets.find((o) => o.id === selectedOutletId)?.contactPhone,
       photos: previewPhoto ? [previewPhoto] : [],
       rescueReadiness: checklistData,
     };
@@ -418,6 +473,28 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       {/* LANGKAH 1: IDENTITAS & PORSI MAKANAN */}
       {currentStep === 1 && (
         <div className="space-y-4">
+          {/* Active Publishing Branch Indicator */}
+          <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#1B3A5C] text-[#D4A843] flex items-center justify-center shrink-0">
+                <Store className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 font-bold block">Cabang Penerbit Surplus:</span>
+                <strong className="text-xs font-black text-[#1B3A5C]">
+                  {outlets.find((o) => o.id === selectedOutletId)?.name || 'Cabang Utama'}
+                </strong>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCurrentStep(3)}
+              className="text-[11px] font-black text-[#1B3A5C] hover:underline cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-blue-200 shadow-2xs"
+            >
+              Ganti Cabang
+            </button>
+          </div>
+
           {/* Photo Upload Section */}
           <div className="space-y-1.5">
             <label className="text-xs font-extrabold text-[#1B3A5C] block">
@@ -783,10 +860,63 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
       {/* LANGKAH 3: STANDAR BPOM & ALAMAT TOKO */}
       {currentStep === 3 && (
         <div className="space-y-4">
+          {/* Pilihan Cabang / Outlet yang Mempublikasikan */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
+                <Store className="w-4 h-4 text-[#1B3A5C]" />
+                <span>Pilih Cabang / Outlet yang Mempublikasikan</span>
+                {isGrowth && (
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    MULTI-OUTLET ACTIVE
+                  </span>
+                )}
+              </label>
+              <Link
+                href="/dashboard/outlets"
+                className="text-[10.5px] font-bold text-[#1B3A5C] hover:underline flex items-center gap-1"
+              >
+                <span>Kelola Cabang</span>
+              </Link>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium">
+              Pilih cabang toko yang mempublikasikan makanan ini. Titik jemput dan perhitungan ongkir kurir (Rp 2.000/km) akan dihitung akurat dari koordinat cabang ini ke alamat pemesan.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              {outlets.map((outlet) => {
+                const isSelected = selectedOutletId === outlet.id;
+                return (
+                  <div
+                    key={outlet.id}
+                    onClick={() => handleSelectOutlet(outlet)}
+                    className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-[#1B3A5C] bg-white shadow-xs ring-2 ring-[#1B3A5C]/20'
+                        : 'border-slate-200 bg-white/70 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-black text-[#1B3A5C] truncate block">
+                        {outlet.name}
+                      </span>
+                      {isSelected && <Check className="w-4 h-4 text-[#D4A843] shrink-0" />}
+                    </div>
+                    <p className="text-[10.5px] text-slate-600 truncate mt-1">{outlet.address}</p>
+                    <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 mt-1 pt-1 border-t border-slate-100">
+                      <span>GPS: {outlet.latitude.toFixed(4)}, {outlet.longitude.toFixed(4)}</span>
+                      {outlet.isMain && <span className="font-bold text-[#1B3A5C]">Pusat</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Auto-Fill Address Toggle with Driver GPS & Loading Dock Notes */}
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-extrabold text-[#1B3A5C]">Alamat Penjemputan Makanan</label>
+              <label className="text-xs font-extrabold text-[#1B3A5C]">Konfirmasi Alamat Penjemputan</label>
               <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
                 <input
                   type="checkbox"
@@ -794,7 +924,7 @@ export const FoodForm: React.FC<FoodFormProps> = ({ onSubmit, isLoading = false 
                   onChange={(e) => setUseDefaultAddress(e.target.checked)}
                   className="rounded border-slate-300 text-[#1B3A5C] focus:ring-0 cursor-pointer"
                 />
-                <span>Gunakan Alamat Toko Utama ({defaultAddress})</span>
+                <span>Gunakan Alamat Cabang Terpilih ({defaultAddress})</span>
               </label>
             </div>
 

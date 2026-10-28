@@ -13,7 +13,9 @@ import {
   calculateIppcEsgImpact,
   generatePrintableEsgCertificate,
 } from '@/lib/esgCarbonEngine';
-import { Leaf, FileCheck, Printer, ShieldCheck, Flame, Sparkles } from 'lucide-react';
+import { Leaf, FileCheck, Printer, ShieldCheck, Flame, Sparkles, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { Toast } from '@/components/ui/Toast';
 
 function ProviderImpactContent() {
   const router = useRouter();
@@ -65,6 +67,9 @@ function ProviderImpactContent() {
   const [totalSurplusCount, setTotalSurplusCount] = useState<number>(2);
   const [totalBeneficiaries, setTotalBeneficiaries] = useState<number>(106);
   const [subscription, setSubscription] = useState<any>(null);
+  const [purchasedReports, setPurchasedReports] = useState<any[]>([]);
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState<boolean>(false);
+  const [toastMsg, setToastMsg] = useState<string>('');
   const [customStartPeriod, setCustomStartPeriod] = useState<string>('Agustus 2026');
   const [customEndPeriod, setCustomEndPeriod] = useState<string>('Oktober 2026');
 
@@ -72,6 +77,11 @@ function ProviderImpactContent() {
     try {
       const sub = localStorage.getItem('replate_provider_subscription');
       if (sub) setSubscription(JSON.parse(sub));
+    } catch (_) {}
+
+    try {
+      const pr = localStorage.getItem('replate_purchased_reports');
+      if (pr) setPurchasedReports(JSON.parse(pr));
     } catch (_) {}
 
     try {
@@ -123,6 +133,35 @@ function ProviderImpactContent() {
   }, []);
 
   const totalCo2SavedKg = Math.round(totalWeightKg * FOOD_WASTE_CO2_FACTOR * 10) / 10;
+
+  const hasActiveSub = subscription?.status === 'ACTIVE' && (subscription?.planId === 'BUSINESS' || subscription?.planId === 'GROWTH');
+  const isPeriodPaid = purchasedReports.some((r: any) => (r.status === 'PAID' || r.status === 'VERIFIED'));
+  const isReportUnlocked = Boolean(hasActiveSub || isPeriodPaid);
+
+  const handlePayPerUseUnlock = () => {
+    const currentMonthName = 'Oktober';
+    const currentYearNum = '2026';
+    const newReport = {
+      id: `rpt_${Date.now()}`,
+      invoiceNo: `INV-CSR-${Date.now().toString(36).toUpperCase()}`,
+      month: currentMonthName,
+      year: currentYearNum,
+      pricePaid: 25000,
+      purchasedAt: new Date().toISOString(),
+      weightKg: totalWeightKg,
+      co2SavedKg: totalCo2SavedKg,
+      waterSavedL: Math.round(totalWeightKg * 500),
+      beneficiariesCount: totalBeneficiaries,
+      status: 'PAID',
+    };
+    const updated = [newReport, ...purchasedReports];
+    setPurchasedReports(updated);
+    try {
+      localStorage.setItem('replate_purchased_reports', JSON.stringify(updated));
+    } catch (_) {}
+    setIsUnlockModalOpen(false);
+    setToastMsg('Pembayaran Rp 25.000 berhasil! Akses unduh & cetak Laporan CSR periode ini telah terbuka.');
+  };
 
   const [certType, setCertType] = useState<'IPCC_ESG' | 'STANDARD'>('IPCC_ESG');
 
@@ -350,11 +389,15 @@ function ProviderImpactContent() {
 
           <CSRReportPreview
             organizationName={orgName}
-            period={subscription?.status === 'ACTIVE' ? `${customStartPeriod} - ${customEndPeriod}` : 'Agustus 2026'}
+            period={subscription?.status === 'ACTIVE' ? `${customStartPeriod} - ${customEndPeriod}` : 'Oktober 2026'}
+            month="Oktober"
+            year="2026"
             totalSurplusCount={totalSurplusCount}
             totalWeightKg={totalWeightKg}
             totalCo2SavedKg={totalCo2SavedKg}
             totalBeneficiaries={totalBeneficiaries}
+            isUnlocked={isReportUnlocked}
+            onUnlockRequest={() => setIsUnlockModalOpen(true)}
           />
         </div>
       )}
@@ -477,6 +520,118 @@ function ProviderImpactContent() {
           )}
         </div>
       )}
+
+      {/* Modal Buka Akses Laporan Pay-Per-Use atau Langganan */}
+      <Modal
+        isOpen={isUnlockModalOpen}
+        onClose={() => setIsUnlockModalOpen(false)}
+        title="Buka Akses Laporan CSR & Sustainability"
+        size="lg"
+      >
+        <div className="space-y-5 p-2">
+          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1">
+            <div className="flex items-center gap-2 font-bold text-amber-950">
+              <Lock className="w-4 h-4 text-amber-700" />
+              <span>Akses Dokumen Resmi Ber-Kop & Terverifikasi</span>
+            </div>
+            <p className="leading-relaxed">
+              Dokumen resmi Impact Report Replate dilengkapi kop surat legalitas, metrik reduksi gas rumah kaca standar IPCC (SDG 12 &amp; 13), metrik sosial Zero Hunger (SDG 2), tabel kategori pangan, dan QR Code verifikasi keaslian dokumen.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Opsi 1: Pay-Per-Use */}
+            <div className="p-5 rounded-2xl border-2 border-slate-200 hover:border-[#1B3A5C] bg-white transition-all flex flex-col justify-between space-y-4">
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                  Pilihan 1: Pay-Per-Use
+                </span>
+                <h4 className="font-black text-slate-900 text-base">Beli Laporan Bulan Ini</h4>
+                <div className="text-2xl font-black text-[#1B3A5C]">
+                  Rp 25.000 <span className="text-xs font-normal text-slate-500">/ periode</span>
+                </div>
+                <ul className="text-xs text-slate-600 space-y-1.5 pt-2">
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Laporan resmi PDF periode Oktober 2026</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Format cetak A4 1 halaman &amp; API export</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Bebas diunduh &amp; dicetak kapan saja</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePayPerUseUnlock}
+                className="w-full py-2.5 px-4 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-[#D4A843] font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Beli Akses Rp 25.000 (Bayar Instan)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Opsi 2: Subscription Business */}
+            <div className="p-5 rounded-2xl border-2 border-[#D4A843] bg-gradient-to-br from-amber-50/50 to-white hover:border-[#1B3A5C] transition-all flex flex-col justify-between space-y-4 relative">
+              <div className="absolute -top-3 right-4 bg-[#D4A843] text-slate-950 font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                Paling Hemat &amp; Lengkap
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                  Pilihan 2: Langganan
+                </span>
+                <h4 className="font-black text-slate-900 text-base">Replate Business Tier</h4>
+                <div className="text-2xl font-black text-[#1B3A5C]">
+                  Rp 179.000 <span className="text-xs font-normal text-slate-500">/ bulan</span>
+                </div>
+                <ul className="text-xs text-slate-600 space-y-1.5 pt-2">
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span className="font-bold text-slate-800">Unduh laporan bebas semua periode</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Verified Business Badge pada profil toko</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>2x Kuota Banner Promosi gratis per bulan</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Diskon 20% seluruh layanan pay-per-use</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsUnlockModalOpen(false);
+                  router.push('/dashboard/provider/subscription');
+                }}
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Upgrade ke Paket Business</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Toast Notifikasi */}
+      <Toast
+        isOpen={!!toastMsg}
+        message={toastMsg}
+        type="success"
+        onClose={() => setToastMsg('')}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Hero } from '@/components/landing/Hero';
+import { PartnerPromoCarousel } from '@/components/landing/PartnerPromoCarousel';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { ImpactCounter } from '@/components/landing/ImpactCounter';
 import { SDGSection } from '@/components/landing/SDGSection';
@@ -354,6 +355,7 @@ export default function HomePage() {
 
       <main className="flex-1">
         <Hero />
+        <PartnerPromoCarousel />
         <HowItWorks />
 
         {/* Dedicated Governance Audit Status Tracker Section */}

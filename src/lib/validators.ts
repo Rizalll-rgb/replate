@@ -67,6 +67,11 @@ export const rescueReadinessSchema = z.object({
 export const claimSchema = z.object({
     foodId: z.string(),
     quantity: z.number().positive('Jumlah harus lebih dari 0'),
+     deliveryMethod: z.enum(['SELF_PICKUP', 'PROVIDER_DRIVER', 'RESCUE_ARMADA', 'COURIER_DELIVERY', 'COMMUNITY_DELIVERY']).optional(),
+    deliveryAddress: z.string().optional(),
+    destinationLat: z.number().optional(),
+    destinationLng: z.number().optional(),
+    isProtectionSelected: z.boolean().optional(),
     notes: z.string().max(500).optional(),
 });
 

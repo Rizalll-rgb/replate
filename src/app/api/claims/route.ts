@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { claimSchema } from '@/lib/validators';
 import { generateClaimCode, calculateCO2Saved } from '@/lib/utils';
+import { calculateOrderDistance, calculateOrderFees } from '@/lib/orderFeeCalculator';
 import { v4 as uuidv4 } from 'uuid';
 
 // GET - List claims
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: validation.error.issues[0].message }, { status: 400 });
         }
 
-        const { foodId, quantity, notes } = validation.data;
+        const { foodId, quantity, notes, deliveryMethod, deliveryAddress, destinationLat, destinationLng, isProtectionSelected } = validation.data;
 
         // Check food availability
         const food = await prisma.surplusFood.findUnique({ where: { id: foodId } });
@@ -104,6 +105,27 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Batas waktu pickup sudah lewat' }, { status: 400 });
         }
 
+        // Hitung rincian biaya sesuai Modul 3:
+        const distanceKm = calculateOrderDistance(
+            food.latitude,
+            food.longitude,
+            food.address,
+            destinationLat,
+            destinationLng,
+            deliveryAddress,
+            2.5
+        );
+
+        const isFree = food.distributionType === 'FREE' || (food.price || 0) === 0;
+        const feeBreakdown = calculateOrderFees({
+            foodTotal: (food.price || 0) * quantity,
+            isFreeItem: isFree,
+            deliveryMethod: deliveryMethod || 'SELF_PICKUP',
+            distanceKm,
+            isProtectionSelected: isProtectionSelected ?? true,
+            quantity,
+        });
+
         // Generate claim code and QR data
         const claimCode = generateClaimCode();
         const qrData = JSON.stringify({
@@ -112,13 +134,17 @@ export async function POST(request: Request) {
             foodId,
             consumerId: session.user.id,
             quantity,
+            fees: feeBreakdown,
             timestamp: Date.now(),
         });
 
         // Determine payment status
-        const paymentStatus = food.distributionType === 'FREE' || (food.price || 0) === 0
-            ? 'NOT_REQUIRED'
-            : 'PENDING';
+        const paymentStatus = isFree ? 'NOT_REQUIRED' : 'PENDING';
+
+        const serializedNotes = JSON.stringify({
+            customerNotes: notes || '',
+            fees: feeBreakdown,
+        });
 
         // Create claim + QR code + update remaining in a transaction
         const claim = await prisma.$transaction(async (tx: any) => {
@@ -131,7 +157,7 @@ export async function POST(request: Request) {
                     status: 'CONFIRMED',
                     paymentStatus: paymentStatus as any,
                     qrCodeData: qrData,
-                    notes,
+                    notes: serializedNotes,
                 },
                 include: {
                     food: {
@@ -177,12 +203,12 @@ export async function POST(request: Request) {
             return newClaim;
         });
 
-        // Notify provider
+        // Notify provider with settlement details (net after 10% platform fee)
         await prisma.notification.create({
             data: {
                 userId: food.providerId,
-                title: 'Makanan Diklaim! ',
-                message: `${food.foodName} telah diklaim (${quantity} ${food.quantityUnit}). Kode klaim: ${claimCode}`,
+                title: 'Pesanan Surplus Baru!',
+                message: `${food.foodName} telah diklaim (${quantity} ${food.quantityUnit}). Estimasi pencairan saldo: Rp ${feeBreakdown.providerEarnings.toLocaleString('id-ID')} (setelah potongan Biaya Admin Platform 10% = Rp ${feeBreakdown.adminFeeProvider.toLocaleString('id-ID')}). Kode klaim: ${claimCode}`,
                 type: 'CLAIM',
                 actionUrl: '/dashboard/provider/claims',
             },
@@ -190,7 +216,10 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
-            data: claim,
+            data: {
+                ...claim,
+                fees: feeBreakdown,
+            },
             message: `Berhasil mengklaim ${quantity} ${food.quantityUnit} ${food.foodName}!`,
         }, { status: 201 });
     } catch (error) {
