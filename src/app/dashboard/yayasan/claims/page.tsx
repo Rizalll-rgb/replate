@@ -83,7 +83,9 @@ export default function YayasanClaimsPage() {
   const [reqFoodType, setReqFoodType] = useState('Makanan Berat Siap Santap Bergizi');
   const [reqQuantity, setReqQuantity] = useState('45');
   const [reqUrgency, setReqUrgency] = useState('Mendesak (Darurat Segera)');
-  const [reqDeliveryMethod, setReqDeliveryMethod] = useState('Membutuhkan Pengantaran Kurir Relawan');
+  const [reqDeliveryMethod, setReqDeliveryMethod] = useState('Armada Toko (Rp 0)');
+  const [reqPaymentMethod, setReqPaymentMethod] = useState('Bebas Biaya (Rp 0)');
+  const [reqDriver, setReqDriver] = useState('Tugaskan Otomatis (Driver Terdekat)');
   const [reqReadyTime, setReqReadyTime] = useState('Hari Ini, Pukul 19:30 - 20:30 WIB');
   const [reqNotes, setReqNotes] = useState('');
 
@@ -489,7 +491,10 @@ export default function YayasanClaimsPage() {
         legalStatus: `Terverifikasi Dinsos (${dinsosReg})`,
         legalPermit: dinsosReg,
         notes: reqNotes || 'Kebutuhan pangan panti asuhan terverifikasi.',
-        preferredDelivery: reqDeliveryMethod.includes('Ambil') ? ('SHELTER_PICKUP' as const) : ('RESCUE_COURIER' as const),
+        preferredDelivery: reqDeliveryMethod.includes('Ambil') ? ('SHELTER_PICKUP' as const) : reqDeliveryMethod.includes('Toko') ? ('PROVIDER_DIRECT' as const) : ('RESCUE_COURIER' as const),
+        deliveryOption: reqDeliveryMethod,
+        paymentMethod: reqPaymentMethod,
+        assignedDriver: reqDriver,
         deliveryLabel: reqDeliveryMethod,
         deliveryDesc: reqDeliveryMethod,
         lat: resolveIndonesianAddress(pantiAddress).lat,
@@ -1368,10 +1373,51 @@ export default function YayasanClaimsPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Preferensi Penyaluran Makanan</label>
-              <select value={reqDeliveryMethod} onChange={(e) => setReqDeliveryMethod(e.target.value)} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer">
-                <option>Membutuhkan Pengantaran Kurir Relawan</option>
-                <option>Bisa Ambil Sendiri (Self-Pickup di Toko)</option>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Opsi Pengiriman <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={reqDeliveryMethod}
+                onChange={(e) => setReqDeliveryMethod(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option value="Armada Toko (Rp 0)">Armada Toko (Rp 0)</option>
+                <option value="Kurir Relawan Food Rescue">Kurir Relawan Food Rescue</option>
+                <option value="Ambil Mandiri">Ambil Mandiri</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Metode Pembayaran <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={reqPaymentMethod}
+                onChange={(e) => setReqPaymentMethod(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option value="Bebas Biaya (Rp 0)">Bebas Biaya (Rp 0)</option>
+                <option value="Saldo Dompet Replate">Saldo Dompet Replate</option>
+                <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
+                <option value="Transfer Virtual Account">Transfer Virtual Account</option>
+                <option value="COD (Bayar di Tempat)">COD (Bayar di Tempat)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Tugaskan Driver Pengantaran
+              </label>
+              <select
+                value={reqDriver}
+                onChange={(e) => setReqDriver(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option value="Tugaskan Otomatis (Driver Terdekat)">Tugaskan Otomatis (Driver Terdekat)</option>
+                <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
+                <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
+                <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)</option>
+                <option value="Tanpa Driver (Pihak Panti Ambil Mandiri)">Tanpa Driver (Pihak Panti Ambil Mandiri)</option>
               </select>
             </div>
             <div>

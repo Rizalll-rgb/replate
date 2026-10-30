@@ -15,6 +15,7 @@ datasource db {
 enum UserRole {
   PROVIDER
   CONSUMER
+  BENEFICIARY
   YAYASAN
   RESCUE_PARTNER
   ADMIN
@@ -34,6 +35,16 @@ enum FoodCategory {
   DAIRY
   BEVERAGES
   SNACKS
+  OTHER
+}
+
+enum BPOMCategory {
+  COOKED_HOT_GRAVY
+  COOKED_MEALS
+  BAKERY_PASTRY
+  DAIRY_COLD
+  FRESH_PRODUCE
+  DRY_BAKERY_CANNED
   OTHER
 }
 
@@ -122,6 +133,36 @@ enum QRType {
   RESCUE
 }
 
+enum SubscriptionTier {
+  FREE
+  BUSINESS
+  GROWTH
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PayPerUseType {
+  IMPACT_REPORT
+  BANNER_PROMOTION
+}
+
+enum PayPerUseStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  COMPLETED
+  REJECTED
+}
+
+enum DeliveryProviderType {
+  SELF_PICKUP
+  PROVIDER_DRIVER
+  RESCUE_ARMADA
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -147,83 +188,190 @@ model User {
   updatedAt        DateTime   @updatedAt
 
   // Relations
-  surplusFood      SurplusFood[]
-  foodClaims       FoodClaim[]
-  rescueRequests   RescueRequest[]
-  matchResults     MatchResult[]
-  impactLogs       ImpactLog[]
-  notifications    Notification[]
-  trackingUpdates  FoodTracking[]  @relation("TrackingUpdatedBy")
+  surplusFood       SurplusFood[]
+  foodClaims        FoodClaim[]
+  rescueRequests    RescueRequest[]
+  matchResults      MatchResult[]
+  impactLogs        ImpactLog[]
+  notifications     Notification[]
+  trackingUpdates   FoodTracking[]      @relation("TrackingUpdatedBy")
+  subscriptions     Subscription[]
+  payPerUseServices PayPerUseService[]
+  outlets           Outlet[]
+  transactions      Transaction[]
 
   @@index([role, status])
   @@index([city])
   @@map("users")
 }
 
+model Subscription {
+  id                 String             @id @default(cuid())
+  userId             String
+  tier               SubscriptionTier   @default(FREE)
+  price              Int                @default(0)
+  startDate          DateTime           @default(now())
+  endDate            DateTime
+  verifiedBadge      Boolean            @default(false)
+  bannerQuota        Int                @default(0)
+  discountPercent    Int                @default(0)
+  multiOutletEnabled Boolean            @default(false)
+  status             SubscriptionStatus @default(ACTIVE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("subscriptions")
+}
+
+model PayPerUseService {
+  id                String          @id @default(cuid())
+  userId            String
+  type              PayPerUseType
+  price             Int             @default(0)
+  status            PayPerUseStatus @default(PENDING_PAYMENT)
+  reportPeriodStart DateTime?
+  reportPeriodEnd   DateTime?
+  bannerImageUrl    String?         @db.Text
+  bannerTargetUrl   String?         @db.Text
+  bannerDays        Int?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("pay_per_use_services")
+}
+
+model Outlet {
+  id        String        @id @default(cuid())
+  userId    String
+  name      String
+  address   String        @db.Text
+  latitude  Float
+  longitude Float
+  phone     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  surplus   SurplusFood[]
+
+  @@index([userId])
+  @@map("outlets")
+}
+
 model SurplusFood {
-  id                String           @id @default(cuid())
-  providerId        String
-  foodName          String
-  description       String?          @db.Text
-  foodCategory      FoodCategory
-  quantity          Float
-  quantityUnit      String           @default("porsi")
-  productionDate    DateTime?
-  expiryDate        DateTime?
-  pickupDeadline    DateTime
-  storageCondition  StorageCondition @default(ROOM_TEMP)
-  packagingType     PackagingType    @default(PACKAGED)
-  photos            Json             @default("[]")
-  latitude          Float
-  longitude         Float
-  address           String           @db.Text
-  status            SurplusStatus    @default(AVAILABLE)
-  distributionType  DistributionType @default(BOTH)
-  price             Float?           @default(0)
-  remainingQuantity Float
-  rescueReadiness   Json?
-  weightPerUnitKg   Float            @default(0.5)
-  notes             String?          @db.Text
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id                   String           @id @default(cuid())
+  providerId           String
+  outletId             String?
+  foodName             String
+  description          String?          @db.Text
+  foodCategory         FoodCategory
+  bpomCategory         BPOMCategory?    @default(COOKED_MEALS)
+  quantity             Float
+  quantityUnit         String           @default("porsi")
+  productionDate       DateTime?
+  expiryDate           DateTime?
+  pickupDeadline       DateTime
+  storageCondition     StorageCondition @default(ROOM_TEMP)
+  storageTemp          String?
+  packagingType        PackagingType    @default(PACKAGED)
+  photos               Json             @default("[]")
+  latitude             Float
+  longitude            Float
+  address              String           @db.Text
+  status               SurplusStatus    @default(AVAILABLE)
+  distributionType     DistributionType @default(BOTH)
+  price                Float?           @default(0)
+  remainingQuantity    Float
+  rescueReadiness      Json?
+  weightPerUnitKg      Float            @default(0.5)
+  isProtectionEligible Boolean          @default(true)
+  notes                String?          @db.Text
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   // Relations
-  provider          User             @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  foodClaims        FoodClaim[]
-  rescueRequests    RescueRequest[]
-  matchResults      MatchResult[]
+  provider             User             @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  outlet               Outlet?          @relation(fields: [outletId], references: [id], onDelete: SetNull)
+  foodClaims           FoodClaim[]
+  rescueRequests       RescueRequest[]
+  matchResults         MatchResult[]
+  transactions         Transaction[]
 
   @@index([status, foodCategory])
   @@index([providerId])
+  @@index([outletId])
   @@index([pickupDeadline])
   @@index([latitude, longitude])
   @@map("surplus_foods")
 }
 
 model FoodClaim {
-  id            String        @id @default(cuid())
-  claimCode     String        @unique
-  foodId        String
-  consumerId    String
-  quantity      Float
-  status        ClaimStatus   @default(PENDING)
-  paymentStatus PaymentStatus @default(NOT_REQUIRED)
-  qrCodeData    String?       @db.Text
-  claimedAt     DateTime      @default(now())
-  confirmedAt   DateTime?
-  pickedUpAt    DateTime?
-  cancelledAt   DateTime?
-  notes         String?       @db.Text
+  id                   String               @id @default(cuid())
+  claimCode            String               @unique
+  foodId               String
+  consumerId           String
+  quantity             Float
+  status               ClaimStatus          @default(PENDING)
+  paymentStatus        PaymentStatus        @default(NOT_REQUIRED)
+  foodTotal            Float                @default(0)
+  adminFeeProvider     Float                @default(0)
+  serviceFeeConsumer   Float                @default(0)
+  deliveryFee          Float                @default(0)
+  protectionFee        Float                @default(0)
+  deliveryProviderType DeliveryProviderType @default(SELF_PICKUP)
+  totalAmount          Float                @default(0)
+  qrCodeData           String?              @db.Text
+  claimedAt            DateTime             @default(now())
+  confirmedAt          DateTime?
+  pickedUpAt           DateTime?
+  cancelledAt          DateTime?
+  notes                String?              @db.Text
 
   // Relations
-  food          SurplusFood   @relation(fields: [foodId], references: [id], onDelete: Cascade)
-  consumer      User          @relation(fields: [consumerId], references: [id], onDelete: Cascade)
-  trackingLogs  FoodTracking[]
-  qrCode        QRCode?
+  food                 SurplusFood          @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  consumer             User                 @relation(fields: [consumerId], references: [id], onDelete: Cascade)
+  trackingLogs         FoodTracking[]
+  qrCode               QRCode?
+  transaction          Transaction?
 
   @@index([consumerId, status])
   @@index([foodId])
   @@map("food_claims")
+}
+
+model Transaction {
+  id                   String               @id @default(cuid())
+  transactionNumber    String               @unique @default(cuid())
+  userId               String
+  foodId               String?
+  claimId              String?              @unique
+  foodTotal            Float                @default(0)
+  adminFeeProvider     Float                @default(0)
+  serviceFeeConsumer   Float                @default(0)
+  deliveryFee          Float                @default(0)
+  protectionFee        Float                @default(0)
+  deliveryProviderType DeliveryProviderType @default(SELF_PICKUP)
+  totalAmount          Float                @default(0)
+  providerEarnings     Float                @default(0)
+  distanceKm           Float?               @default(0)
+  paymentStatus        PaymentStatus        @default(PENDING)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  claim                FoodClaim?           @relation(fields: [claimId], references: [id], onDelete: SetNull)
+  food                 SurplusFood?         @relation(fields: [foodId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([foodId])
+  @@index([claimId])
+  @@map("transactions")
 }
 
 model RescueRequest {
@@ -253,14 +401,14 @@ model RescueRequest {
 }
 
 model MatchResult {
-  id             String    @id @default(cuid())
+  id             String      @id @default(cuid())
   foodId         String
   matchedUserId  String
   score          Float
   scoreBreakdown Json
   matchType      MatchType
-  isNotified     Boolean   @default(false)
-  createdAt      DateTime  @default(now())
+  isNotified     Boolean     @default(false)
+  createdAt      DateTime    @default(now())
 
   // Relations
   food           SurplusFood @relation(fields: [foodId], references: [id], onDelete: Cascade)
@@ -331,19 +479,19 @@ model Notification {
 }
 
 model QRCode {
-  id          String    @id @default(cuid())
-  data        String    @unique @db.VarChar(512)
+  id          String         @id @default(cuid())
+  data        String         @unique @db.VarChar(512)
   type        QRType
-  claimId     String?   @unique
-  rescueId    String?   @unique
-  isUsed      Boolean   @default(false)
+  claimId     String?        @unique
+  rescueId    String?        @unique
+  isUsed      Boolean        @default(false)
   usedAt      DateTime?
   expiresAt   DateTime
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime       @default(now())
 
   // Relations
-  claim       FoodClaim?      @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  rescue      RescueRequest?  @relation(fields: [rescueId], references: [id], onDelete: Cascade)
+  claim       FoodClaim?     @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  rescue      RescueRequest? @relation(fields: [rescueId], references: [id], onDelete: Cascade)
 
   @@index([data])
   @@map("qr_codes")

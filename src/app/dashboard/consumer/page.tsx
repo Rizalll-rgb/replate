@@ -1,3 +1,4 @@
+import { ImpactGamification } from '@/components/impact/ImpactGamification';
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -407,7 +408,7 @@ export default function ConsumerDashboardPage() {
 
       if (activeCategoryFilter === 'ALL') return true;
       if (activeCategoryFilter === 'RESCUE_SALE') return !item.isFree && item.price > 0 && item.originalPrice > item.price;
-      if (activeCategoryFilter === 'FREE') return item.isFree || item.price === 0;
+      if (activeCategoryFilter === 'FREE_RP0' || activeCategoryFilter === 'FREE') return item.isFree || item.price === 0 || item.discountPrice === 0 || item.distributionType === 'FREE';
       if (activeCategoryFilter === 'MINUMAN_SUSU') return item.category === 'MINUMAN_SUSU' || item.category === 'DAIRY' || item.category === 'BEVERAGES' || (item.title && item.title.toLowerCase().includes('susu')) || (item.title && item.title.toLowerCase().includes('jus')) || (item.title && item.title.toLowerCase().includes('kopi')) || (item.title && item.title.toLowerCase().includes('teh')) || (item.title && item.title.toLowerCase().includes('drink'));
       if (activeCategoryFilter === 'FLASH') return item.originalPrice > item.price && (item.originalPrice - item.price) / item.originalPrice >= 0.5;
       if (activeCategoryFilter === 'BAKERY') return item.category === 'BAKERY' || item.category === 'ROTI_KUE' || (item.title && item.title.toLowerCase().includes('roti'));
@@ -674,15 +675,64 @@ export default function ConsumerDashboardPage() {
 
         {/* Desktop Main Food Explorer Grid */}
         <section className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <div>
               <h3 className="text-lg font-black text-[#1B3A5C]">
-                Semua Katalog Makanan Surplus Aktif
+                Katalog Makanan Surplus Aktif
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Menampilkan {foods.length > 0 ? (desktopCurrentPage - 1) * desktopItemsPerPage + 1 : 0} -{' '}
-                {Math.min(desktopCurrentPage * desktopItemsPerPage, foods.length)} dari total {foods.length} makanan siap diselamatkan
+                Menampilkan {filteredFoods.length > 0 ? (desktopCurrentPage - 1) * desktopItemsPerPage + 1 : 0} -{' '}
+                {Math.min(desktopCurrentPage * desktopItemsPerPage, filteredFoods.length)} dari {filteredFoods.length} makanan
               </p>
+            </div>
+
+            {/* Tab Navigasi Katalog Produk Role Consumer */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => { setActiveCategoryFilter('ALL'); setDesktopCurrentPage(1); }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  activeCategoryFilter === 'ALL'
+                    ? 'bg-[#1B3A5C] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Semua Katalog
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveCategoryFilter('FREE_RP0'); setDesktopCurrentPage(1); }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeCategoryFilter === 'FREE_RP0' || activeCategoryFilter === 'FREE'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>Produk Rp 0</span>
+                <span className="px-1.5 py-0.2 bg-emerald-200 text-emerald-950 text-[9px] rounded font-black">GRATIS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveCategoryFilter('RESCUE_SALE'); setDesktopCurrentPage(1); }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  activeCategoryFilter === 'RESCUE_SALE'
+                    ? 'bg-[#1B3A5C] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Rescue Sale Murah
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveCategoryFilter('NEARBY'); setDesktopCurrentPage(1); }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  activeCategoryFilter === 'NEARBY'
+                    ? 'bg-[#1B3A5C] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Dekat Anda
+              </button>
             </div>
 
             <Link href="/dashboard/explore">
@@ -691,7 +741,7 @@ export default function ConsumerDashboardPage() {
                 size="sm"
                 className="text-xs font-bold text-[#1B3A5C] border-slate-300 hover:bg-slate-50 rounded-xl flex items-center gap-1.5 cursor-pointer"
               >
-                <span>Lihat Semua di Eksplor Pangan</span>
+                <span>Eksplor Pangan Penuh</span>
                 <ExternalLink size={13} className="text-[#1B3A5C]" />
               </Button>
             </Link>
@@ -952,6 +1002,15 @@ export default function ConsumerDashboardPage() {
               </button>
             </div>
           </section>
+
+          {/* Gamifikasi Laporan Berdampak (Mobile View) */}
+          <ImpactGamification
+            currentPoints={ecoPoints}
+            totalPortionsSaved={totalSavedPortions}
+            totalCo2SavedKg={Number((totalSavedPortions * 2.5).toFixed(1))}
+            userName={consumerName}
+            onRedeemRewards={() => router.push('/dashboard/consumer/rewards')}
+          />
 
           {/* 8 Quick-Action Service Icons Grid (Direct Redirection to Filtered Explore) */}
           <section className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">
@@ -1303,8 +1362,8 @@ export default function ConsumerDashboardPage() {
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                 {[
                   { id: 'ALL', label: 'Semua' },
+                  { id: 'FREE_RP0', label: 'Produk Rp 0' },
                   { id: 'RESCUE_SALE', label: 'Rescue Sale' },
-                  { id: 'FREE', label: 'Donasi Rp 0' },
                   { id: 'MINUMAN_SUSU', label: 'Minuman & Susu' },
                   { id: 'BAKERY', label: 'Roti/Kue' },
                   { id: 'PRODUCE', label: 'Buah/Sayur' },

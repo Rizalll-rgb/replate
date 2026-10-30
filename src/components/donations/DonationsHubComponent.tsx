@@ -1,3 +1,4 @@
+import { DonationFulfillSuccessModal } from './DonationFulfillSuccessModal';
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -221,6 +222,10 @@ export function DonationsHubComponent() {
 
   // Success QR Ticket Receipt State
   const [completedTicket, setCompletedTicket] = useState<any | null>(null);
+  const [fulfillSuccessData, setFulfillSuccessData] = useState<any | null>(null);
+  const [assignedDriver, setAssignedDriver] = useState<string>('Budi Santoso - Honda Vario L 4521 AB (Armada Toko)');
+  const [newPaymentMethod, setNewPaymentMethod] = useState<string>('Bebas Biaya (Rp 0)');
+  const [newAssignedDriver, setNewAssignedDriver] = useState<string>('Tugaskan Otomatis (Driver Terdekat)');
   const [providerDeliveryPhoto, setProviderDeliveryPhoto] = useState<string | null>(null);
 
   const [toastState, setToastState] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
@@ -929,14 +934,27 @@ export function DonationsHubComponent() {
               )}
 
               <div className="flex items-center justify-between text-[11px] pt-1">
-                <span className="text-slate-500 font-semibold">Metode Pengiriman Efektif Ditentukan:</span>
+                <span className="text-slate-500 font-semibold">Opsi Pengiriman:</span>
                 <span className="font-extrabold text-emerald-700">
-                  {effectiveDeliveryMethod === 'RESCUE_COURIER'
-                    ? ' Kurir Relawan Replate (Auto Assigned)'
-                    : effectiveDeliveryMethod === 'PROVIDER_DIRECT'
-                    ? ' Diantar Langsung Toko'
-                    : ' Ambil Mandiri Penerima'}
+                  {effectiveDeliveryMethod === 'PROVIDER_DIRECT'
+                    ? 'Armada Toko (Rp 0)'
+                    : effectiveDeliveryMethod === 'RESCUE_COURIER'
+                    ? 'Kurir Relawan Food Rescue'
+                    : 'Ambil Mandiri'}
                 </span>
+              </div>
+
+              <div className="pt-2">
+                <label className="text-xs font-bold text-slate-700 block mb-1">Pilih / Tugaskan Driver:</label>
+                <select
+                  value={assignedDriver}
+                  onChange={(e) => setAssignedDriver(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 text-xs px-3 py-2 bg-white font-bold text-[#1B3A5C]"
+                >
+                  <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso (0812-3456-7890 / Honda Vario L 4521 AB - Armada Toko)</option>
+                  <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi (0819-8765-4321 / Replate Van L 8821 BB - Relawan Rescue)</option>
+                  <option value="Tugaskan Otomatis Driver Terdekat">Tugaskan Driver Otomatis Terdekat</option>
+                </select>
               </div>
             </div>
 
@@ -1138,15 +1156,46 @@ export function DonationsHubComponent() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#343A40]">Metode Pengiriman Yang Diinginkan Penerima</label>
+            <label className="text-xs font-semibold text-[#343A40]">Opsi Pengiriman *</label>
             <select
               className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2 bg-white font-bold text-[#1B3A5C]"
               value={newDeliveryPref}
               onChange={(e) => setNewDeliveryPref(e.target.value)}
+              required
             >
-              <option value="RESCUE_COURIER"> Disalurkan via Kurir Relawan Komunitas Replate (Rekomendasi)</option>
-              <option value="PROVIDER_DIRECT"> Diantar Langsung oleh Armada Toko / Restoran</option>
-              <option value="SHELTER_PICKUP"> Diambil Mandiri oleh Penerima Manfaat</option>
+              <option value="PROVIDER_DIRECT">Armada Toko (Rp 0)</option>
+              <option value="RESCUE_COURIER">Kurir Relawan Food Rescue</option>
+              <option value="SHELTER_PICKUP">Ambil Mandiri</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#343A40]">Metode Pembayaran *</label>
+            <select
+              className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2 bg-white font-bold text-[#1B3A5C]"
+              value={newPaymentMethod}
+              onChange={(e) => setNewPaymentMethod(e.target.value)}
+              required
+            >
+              <option value="Bebas Biaya (Rp 0)">Bebas Biaya (Rp 0)</option>
+              <option value="Saldo Dompet Replate">Saldo Dompet Replate</option>
+              <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
+              <option value="Transfer Bank">Transfer Bank</option>
+              <option value="COD (Bayar di Tempat)">COD (Bayar di Tempat)</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#343A40]">Tugaskan Driver Pengantaran</label>
+            <select
+              className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2 bg-white font-bold text-[#1B3A5C]"
+              value={newAssignedDriver}
+              onChange={(e) => setNewAssignedDriver(e.target.value)}
+            >
+              <option value="Tugaskan Otomatis (Driver Terdekat)">Tugaskan Otomatis (Driver Terdekat)</option>
+              <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
+              <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
+              <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)</option>
             </select>
           </div>
 
@@ -1172,6 +1221,27 @@ export function DonationsHubComponent() {
           </div>
         </form>
       </Modal>
+
+      {/* Modal Pop-up Konfirmasi Donasi Disanggupi */}
+      {fulfillSuccessData && (
+        <DonationFulfillSuccessModal
+          isOpen={fulfillSuccessData.isOpen}
+          onClose={() => setFulfillSuccessData(null)}
+          productName={fulfillSuccessData.productName}
+          providerName={fulfillSuccessData.providerName}
+          recipientName={fulfillSuccessData.recipientName}
+          deliveryAddress={fulfillSuccessData.deliveryAddress}
+          deliveryOption={fulfillSuccessData.deliveryOption}
+          deliveryFee={fulfillSuccessData.deliveryFee}
+          driverName={fulfillSuccessData.driverName}
+          driverPhone={fulfillSuccessData.driverPhone}
+          driverVehicle={fulfillSuccessData.driverVehicle}
+          estimatedDeliveryTime={fulfillSuccessData.estimatedDeliveryTime}
+          portionsCount={fulfillSuccessData.portionsCount}
+          ticketCode={fulfillSuccessData.ticketCode}
+          onTrack={(code) => router.push(`/track/${code}`)}
+        />
+      )}
 
       {/* Toast Alert */}
       <Toast

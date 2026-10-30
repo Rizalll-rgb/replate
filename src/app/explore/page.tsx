@@ -1,3 +1,4 @@
+import { DonationFulfillSuccessModal } from '@/components/donations/DonationFulfillSuccessModal';
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -44,6 +45,9 @@ interface FoodItem {
   lat?: number;
   lng?: number;
   status?: string;
+  pickupDeadline?: string | Date;
+  bpomCategory?: string;
+  isVerifiedProvider?: boolean;
 }
 
 // interface PantiNeed was replaced by SharedPantiNeed
@@ -70,17 +74,20 @@ export default function ExplorePage() {
   const [selectedShelterProfile, setSelectedShelterProfile] = useState<SharedPantiNeed | null>(null);
 
   // Fulfill Modal State
+  const [fulfillSuccessData, setFulfillSuccessData] = useState<any | null>(null);
   const [fulfillModal, setFulfillModal] = useState<{
     isOpen: boolean;
     need: SharedPantiNeed | null;
     portions: string;
     deliveryMethod: string;
+    driverName?: string;
     hygieneChecked: boolean;
   }>({
     isOpen: false,
     need: null,
     portions: '20',
-    deliveryMethod: 'RESCUE_COURIER',
+    deliveryMethod: 'PROVIDER_DIRECT',
+    driverName: 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)',
     hygieneChecked: true,
   });
 
@@ -195,6 +202,9 @@ export default function ExplorePage() {
         lat: item.lat || item.latitude || -7.2575,
         lng: item.lng || item.longitude || 112.7521,
         status: item.status || 'AVAILABLE',
+        pickupDeadline: item.pickupDeadline || item.deadline,
+        bpomCategory: item.bpomCategory,
+        isVerifiedProvider: item.isVerifiedProvider || item.provider?.verifiedBadge,
       };
     };
 
@@ -394,7 +404,8 @@ export default function ExplorePage() {
       isOpen: true,
       need,
       portions: '30',
-      deliveryMethod: need.preferredDelivery,
+      deliveryMethod: need.preferredDelivery || 'PROVIDER_DIRECT',
+      driverName: 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)',
       hygieneChecked: true,
     });
   };
@@ -475,7 +486,7 @@ export default function ExplorePage() {
                 : 'text-slate-700 hover:text-slate-950 hover:bg-white/60 font-bold'
             }`}
           >
-            <span>Donasi (Rp 0)</span>
+            <span>Produk Rp 0</span>
           </button>
 
           <button
@@ -568,6 +579,11 @@ export default function ExplorePage() {
                     isFree={item.isFree}
                     distance={item.distance}
                     imageUrl={item.imageUrl}
+                    pickupDeadline={item.pickupDeadline}
+                    pickupTime={item.pickupTime}
+                    bpomCategory={item.bpomCategory}
+                    isVerifiedProvider={item.isVerifiedProvider}
+                    hideIfExpired={true}
                     onClaim={() => handleBuyNow(item)}
                     onAddToCart={() => handleAddToCart(item)}
                     onDetail={() => handleOpenFoodDetail(item)}
@@ -980,15 +996,28 @@ export default function ExplorePage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-extrabold text-slate-800 block">Pilihan Metode Pengiriman:</label>
+              <label className="font-extrabold text-slate-800 block">Opsi Pengiriman *</label>
               <select
                 value={fulfillModal.deliveryMethod}
                 onChange={(e) => setFulfillModal({ ...fulfillModal, deliveryMethod: e.target.value })}
                 className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs text-[#1B3A5C]"
               >
-                <option value="RESCUE_COURIER">Kurir Relawan Komunitas Replate (Auto-Assigned)</option>
-                <option value="PROVIDER_DIRECT">Diantar Langsung Armada Toko</option>
-                <option value="SHELTER_PICKUP">Diambil Mandiri oleh Pengurus Panti</option>
+                <option value="PROVIDER_DIRECT">Armada Toko (Rp 0)</option>
+                <option value="RESCUE_COURIER">Kurir Relawan Food Rescue</option>
+                <option value="SHELTER_PICKUP">Ambil Mandiri</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-extrabold text-slate-800 block">Pilih / Tugaskan Driver:</label>
+              <select
+                value={(fulfillModal as any).driverName || 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)'}
+                onChange={(e) => setFulfillModal({ ...fulfillModal, driverName: e.target.value })}
+                className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-xs text-[#1B3A5C]"
+              >
+                <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso (0812-3456-7890 / Honda Vario L 4521 AB - Armada Toko)</option>
+                <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi (0819-8765-4321 / Replate Van L 8821 BB - Relawan Rescue)</option>
+                <option value="Tugaskan Driver Otomatis Terdekat">Tugaskan Driver Otomatis Terdekat</option>
               </select>
             </div>
 
@@ -1018,6 +1047,27 @@ export default function ExplorePage() {
           </div>
         )}
       </Modal>
+
+      {/* Modal Pop-up Konfirmasi Donasi Disanggupi */}
+      {fulfillSuccessData && (
+        <DonationFulfillSuccessModal
+          isOpen={fulfillSuccessData.isOpen}
+          onClose={() => setFulfillSuccessData(null)}
+          productName={fulfillSuccessData.productName}
+          providerName={fulfillSuccessData.providerName}
+          recipientName={fulfillSuccessData.recipientName}
+          deliveryAddress={fulfillSuccessData.deliveryAddress}
+          deliveryOption={fulfillSuccessData.deliveryOption}
+          deliveryFee={fulfillSuccessData.deliveryFee}
+          driverName={fulfillSuccessData.driverName}
+          driverPhone={fulfillSuccessData.driverPhone}
+          driverVehicle={fulfillSuccessData.driverVehicle}
+          estimatedDeliveryTime={fulfillSuccessData.estimatedDeliveryTime}
+          portionsCount={fulfillSuccessData.portionsCount}
+          ticketCode={fulfillSuccessData.ticketCode}
+          onTrack={(code) => router.push(`/track/${code}`)}
+        />
+      )}
 
       {/* Modal Wajib Masuk / Daftar Akun */}
       <Modal

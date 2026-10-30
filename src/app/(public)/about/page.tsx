@@ -244,19 +244,19 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Visi & Inovasi */}
+        {/* Visi & Misi */}
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
           <div className="bg-white border border-slate-200 p-6 sm:p-8 space-y-4 shadow-xs rounded-3xl">
-            <h3 className="text-xl font-black text-[#1B3A5C]">Visi Utama</h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              Membangun infrastruktur digital kolaboratif yang menghubungkan penyedia makanan berlebih (Food Provider) secara efisien, terukur, dan transparan dengan penerima manfaat di seluruh Indonesia—berawal dari inisiasi di Surabaya hingga perluasan nasional—sehingga tidak ada makanan layak konsumsi yang terbuang ke Tempat Pembuangan Akhir (TPA).
+            <h3 className="text-xl font-black text-[#1B3A5C]">Visi</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-normal">
+              Mewujudkan ekosistem perkotaan dan nasional bebas sampah pangan melalui digitalisasi redistribusi surplus makanan yang aman cepat dan transparan demi mendukung ketahanan pangan berkelanjutan bagi seluruh masyarakat Indonesia.
             </p>
           </div>
 
           <div className="bg-white border border-slate-200 p-6 sm:p-8 space-y-4 shadow-xs rounded-3xl">
-            <h3 className="text-xl font-black text-[#1B3A5C]">Inovasi Teknologi 2026</h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              Mengintegrasikan algoritma <strong>Smart Matching Engine 2.0</strong>, validasi kepatuhan <strong>8-Poin SOP Higienitas BPOM RI</strong>, sistem <strong>Meja Kasir POS & Scan QR</strong>, serta pelacakan surat jalan real-time demi mewujudkan ekosistem perkotaan zero-waste.
+            <h3 className="text-xl font-black text-[#1B3A5C]">Misi</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-normal">
+              Menghubungkan mitra penyedia makanan berlebih dengan yayasan panti asuhan serta masyarakat yang membutuhkan secara tepat waktu dan higienis. Menerapkan standar keamanan pangan berbasis regulasi BPOM secara ketat pada seluruh proses redistribusi surplus. Menyediakan sistem logistik terintegrasi antara armada toko dan relawan penyelamat pangan secara efisien. Membangun kesadaran publik serta transparansi audit pengurangan emisi gas rumah kaca untuk mendukung pencapaian tujuan pembangunan berkelanjutan.
             </p>
           </div>
         </div>

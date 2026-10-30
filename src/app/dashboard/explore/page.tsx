@@ -59,6 +59,8 @@ interface FoodItem {
   quantity: string;
   pickupTime: string;
   pickupDeadline?: string | Date;
+  bpomCategory?: string;
+  isVerifiedProvider?: boolean;
   distance: string;
   category: string;
   isFree: boolean;
@@ -1386,6 +1388,8 @@ export default function WorkspaceExplorePage() {
                   isFree={item.isFree}
                   pickupTime={item.pickupTime}
                   pickupDeadline={item.pickupDeadline}
+                  bpomCategory={item.bpomCategory}
+                  isVerifiedProvider={item.isVerifiedProvider}
                   distance={item.distance}
                   imageUrl={item.imageUrl}
                   status={item.status}

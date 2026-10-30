@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
+import { ImpactGamification } from './ImpactGamification';
 
 export interface ImpactDashboardProps {
   foodWeightKg: number;
@@ -65,7 +66,7 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, idx) => (
           <Card key={idx} className="bg-white border-slate-200 shadow-xs">
@@ -131,6 +132,13 @@ export const ImpactDashboard: React.FC<ImpactDashboardProps> = ({
           </CardBody>
         </Card>
       </div>
+
+      {/* Gamifikasi Laporan Berdampak */}
+      <ImpactGamification
+        currentPoints={140}
+        totalPortionsSaved={3}
+        totalCo2SavedKg={7.5}
+      />
     </div>
   );
 };

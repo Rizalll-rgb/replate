@@ -194,6 +194,8 @@ export default function HomePage() {
         isFree: false,
         matchScore: 98,
         imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&auto=format&fit=crop&q=60',
+        bpomCategory: 'COOKED_MEALS',
+        isVerifiedProvider: true,
       },
       {
         id: 'FOD-002',
@@ -209,6 +211,8 @@ export default function HomePage() {
         isFree: false,
         matchScore: 96,
         imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=60',
+        bpomCategory: 'BAKERY_PASTRY',
+        isVerifiedProvider: true,
       },
       {
         id: 'FOD-003',
@@ -224,6 +228,8 @@ export default function HomePage() {
         isFree: true,
         matchScore: 99,
         imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&auto=format&fit=crop&q=60',
+        bpomCategory: 'COOKED_MEALS',
+        isVerifiedProvider: true,
       },
       {
         id: 'FOD-004',
@@ -239,6 +245,8 @@ export default function HomePage() {
         isFree: false,
         matchScore: 94,
         imageUrl: 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=500&auto=format&fit=crop&q=60',
+        bpomCategory: 'COOKED_HOT_GRAVY',
+        isVerifiedProvider: true,
       },
       {
         id: 'FOD-005',
@@ -254,6 +262,8 @@ export default function HomePage() {
         isFree: true,
         matchScore: 95,
         imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60',
+        bpomCategory: 'BAKERY_PASTRY',
+        isVerifiedProvider: true,
       },
     ];
 
@@ -272,6 +282,9 @@ export default function HomePage() {
         category: item.foodCategory || item.category || 'MAKANAN_BERAT',
         isFree: item.discountPrice === 0 || item.pricingScheme !== 'RESCUE_SALE' || item.distributionType === 'FREE' || item.isFree,
         matchScore: item.matchScore || 98,
+        pickupDeadline: item.pickupDeadline || item.deadline,
+        bpomCategory: item.bpomCategory,
+        isVerifiedProvider: item.isVerifiedProvider ?? true,
         imageUrl: item.photos?.[0] || item.photo || item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
       }));
 
@@ -299,6 +312,9 @@ export default function HomePage() {
               category: item.foodCategory || item.category || 'MAKANAN_BERAT',
               isFree: item.distributionType === 'FREE' || item.price === 0 || item.discountPrice === 0,
               matchScore: item.matchScore || 96,
+              pickupDeadline: item.pickupDeadline,
+              bpomCategory: item.bpomCategory,
+              isVerifiedProvider: item.isVerifiedProvider ?? item.provider?.verifiedBadge,
               imageUrl: item.imageUrl || item.photos?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60',
               address: item.address,
               lat: item.lat || item.latitude,
