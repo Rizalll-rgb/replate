@@ -74,11 +74,11 @@ export default auth((req) => {
             return NextResponse.redirect(new URL('/account-suspended', nextUrl));
         }
 
-        // Role-based route protection
+        // Role-based default landing routes
         const roleRoutes: Record<string, string> = {
             PROVIDER: '/dashboard/provider',
             CONSUMER: '/dashboard/consumer',
-            YAYASAN: '/dashboard/yayasan',
+            YAYASAN: '/dashboard/beneficiary',
             RESCUE_PARTNER: '/dashboard/rescue-partner',
             ADMIN: '/dashboard/admin',
         };
@@ -90,6 +90,11 @@ export default auth((req) => {
             }
         }
 
+        // Canonical redirect for yayasan to beneficiary
+        if (nextUrl.pathname === '/dashboard/yayasan') {
+            return NextResponse.redirect(new URL('/dashboard/beneficiary', nextUrl));
+        }
+
         // Shared dashboard routes accessible to all authenticated roles
         const isSharedDashboardRoute =
             nextUrl.pathname.startsWith('/dashboard/explore') ||
@@ -99,13 +104,40 @@ export default auth((req) => {
             nextUrl.pathname.startsWith('/dashboard/checkout') ||
             nextUrl.pathname.startsWith('/dashboard/how-it-works') ||
             nextUrl.pathname.startsWith('/dashboard/faq') ||
-            nextUrl.pathname.startsWith('/dashboard/tracking');
+            nextUrl.pathname.startsWith('/dashboard/tracking') ||
+            nextUrl.pathname.startsWith('/dashboard/donations');
+
+        const roleAllowedMap: Record<string, string[]> = {
+            PROVIDER: [
+                '/dashboard/provider',
+                '/dashboard/outlets',
+                '/dashboard/services',
+                '/dashboard/subscription',
+            ],
+            CONSUMER: [
+                '/dashboard/consumer',
+            ],
+            YAYASAN: [
+                '/dashboard/yayasan',
+                '/dashboard/beneficiary',
+                '/dashboard/donations',
+            ],
+            RESCUE_PARTNER: [
+                '/dashboard/rescue',
+                '/dashboard/rescue-partner',
+            ],
+            ADMIN: [
+                '/dashboard',
+            ],
+        };
 
         // Ensure users can only access their role's dashboard (or shared dashboard routes)
         if (userRole && userRole !== 'ADMIN' && !isSharedDashboardRoute) {
-            const allowedPath = roleRoutes[userRole];
-            if (allowedPath && !nextUrl.pathname.startsWith(allowedPath)) {
-                return NextResponse.redirect(new URL(allowedPath, nextUrl));
+            const allowedList = roleAllowedMap[userRole] || (roleRoutes[userRole] ? [roleRoutes[userRole]] : []);
+            const isAllowed = allowedList.some((prefix) => nextUrl.pathname.startsWith(prefix));
+            if (!isAllowed) {
+                const defaultHome = roleRoutes[userRole] || '/dashboard';
+                return NextResponse.redirect(new URL(defaultHome, nextUrl));
             }
         }
     }

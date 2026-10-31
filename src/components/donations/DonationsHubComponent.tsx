@@ -38,7 +38,15 @@ const getHumanReadableStatusLabel = (statusCode: string) => {
 export function DonationsHubComponent() {
   const router = useRouter();
   const { data: session } = useSession();
-  const userRole = session?.user?.role || 'PROVIDER';
+  const rawRole = String(session?.user?.role || '').toUpperCase();
+  const demoRole = typeof window !== 'undefined' ? String(localStorage.getItem('replate_demo_session') || '').toUpperCase() : '';
+  const isBeneficiaryUser =
+    rawRole.includes('BENEFICIARY') ||
+    rawRole.includes('YAYASAN') ||
+    rawRole.includes('ADMIN') ||
+    demoRole.includes('BENEFICIARY') ||
+    demoRole.includes('YAYASAN') ||
+    rawRole === '';
 
   // Provider Direct Delivery Fleet Capability Sync
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
@@ -532,7 +540,7 @@ export function DonationsHubComponent() {
           </p>
         </div>
 
-        {(userRole === 'YAYASAN' || userRole === 'BENEFICIARY' || userRole === 'ADMIN') && (
+        {isBeneficiaryUser && (
           <Button
             variant="gold"
             size="md"

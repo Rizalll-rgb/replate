@@ -402,11 +402,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
                 link.href === '/dashboard/admin' ||
                 link.href === '/dashboard/rescue-partner' ||
                 link.href === '/dashboard/consumer' ||
-                link.href === '/dashboard/yayasan';
+                link.href === '/dashboard/yayasan' ||
+                link.href === '/dashboard/beneficiary';
 
               const isActive =
                 pathname === link.href ||
-                (!isOverviewRoute && pathname.startsWith(link.href));
+                (!isOverviewRoute && pathname.startsWith(link.href)) ||
+                (link.href === '/dashboard/beneficiary' && (pathname === '/dashboard/beneficiary' || pathname === '/dashboard/yayasan'));
               return (
                 <Link
                   key={link.href}
