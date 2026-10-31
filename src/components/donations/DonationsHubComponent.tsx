@@ -238,7 +238,7 @@ export function DonationsHubComponent() {
   const [completedTicket, setCompletedTicket] = useState<any | null>(null);
   const [fulfillSuccessData, setFulfillSuccessData] = useState<any | null>(null);
   const [assignedDriver, setAssignedDriver] = useState<string>('Budi Santoso - Honda Vario L 4521 AB (Armada Toko)');
-  const [newPaymentMethod, setNewPaymentMethod] = useState<string>('Bebas Biaya (Rp 0)');
+  const [newPaymentMethod, setNewPaymentMethod] = useState<string>('QRIS');
   const [newAssignedDriver, setNewAssignedDriver] = useState<string>('Tugaskan Otomatis (Driver Terdekat)');
   const [providerDeliveryPhoto, setProviderDeliveryPhoto] = useState<string | null>(null);
 
@@ -1285,10 +1285,8 @@ export function DonationsHubComponent() {
               onChange={(e) => setNewPaymentMethod(e.target.value)}
               required
             >
-              <option value="Bebas Biaya (Rp 0)">Bebas Biaya (Rp 0)</option>
-              <option value="Saldo Dompet Replate">Saldo Dompet Replate</option>
-              <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
-              <option value="Transfer Bank">Transfer Bank</option>
+              <option value="QRIS">QRIS</option>
+              <option value="Transfer Bank (TF)">Transfer Bank (TF)</option>
               <option value="COD (Bayar di Tempat)">COD (Bayar di Tempat)</option>
             </select>
           </div>

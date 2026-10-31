@@ -1399,7 +1399,7 @@ export default function BeneficiaryDashboardPage() {
                       setReqAssignedDriver('Penjemputan Mandiri oleh Pengurus Panti');
                     }
                   } else if (val === 'RESCUE_COURIER') {
-                    setReqPaymentMethod('Saldo Dompet Replate');
+                    setReqPaymentMethod('QRIS');
                     setReqAssignedDriver('Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)');
                   }
                 }}
@@ -1439,10 +1439,9 @@ export default function BeneficiaryDashboardPage() {
                   onChange={(e) => setReqPaymentMethod(e.target.value)}
                   required
                 >
-                  <option value="Saldo Dompet Replate">Saldo Dompet Replate Yayasan</option>
-                  <option value="QRIS / E-Wallet">QRIS / E-Wallet Panti</option>
-                  <option value="Transfer Bank">Transfer Bank Mandiri / BCA</option>
-                  <option value="COD (Bayar Tunai di Tempat ke Relawan)">COD (Bayar Tunai ke Relawan saat Tiba)</option>
+                  <option value="QRIS">QRIS</option>
+                  <option value="Transfer Bank (TF)">Transfer Bank (TF)</option>
+                  <option value="COD (Bayar di Tempat)">COD (Bayar di Tempat)</option>
                 </select>
                 <span className="text-[10px] text-slate-500">
                   Ongkir digunakan 100% untuk subsidi bahan bakar operasional relawan penyelamat pangan.
