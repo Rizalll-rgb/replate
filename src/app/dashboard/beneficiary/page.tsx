@@ -322,6 +322,8 @@ export default function BeneficiaryDashboardPage() {
     setMyDonationRequests(updated);
     try {
       localStorage.setItem('replate_donation_requests', JSON.stringify(updated));
+      window.dispatchEvent(new Event('replate_donation_requests_updated'));
+      window.dispatchEvent(new Event('replate_panti_needs_updated'));
     } catch (_) {}
 
     setIsRequestModalOpen(false);

@@ -345,70 +345,73 @@ export default function EcoPointsRewardsPage() {
               })}
             </div>
 
-            {/* Grid of Reward Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {/* Grid of Reward Cards with Uniform Height and Responsive Text Protection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredRewards.map((reward) => {
                 const canAfford = ecoPoints >= reward.pointsCost;
 
                 return (
                   <div
                     key={reward.id}
-                    className="bg-white rounded-3xl p-4 border border-slate-200 shadow-xs hover:border-[#1B3A5C] transition-all space-y-3 flex flex-col justify-between"
+                    className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:border-[#1B3A5C] hover:shadow-md transition-all flex flex-col justify-between h-full min-h-[200px] overflow-hidden"
                   >
-                    <div className="flex gap-3">
-                      <div className="w-22 h-22 rounded-2xl overflow-hidden bg-slate-100 relative border border-slate-200 shrink-0">
+                    <div className="flex gap-3.5 items-start">
+                      {/* Image Thumbnail with Fixed Dimensions */}
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 relative border border-slate-200/80 shrink-0">
                         <img
                           src={reward.imageUrl}
                           alt={reward.title}
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute top-1 left-1 px-1.5 py-0.2 bg-slate-950/80 backdrop-blur-xs text-white text-[8.5px] font-black rounded">
+                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-slate-950/85 backdrop-blur-xs text-white text-[9px] font-black rounded-md tracking-wider">
                           {reward.badge}
                         </span>
                       </div>
 
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 block truncate">
+                      {/* Info Content with Strict Overflow Handling */}
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 block truncate uppercase tracking-wider">
                           {reward.provider}
                         </span>
-                        <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-2">
+                        <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-2 min-h-[32px] sm:min-h-[36px] break-words">
                           {reward.title}
                         </h3>
-                        <p className="text-[11px] text-slate-500 font-medium line-clamp-2">
+                        <p className="text-[11px] text-slate-500 font-medium line-clamp-2 leading-relaxed break-words min-h-[30px]">
                           {reward.description}
                         </p>
 
-                        <div className="pt-1 flex items-center gap-1.5">
-                          <div className="px-2.5 py-0.5 bg-amber-50 border border-amber-300 rounded-lg flex items-center gap-1">
-                            <Coins className="w-3.5 h-3.5 text-amber-700" />
+                        <div className="pt-0.5 flex flex-wrap items-center gap-2">
+                          <div className="px-2.5 py-1 bg-amber-50 border border-amber-300 rounded-lg flex items-center gap-1.5 shrink-0">
+                            <Coins className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                             <span className="text-xs font-black text-amber-950 font-mono">
                               {reward.pointsCost} Poin
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-400 font-medium">
-                            • {reward.validUntil}
+                          <span className="text-[10px] text-slate-400 font-medium truncate">
+                            {reward.validUntil}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Garansi Resmi Replate</span>
+                    {/* Bottom Action Row with Guaranteed Equal Placement */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="truncate">Garansi Replate</span>
                       </span>
 
                       <button
                         type="button"
                         onClick={() => handleRedeemClick(reward)}
                         disabled={!canAfford}
-                        className={`h-8 px-4 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                        className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 whitespace-nowrap ${
                           canAfford
-                            ? 'bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white shadow-2xs'
+                            ? 'bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white shadow-xs'
                             : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         }`}
                       >
-                        <span>{canAfford ? 'Tukar Poin' : 'Poin Belum Cukup'}</span>
+                        <span>{canAfford ? 'Tukar Poin' : 'Poin Kurang'}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>

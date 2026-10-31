@@ -420,7 +420,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span>{link.icon}</span>
-                    <span className="truncate">{link.label}</span>
+                    <span className="leading-snug break-words text-xs">{link.label}</span>
                   </div>
                   {link.badge && (
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider shrink-0 ${

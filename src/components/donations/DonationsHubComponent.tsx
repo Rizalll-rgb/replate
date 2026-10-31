@@ -502,6 +502,8 @@ export function DonationsHubComponent() {
       const savedReqsStr = localStorage.getItem('replate_donation_requests');
       const existing = savedReqsStr ? JSON.parse(savedReqsStr) : [];
       localStorage.setItem('replate_donation_requests', JSON.stringify([newReq, ...existing]));
+      window.dispatchEvent(new Event('replate_donation_requests_updated'));
+      window.dispatchEvent(new Event('replate_panti_needs_updated'));
     } catch (_) {}
 
     setRequests([newReq, ...requests]);
