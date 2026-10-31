@@ -392,8 +392,8 @@ export default function ConsumerDashboardPage() {
   // Filtered Foods computation based on search & category
   const filteredFoods = useMemo(() => {
     return foods.filter((item) => {
-      // Sembunyikan item khusus Panti/Yayasan untuk konsumen reguler
-      if (item.type === 'DONATION' || item.isFree || item.category === 'BAHAN_MENTAH') {
+      // Sembunyikan bahan mentah skala panti jika konsumen reguler, namun izinkan makanan porsi donasi Rp 0 ditampilkan untuk dhuafa & konsumen
+      if (item.category === 'BAHAN_MENTAH' && item.type === 'DONATION') {
         const rawRole = (session?.user as any)?.role || (typeof window !== 'undefined' ? localStorage.getItem('replate_role') : '');
         const isBeneficiary = String(rawRole).toUpperCase().includes('BENEFICIARY') || String(rawRole).toUpperCase().includes('YAYASAN') || (typeof window !== 'undefined' && localStorage.getItem('replate_consumer_verification_status') === 'BENEFICIARY_VERIFIED');
         if (!isBeneficiary) return false;
@@ -591,34 +591,7 @@ export default function ConsumerDashboardPage() {
           </Card>
         </div>
 
-        {/* Gamifikasi Laporan Berdampak Konsumen (Desktop View) */}
-        <section className="space-y-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-[#D4A843] text-slate-900 text-xs font-black uppercase tracking-wider rounded-lg shadow-xs">
-                Gamifikasi Laporan Berdampak Konsumen
-              </span>
-              <span className="text-xs text-slate-500 font-semibold hidden sm:inline">
-                Kumpulkan EcoPoints dari setiap aksi penyelamatan makanan surplus dan dapatkan lencana!
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard/consumer/rewards')}
-              className="text-xs font-bold text-[#1B3A5C] hover:text-emerald-700 hover:underline cursor-pointer flex items-center gap-1"
-            >
-              <span>Katalog Hadiah EcoPoints</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <ImpactGamification
-            currentPoints={ecoPoints}
-            totalPortionsSaved={totalSavedPortions}
-            totalCo2SavedKg={Number((totalSavedPortions * 2.5).toFixed(1))}
-            userName={consumerName}
-            onRedeemRewards={() => router.push('/dashboard/consumer/rewards')}
-          />
-        </section>
+
 
         {/* Desktop Smart Matching 2.0 Section */}
         <section className="space-y-4">
@@ -1033,14 +1006,7 @@ export default function ConsumerDashboardPage() {
             </div>
           </section>
 
-          {/* Gamifikasi Laporan Berdampak (Mobile View) */}
-          <ImpactGamification
-            currentPoints={ecoPoints}
-            totalPortionsSaved={totalSavedPortions}
-            totalCo2SavedKg={Number((totalSavedPortions * 2.5).toFixed(1))}
-            userName={consumerName}
-            onRedeemRewards={() => router.push('/dashboard/consumer/rewards')}
-          />
+
 
           {/* 8 Quick-Action Service Icons Grid (Direct Redirection to Filtered Explore) */}
           <section className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">

@@ -1183,19 +1183,18 @@ export default function WorkspaceExplorePage() {
           <span>Rescue Sale (Murah)</span>
         </button>
 
-        {!isConsumer && (
-          <button
-            type="button"
-            onClick={() => setActiveTab('DONATION')}
-            className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'DONATION'
-                ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-950 font-bold'
-            }`}
-          >
-            <span>Donasi (Rp 0)</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setActiveTab('DONATION')}
+          className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === 'DONATION'
+              ? 'bg-emerald-700 text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-950 font-bold'
+          }`}
+        >
+          <span>Produk Rp 0 (Donasi)</span>
+          <span className="px-1.5 py-0.2 bg-emerald-300 text-emerald-950 text-[9px] rounded font-black">GRATIS</span>
+        </button>
 
         {/* Rescue Partner Action */}
         {(session?.user?.role?.toUpperCase().includes('RESCUE') || session?.user?.role?.toUpperCase().includes('VOLUNTEER')) && (
@@ -1625,8 +1624,8 @@ export default function WorkspaceExplorePage() {
         </div>
 
         <div className="px-3 space-y-3">
-          {/* Main Service Tabs — Consumer only gets 2 tabs, Panti is hidden (Point 8) */}
-          <div className={`grid ${isConsumer ? 'grid-cols-1' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
+          {/* Main Service Tabs — Consumer gets Rescue Sale & Produk Rp 0 (Donasi), Panti is for donors */}
+          <div className={`grid ${isConsumer ? 'grid-cols-2' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
             <button
               type="button"
               onClick={() => setActiveTab('RESCUE_SALE')}
@@ -1640,20 +1639,18 @@ export default function WorkspaceExplorePage() {
               <span className="block text-[8px] opacity-80 font-bold">Hemat 70%</span>
             </button>
 
-            {!isConsumer && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('DONATION')}
-                className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
-                  activeTab === 'DONATION'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-slate-200/60'
-                }`}
-              >
-                <span>Donasi Rp 0</span>
-                <span className="block text-[8px] opacity-80 font-bold">Gratis</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setActiveTab('DONATION')}
+              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                activeTab === 'DONATION'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>Produk Rp 0</span>
+              <span className="block text-[8px] opacity-80 font-bold">Donasi Gratis</span>
+            </button>
 
             {!isConsumer && (
               <button

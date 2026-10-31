@@ -687,7 +687,7 @@ export default function BeneficiaryDashboardPage() {
                       <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
                         <span className="text-[10px] text-slate-400 font-bold block uppercase">Opsi Pengiriman</span>
                         <strong className="text-xs font-black text-slate-800 block truncate">
-                          {req.preferredDelivery === 'PROVIDER_DIRECT' ? 'Armada Toko (Gratis Rp 0)' : req.preferredDelivery === 'RESCUE_COURIER' ? 'Kurir Relawan Rescue' : 'Ambil Mandiri'}
+                          {req.preferredDelivery === 'PROVIDER_DIRECT' ? 'Armada Toko (Gratis)' : req.preferredDelivery === 'RESCUE_COURIER' ? 'Relawan Rescue (QC 2x)' : 'Ambil Mandiri (Gratis)'}
                         </strong>
                       </div>
                       <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
@@ -1361,52 +1361,112 @@ export default function BeneficiaryDashboardPage() {
             </div>
           </div>
 
-          {/* 2 Kolom Baru: Opsi Pengiriman dan Pembayaran */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Opsi Pengiriman: Driver Toko, Ambil Sendiri, atau Driver Volunteer */}
+          <div className="space-y-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-[#343A40]">Opsi Pengiriman *</label>
               <select
                 className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C]"
                 value={reqDeliveryMethod}
-                onChange={(e) => setReqDeliveryMethod(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setReqDeliveryMethod(val);
+                  if (val === 'PROVIDER_DIRECT' || val === 'SHELTER_PICKUP') {
+                    setReqPaymentMethod('Bebas Biaya (Rp 0)');
+                    if (val === 'PROVIDER_DIRECT') {
+                      setReqAssignedDriver('Budi Santoso - Honda Vario L 4521 AB (Armada Toko)');
+                    } else {
+                      setReqAssignedDriver('Penjemputan Mandiri oleh Pengurus Panti');
+                    }
+                  } else if (val === 'RESCUE_COURIER') {
+                    setReqPaymentMethod('Saldo Dompet Replate');
+                    setReqAssignedDriver('Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)');
+                  }
+                }}
                 required
               >
-                <option value="PROVIDER_DIRECT">Armada Toko (Gratis Rp 0)</option>
-                <option value="RESCUE_COURIER">Kurir Relawan Food Rescue</option>
-                <option value="SHELTER_PICKUP">Ambil Mandiri</option>
+                <option value="PROVIDER_DIRECT">Diantar Driver / Armada Toko (Gratis Rp 0)</option>
+                <option value="SHELTER_PICKUP">Ambil Sendiri ke Lokasi Toko / Donor (Gratis Rp 0)</option>
+                <option value="RESCUE_COURIER">Driver Relawan Food Rescue (+Ongkir Operasional) • Benefit QC 2 Kali</option>
               </select>
             </div>
 
+            {/* Benefit Box khusus Relawan Food Rescue (QC 2 Kali) */}
+            {reqDeliveryMethod === 'RESCUE_COURIER' && (
+              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-300 text-xs space-y-1.5 text-amber-950 animate-in fade-in">
+                <div className="flex items-center gap-1.5 font-black text-amber-900">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Benefit Spesial Driver Relawan: Jaminan Quality Control (QC) 2 Kali</span>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Makanan Anda melewati <strong>pemeriksaan ganda (2x QC)</strong>: 1 kali inspeksi kelayakan oleh staf restoran/donor, dan 1 kali uji kelayakan suhu &amp; kemasan higienis oleh Relawan Food Rescue sebelum serah terima ke panti.
+                </p>
+                <span className="inline-block text-[10.5px] font-bold text-amber-900 bg-amber-200/60 px-2 py-0.5 rounded">
+                  Biaya: Ongkir operasional bahan bakar relawan (~Rp 2.000/km)
+                </span>
+              </div>
+            )}
+
+            {/* Metode Pembayaran: HANYA jika memakai Driver Relawan (Volunteer) */}
+            {reqDeliveryMethod === 'RESCUE_COURIER' ? (
+              <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-200 animate-in fade-in">
+                <label className="text-xs font-semibold text-[#343A40]">
+                  Metode Pembayaran Ongkir Relawan *
+                </label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C]"
+                  value={reqPaymentMethod}
+                  onChange={(e) => setReqPaymentMethod(e.target.value)}
+                  required
+                >
+                  <option value="Saldo Dompet Replate">Saldo Dompet Replate Yayasan</option>
+                  <option value="QRIS / E-Wallet">QRIS / E-Wallet Panti</option>
+                  <option value="Transfer Bank">Transfer Bank Mandiri / BCA</option>
+                  <option value="COD (Bayar Tunai di Tempat ke Relawan)">COD (Bayar Tunai ke Relawan saat Tiba)</option>
+                </select>
+                <span className="text-[10px] text-slate-500">
+                  Ongkir digunakan 100% untuk subsidi bahan bakar operasional relawan penyelamat pangan.
+                </span>
+              </div>
+            ) : (
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Biaya Pengantaran &amp; Makanan: <strong>100% Bebas Biaya (Rp 0)</strong></span>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded">GRATIS</span>
+              </div>
+            )}
+
+            {/* Opsi Driver Pengantaran */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#343A40]">Metode Pembayaran *</label>
+              <label className="text-xs font-semibold text-[#343A40]">Opsi Driver Pengantaran</label>
               <select
                 className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C]"
-                value={reqPaymentMethod}
-                onChange={(e) => setReqPaymentMethod(e.target.value)}
-                required
+                value={reqAssignedDriver}
+                onChange={(e) => setReqAssignedDriver(e.target.value)}
               >
-                <option value="Bebas Biaya (Rp 0)">Bebas Biaya (Rp 0)</option>
-                <option value="Saldo Dompet Replate">Saldo Dompet Replate</option>
-                <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
-                <option value="Transfer Bank">Transfer Bank</option>
-                <option value="COD (Bayar di Tempat)">COD (Bayar di Tempat)</option>
+                {reqDeliveryMethod === 'PROVIDER_DIRECT' && (
+                  <>
+                    <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
+                    <option value="Driver Siaga Toko / Resto Mitra">Driver Siaga Toko / Resto Mitra</option>
+                  </>
+                )}
+                {reqDeliveryMethod === 'SHELTER_PICKUP' && (
+                  <>
+                    <option value="Penjemputan Mandiri oleh Pengurus Panti">Penjemputan Mandiri oleh Pengurus Panti</option>
+                    <option value="Armada Operasional Yayasan">Armada Operasional Yayasan</option>
+                  </>
+                )}
+                {reqDeliveryMethod === 'RESCUE_COURIER' && (
+                  <>
+                    <option value="Tugaskan Otomatis (Relawan Terdekat)">Tugaskan Otomatis (Relawan Terdekat)</option>
+                    <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
+                    <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Volunteer Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Volunteer Siaga)</option>
+                  </>
+                )}
               </select>
             </div>
-          </div>
-
-          {/* Opsi Driver Pengantaran */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#343A40]">Opsi Driver Pengantaran</label>
-            <select
-              className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C]"
-              value={reqAssignedDriver}
-              onChange={(e) => setReqAssignedDriver(e.target.value)}
-            >
-              <option value="Tugaskan Otomatis (Driver Terdekat)">Tugaskan Otomatis (Driver Terdekat)</option>
-              <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
-              <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
-              <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)</option>
-            </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
