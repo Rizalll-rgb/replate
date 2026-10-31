@@ -1458,35 +1458,7 @@ export default function BeneficiaryDashboardPage() {
               </div>
             )}
 
-            {/* Opsi Driver Pengantaran */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#343A40]">Opsi Driver Pengantaran</label>
-              <select
-                className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2.5 bg-white font-bold text-[#1B3A5C]"
-                value={reqAssignedDriver}
-                onChange={(e) => setReqAssignedDriver(e.target.value)}
-              >
-                {reqDeliveryMethod === 'PROVIDER_DIRECT' && (
-                  <>
-                    <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
-                    <option value="Driver Siaga Toko / Resto Mitra">Driver Siaga Toko / Resto Mitra</option>
-                  </>
-                )}
-                {reqDeliveryMethod === 'SHELTER_PICKUP' && (
-                  <>
-                    <option value="Penjemputan Mandiri oleh Pengurus Panti">Penjemputan Mandiri oleh Pengurus Panti</option>
-                    <option value="Armada Operasional Yayasan">Armada Operasional Yayasan</option>
-                  </>
-                )}
-                {reqDeliveryMethod === 'RESCUE_COURIER' && (
-                  <>
-                    <option value="Tugaskan Otomatis (Relawan Terdekat)">Tugaskan Otomatis (Relawan Terdekat)</option>
-                    <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
-                    <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Volunteer Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Volunteer Siaga)</option>
-                  </>
-                )}
-              </select>
-            </div>
+
           </div>
 
           <div className="flex flex-col gap-1.5">
