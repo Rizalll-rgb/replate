@@ -232,40 +232,158 @@ export default function BeneficiaryDashboardPage() {
         }
       }
 
-      // Load synced donation requests
+      // Master Dummy Data Lengkap Permintaan Donasi Pangan Panti Asuhan
+      const DEFAULT_DUMMY_REQUESTS = [
+        {
+          id: 'REQ-DON-001',
+          shelterName: 'Panti Asuhan Kasih Ibu Surabaya',
+          shelterType: 'Panti Asuhan Anak Yatim & Dhuafa',
+          recipientCategory: 'PANTI',
+          beneficiariesCount: 45,
+          foodCategoryNeeded: 'Makanan Olahan (Meals Bergizi)',
+          urgency: 'HIGH',
+          deadline: 'Hari ini 19:00 WIB',
+          location: 'Surabaya (Gubeng)',
+          address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+          notes: 'Membutuhkan 45 porsi nasi lauk pauk bergizi (ayam/daging & sayur) untuk makan malam anak-anak santri panti asuhan.',
+          preferredDelivery: 'PROVIDER_DIRECT',
+          paymentMethod: 'Bebas Biaya (Rp 0)',
+          assignedDriver: 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)',
+          status: 'DISANGGUPI',
+          contactPhone: '0812-9876-5432',
+          leaderName: 'Ibu Hj. Siti Aminah',
+          legalPermit: 'DINSOS-SBY/2023/8912',
+          createdAt: 'Hari ini, 10:30 WIB',
+          fulfilledBy: 'Restoran Ayam Bakar Pak Kumis & Hotel Majapahit',
+          fulfilledProduct: 'Paket Nasi Ayam Bakar Madu & Sayur Sop Steril',
+          fulfilledPortions: 45,
+          ticketCode: 'TK-RESCUE-8821',
+          driverName: 'Budi Santoso (Driver Armada Toko)',
+          driverPhone: '0812-9876-5432',
+          driverVehicle: 'Honda Vario L 4521 AB (Armada Toko)',
+          estimatedDeliveryTime: '25 Menit (OTW Menuju Lokasi Panti)',
+        },
+        {
+          id: 'REQ-DON-002',
+          shelterName: 'Panti Asuhan Yatim Piatu Al-Ikhlas Rungkut',
+          shelterType: 'Panti Asuhan Anak Yatim',
+          recipientCategory: 'PANTI',
+          beneficiariesCount: 60,
+          foodCategoryNeeded: 'Bahan Pokok (Sembako & Beras)',
+          urgency: 'HIGH',
+          deadline: 'Hari ini 20:30 WIB',
+          location: 'Surabaya (Rungkut Industri)',
+          address: 'Jl. Rungkut Asri Timur No. 45, Rungkut, Surabaya',
+          notes: 'Stok beras dan bahan pokok panti menipis untuk 60 santri yatim piatu. Sangat membutuhkan beras, telur, minyak, atau makanan olahan siap konsumsi.',
+          preferredDelivery: 'RESCUE_COURIER',
+          paymentMethod: 'QRIS',
+          assignedDriver: 'Relawan Food Rescue Surabaya (QC 2x Terverifikasi)',
+          status: 'OPEN',
+          contactPhone: '0813-3456-7890',
+          leaderName: 'Ustadz Ahmad Fauzi, S.Pd.I',
+          legalPermit: 'KEMENKUMHAM-AHU-0012984.AH.01.04',
+          createdAt: 'Hari ini, 13:15 WIB',
+        },
+        {
+          id: 'REQ-DON-003',
+          shelterName: 'Panti Werdha Griya Lansia Sejahtera Sukolilo',
+          shelterType: 'Panti Werdha (Lansia)',
+          recipientCategory: 'PANTI',
+          beneficiariesCount: 35,
+          foodCategoryNeeded: 'Roti, Buah & Susu (Bakery & Dairy)',
+          urgency: 'MEDIUM',
+          deadline: 'Besok Pagi 08:30 WIB',
+          location: 'Surabaya (Keputih Sukolilo)',
+          address: 'Jl. Keputih Tegal No. 29, Sukolilo, Surabaya',
+          notes: 'Membutuhkan 35 porsi makanan bertekstur lembut: roti tawar gandum, buah pisang/papaya potong higienis, serta susu UHT steril untuk sarapan lansia.',
+          preferredDelivery: 'PROVIDER_DIRECT',
+          paymentMethod: 'Bebas Biaya (Rp 0)',
+          assignedDriver: 'Hendra Wijaya - Grandmax Box L 1290 XY',
+          status: 'DISANGGUPI',
+          contactPhone: '0815-6789-0123',
+          leaderName: 'Dr. Handoko Santoso',
+          legalPermit: 'DINSOS-JATIM/2022/4102',
+          createdAt: 'Kemarin, 16:45 WIB',
+          fulfilledBy: 'Holland Bakery Surabaya & Dapur Roti O',
+          fulfilledProduct: 'Paket Roti Gandum Lembut, Pisang Cavendish & Susu Steril',
+          fulfilledPortions: 35,
+          ticketCode: 'TK-WERDHA-9412',
+          driverName: 'Hendra Wijaya (Armada Mitra Roti)',
+          driverPhone: '0813-2211-9988',
+          driverVehicle: 'Daihatsu Grandmax Box L 1290 XY (Chiller Suhu Dingin)',
+          estimatedDeliveryTime: 'Tiba Sesuai Jadwal (Besok Pagi 08:00 WIB)',
+        },
+        {
+          id: 'REQ-DON-004',
+          shelterName: 'Rumah Singgah Anak Dhuafa & Jalanan Mentari',
+          shelterType: 'Shelter & Rumah Singgah',
+          recipientCategory: 'SHELTER',
+          beneficiariesCount: 50,
+          foodCategoryNeeded: 'Makanan Olahan (Meals Siap Santap)',
+          urgency: 'HIGH',
+          deadline: 'Hari ini 21:00 WIB',
+          location: 'Surabaya (Wonokromo)',
+          address: 'Jl. Jagir Wonokromo No. 102, Wonokromo, Surabaya',
+          notes: 'Membutuhkan 50 porsi makanan siap santap untuk pembagian makan malam adik-adik binaan anak jalanan. Tim operasional panti bersedia mengambil mandiri ke lokasi donatur jika armada toko berhalangan.',
+          preferredDelivery: 'PICKUP',
+          paymentMethod: 'Bebas Biaya (Rp 0)',
+          assignedDriver: 'Ambil Mandiri (Pengurus Panti Siap Ambil)',
+          status: 'OPEN',
+          contactPhone: '0812-4455-6677',
+          leaderName: 'Mbak Rina Kusuma',
+          legalPermit: 'DINSOS-SBY/2024/0931',
+          createdAt: 'Hari ini, 15:20 WIB',
+        },
+        {
+          id: 'REQ-DON-005',
+          shelterName: 'Yayasan Tunas Bangsa Peduli Yatim Semampir',
+          shelterType: 'Yayasan Kesejahteraan Sosial Anak',
+          recipientCategory: 'YAYASAN',
+          beneficiariesCount: 40,
+          foodCategoryNeeded: 'Makanan Olahan (Meals Bergizi)',
+          urgency: 'MEDIUM',
+          deadline: 'Kemarin Selesai',
+          location: 'Surabaya (Semampir)',
+          address: 'Jl. Pegirian No. 56, Semampir, Surabaya',
+          notes: 'Permintaan 40 porsi nasi kotak sehat bernutrisi tinggi (daging/ayam, sayur tumis & buah segar) untuk santri yatim semampir.',
+          preferredDelivery: 'RESCUE_COURIER',
+          paymentMethod: 'Transfer Bank (TF)',
+          assignedDriver: 'Ahmad Fauzi - Replate Van Box L 8821 BB',
+          status: 'DISANGGUPI',
+          contactPhone: '0817-8899-0011',
+          leaderName: 'Bpk. H. Syamsul Huda',
+          legalPermit: 'KEMENKUMHAM-AHU-0034182.AH.01.04',
+          createdAt: '2 Hari lalu, 11:00 WIB',
+          fulfilledBy: 'Katering Bu Mimin & Bento Resto Surabaya',
+          fulfilledProduct: '40 Paket Bento Komplit Daging Sapi Lada Hitam & Buah Jeruk',
+          fulfilledPortions: 40,
+          ticketCode: 'TK-TUNAS-7714',
+          driverName: 'Ahmad Fauzi (Relawan Food Rescue Replate)',
+          driverPhone: '0812-3344-5566',
+          driverVehicle: 'Replate Rescue Van Box L 8821 BB',
+          estimatedDeliveryTime: 'Donasi Berhasil Diserahkan (Selesai & Tervalidasi)',
+        },
+      ];
+
+      // Load synced donation requests, merging user-created custom items with master dummy list
       const rawReqs = localStorage.getItem('replate_donation_requests');
+      let combinedReqs = DEFAULT_DUMMY_REQUESTS;
       if (rawReqs) {
         try {
           const parsed = JSON.parse(rawReqs);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setMyDonationRequests(parsed);
+            const defaultIds = new Set(DEFAULT_DUMMY_REQUESTS.map(d => d.id));
+            const userCustomReqs = parsed.filter((p: any) => !defaultIds.has(p.id));
+            const mergedDefaults = DEFAULT_DUMMY_REQUESTS.map(def => {
+              const existing = parsed.find((p: any) => p.id === def.id);
+              return existing || def;
+            });
+            combinedReqs = [...userCustomReqs, ...mergedDefaults];
           }
         } catch (_) {}
-      } else {
-        const initialReqs = [
-          {
-            id: 'REQ-DON-001',
-            shelterName: 'Panti Asuhan Kasih Ibu',
-            shelterType: 'Panti Asuhan Anak',
-            recipientCategory: 'PANTI',
-            beneficiariesCount: 45,
-            foodCategoryNeeded: 'Makanan Olahan (Meals)',
-            urgency: 'HIGH',
-            deadline: 'Hari ini 19:00 WIB',
-            location: 'Surabaya (Gubeng)',
-            address: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
-            notes: 'Membutuhkan 40-50 porsi nasi lauk pauk bergizi untuk makan malam anak-anak panti.',
-            preferredDelivery: 'PROVIDER_DIRECT',
-            paymentMethod: 'Bebas Biaya (Rp 0)',
-            assignedDriver: 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)',
-            status: 'OPEN',
-            contactPhone: '081298765432',
-            createdAt: 'Hari ini, 10:30 WIB',
-          }
-        ];
-        setMyDonationRequests(initialReqs);
-        localStorage.setItem('replate_donation_requests', JSON.stringify(initialReqs));
       }
+      setMyDonationRequests(combinedReqs);
+      localStorage.setItem('replate_donation_requests', JSON.stringify(combinedReqs));
 
       // Check claims to calculate total portions received
       const rawClaims = localStorage.getItem('replate_claims');
@@ -468,15 +586,14 @@ export default function BeneficiaryDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <Link href="/dashboard/donations">
-              <button
-                type="button"
-                className="px-4 py-2 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 rounded-xl text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <HeartHandshake className="w-4 h-4 text-slate-950" />
-                <span>Buka Hub Pengajuan Donasi →</span>
-              </button>
-            </Link>
+            <button
+              type="button"
+              onClick={() => setActiveTab('PERMINTAAN_DONASI')}
+              className="px-4 py-2 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 rounded-xl text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <HeartHandshake className="w-4 h-4 text-slate-950" />
+              <span>Permintaan Donasi Panti ({myDonationRequests.length})</span>
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('VERIFIKASI_LEGALITAS')}
