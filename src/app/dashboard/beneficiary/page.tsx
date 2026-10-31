@@ -370,25 +370,38 @@ export default function BeneficiaryDashboardPage() {
         return rName === pName || rName.includes(pName) || pName.includes(rName);
       };
 
-      const rawReqs = localStorage.getItem('replate_donation_requests');
+      // Baca data permintaan MILIK panti ini dari kunci khusus (tidak tercampur panti lain)
+      const myKey = `replate_my_donation_requests_${activePantiName.toLowerCase().replace(/\s+/g, '_')}`;
+      const rawMyReqs = localStorage.getItem(myKey);
       let combinedReqs = DEFAULT_DUMMY_REQUESTS;
-      if (rawReqs) {
+      if (rawMyReqs) {
         try {
-          const parsed = JSON.parse(rawReqs);
+          const parsed = JSON.parse(rawMyReqs);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            // Ambil permintaan kustom yang dibuat pengguna untuk panti ini
-            const userCustomReqs = parsed.filter((p: any) => isMyPantiRequest(p) && !p.id.startsWith('REQ-KASIH-'));
-            // Ambil status terbaru dari dummy default jika sempat disanggupi provider saat demo
+            // Ambil permintaan kustom yang dibuat pengguna (bukan dummy default)
+            const userCustomReqs = parsed.filter((p: any) => !p.id.startsWith('REQ-KASIH-'));
+            // Merge status terbaru untuk dummy default (jika provider sudah sanggupi)
             const mergedDefaults = DEFAULT_DUMMY_REQUESTS.map(def => {
               const existing = parsed.find((p: any) => p.id === def.id);
-              return existing || def;
+              return existing ? { ...def, ...existing, isMine: true } : def;
             });
             combinedReqs = [...userCustomReqs, ...mergedDefaults];
           }
         } catch (_) {}
       }
       setMyDonationRequests(combinedReqs);
-      localStorage.setItem('replate_donation_requests', JSON.stringify(combinedReqs));
+      // Simpan ke kunci khusus panti ini — tidak mencemari data panti lain
+      localStorage.setItem(myKey, JSON.stringify(combinedReqs));
+      // Juga tulis ke replate_donation_requests untuk sinkronisasi ke Explore (Provider bisa lihat)
+      // Tapi hanya data MILIK panti ini yang ditulis — data panti lain di Explore tidak terganggu
+      try {
+        const allReqs = localStorage.getItem('replate_donation_requests');
+        let allReqsParsed: any[] = [];
+        if (allReqs) allReqsParsed = JSON.parse(allReqs);
+        // Hapus entri lama milik panti ini, ganti dengan yang terbaru
+        const otherPantisReqs = allReqsParsed.filter((r: any) => !isMyPantiRequest(r));
+        localStorage.setItem('replate_donation_requests', JSON.stringify([...combinedReqs, ...otherPantisReqs]));
+      } catch (_) {}
 
       // Check claims to calculate total portions received
       const rawClaims = localStorage.getItem('replate_claims');
@@ -407,6 +420,46 @@ export default function BeneficiaryDashboardPage() {
         }
       }
     } catch (_) {}
+
+    // Listener: sinkronisasi status terbaru dari Provider (Explore page meng-update replate_donation_requests)
+    const syncFromProviderUpdate = () => {
+      try {
+        let currentPantiName = 'Panti Asuhan Kasih Ibu';
+        if (session?.user?.name) {
+          currentPantiName = session.user.name;
+        } else {
+          const rawP = localStorage.getItem('replate_onboarding_profile');
+          if (rawP) {
+            const pp = JSON.parse(rawP);
+            if (pp.entityName || pp.organizationName) currentPantiName = pp.entityName || pp.organizationName;
+          }
+        }
+        const myKey = `replate_my_donation_requests_${currentPantiName.toLowerCase().replace(/\s+/g, '_')}`;
+        const allRaw = localStorage.getItem('replate_donation_requests');
+        if (!allRaw) return;
+        const allParsed = JSON.parse(allRaw);
+        if (!Array.isArray(allParsed)) return;
+        const pNameLower = currentPantiName.toLowerCase().trim();
+        const myUpdated = allParsed.filter((r: any) => {
+          if (r.isMine === true) return true;
+          if (!r.shelterName) return false;
+          const rn = String(r.shelterName).toLowerCase().trim();
+          return rn === pNameLower || rn.includes(pNameLower) || pNameLower.includes(rn);
+        });
+        if (myUpdated.length > 0) {
+          setMyDonationRequests(myUpdated);
+          localStorage.setItem(myKey, JSON.stringify(myUpdated));
+        }
+      } catch (_) {}
+    };
+
+    window.addEventListener('replate_donation_requests_updated', syncFromProviderUpdate);
+    window.addEventListener('storage', syncFromProviderUpdate);
+
+    return () => {
+      window.removeEventListener('replate_donation_requests_updated', syncFromProviderUpdate);
+      window.removeEventListener('storage', syncFromProviderUpdate);
+    };
   }, []);
 
   const handleCreateDonationRequest = (e: React.FormEvent) => {
@@ -444,7 +497,20 @@ export default function BeneficiaryDashboardPage() {
     const updated = [newReq, ...myDonationRequests];
     setMyDonationRequests(updated);
     try {
-      localStorage.setItem('replate_donation_requests', JSON.stringify(updated));
+      // Simpan ke kunci khusus panti ini
+      const myKey = `replate_my_donation_requests_${yayasanName.toLowerCase().replace(/\s+/g, '_')}`;
+      localStorage.setItem(myKey, JSON.stringify(updated));
+      // Update replate_donation_requests: gabungkan dengan panti lain yang sudah ada
+      const allRaw = localStorage.getItem('replate_donation_requests');
+      let allParsed: any[] = [];
+      if (allRaw) allParsed = JSON.parse(allRaw);
+      const pantiLower = yayasanName.toLowerCase().trim();
+      const otherPantis = allParsed.filter((r: any) => {
+        if (!r.shelterName) return true;
+        const rn = String(r.shelterName).toLowerCase().trim();
+        return !rn.includes(pantiLower) && !pantiLower.includes(rn);
+      });
+      localStorage.setItem('replate_donation_requests', JSON.stringify([...updated, ...otherPantis]));
       window.dispatchEvent(new Event('replate_donation_requests_updated'));
       window.dispatchEvent(new Event('replate_panti_needs_updated'));
     } catch (_) {}
