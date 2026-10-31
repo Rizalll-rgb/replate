@@ -42,6 +42,7 @@ export function DonationsHubComponent() {
 
   // Provider Direct Delivery Fleet Capability Sync
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
+  const [hubTab, setHubTab] = useState<'MY_REQUESTS' | 'OPEN_BURSA'>('MY_REQUESTS');
 
   useEffect(() => {
     try {
@@ -250,6 +251,14 @@ export function DonationsHubComponent() {
   // Filtered Requests Logic (Panti, Shelter, Yayasan, Individu) - Memoized for Fast Rendering
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
+      if (hubTab === 'MY_REQUESTS') {
+        const isMine =
+          req.id.includes('REQ-DON-') ||
+          req.shelterName.toLowerCase().includes('kasih ibu') ||
+          req.shelterName.toLowerCase().includes('panti asuhan');
+        if (!isMine) return false;
+      }
+
       const matchesSearch =
         req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         req.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -265,7 +274,7 @@ export function DonationsHubComponent() {
 
       return matchesSearch && matchesLocation && matchesCategory && matchesType && matchesUrgency;
     });
-  }, [requests, searchQuery, filterLocation, filterCategory, filterRecipientType, filterUrgency]);
+  }, [requests, searchQuery, filterLocation, filterCategory, filterRecipientType, filterUrgency, hubTab]);
 
   const handleOpenFulfillModal = (req: any) => {
     setSelectedRequest(req);
@@ -573,6 +582,38 @@ export function DonationsHubComponent() {
             </div>
           </div>
         </Card>
+      </div>
+
+      {/* Tab Switcher: Pengajuan Lembaga Saya vs Bursa Donasi Terbuka */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 text-xs font-bold overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setHubTab('MY_REQUESTS')}
+          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-2 cursor-pointer ${
+            hubTab === 'MY_REQUESTS'
+              ? 'bg-[#1B3A5C] text-white shadow-xs'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <Building className="w-4 h-4 text-[#D4A843]" />
+          <span>Pengajuan Kebutuhan Panti Saya</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setHubTab('OPEN_BURSA')}
+          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-2 cursor-pointer ${
+            hubTab === 'OPEN_BURSA'
+              ? 'bg-[#1B3A5C] text-white shadow-xs'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <Utensils className="w-4 h-4 text-emerald-400" />
+          <span>Bursa Kebutuhan Donasi Terbuka (Nasional)</span>
+          <span className="px-1.5 py-0.2 bg-emerald-200 text-emerald-950 text-[10px] rounded-full font-black">
+            {requests.length} Lembaga
+          </span>
+        </button>
       </div>
 
       {/* Search & Multi-Filter Control Bar */}

@@ -466,14 +466,15 @@ export default function BeneficiaryDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setIsRequestModalOpen(true)}
-              className="px-4 py-2 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 rounded-xl text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <HeartHandshake className="w-4 h-4 text-slate-950" />
-              <span>Ajukan Permintaan Donasi</span>
-            </button>
+            <Link href="/dashboard/donations">
+              <button
+                type="button"
+                className="px-4 py-2 bg-[#D4A843] hover:bg-[#E5B954] text-slate-950 rounded-xl text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <HeartHandshake className="w-4 h-4 text-slate-950" />
+                <span>Buka Hub Pengajuan Donasi →</span>
+              </button>
+            </Link>
             <button
               type="button"
               onClick={() => setActiveTab('VERIFIKASI_LEGALITAS')}
@@ -488,7 +489,7 @@ export default function BeneficiaryDashboardPage() {
               className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-[#D4A843] rounded-xl text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Utensils className="w-3.5 h-3.5" />
-              <span>Katalog Pangan</span>
+              <span>Katalog Porsi Besar</span>
             </button>
           </div>
         </div>
@@ -556,6 +557,25 @@ export default function BeneficiaryDashboardPage() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Banner Pemisahan Fungsi: Beranda Panti vs Hub Donasi */}
+      <div className="p-4 bg-gradient-to-r from-blue-50 via-slate-50 to-amber-50 rounded-2xl border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
+        <div className="space-y-1">
+          <strong className="text-[#1B3A5C] font-black text-xs flex items-center gap-1.5">
+            <Building className="w-4 h-4 text-[#D4A843]" />
+            Ruang Kerja Operasional Panti Asuhan
+          </strong>
+          <p className="text-slate-600 text-[11px] leading-relaxed">
+            Halaman ini (<strong>Beranda Panti</strong>) difokuskan untuk <strong>klaim makanan surplus porsi besar</strong> (subsidi &amp; gratis) dan verifikasi perizinan Dinsos. Jika Anda ingin <strong>mengajukan kebutuhan donasi santri</strong> ke jaringan restoran/hotel donor, silakan gunakan menu <strong>Hub Pengajuan Donasi Panti</strong>.
+          </p>
+        </div>
+        <Link href="/dashboard/donations" className="shrink-0">
+          <Button variant="gold" size="sm" className="font-extrabold text-xs shadow-xs flex items-center gap-1">
+            <span>Buka Hub Donasi</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </Link>
       </div>
 
       {/* Tabs Filter Bar */}
