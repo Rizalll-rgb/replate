@@ -156,10 +156,28 @@ export default function EcoPointsRewardsPage() {
   const [redeemSuccess, setRedeemSuccess] = useState<boolean>(false);
   const [streakDays, setStreakDays] = useState<number>(4);
 
-  const userName = session?.user?.name || 'Ahmad Fauzan';
+  const [userName, setUserName] = useState<string>(session?.user?.name || 'Budi Santoso');
 
   useEffect(() => {
     try {
+      if (session?.user?.name) {
+        setUserName(session.user.name);
+      } else {
+        const profile = localStorage.getItem('replate_onboarding_profile');
+        if (profile) {
+          const parsed = JSON.parse(profile);
+          if (parsed.entityName || parsed.contactPerson || parsed.name) {
+            setUserName(parsed.entityName || parsed.contactPerson || parsed.name);
+          }
+        } else {
+          const reg = localStorage.getItem('replate_registered_user');
+          if (reg) {
+            const parsedReg = JSON.parse(reg);
+            if (parsedReg.name) setUserName(parsedReg.name);
+          }
+        }
+      }
+
       const saved = localStorage.getItem('replate_ecopoints');
       if (saved) {
         setEcoPoints(parseInt(saved, 10));
