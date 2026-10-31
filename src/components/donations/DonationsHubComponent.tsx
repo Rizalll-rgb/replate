@@ -1,5 +1,6 @@
-import { DonationFulfillSuccessModal } from './DonationFulfillSuccessModal';
 'use client';
+
+import { DonationFulfillSuccessModal } from './DonationFulfillSuccessModal';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardBody } from '@/components/ui/Card';

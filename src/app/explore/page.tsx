@@ -1,5 +1,6 @@
-import { DonationFulfillSuccessModal } from '@/components/donations/DonationFulfillSuccessModal';
 'use client';
+
+import { DonationFulfillSuccessModal } from '@/components/donations/DonationFulfillSuccessModal';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
