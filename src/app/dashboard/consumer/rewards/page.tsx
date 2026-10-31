@@ -27,7 +27,6 @@ import {
   FileText,
   Share2,
 } from 'lucide-react';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { ImpactGamification } from '@/components/impact/ImpactGamification';
 
 interface RewardItem {
@@ -199,42 +198,9 @@ export default function EcoPointsRewardsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-28">
-      {/* Top App Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 shadow-2xs">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Link href="/dashboard/consumer">
-              <button
-                type="button"
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-slate-700 transition-colors cursor-pointer active:scale-95"
-                title="Kembali ke Beranda"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-            </Link>
-            <div>
-              <h1 className="text-sm sm:text-base font-black text-[#1B3A5C] leading-tight">
-                Gamifikasi &amp; Laporan Berdampak
-              </h1>
-              <span className="text-[10px] text-slate-500 font-medium block">
-                Portal EcoPoints, Audit Emisi Karbon &amp; Lencana Pahlawan Pangan
-              </span>
-            </div>
-          </div>
-
-          {/* Mini Points Wallet Pill */}
-          <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 px-3 py-1 rounded-full shadow-2xs">
-            <Coins className="w-4 h-4 text-amber-700" />
-            <span className="text-xs sm:text-sm font-black text-amber-950 font-mono">
-              {ecoPoints} Poin
-            </span>
-          </div>
-        </div>
-      </header>
-
+    <div className="space-y-6 max-w-5xl mx-auto pb-16 font-sans">
       {/* Main Content Container */}
-      <main className="max-w-4xl mx-auto px-4 py-4 space-y-5">
+      <div className="space-y-5">
         {/* Tier Hero Header Card */}
         <div className="p-5 rounded-3xl bg-gradient-to-br from-[#1B3A5C] via-[#163854] to-[#0E2F26] text-white shadow-lg border border-[#D4A843]/30 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -695,7 +661,7 @@ export default function EcoPointsRewardsPage() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Confirmation Redeem Modal */}
       {confirmModalOpen && selectedReward && (
@@ -807,8 +773,7 @@ export default function EcoPointsRewardsPage() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation */}
-      <BottomNav user={{ role: 'CONSUMER' }} />
+
     </div>
   );
 }
