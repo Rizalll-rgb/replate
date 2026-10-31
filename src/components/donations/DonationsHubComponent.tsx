@@ -73,7 +73,7 @@ export function DonationsHubComponent() {
     { id: 'FOOD-004', foodName: 'Susu UHT & Buah Potong Segar', quantity: 30, quantityUnit: 'Porsi', category: 'Roti, Buah & Susu (Bakery & Dairy)', storageTemp: 'REFRIGERATED', allergens: ['Dairy'] },
   ]);
 
-  // Load local surplus inventory if available
+  // Load local surplus inventory & synchronized donation requests
   useEffect(() => {
     try {
       const savedSurplus = localStorage.getItem('replate_local_surplus');
@@ -85,6 +85,18 @@ export function DonationsHubComponent() {
             category: item.category || 'Makanan Olahan (Meals)',
           }));
           setProviderInventory(normalized);
+        }
+      }
+
+      const savedRequests = localStorage.getItem('replate_donation_requests');
+      if (savedRequests) {
+        const parsedReqs = JSON.parse(savedRequests);
+        if (Array.isArray(parsedReqs) && parsedReqs.length > 0) {
+          setRequests((prev) => {
+            const existingIds = new Set(prev.map(r => r.id));
+            const newOnes = parsedReqs.filter((r: any) => !existingIds.has(r.id));
+            return [...newOnes, ...prev];
+          });
         }
       }
     } catch (_) {}
@@ -378,6 +390,54 @@ export function DonationsHubComponent() {
       )
     );
 
+    const chosenDriver = selectedRequest.assignedDriver || assignedDriver || 'Budi Santoso (Driver Armada Toko)';
+    const isArmadaToko = effectiveDeliveryMethod === 'PROVIDER_DIRECT';
+    const feeDisplay = isArmadaToko ? 'Rp 0 (Gratis Armada Toko)' : effectiveDeliveryMethod === 'SHELTER_PICKUP' ? 'Rp 0 (Ambil Mandiri)' : 'Rp 5.000';
+    const optionDisplay = isArmadaToko ? 'Armada Toko (Diantar Langsung)' : effectiveDeliveryMethod === 'SHELTER_PICKUP' ? 'Ambil Sendiri' : 'Kurir Relawan Food Rescue';
+
+    const driverNameClean = chosenDriver.includes(' - ') ? chosenDriver.split(' - ')[0] : chosenDriver;
+    const vehicleClean = chosenDriver.includes(' - ') ? chosenDriver.split(' - ')[1]?.replace(/\(.*\)/, '').trim() || 'Honda Vario L 4521 AB' : 'Honda Vario L 4521 AB';
+
+    setFulfillSuccessData({
+      isOpen: true,
+      productName: selectedFoodObj.foodName,
+      providerName: session?.user?.name || 'Warung Bakso Pak Kumis (Provider)',
+      recipientName: selectedRequest.shelterName,
+      deliveryAddress: selectedRequest.address,
+      deliveryOption: optionDisplay,
+      deliveryFee: feeDisplay,
+      driverName: driverNameClean,
+      driverPhone: '0812-9876-5432',
+      driverVehicle: vehicleClean,
+      estimatedDeliveryTime: '30 - 45 Menit (Tiba ~19:30 WIB)',
+      portionsCount: portionedQuantity,
+      ticketCode,
+    });
+
+    try {
+      const savedReqsStr = localStorage.getItem('replate_donation_requests');
+      if (savedReqsStr) {
+        const parsedReqs = JSON.parse(savedReqsStr);
+        const updated = parsedReqs.map((r: any) =>
+          r.id === selectedRequest.id
+            ? {
+                ...r,
+                status: 'DISANGGUPI',
+                fulfilledBy: session?.user?.name || 'Provider Replate',
+                fulfilledProduct: selectedFoodObj.foodName,
+                fulfilledPortions: portionedQuantity,
+                ticketCode,
+                driverName: driverNameClean,
+                driverPhone: '0812-9876-5432',
+                driverVehicle: vehicleClean,
+                estimatedDeliveryTime: '30 - 45 Menit (Tiba ~19:30 WIB)',
+              }
+            : r
+        );
+        localStorage.setItem('replate_donation_requests', JSON.stringify(updated));
+      }
+    } catch (_) {}
+
     setCompletedTicket({
       ticketCode,
       shelterName: selectedRequest.shelterName,
@@ -429,6 +489,12 @@ export function DonationsHubComponent() {
       legalPermit: 'VERIFIED-ID/2024/9912',
     };
 
+    try {
+      const savedReqsStr = localStorage.getItem('replate_donation_requests');
+      const existing = savedReqsStr ? JSON.parse(savedReqsStr) : [];
+      localStorage.setItem('replate_donation_requests', JSON.stringify([newReq, ...existing]));
+    } catch (_) {}
+
     setRequests([newReq, ...requests]);
     setIsRequestModalOpen(false);
     setToastState({
@@ -455,7 +521,7 @@ export function DonationsHubComponent() {
           </p>
         </div>
 
-        {(userRole === 'YAYASAN' || userRole === 'ADMIN') && (
+        {(userRole === 'YAYASAN' || userRole === 'BENEFICIARY' || userRole === 'ADMIN') && (
           <Button
             variant="gold"
             size="md"
