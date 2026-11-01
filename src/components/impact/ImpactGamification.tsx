@@ -192,35 +192,38 @@ export const ImpactGamification: React.FC<ImpactGamificationProps> = ({
             <div
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
-              className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden bg-gradient-to-br ${
+              className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden bg-gradient-to-br flex flex-col justify-between h-full min-h-[175px] ${
                 badge.unlocked
                   ? `${badge.badgeColor} hover:scale-102 shadow-md`
                   : 'from-slate-800/40 to-slate-900/60 border-slate-700/50 text-slate-500 opacity-70'
               }`}
             >
-              <div className="flex items-start justify-between">
-                <span className="text-2xl filter drop-shadow-sm">{badge.icon}</span>
-                <span
-                  className={`text-[9.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                    badge.unlocked
-                      ? 'bg-emerald-500 text-slate-950 shadow-2xs'
-                      : 'bg-slate-700 text-slate-300 flex items-center gap-1'
-                  }`}
-                >
-                  {badge.unlocked ? 'TERBUKA' : <><Lock className="w-2.5 h-2.5" /> TERKUNCI</>}
-                </span>
+              <div>
+                <div className="flex items-start justify-between">
+                  <span className="text-2xl filter drop-shadow-sm">{badge.icon}</span>
+                  <span
+                    className={`text-[9.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                      badge.unlocked
+                        ? 'bg-emerald-500 text-slate-950 shadow-2xs'
+                        : 'bg-slate-700 text-slate-300 flex items-center gap-1'
+                    }`}
+                  >
+                    {badge.unlocked ? 'TERBUKA' : <><Lock className="w-2.5 h-2.5" /> TERKUNCI</>}
+                  </span>
+                </div>
+
+                <div className="mt-2.5 space-y-1">
+                  <span className="text-[10px] text-slate-400 block font-semibold">{badge.level}</span>
+                  <h5 className="font-black text-xs text-white leading-snug line-clamp-1">{badge.title}</h5>
+                  <p className="text-[10.5px] text-slate-300 font-medium line-clamp-2 leading-relaxed break-words">
+                    {badge.desc}
+                  </p>
+                </div>
               </div>
 
-              <div className="mt-2.5 space-y-1">
-                <span className="text-[10px] text-slate-400 block font-semibold">{badge.level}</span>
-                <h5 className="font-black text-xs text-white leading-snug">{badge.title}</h5>
-                <p className="text-[10.5px] text-slate-300 font-medium line-clamp-2 leading-relaxed">
-                  {badge.desc}
-                </p>
-                <div className="pt-2 text-[10px] text-[#D4A843] font-bold border-t border-white/10 flex items-center justify-between">
-                  <span>Progres:</span>
-                  <span className="font-mono">{badge.progress}</span>
-                </div>
+              <div className="pt-2 text-[10px] text-[#D4A843] font-bold border-t border-white/10 flex items-center justify-between mt-2">
+                <span>Progres:</span>
+                <span className="font-mono font-bold">{badge.progress}</span>
               </div>
             </div>
           ))}

@@ -102,8 +102,11 @@ export function calculateOrderFees(input: FeeCalculationInput): FeeBreakdown {
 
   const foodTotal = input.isFreeItem ? 0 : Math.max(0, input.foodTotal);
 
-  // 1. Ongkos Kirim
-  const deliveryFee = normalizedMethod === 'SELF_PICKUP'
+  // 1. Ongkos Kirim:
+  // - SELF_PICKUP: Rp 0
+  // - PROVIDER_DRIVER (Armada Toko): Rp 0 (Gratis)
+  // - RESCUE_ARMADA: Sesuai jarak tarif relawan
+  const deliveryFee = (normalizedMethod === 'SELF_PICKUP' || normalizedMethod === 'PROVIDER_DRIVER')
     ? 0
     : Math.ceil(distanceKm) * RATE_PER_KM;
 
@@ -127,14 +130,14 @@ export function calculateOrderFees(input: FeeCalculationInput): FeeBreakdown {
   const providerEarnings = foodTotal - adminFeeProvider;
 
   let methodLabel = 'Ambil Sendiri (Self-Pickup)';
-  let deliveryNotes = 'Bebas ongkir (Rp 0). Ambil langsung di gerai penyedia.';
+  let deliveryNotes = 'Bebas ongkir (Rp 0).';
 
   if (normalizedMethod === 'PROVIDER_DRIVER') {
-    methodLabel = 'Diantar Kurir Provider';
-    deliveryNotes = `Jarak ${distanceKm.toFixed(1)} km (dibulatkan ${Math.ceil(distanceKm)} km) × Rp 2.000/km. 100% dialokasikan langsung untuk driver pengantar.`;
+    methodLabel = 'Armada Toko (Gratis Rp 0)';
+    deliveryNotes = 'Bebas ongkir (Rp 0) diantar langsung oleh armada toko.';
   } else if (normalizedMethod === 'RESCUE_ARMADA') {
     methodLabel = 'Disalurkan via Mitra Food Rescue';
-    deliveryNotes = `Khusus porsi besar/donasi yayasan. Jarak ${distanceKm.toFixed(1)} km (dibulatkan ${Math.ceil(distanceKm)} km) × Rp 2.000/km. 100% dialokasikan untuk armada Food Rescue. Bebas biaya layanan platform.`;
+    deliveryNotes = `Jarak ${distanceKm.toFixed(1)} km × Rp 2.000/km dialokasikan untuk relawan pengantar.`;
   }
 
   return {

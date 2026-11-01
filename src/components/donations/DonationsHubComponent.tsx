@@ -1,5 +1,6 @@
-import { DonationFulfillSuccessModal } from './DonationFulfillSuccessModal';
 'use client';
+
+import { DonationFulfillSuccessModal } from './DonationFulfillSuccessModal';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardBody } from '@/components/ui/Card';
@@ -37,10 +38,19 @@ const getHumanReadableStatusLabel = (statusCode: string) => {
 export function DonationsHubComponent() {
   const router = useRouter();
   const { data: session } = useSession();
-  const userRole = session?.user?.role || 'PROVIDER';
+  const rawRole = String(session?.user?.role || '').toUpperCase();
+  const demoRole = typeof window !== 'undefined' ? String(localStorage.getItem('replate_demo_session') || '').toUpperCase() : '';
+  const isBeneficiaryUser =
+    rawRole.includes('BENEFICIARY') ||
+    rawRole.includes('YAYASAN') ||
+    rawRole.includes('ADMIN') ||
+    demoRole.includes('BENEFICIARY') ||
+    demoRole.includes('YAYASAN') ||
+    rawRole === '';
 
   // Provider Direct Delivery Fleet Capability Sync
   const [providerCanDeliverDirect, setProviderCanDeliverDirect] = useState<boolean>(false);
+  const [hubTab, setHubTab] = useState<'MY_REQUESTS' | 'OPEN_BURSA'>('MY_REQUESTS');
 
   useEffect(() => {
     try {
@@ -72,7 +82,7 @@ export function DonationsHubComponent() {
     { id: 'FOOD-004', foodName: 'Susu UHT & Buah Potong Segar', quantity: 30, quantityUnit: 'Porsi', category: 'Roti, Buah & Susu (Bakery & Dairy)', storageTemp: 'REFRIGERATED', allergens: ['Dairy'] },
   ]);
 
-  // Load local surplus inventory if available
+  // Load local surplus inventory & synchronized donation requests
   useEffect(() => {
     try {
       const savedSurplus = localStorage.getItem('replate_local_surplus');
@@ -84,6 +94,18 @@ export function DonationsHubComponent() {
             category: item.category || 'Makanan Olahan (Meals)',
           }));
           setProviderInventory(normalized);
+        }
+      }
+
+      const savedRequests = localStorage.getItem('replate_donation_requests');
+      if (savedRequests) {
+        const parsedReqs = JSON.parse(savedRequests);
+        if (Array.isArray(parsedReqs) && parsedReqs.length > 0) {
+          setRequests((prev) => {
+            const existingIds = new Set(prev.map(r => r.id));
+            const newOnes = parsedReqs.filter((r: any) => !existingIds.has(r.id));
+            return [...newOnes, ...prev];
+          });
         }
       }
     } catch (_) {}
@@ -224,7 +246,7 @@ export function DonationsHubComponent() {
   const [completedTicket, setCompletedTicket] = useState<any | null>(null);
   const [fulfillSuccessData, setFulfillSuccessData] = useState<any | null>(null);
   const [assignedDriver, setAssignedDriver] = useState<string>('Budi Santoso - Honda Vario L 4521 AB (Armada Toko)');
-  const [newPaymentMethod, setNewPaymentMethod] = useState<string>('Bebas Biaya (Rp 0)');
+  const [newPaymentMethod, setNewPaymentMethod] = useState<string>('QRIS');
   const [newAssignedDriver, setNewAssignedDriver] = useState<string>('Tugaskan Otomatis (Driver Terdekat)');
   const [providerDeliveryPhoto, setProviderDeliveryPhoto] = useState<string | null>(null);
 
@@ -237,6 +259,14 @@ export function DonationsHubComponent() {
   // Filtered Requests Logic (Panti, Shelter, Yayasan, Individu) - Memoized for Fast Rendering
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
+      if (hubTab === 'MY_REQUESTS') {
+        const isMine =
+          req.id.includes('REQ-DON-') ||
+          req.shelterName.toLowerCase().includes('kasih ibu') ||
+          req.shelterName.toLowerCase().includes('panti asuhan');
+        if (!isMine) return false;
+      }
+
       const matchesSearch =
         req.shelterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         req.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -252,7 +282,7 @@ export function DonationsHubComponent() {
 
       return matchesSearch && matchesLocation && matchesCategory && matchesType && matchesUrgency;
     });
-  }, [requests, searchQuery, filterLocation, filterCategory, filterRecipientType, filterUrgency]);
+  }, [requests, searchQuery, filterLocation, filterCategory, filterRecipientType, filterUrgency, hubTab]);
 
   const handleOpenFulfillModal = (req: any) => {
     setSelectedRequest(req);
@@ -377,33 +407,52 @@ export function DonationsHubComponent() {
       )
     );
 
-    const deliveryOptLabel =
-      effectiveDeliveryMethod === 'PROVIDER_DIRECT'
-        ? 'Armada Toko (Rp 0 - Gratis)'
-        : effectiveDeliveryMethod === 'RESCUE_COURIER'
-        ? 'Kurir Relawan Food Rescue'
-        : 'Ambil Mandiri oleh Pihak Panti';
+    const chosenDriver = selectedRequest.assignedDriver || assignedDriver || 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)';
+    const isArmadaToko = effectiveDeliveryMethod === 'PROVIDER_DIRECT';
+    const feeDisplay = isArmadaToko ? 'Rp 0 (Gratis Armada Toko)' : effectiveDeliveryMethod === 'SHELTER_PICKUP' ? 'Rp 0 (Ambil Mandiri)' : 'Rp 0';
+    const optionDisplay = isArmadaToko ? 'Armada Toko (Rp 0 - Gratis)' : effectiveDeliveryMethod === 'SHELTER_PICKUP' ? 'Ambil Sendiri' : 'Kurir Relawan Food Rescue';
 
-    const driverParts = (assignedDriver || '').split(' - ');
-    const dName = driverParts[0] || 'Budi Santoso';
-    const dVehicle = driverParts[1] || 'Honda Vario L 4521 AB';
-
+    const driverNameClean = chosenDriver.includes(' - ') ? chosenDriver.split(' - ')[0] : chosenDriver;
+    const vehicleClean = chosenDriver.includes(' - ') ? chosenDriver.split(' - ')[1]?.replace(/\(.*\)/, '').trim() || 'Honda Vario L 4521 AB' : 'Honda Vario L 4521 AB';
     setFulfillSuccessData({
       isOpen: true,
       productName: selectedFoodObj.foodName,
-      providerName: 'Dapur Berkah Provider (Mitra Terverifikasi)',
+      providerName: session?.user?.name || 'Dapur Berkah Provider (Mitra Terverifikasi)',
       recipientName: selectedRequest.shelterName,
       deliveryAddress: selectedRequest.address,
-      deliveryOption: deliveryOptLabel,
-      deliveryFee: 0,
-      driverName: dName,
+      deliveryOption: optionDisplay,
+      deliveryFee: feeDisplay,
+      driverName: driverNameClean,
       driverPhone: '0812-3456-7890',
-      driverVehicle: dVehicle,
+      driverVehicle: vehicleClean,
       estimatedDeliveryTime: '30 - 45 Menit (Sebelum Batas Waktu Santap)',
       portionsCount: portionedQuantity,
       ticketCode,
     });
 
+try {
+      const savedReqsStr = localStorage.getItem('replate_donation_requests');
+      if (savedReqsStr) {
+        const parsedReqs = JSON.parse(savedReqsStr);
+        const updated = parsedReqs.map((r: any) =>
+          r.id === selectedRequest.id
+            ? {
+                ...r,
+                status: 'DISANGGUPI',
+                fulfilledBy: session?.user?.name || 'Provider Replate',
+                fulfilledProduct: selectedFoodObj.foodName,
+                fulfilledPortions: portionedQuantity,
+                ticketCode,
+                driverName: driverNameClean,
+                driverPhone: '0812-9876-5432',
+                driverVehicle: vehicleClean,
+                estimatedDeliveryTime: '30 - 45 Menit (Tiba ~19:30 WIB)',
+              }
+            : r
+        );
+        localStorage.setItem('replate_donation_requests', JSON.stringify(updated));
+      }
+    } catch (_) {}
     setCompletedTicket({
       ticketCode,
       shelterName: selectedRequest.shelterName,
@@ -495,6 +544,18 @@ export function DonationsHubComponent() {
       const currentRequests = JSON.parse(localStorage.getItem('replate_panti_requests') || '[]');
       localStorage.setItem('replate_panti_requests', JSON.stringify([exploreItem, ...currentRequests]));
       window.dispatchEvent(new Event('replate_panti_requests_updated'));
+
+      const savedReqsStr = localStorage.getItem('replate_donation_requests');
+      const existing = savedReqsStr ? JSON.parse(savedReqsStr) : [];
+      localStorage.setItem('replate_donation_requests', JSON.stringify([newReq, ...existing]));
+      window.dispatchEvent(new Event('replate_donation_requests_updated'));
+      window.dispatchEvent(new Event('replate_panti_needs_updated'));
+
+      fetch('/api/panti-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exploreItem),
+      }).catch((err) => console.warn('Post panti API error:', err));
     } catch (_) {}
 
     setRequests([newReq, ...requests]);
@@ -523,7 +584,7 @@ export function DonationsHubComponent() {
           </p>
         </div>
 
-        {(userRole === 'YAYASAN' || userRole === 'ADMIN') && (
+        {isBeneficiaryUser && (
           <Button
             variant="gold"
             size="md"
@@ -575,6 +636,38 @@ export function DonationsHubComponent() {
             </div>
           </div>
         </Card>
+      </div>
+
+      {/* Tab Switcher: Pengajuan Lembaga Saya vs Bursa Donasi Terbuka */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 text-xs font-bold overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setHubTab('MY_REQUESTS')}
+          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-2 cursor-pointer ${
+            hubTab === 'MY_REQUESTS'
+              ? 'bg-[#1B3A5C] text-white shadow-xs'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <Building className="w-4 h-4 text-[#D4A843]" />
+          <span>Pengajuan Kebutuhan Panti Saya</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setHubTab('OPEN_BURSA')}
+          className={`px-4 py-2.5 rounded-xl font-black transition-all flex items-center gap-2 cursor-pointer ${
+            hubTab === 'OPEN_BURSA'
+              ? 'bg-[#1B3A5C] text-white shadow-xs'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <Utensils className="w-4 h-4 text-emerald-400" />
+          <span>Bursa Kebutuhan Donasi Terbuka (Nasional)</span>
+          <span className="px-1.5 py-0.2 bg-emerald-200 text-emerald-950 text-[10px] rounded-full font-black">
+            {requests.length} Lembaga
+          </span>
+        </button>
       </div>
 
       {/* Search & Multi-Filter Control Bar */}
@@ -1246,27 +1339,13 @@ export function DonationsHubComponent() {
               onChange={(e) => setNewPaymentMethod(e.target.value)}
               required
             >
-              <option value="Bebas Biaya (Rp 0)">Bebas Biaya (Rp 0)</option>
-              <option value="Saldo Dompet Replate">Saldo Dompet Replate</option>
-              <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
-              <option value="Transfer Bank">Transfer Bank</option>
+              <option value="QRIS">QRIS</option>
+              <option value="Transfer Bank (TF)">Transfer Bank (TF)</option>
               <option value="COD (Bayar di Tempat)">COD (Bayar di Tempat)</option>
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#343A40]">Tugaskan Driver Pengantaran</label>
-            <select
-              className="w-full rounded-xl border border-slate-300 text-xs px-3.5 py-2 bg-white font-bold text-[#1B3A5C]"
-              value={newAssignedDriver}
-              onChange={(e) => setNewAssignedDriver(e.target.value)}
-            >
-              <option value="Tugaskan Otomatis (Driver Terdekat)">Tugaskan Otomatis (Driver Terdekat)</option>
-              <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
-              <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
-              <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)</option>
-            </select>
-          </div>
+
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#343A40]">Deskripsi Rincian Kebutuhan Penerima</label>

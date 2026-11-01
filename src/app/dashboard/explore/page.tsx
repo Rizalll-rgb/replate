@@ -353,28 +353,106 @@ export default function WorkspaceExplorePage() {
       if (radius) setSyncRadius(parseInt(radius));
     } catch (_) {}
 
-    try {
-      fetch('/api/panti-requests')
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          try {
-            const local = JSON.parse(localStorage.getItem('replate_panti_requests') || '[]');
-            const merged = deduplicatePantiNeeds([...json.data, ...local, ...SHARED_PANTI_NEEDS]);
-            localStorage.setItem('replate_panti_requests', JSON.stringify(merged));
-            setPantiNeeds(merged);
-          } catch (_) {}
+    const syncAllPantiNeeds = () => {
+      try {
+        let combined: SharedPantiNeed[] = [];
+
+        // 1. Synchronize from replate_donation_requests (Beneficiary submission)
+        const rawDonationReqs = localStorage.getItem('replate_donation_requests');
+        if (rawDonationReqs) {
+          const parsedReqs = JSON.parse(rawDonationReqs);
+          if (Array.isArray(parsedReqs) && parsedReqs.length > 0) {
+            const mappedFromDonations: SharedPantiNeed[] = parsedReqs.map((r: any) => {
+              const qty = Number(r.beneficiariesCount || r.targetQuantity || 45);
+              const isDirect = r.preferredDelivery === 'PROVIDER_DIRECT';
+              const isPickup = r.preferredDelivery === 'SHELTER_PICKUP';
+              const delivMethod = isDirect ? 'PROVIDER_DIRECT' : isPickup ? 'SHELTER_PICKUP' : 'RESCUE_COURIER';
+              const delivLabel = isDirect
+                ? 'Diantar Armada Toko (Gratis Rp 0)'
+                : isPickup
+                ? 'Ambil Sendiri ke Toko / Donor (Gratis Rp 0)'
+                : 'Diantar Food Rescue Courier (Jaminan QC 2 Kali)';
+              const delivDesc = isDirect
+                ? 'Driver armada toko mengantar langsung ke panti.'
+                : isPickup
+                ? 'Pengurus panti asuhan menjemput mandiri ke lokasi donor.'
+                : 'Relawan food rescue melakukan uji kelayakan suhu & kemasan higienis (QC 2x).';
+              const isFulfilled = r.status === 'DISANGGUPI' || r.status === 'MATCHED & PROCESSED';
+
+              return {
+                id: r.id || `PNT-REQ-${Date.now()}`,
+                pantiName: r.shelterName || r.pantiName || 'Panti Asuhan Kasih Ibu',
+                shelterType: r.shelterType || 'Panti Asuhan Anak Yatim',
+                needTitle: `${qty} Porsi ${r.foodCategoryNeeded || 'Makanan Olahan (Meals)'}`,
+                requestedItem: r.foodCategoryNeeded || 'Paket Makanan Bergizi',
+                foodCategoryNeeded: r.foodCategoryNeeded || 'Makanan Olahan (Meals)',
+                targetQuantity: qty,
+                fulfilledQuantity: isFulfilled ? `${qty} Porsi (Terpenuhi)` : '0 Porsi',
+                beneficiariesCount: qty,
+                urgency: r.urgency === 'HIGH' ? 'HIGH' : 'MEDIUM',
+                urgencyLabel: r.urgency === 'HIGH' ? 'URGENT MAKAN MALAM HARI INI' : 'MEMBUTUHKAN BANTUAN',
+                location: r.location || 'Surabaya (Gubeng)',
+                address: r.address || 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+                contactPerson: r.leaderName || r.contactPerson || 'Ibu Hajjah Maryam',
+                contactPhone: r.contactPhone || '081298765432',
+                cutoffTime: r.deadline || '19:30 WIB',
+                deadline: r.deadline || 'Hari ini sebelum 20:00 WIB',
+                distance: '1.2 km (Surabaya)',
+                matchScore: 98,
+                imageUrl: r.photoUrl || r.imageUrl || 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60',
+                legalStatus: 'Terverifikasi Dinsos',
+                legalPermit: r.legalPermit || 'DINSOS-SBY/2023/8912',
+                notes: r.notes || 'Membutuhkan bantuan makanan surplus higienis bergizi untuk santri & anak asuh.',
+                preferredDelivery: delivMethod,
+                deliveryLabel: delivLabel,
+                deliveryDesc: delivDesc,
+                lat: r.lat || -7.2754,
+                lng: r.lng || 112.7541,
+                reasons: ['Permintaan resmi panti terverifikasi', 'Tingkat kecocokan gizi tinggi', 'Radius dalam jangkauan operasional'],
+                breakdown: [
+                  { label: 'Kategori Pangan', score: 35, max: 35, desc: 'Sesuai dengan surplus resto' },
+                  { label: 'Jarak Logistik', score: 25, max: 25, desc: 'Jangkauan armada dekat' },
+                  { label: 'Standar Higienitas', score: 20, max: 20, desc: 'Lolos uji BPOM & QC ganda' },
+                ],
+              };
+            });
+            combined = [...mappedFromDonations];
+          }
         }
-      })
-      .catch((err) => console.warn('Panti explore API sync error:', err));
-    const customPantiReqs = localStorage.getItem('replate_panti_requests');
-      if (customPantiReqs) {
-        const parsed = JSON.parse(customPantiReqs);
-        if (Array.isArray(parsed)) {
-          setPantiNeeds(deduplicatePantiNeeds([...parsed, ...SHARED_PANTI_NEEDS]));
+
+        // Database Sync via /api/panti-requests
+        fetch('/api/panti-requests')
+          .then((res) => res.json())
+          .then((json) => {
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              try {
+                const local = JSON.parse(localStorage.getItem('replate_panti_requests') || '[]');
+                const merged = deduplicatePantiNeeds([...json.data, ...local, ...SHARED_PANTI_NEEDS]);
+                localStorage.setItem('replate_panti_requests', JSON.stringify(merged));
+                setPantiNeeds(merged);
+              } catch (_) {}
+            }
+          })
+          .catch((err) => console.warn('Panti explore API sync error:', err));
+
+        // 2. Load from replate_panti_requests if exists
+        const customPantiReqs = localStorage.getItem('replate_panti_requests');
+        if (customPantiReqs) {
+          const parsed = JSON.parse(customPantiReqs);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            combined = [...combined, ...parsed];
+          }
         }
-      }
-    } catch (_) {}
+
+        // 3. Deduplicate with default SHARED_PANTI_NEEDS
+        setPantiNeeds(deduplicatePantiNeeds([...combined, ...SHARED_PANTI_NEEDS]));
+      } catch (_) {}
+    };
+
+    syncAllPantiNeeds();
+    window.addEventListener('storage', syncAllPantiNeeds);
+    window.addEventListener('replate_donation_requests_updated', syncAllPantiNeeds);
+    window.addEventListener('replate_panti_needs_updated', syncAllPantiNeeds);
 
     const handleSyncPanti = () => {
       try {
@@ -954,12 +1032,12 @@ export default function WorkspaceExplorePage() {
       quantityUnit: 'Porsi',
       amountPaid: 0,
       totalPrice: 0,
-      status: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? 'AWAITING_RESCUE_PICKUP' : 'READY_FOR_PICKUP',
-      deliveryMethod: allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery || 'RESCUE_COURIER',
-      courierName: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Pengurus Panti (Ambil Mandiri)',
-      courierOrg: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? 'Pool Siaga Relawan Replate' : 'Armada Panti Asuhan',
-      courierPhone: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : allocateModal.panti.contactPhone,
-      courierVehicle: (allocateModal.deliveryMethod || allocateModal.panti.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Kendaraan Panti Asuhan',
+      status: (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'RESCUE_COURIER' ? 'AWAITING_RESCUE_PICKUP' : 'READY_FOR_PICKUP',
+      deliveryMethod: allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery || 'RESCUE_COURIER',
+      courierName: (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Pengurus Panti (Ambil Mandiri)',
+      courierOrg: (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'RESCUE_COURIER' ? 'Pool Siaga Relawan Replate' : 'Armada Panti Asuhan',
+      courierPhone: (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'RESCUE_COURIER' ? undefined : allocateModal.panti.contactPhone,
+      courierVehicle: (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'RESCUE_COURIER' ? undefined : 'Kendaraan Panti Asuhan',
       shelterName: allocateModal.panti.pantiName,
       contactPhone: allocateModal.panti.contactPhone,
       claimedAt: new Date().toISOString(),
@@ -1022,7 +1100,7 @@ export default function WorkspaceExplorePage() {
       );
     } catch (_) {}
 
-    // Update panti state and persist
+    // Update panti state and persist to both storage keys for 100% two-way interactive sync
     setPantiNeeds((prev) => {
       const nextPanti = prev.map((n) => {
         if (n.id === allocateModal.panti?.id) {
@@ -1038,6 +1116,46 @@ export default function WorkspaceExplorePage() {
       try {
         localStorage.setItem('replate_panti_requests', JSON.stringify(nextPanti));
       } catch (_) {}
+
+      // Synchronize status back to replate_donation_requests so Beneficiary sees DISANGGUPI in real-time
+      try {
+        const savedDonationReqs = localStorage.getItem('replate_donation_requests');
+        if (savedDonationReqs) {
+          const parsed = JSON.parse(savedDonationReqs);
+          const updated = parsed.map((r: any) => {
+            const isMatch =
+              r.id === allocateModal.panti?.id ||
+              (r.shelterName && allocateModal.panti?.pantiName && r.shelterName.toLowerCase().includes(allocateModal.panti.pantiName.toLowerCase())) ||
+              (allocateModal.panti?.pantiName && r.shelterName && allocateModal.panti.pantiName.toLowerCase().includes(r.shelterName.toLowerCase()));
+
+            if (isMatch) {
+              const driverName = (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'PROVIDER_DIRECT'
+                ? 'Budi Santoso (Driver Armada Toko)'
+                : 'Ahmad Fauzi (Relawan Food Rescue)';
+              const vehicle = (allocateModal.deliveryMethod || allocateModal.panti?.preferredDelivery) === 'PROVIDER_DIRECT'
+                ? 'Honda Vario L 4521 AB (Armada Toko)'
+                : 'Replate Van L 8821 BB (Mobil Box Rescue)';
+
+              return {
+                ...r,
+                status: 'DISANGGUPI',
+                fulfilledBy: session?.user?.name || 'Mitra Restoran / Provider Replate',
+                fulfilledProduct: selectedProduct.name || selectedProduct.title || 'Paket Pangan Bergizi',
+                fulfilledPortions: allocateModal.portions,
+                ticketCode: newClaim.id,
+                driverName,
+                driverPhone: '0812-9876-5432',
+                driverVehicle: vehicle,
+                estimatedDeliveryTime: '30 - 45 Menit (OTW Menuju Lokasi Panti)',
+              };
+            }
+            return r;
+          });
+          localStorage.setItem('replate_donation_requests', JSON.stringify(updated));
+          window.dispatchEvent(new Event('replate_donation_requests_updated'));
+        }
+      } catch (_) {}
+
       return nextPanti;
     });
 
@@ -1302,19 +1420,18 @@ export default function WorkspaceExplorePage() {
           <span>Rescue Sale (Murah)</span>
         </button>
 
-        {!isConsumer && (
-          <button
-            type="button"
-            onClick={() => setActiveTab('DONATION')}
-            className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'DONATION'
-                ? 'bg-[#1B3A5C] text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-950 font-bold'
-            }`}
-          >
-            <span>Donasi (Rp 0)</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setActiveTab('DONATION')}
+          className={`shrink-0 sm:flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-black text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === 'DONATION'
+              ? 'bg-emerald-700 text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-950 font-bold'
+          }`}
+        >
+          <span>Produk Rp 0 (Donasi)</span>
+          <span className="px-1.5 py-0.2 bg-emerald-300 text-emerald-950 text-[9px] rounded font-black">GRATIS</span>
+        </button>
 
         {/* Rescue Partner Action */}
         {(session?.user?.role?.toUpperCase().includes('RESCUE') || session?.user?.role?.toUpperCase().includes('VOLUNTEER')) && (
@@ -1728,8 +1845,8 @@ export default function WorkspaceExplorePage() {
         </div>
 
         <div className="px-3 space-y-3">
-          {/* Main Service Tabs — Consumer only gets 2 tabs, Panti is hidden (Point 8) */}
-          <div className={`grid ${isConsumer ? 'grid-cols-1' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
+          {/* Main Service Tabs — Consumer gets Rescue Sale & Produk Rp 0 (Donasi), Panti is for donors */}
+          <div className={`grid ${isConsumer ? 'grid-cols-2' : 'grid-cols-3'} gap-1.5 p-1 bg-slate-100 rounded-xl`}>
             <button
               type="button"
               onClick={() => setActiveTab('RESCUE_SALE')}
@@ -1743,20 +1860,18 @@ export default function WorkspaceExplorePage() {
               <span className="block text-[8px] opacity-80 font-bold">Hemat 70%</span>
             </button>
 
-            {!isConsumer && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('DONATION')}
-                className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
-                  activeTab === 'DONATION'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-slate-200/60'
-                }`}
-              >
-                <span>Donasi Rp 0</span>
-                <span className="block text-[8px] opacity-80 font-bold">Gratis</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setActiveTab('DONATION')}
+              className={`py-2 px-1 rounded-lg text-center font-black text-[11px] transition-all cursor-pointer ${
+                activeTab === 'DONATION'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>Produk Rp 0</span>
+              <span className="block text-[8px] opacity-80 font-bold">Donasi Gratis</span>
+            </button>
 
             {!isConsumer && (
               <button

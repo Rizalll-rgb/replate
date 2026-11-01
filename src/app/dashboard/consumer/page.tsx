@@ -1,5 +1,6 @@
-import { ImpactGamification } from '@/components/impact/ImpactGamification';
 'use client';
+
+import { ImpactGamification } from '@/components/impact/ImpactGamification';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSession, signOut } from 'next-auth/react';
@@ -391,8 +392,8 @@ export default function ConsumerDashboardPage() {
   // Filtered Foods computation based on search & category
   const filteredFoods = useMemo(() => {
     return foods.filter((item) => {
-      // Sembunyikan item khusus Panti/Yayasan untuk konsumen reguler
-      if (item.type === 'DONATION' || item.isFree || item.category === 'BAHAN_MENTAH') {
+      // Sembunyikan bahan mentah skala panti jika konsumen reguler, namun izinkan makanan porsi donasi Rp 0 ditampilkan untuk dhuafa & konsumen
+      if (item.category === 'BAHAN_MENTAH' && item.type === 'DONATION') {
         const rawRole = (session?.user as any)?.role || (typeof window !== 'undefined' ? localStorage.getItem('replate_role') : '');
         const isBeneficiary = String(rawRole).toUpperCase().includes('BENEFICIARY') || String(rawRole).toUpperCase().includes('YAYASAN') || (typeof window !== 'undefined' && localStorage.getItem('replate_consumer_verification_status') === 'BENEFICIARY_VERIFIED');
         if (!isBeneficiary) return false;
@@ -589,6 +590,8 @@ export default function ConsumerDashboardPage() {
             </CardBody>
           </Card>
         </div>
+
+
 
         {/* Desktop Smart Matching 2.0 Section */}
         <section className="space-y-4">
@@ -1003,14 +1006,7 @@ export default function ConsumerDashboardPage() {
             </div>
           </section>
 
-          {/* Gamifikasi Laporan Berdampak (Mobile View) */}
-          <ImpactGamification
-            currentPoints={ecoPoints}
-            totalPortionsSaved={totalSavedPortions}
-            totalCo2SavedKg={Number((totalSavedPortions * 2.5).toFixed(1))}
-            userName={consumerName}
-            onRedeemRewards={() => router.push('/dashboard/consumer/rewards')}
-          />
+
 
           {/* 8 Quick-Action Service Icons Grid (Direct Redirection to Filtered Explore) */}
           <section className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-2.5">

@@ -255,9 +255,12 @@ export default function AboutPage() {
 
           <div className="bg-white border border-slate-200 p-6 sm:p-8 space-y-4 shadow-xs rounded-3xl">
             <h3 className="text-xl font-black text-[#1B3A5C]">Misi</h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-normal">
-              Menghubungkan mitra penyedia makanan berlebih dengan yayasan panti asuhan serta masyarakat yang membutuhkan secara tepat waktu dan higienis. Menerapkan standar keamanan pangan berbasis regulasi BPOM secara ketat pada seluruh proses redistribusi surplus. Menyediakan sistem logistik terintegrasi antara armada toko dan relawan penyelamat pangan secara efisien. Membangun kesadaran publik serta transparansi audit pengurangan emisi gas rumah kaca untuk mendukung pencapaian tujuan pembangunan berkelanjutan.
-            </p>
+            <ol className="text-xs text-slate-600 space-y-2.5 list-decimal pl-4 leading-relaxed font-normal">
+              <li>Menghubungkan mitra penyedia makanan berlebih dengan yayasan panti asuhan serta masyarakat yang membutuhkan secara tepat waktu dan higienis.</li>
+              <li>Menerapkan standar keamanan pangan berbasis regulasi BPOM secara ketat pada seluruh proses redistribusi surplus pangan.</li>
+              <li>Menyediakan sistem logistik terintegrasi antara armada toko dan relawan penyelamat pangan secara efisien.</li>
+              <li>Membangun kesadaran publik serta transparansi audit pengurangan emisi gas rumah kaca untuk mendukung pencapaian tujuan pembangunan berkelanjutan.</li>
+            </ol>
           </div>
         </div>
 
