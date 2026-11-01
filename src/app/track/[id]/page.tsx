@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { TrackingTimeline, TrackingStep } from '@/components/tracking/TrackingTimeline';
@@ -11,6 +12,7 @@ import Link from 'next/link';
 export default function PublicTrackPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const rawParam = (params?.id as string) || 'FB-DIR-99382';
   const cleanParam = decodeURIComponent(rawParam).trim().toUpperCase();
 
@@ -18,6 +20,7 @@ export default function PublicTrackPage() {
   const [steps, setSteps] = useState<TrackingStep[]>([]);
   const [foodName, setFoodName] = useState<string>('Menu Surplus Bakso Urat & Soto Sapi');
   const [matchedClaim, setMatchedClaim] = useState<any | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
 
   // Known Default Demo Claim Resi Dictionary
   const knownDemoClaims: Record<string, any> = {
@@ -103,6 +106,26 @@ export default function PublicTrackPage() {
 
   useEffect(() => {
     const activeCode = (currentId || cleanParam).trim().toUpperCase();
+
+    // Auto-redirect logged-in users to consistent role workspace tracking (/dashboard/tracking)
+    try {
+      let isLoggedIn = !!session?.user;
+      if (!isLoggedIn) {
+        const p = localStorage.getItem('replate_onboarding_profile');
+        if (p) {
+          const parsed = JSON.parse(p);
+          if (parsed.role) isLoggedIn = true;
+        }
+      }
+      if (!isLoggedIn) {
+        const cookieMatch = document.cookie.match(/replate_role=([^;]+)/) || document.cookie.match(/replate_demo_session=([^;]+)/);
+        if (cookieMatch) isLoggedIn = true;
+      }
+      if (isLoggedIn) {
+        router.replace(`/dashboard/tracking?code=${encodeURIComponent(activeCode)}`);
+        return;
+      }
+    } catch (_) {}
 
     // 1. Try finding in LocalStorage claims
     let foundClaim: any = null;
@@ -235,7 +258,19 @@ export default function PublicTrackPage() {
         },
       ]);
     }
-  }, [currentId, cleanParam]);
+  }, [currentId, cleanParam, session, status, router]);
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1B3A5C] text-white font-sans p-4">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-3 border-[#D4A843] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm font-black text-amber-300">Mengalihkan ke Portal Pelacakan Workspace...</p>
+          <p className="text-xs text-slate-300 font-mono">Kode Resi: {currentId}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-slate-900 font-sans">
@@ -262,17 +297,20 @@ export default function PublicTrackPage() {
         <div className="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-slate-700">
           <div className="space-y-0.5">
             <span className="font-extrabold text-[#1B3A5C] flex items-center gap-1.5">
-              <span> Mode Transparansi Terproteksi (Privasi Data Panti & Konsumen):</span>
+              <span> Mode Transparansi Transaksi Rantai Pasok:</span>
             </span>
             <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-              Nomor WhatsApp dan dokumen audit lengkap disembunyikan dari publik anonim untuk mematuhi regulasi privasi data.
+              Dokumen audit lengkap, GPS posisi kurir live, dan monitoring suhu pangan BPOM tersedia penuh di Workspace Dashboard.
             </p>
           </div>
           <Link
-            href="/login"
-            className="px-3.5 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all shrink-0"
+            href={`/dashboard/tracking?code=${encodeURIComponent(currentId)}`}
+            className="px-4 py-2 bg-[#1B3A5C] hover:bg-[#2C5A8F] text-white font-black text-xs rounded-xl shadow-xs transition-all shrink-0 flex items-center gap-1.5"
           >
-            Login Dashboard 
+            <span>Buka di Workspace Dashboard</span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </Link>
         </div>
 

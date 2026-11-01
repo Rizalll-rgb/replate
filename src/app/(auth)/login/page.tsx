@@ -167,86 +167,72 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const selectedRole = chosenRole || activeRoleTab;
-      let targetUrl = roleConfigs[selectedRole].targetUrl;
+      const cleanEmail = (emailVal || '').trim().toLowerCase();
 
-      // Bedakan Akun Demo vs Akun Fresh Terdaftar
-      const isDemo = isDemoAccount(emailVal);
-      let registeredUserRole: string | null = null;
-      try {
-        const p = localStorage.getItem('replate_onboarding_profile');
-        if (p) {
-          const parsedP = JSON.parse(p);
-          if (parsedP.email && parsedP.email.toLowerCase() === emailVal.toLowerCase()) {
-            registeredUserRole = parsedP.role;
-          }
-        }
-        if (!registeredUserRole) {
-          const rawReg = localStorage.getItem('replate_registered_user');
-          if (rawReg) {
-            const parsedReg = JSON.parse(rawReg);
-            if (parsedReg.email && parsedReg.email.toLowerCase() === emailVal.toLowerCase()) {
-              registeredUserRole = parsedReg.role;
-            }
-          }
-        }
-      } catch (_) {}
-
-      try {
-        if (isDemo) {
-          localStorage.removeItem('replate_is_fresh_account');
-          localStorage.setItem('replate_is_fresh_account', 'false');
-          localStorage.setItem('replate_onboarding_profile', JSON.stringify(roleConfigs[selectedRole].mockProfile));
-          if (selectedRole === 'FOOD_CONSUMER') {
-            localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
-          }
-        } else {
-          localStorage.setItem('replate_is_fresh_account', 'true');
-        }
-      } catch (_) {}
-
-      let effectiveRole = registeredUserRole || selectedRole;
-      if (effectiveRole === 'FOOD_BENEFICIARY' || effectiveRole === 'YAYASAN' || emailVal.includes('panti') || emailVal.includes('yayasan')) {
-        targetUrl = '/dashboard/yayasan';
-      } else if (effectiveRole === 'SUPER_ADMIN' || effectiveRole === 'ADMIN' || emailVal.includes('admin')) {
-        targetUrl = '/dashboard/admin';
-      } else if (effectiveRole === 'RESCUE_VOLUNTEER' || effectiveRole === 'RESCUE_PARTNER' || emailVal.includes('foodbank') || emailVal.includes('volunteer')) {
-        targetUrl = '/dashboard/rescue-partner';
-      } else if (effectiveRole === 'FOOD_CONSUMER' || effectiveRole === 'CONSUMER' || emailVal.includes('budi') || emailVal.includes('consumer') || (!emailVal.includes('pak.kumis') && !emailVal.includes('rotiboy') && !emailVal.includes('majapahit') && !emailVal.includes('provider') && selectedRole === 'FOOD_CONSUMER')) {
-        targetUrl = '/dashboard/consumer';
-        effectiveRole = 'FOOD_CONSUMER';
-      } else if (effectiveRole === 'FOOD_PROVIDER' || effectiveRole === 'PROVIDER' || emailVal.includes('pak.kumis') || emailVal.includes('provider') || emailVal.includes('rotiboy') || emailVal.includes('majapahit')) {
-        targetUrl = '/dashboard/provider';
+      // Detect role intelligently from email first, then chosenRole/activeRoleTab
+      let selectedRole: RoleType = chosenRole || activeRoleTab;
+      if (cleanEmail.includes('pak.kumis') || cleanEmail.includes('resto') || cleanEmail.includes('bakso') || cleanEmail.includes('rotiboy') || cleanEmail.includes('majapahit') || cleanEmail.includes('catering') || cleanEmail.includes('indomaret') || cleanEmail.includes('provider')) {
+        selectedRole = 'FOOD_PROVIDER';
+      } else if (cleanEmail.includes('panti') || cleanEmail.includes('yayasan') || cleanEmail.includes('kasih') || cleanEmail.includes('beneficiary')) {
+        selectedRole = 'FOOD_BENEFICIARY';
+      } else if (cleanEmail.includes('foodbank') || cleanEmail.includes('volunteer') || cleanEmail.includes('rescue')) {
+        selectedRole = 'RESCUE_VOLUNTEER';
+      } else if (cleanEmail.includes('admin')) {
+        selectedRole = 'SUPER_ADMIN';
+      } else if (cleanEmail.includes('budi') || cleanEmail.includes('siti') || cleanEmail.includes('andi') || cleanEmail.includes('consumer')) {
+        selectedRole = 'FOOD_CONSUMER';
       }
 
-      // Sync Cookies
+      const cfg = roleConfigs[selectedRole];
+      const targetUrl = cfg.targetUrl;
+
+      // 1. Prepare profile exactly like Quick Demo so all workspace components have valid role & entity
+      const profileToSave = {
+        ...cfg.mockProfile,
+        email: cleanEmail,
+        contactPerson: cfg.mockProfile?.contactPerson || cleanEmail.split('@')[0],
+      };
+
       try {
-        document.cookie = `replate_demo_session=${effectiveRole}; path=/; max-age=604800; SameSite=Lax`;
-        document.cookie = `replate_role=${effectiveRole}; path=/; max-age=604800; SameSite=Lax`;
+        localStorage.removeItem('replate_is_fresh_account');
+        localStorage.setItem('replate_is_fresh_account', 'false');
+        localStorage.setItem('replate_onboarding_profile', JSON.stringify(profileToSave));
+        if (selectedRole === 'FOOD_CONSUMER') {
+          localStorage.setItem('replate_consumer_verification_status', 'BENEFICIARY_VERIFIED');
+        }
       } catch (_) {}
 
+      // 2. Sync cookies exactly like Quick Demo
+      try {
+        document.cookie = `replate_demo_session=${selectedRole}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `replate_role=${selectedRole}; path=/; max-age=604800; SameSite=Lax`;
+      } catch (_) {}
+
+      // 3. Register server session cookie
       try {
         await fetch('/api/auth/demo-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role: effectiveRole, email: emailVal }),
+          body: JSON.stringify({ role: selectedRole, email: cleanEmail }),
         });
       } catch (_) {}
 
+      // 4. Authenticate NextAuth credentials with Prisma database
       try {
         await signIn('credentials', {
-          email: emailVal,
+          email: cleanEmail,
           password: passwordVal,
-          role: effectiveRole,
+          role: selectedRole,
           redirect: false,
         });
       } catch (_) {}
 
-      window.location.href = `${targetUrl}?demo_role=${effectiveRole}`;
-    } catch (err) {
+      // 5. Navigate to workspace
+      window.location.href = `${targetUrl}?demo_role=${selectedRole}`;
+    } catch (err: any) {
       console.error('Login error:', err);
-      const selectedRole = chosenRole || activeRoleTab;
-      window.location.href = `${roleConfigs[selectedRole].targetUrl}?demo_role=${selectedRole}`;
+      const fallbackRole = chosenRole || activeRoleTab;
+      window.location.href = `${roleConfigs[fallbackRole].targetUrl}?demo_role=${fallbackRole}`;
     }
   };
 

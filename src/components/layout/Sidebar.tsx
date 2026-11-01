@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 import { signOut } from 'next-auth/react';
+import { clearAuthSession } from '@/lib/sessionUtils';
 
 export interface SidebarProps {
   role?: string;
@@ -48,6 +49,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      href: '/dashboard/tracking',
+      label: 'Pelacakan Status',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
     },
@@ -110,6 +121,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5z" />
+        </svg>
+      ),
+    },
+    {
+      href: '/dashboard/tracking',
+      label: 'Pelacakan Status',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
     },
@@ -254,12 +275,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
 
   const yayasanLinks = [
     {
-      href: '/dashboard/beneficiary',
+      href: '/dashboard/yayasan',
       label: 'Beranda Panti & Yayasan',
       icon: <HomeIcon />,
     },
     {
-      href: '/dashboard/beneficiary',
+      href: '/dashboard/yayasan/claims',
       label: 'Klaim Pangan Subsidi & Donasi',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,10 +349,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
   else if (roleUp.includes('RESCUE') || roleUp.includes('VOLUNTEER') || roleUp.includes('PARTNER')) links = partnerLinks;
   else if (roleUp.includes('ADMIN')) links = adminLinks;
 
-  const allLinks: NavLinkItem[] = [
+  const rawLinks: NavLinkItem[] = [
     ...links,
     ...commonLinks.filter((c) => !links.some((l) => l.label === c.label || l.href === c.href)),
   ];
+
+  const allLinks: NavLinkItem[] = Array.from(new Map(rawLinks.map((item) => [item.href, item])).values());
 
   const formatRoleDisplay = (r: string) => {
     const up = (r || '').toUpperCase();
@@ -386,21 +409,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
           </div>
 
           <nav className="space-y-1.5 px-2">
-            {allLinks.map((link) => {
+            {allLinks.map((link, idx) => {
               const isOverviewRoute =
                 link.href === '/dashboard' ||
                 link.href === '/dashboard/provider' ||
                 link.href === '/dashboard/admin' ||
                 link.href === '/dashboard/rescue-partner' ||
                 link.href === '/dashboard/consumer' ||
-                link.href === '/dashboard/yayasan';
+                link.href === '/dashboard/yayasan' ||
+                link.href === '/dashboard/beneficiary';
 
               const isActive =
                 pathname === link.href ||
                 (!isOverviewRoute && pathname.startsWith(link.href));
               return (
                 <Link
-                  key={link.href}
+                  key={`${link.href}-${link.label}`}
                   href={link.href}
                   onClick={() => setIsOpenMobile(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
@@ -429,12 +453,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role = 'PROVIDER' }) => {
         <div className="border-t border-[#2C5A8F]/40 pt-4 pb-4 px-4 shrink-0">
           <button
             onClick={() => {
-              try {
-                if (typeof window !== 'undefined') {
-                  localStorage.clear();
-                  document.cookie = 'replate_demo_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-                }
-              } catch (_) {}
+              clearAuthSession();
               signOut({ callbackUrl: '/' });
             }}
             className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-[#142C47] hover:text-red-300 w-full transition-colors cursor-pointer"

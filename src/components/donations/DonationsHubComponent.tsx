@@ -377,6 +377,33 @@ export function DonationsHubComponent() {
       )
     );
 
+    const deliveryOptLabel =
+      effectiveDeliveryMethod === 'PROVIDER_DIRECT'
+        ? 'Armada Toko (Rp 0 - Gratis)'
+        : effectiveDeliveryMethod === 'RESCUE_COURIER'
+        ? 'Kurir Relawan Food Rescue'
+        : 'Ambil Mandiri oleh Pihak Panti';
+
+    const driverParts = (assignedDriver || '').split(' - ');
+    const dName = driverParts[0] || 'Budi Santoso';
+    const dVehicle = driverParts[1] || 'Honda Vario L 4521 AB';
+
+    setFulfillSuccessData({
+      isOpen: true,
+      productName: selectedFoodObj.foodName,
+      providerName: 'Dapur Berkah Provider (Mitra Terverifikasi)',
+      recipientName: selectedRequest.shelterName,
+      deliveryAddress: selectedRequest.address,
+      deliveryOption: deliveryOptLabel,
+      deliveryFee: 0,
+      driverName: dName,
+      driverPhone: '0812-3456-7890',
+      driverVehicle: dVehicle,
+      estimatedDeliveryTime: '30 - 45 Menit (Sebelum Batas Waktu Santap)',
+      portionsCount: portionedQuantity,
+      ticketCode,
+    });
+
     setCompletedTicket({
       ticketCode,
       shelterName: selectedRequest.shelterName,
@@ -427,6 +454,48 @@ export function DonationsHubComponent() {
       leaderName: 'Pengurus / Perwakilan',
       legalPermit: 'VERIFIED-ID/2024/9912',
     };
+
+    const exploreItem = {
+      id: newReq.id,
+      pantiName: newShelterName,
+      shelterType: 'Yayasan / Shelter Terverifikasi',
+      needTitle: `${newCount} Porsi ${newCategory}`,
+      requestedItem: newCategory,
+      foodCategoryNeeded: newCategory,
+      targetQuantity: Number(newCount) || 45,
+      fulfilledQuantity: '0 Porsi',
+      beneficiariesCount: Number(newCount) || 45,
+      urgency: 'HIGH',
+      urgencyLabel: 'URGENT HARI INI',
+      location: `Surabaya (${newLocation})`,
+      address: `Wilayah ${newLocation}, Surabaya`,
+      contactPerson: 'Pengurus / Perwakilan',
+      contactPhone: '081234567890',
+      cutoffTime: '20:00 WIB',
+      deadline: 'Hari ini 20:00 WIB',
+      distance: '1.2 km (Area Terdekat)',
+      matchScore: 97,
+      imageUrl: 'https://images.unsplash.com/photo-1594708767771-a7502209ff51?auto=format&fit=crop&w=600&q=80',
+      legalStatus: 'Terverifikasi Dinsos',
+      legalPermit: 'VERIFIED-ID/2024/9912',
+      notes: newNotes,
+      preferredDelivery: newDeliveryPref.includes('Ambil') ? 'SHELTER_PICKUP' : newDeliveryPref.includes('Toko') ? 'PROVIDER_DIRECT' : 'RESCUE_COURIER',
+      deliveryOption: newDeliveryPref,
+      paymentMethod: 'Bebas Biaya (Rp 0)',
+      assignedDriver: 'Tugaskan Otomatis (Driver Terdekat)',
+      deliveryLabel: newDeliveryPref,
+      deliveryDesc: 'Opsi pengiriman yang diminta pihak yayasan/panti.',
+      lat: -7.2710,
+      lng: 112.7580,
+      reasons: ['Permintaan resmi diajukan melalui Hub Donasi Replate'],
+      breakdown: [],
+    };
+
+    try {
+      const currentRequests = JSON.parse(localStorage.getItem('replate_panti_requests') || '[]');
+      localStorage.setItem('replate_panti_requests', JSON.stringify([exploreItem, ...currentRequests]));
+      window.dispatchEvent(new Event('replate_panti_requests_updated'));
+    } catch (_) {}
 
     setRequests([newReq, ...requests]);
     setIsRequestModalOpen(false);
@@ -1047,7 +1116,7 @@ export function DonationsHubComponent() {
                 type="button"
                 onClick={() => {
                   setCompletedTicket(null);
-                  router.push(`/track/${completedTicket.ticketCode}`);
+                  router.push(`/dashboard/tracking?code=${completedTicket.ticketCode}`);
                 }}
                 className="w-full py-3 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
               >
@@ -1239,7 +1308,7 @@ export function DonationsHubComponent() {
           estimatedDeliveryTime={fulfillSuccessData.estimatedDeliveryTime}
           portionsCount={fulfillSuccessData.portionsCount}
           ticketCode={fulfillSuccessData.ticketCode}
-          onTrack={(code) => router.push(`/track/${code}`)}
+          onTrack={(code) => router.push(`/dashboard/tracking?code=${code}`)}
         />
       )}
 

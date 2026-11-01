@@ -1482,7 +1482,7 @@ export default function ProviderClaimsPage() {
                   type="button"
                   onClick={() => {
                     setDetailModal({ isOpen: false, claim: null });
-                    router.push(`/track/${detailModal.claim.code}`);
+                    router.push(`/dashboard/tracking?code=${detailModal.claim.code}`);
                   }}
                   className="px-4 py-2 bg-[#D4A843] hover:bg-[#b88f32] text-slate-950 font-black text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
                 >

@@ -377,6 +377,20 @@ export default function YayasanClaimsPage() {
       setClaimsList(activeOnlyClaims.length > 0 ? activeOnlyClaims : demoActiveClaims);
       setHistoryList([...completedFromActive, ...demoHistory]);
       setMyRequestsList(combinedRequests);
+      const handleSyncRequests = () => {
+        try {
+          const mySaved = localStorage.getItem('replate_my_requests');
+          if (mySaved) {
+            setMyRequestsList(JSON.parse(mySaved));
+          }
+        } catch (_) {}
+      };
+      window.addEventListener('replate_my_requests_updated', handleSyncRequests);
+      window.addEventListener('storage', handleSyncRequests);
+      return () => {
+        window.removeEventListener('replate_my_requests_updated', handleSyncRequests);
+        window.removeEventListener('storage', handleSyncRequests);
+      };
     } catch (_) {}
   }, []);
 
@@ -508,6 +522,15 @@ export default function YayasanClaimsPage() {
         localStorage.setItem('replate_panti_requests', JSON.stringify([exploreItem, ...savedExplore]));
         const mySaved = JSON.parse(localStorage.getItem('replate_my_requests') || '[]');
         localStorage.setItem('replate_my_requests', JSON.stringify([newReq, ...mySaved]));
+        window.dispatchEvent(new Event('replate_panti_requests_updated'));
+        try {
+          fetch('/api/panti-requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(exploreItem),
+          }).catch((err) => console.warn('Post panti API error:', err));
+        } catch (_) {}
+        window.dispatchEvent(new Event('replate_my_requests_updated'));
       } catch (_) {}
 
       setMyRequestsList([newReq, ...myRequestsList]);

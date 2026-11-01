@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -47,9 +48,11 @@ interface TrackingManifest {
   history: { time: string; title: string; desc: string; done: boolean }[];
 }
 
-export default function WorkspaceLiveTrackingPage() {
+function WorkspaceLiveTrackingContent() {
   const { data: session } = useSession();
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const codeParam = searchParams?.get('code') || searchParams?.get('id') || '';
+  const [searchQuery, setSearchQuery] = useState(codeParam);
   const [activeTracking, setActiveTracking] = useState<TrackingManifest | null>(null);
   const [showTimelineHistory, setShowTimelineHistory] = useState(false);
 
@@ -144,92 +147,133 @@ export default function WorkspaceLiveTrackingPage() {
     },
   ];
 
-  // Start with clean state - no active tracking shown initially
-  // User must search for a resi code or select from list
+  const resolveManifestFromCode = (code: string, claimsList: any[]): TrackingManifest => {
+    const clean = code.trim().toUpperCase();
+    const foundDefault = defaultManifests.find(
+      (m) => m.trackingCode.toUpperCase() === clean || m.id.toUpperCase() === clean
+    );
+    if (foundDefault) return foundDefault;
+
+    const foundClaim = claimsList.find(
+      (c: any) =>
+        (c.claimCode && c.claimCode.toUpperCase() === clean) ||
+        (c.code && c.code.toUpperCase() === clean) ||
+        (c.id && c.id.toUpperCase() === clean)
+    );
+
+    if (foundClaim) {
+      const srcAddr = foundClaim.address || foundClaim.pickupAddress || 'Jl. Genteng Kali No. 45, Genteng, Surabaya';
+      const dstAddr = foundClaim.address || 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya';
+      const resolvedSrc = resolveIndonesianAddress(srcAddr);
+      const resolvedDst = resolveIndonesianAddress(dstAddr);
+      const isDelivering = foundClaim.status === 'IN_TRANSIT' || foundClaim.status === 'AWAITING_RESCUE_PICKUP' || foundClaim.status === 'READY_FOR_PICKUP';
+      const activeCoord = isDelivering ? resolvedDst : resolvedSrc;
+
+      const dName = foundClaim.driverName || foundClaim.courierName || 'Budi Santoso (Armada Toko)';
+      const dVehicle = foundClaim.driverVehicle || foundClaim.courierVehicle || 'Honda Vario L 4521 AB';
+      const dPhone = foundClaim.driverPhone || foundClaim.courierPhone || '0812-3456-7890';
+      const dOrg = foundClaim.courierOrg || (foundClaim.deliveryMethod === 'PROVIDER_DIRECT' ? 'Armada Toko Direct Delivery' : 'Komunitas Food Rescue Replate');
+
+      return {
+        id: foundClaim.id || clean,
+        trackingCode: clean,
+        foodName: foundClaim.foodName || 'Paket Makanan Donasi Steril',
+        quantity: String(foundClaim.quantity || '30 Porsi'),
+        sourceName: foundClaim.providerName || foundClaim.storeName || 'Dapur Berkah Provider (Mitra Terverifikasi)',
+        sourceAddress: srcAddr,
+        destinationName: foundClaim.shelterName || foundClaim.recipientName || foundClaim.userName || 'Panti Asuhan Kasih Ibu',
+        destinationAddress: dstAddr,
+        deliveryType: foundClaim.deliveryMethod || 'PROVIDER_DIRECT',
+        driverName: dName,
+        driverPhone: dPhone,
+        driverVehicle: dVehicle,
+        driverOrg: dOrg,
+        currentStep: 4,
+        statusText: 'Dalam Perjalanan Pengantaran GPS (OTW)',
+        estimatedArrival: 'Estimasi Tiba: 25 Menit Lagi',
+        temperatureC: 63.8,
+        lat: activeCoord.lat || -7.2754,
+        lng: activeCoord.lng || 112.7541,
+        history: [
+          { time: '18:00 WIB', title: 'Alokasi Donasi Terkonfirmasi', desc: 'Restoran menyanggupi alokasi porsi donasi.', done: true },
+          { time: '18:25 WIB', title: 'Pemeriksaan Higienitas 8-Poin BPOM Lolos', desc: 'Suhu makanan aman & kemasan tersegel.', done: true },
+          { time: '18:45 WIB', title: 'Driver Armada Ditugaskan', desc: `${dName} ditugaskan dengan kendaraan ${dVehicle}.`, done: true },
+          { time: '19:10 WIB', title: 'Dalam Perjalanan Pengantaran GPS (OTW)', desc: 'Armada sedang melaju menuju lokasi penerima.', done: true },
+          { time: 'Estimasi Tiba', title: 'Serah Terima di Tujuan', desc: 'Penerima memindai QR Surat Jalan untuk konfirmasi tiba.', done: false },
+        ],
+      };
+    }
+
+    // Dynamic fallback for any entered code
+    return {
+      id: `TRK-${clean}`,
+      trackingCode: clean,
+      foodName: 'Nasi Paket Ayam Bakar & Lauk Bersih (Surplus Toko)',
+      quantity: '30 Porsi',
+      sourceName: 'Dapur Berkah Provider (Mitra Terverifikasi)',
+      sourceAddress: 'Jl. Genteng Kali No. 45, Genteng, Surabaya',
+      destinationName: 'Panti Asuhan Kasih Ibu (Yayasan)',
+      destinationAddress: 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+      deliveryType: 'PROVIDER_DIRECT',
+      driverName: 'Budi Santoso (Armada Toko)',
+      driverPhone: '0812-3456-7890',
+      driverVehicle: 'Honda Vario L 4521 AB',
+      driverOrg: 'Armada Toko Direct Delivery',
+      currentStep: 4,
+      statusText: 'Dalam Perjalanan Menuju Lokasi (OTW)',
+      estimatedArrival: 'Estimasi Tiba: 20 Menit Lagi',
+      temperatureC: 64.5,
+      lat: -7.2754,
+      lng: 112.7541,
+      history: [
+        { time: '18:00 WIB', title: 'Alokasi Donasi Terkonfirmasi', desc: 'Restoran menyanggupi dan menyiapkan 30 porsi makanan.', done: true },
+        { time: '18:20 WIB', title: 'Inspeksi Higienitas 8-Poin BPOM Lolos', desc: 'Suhu makanan terjaga >60°C, kemasan food grade tersegel.', done: true },
+        { time: '18:40 WIB', title: 'Driver Armada Ditugaskan', desc: 'Budi Santoso (Honda Vario L 4521 AB) siap antar.', done: true },
+        { time: '19:05 WIB', title: 'Dalam Pengantaran GPS (OTW)', desc: 'Armada sedang melaju di koridor pengantaran Surabaya.', done: true },
+        { time: 'Estimasi Tiba', title: 'Serah Terima di Panti Asuhan', desc: 'Pengurus panti memindai QR Surat Jalan untuk konfirmasi.', done: false },
+      ],
+    };
+  };
+
   useEffect(() => {
-    // Check for active claims that have tracking data
     try {
       const claims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+
+      // 1. If codeParam exists in URL query (?code=... or ?id=...)
+      if (codeParam) {
+        setSearchQuery(codeParam);
+        const resolved = resolveManifestFromCode(codeParam, claims);
+        setActiveTracking(resolved);
+        return;
+      }
+
+      // 2. Otherwise check for active in-transit claims
       const activeClaim = claims.find((c: any) =>
-        c.status === 'IN_TRANSIT_TO_SHELTER' || c.status === 'DRIVER_ASSIGNED_OTW_STORE'
+        c.status === 'IN_TRANSIT_TO_SHELTER' || c.status === 'DRIVER_ASSIGNED_OTW_STORE' || c.status === 'AWAITING_RESCUE_PICKUP'
       );
       if (activeClaim) {
-        // Auto-load if there's an active in-transit claim
-        const matchedManifest = defaultManifests.find(
-          (m) => m.trackingCode === activeClaim.claimCode || m.trackingCode === activeClaim.code
-        );
-        if (matchedManifest) {
-          const resolvedSrc = resolveIndonesianAddress(matchedManifest.sourceAddress);
-          const resolvedDst = resolveIndonesianAddress(matchedManifest.destinationAddress);
-          const activeCoord = matchedManifest.currentStep >= 3 ? resolvedDst : resolvedSrc;
-          setActiveTracking({
-            ...matchedManifest,
-            lat: activeCoord.lat,
-            lng: activeCoord.lng,
-          });
-        } else {
-          // Custom claim from user registration / activity!
-          const srcAddr = activeClaim.address || activeClaim.providerAddress || 'Jl. Raya Sarangan, Kwarigan, Sidorejo, Magetan';
-          const dstAddr = activeClaim.destinationAddress || activeClaim.shelterAddress || 'Dusun Kwarigan, Sidorejo, Magetan';
-          const resolvedSrc = resolveIndonesianAddress(srcAddr);
-          const resolvedDst = resolveIndonesianAddress(dstAddr);
-          const activeCoord = activeClaim.status === 'IN_TRANSIT_TO_SHELTER' ? resolvedDst : resolvedSrc;
-          setActiveTracking({
-            id: activeClaim.id || 'TRK-DYN',
-            trackingCode: activeClaim.claimCode || activeClaim.code || 'RPL-DON-AUTO',
-            foodName: activeClaim.foodName || 'Menu Surplus Terjadwal',
-            quantity: `${activeClaim.quantity || 15} Porsi`,
-            sourceName: activeClaim.providerName || 'Mitra Provider Replate',
-            sourceAddress: srcAddr,
-            destinationName: activeClaim.shelterName || activeClaim.recipientName || 'Lokasi Penerima',
-            destinationAddress: dstAddr,
-            deliveryType: activeClaim.deliveryMethod || 'RESCUE_COURIER',
-            driverName: activeClaim.courierName || 'Relawan Rescue Logistik',
-            driverPhone: activeClaim.courierPhone || '0812-3456-7890',
-            driverVehicle: activeClaim.courierVehicle || 'Motor Box Cooler Replate',
-            driverOrg: 'Komunitas Food Rescue Replate',
-            currentStep: activeClaim.status === 'IN_TRANSIT_TO_SHELTER' ? 4 : 3,
-            statusText: 'Dalam Perjalanan Pengantaran GPS',
-            estimatedArrival: 'Estimasi ~15 Menit',
-            temperatureC: 64.2,
-            lat: activeClaim.lat || activeCoord.lat,
-            lng: activeClaim.lng || activeCoord.lng,
-            history: [
-              { time: '18:00 WIB', title: 'Alokasi Terjadwal', desc: 'Permintaan bantuan makanan disetujui.', done: true },
-              { time: '18:30 WIB', title: 'Pemeriksaan Higienitas 8-Poin BPOM Lolos', desc: 'Suhu makanan aman & kemasan tersegel.', done: true },
-              { time: '19:00 WIB', title: 'Kurir Bergerak ke Lokasi', desc: 'Armada logistik dalam perjalanan.', done: true },
-              { time: 'Estimasi Tiba', title: 'Serah Terima di Tujuan', desc: 'Penerima memindai QR Surat Jalan.', done: false },
-            ],
-          });
-        }
+        const resolved = resolveManifestFromCode(activeClaim.claimCode || activeClaim.code || activeClaim.id, claims);
+        setActiveTracking(resolved);
+      } else if (defaultManifests.length > 0) {
+        // Fallback default
+        setActiveTracking(defaultManifests[0]);
       }
-      // Otherwise: stay clean, no active tracking displayed
     } catch (_) {}
-  }, []);
+  }, [codeParam]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    const found = defaultManifests.find(
-      (m) =>
-        m.trackingCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.foodName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.driverName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    if (found) {
-      setActiveTracking(found);
+    try {
+      const claims = JSON.parse(localStorage.getItem('replate_claims') || '[]');
+      const resolved = resolveManifestFromCode(searchQuery, claims);
+      setActiveTracking(resolved);
       setToastState({
         isOpen: true,
-        message: `Menampilkan status pelacakan untuk kode "${found.trackingCode}".`,
+        message: `Menampilkan status pelacakan untuk kode "${resolved.trackingCode}".`,
         type: 'success',
       });
-    } else {
-      setToastState({
-        isOpen: true,
-        message: `Kode resi "${searchQuery}" tidak ditemukan. Coba kode "RPL-DON-2026-88192" atau "RPL-RSC-2026-99102".`,
-        type: 'error',
-      });
-    }
+    } catch (_) {}
   };
 
   const handleDriverUpdateStep = () => {
@@ -700,5 +744,14 @@ export default function WorkspaceLiveTrackingPage() {
         onClose={() => setToastState((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
+  );
+}
+
+
+export default function WorkspaceLiveTrackingPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-xs font-bold text-slate-500">Memuat status pelacakan...</div>}>
+      <WorkspaceLiveTrackingContent />
+    </Suspense>
   );
 }

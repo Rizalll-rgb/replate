@@ -29,6 +29,12 @@ export interface SharedPantiNeed {
   lng: number;
   reasons: string[];
   breakdown: { label: string; score: number; max: number; desc: string }[];
+  status?: string;
+  allocatedBy?: string;
+  deliveryOption?: string;
+  paymentMethod?: string;
+  assignedDriver?: string;
+  driverName?: string;
 }
 
 export const SHARED_PANTI_NEEDS: SharedPantiNeed[] = [
@@ -447,22 +453,15 @@ export const SHARED_PANTI_NEEDS: SharedPantiNeed[] = [
 export function deduplicatePantiNeeds<T extends { id?: string; pantiName?: string; needTitle?: string; imageUrl?: string }>(items: T[]): T[] {
   if (!Array.isArray(items)) return [];
   const seenIds = new Set<string>();
-  const seenNames = new Set<string>();
 
   return items.filter((item) => {
     if (!item) return false;
     const idKey = item.id ? String(item.id).trim().toLowerCase() : null;
-    
-    // Normalize name by removing generic prefixes and non-alphanumeric chars
-    const rawName = (item.pantiName || '').trim().toLowerCase();
-    const cleanName = rawName.replace(/panti\s*asuhan|yayasan|rumah\s*singgah|shelter/gi, '').replace(/[^a-z0-9]/g, '');
-    const nameKey = cleanName.length > 2 ? cleanName : rawName.replace(/[^a-z0-9]/g, '');
-
-    if (idKey && seenIds.has(idKey)) return false;
-    if (nameKey && seenNames.has(nameKey)) return false;
-
-    if (idKey) seenIds.add(idKey);
-    if (nameKey) seenNames.add(nameKey);
+    if (idKey) {
+      if (seenIds.has(idKey)) return false;
+      seenIds.add(idKey);
+      return true;
+    }
     return true;
   });
 }

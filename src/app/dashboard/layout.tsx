@@ -7,6 +7,7 @@ import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { GojekProfileDrawer } from '@/components/layout/GojekProfileDrawer';
 import { useSession, signOut } from 'next-auth/react';
+import { clearAuthSession } from '@/lib/sessionUtils';
 import { User, LogOut } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -19,14 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState<boolean>(false);
 
   const handleLogout = async () => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-      }
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-    } catch (_) {}
+    clearAuthSession();
     await signOut({ callbackUrl: '/' });
   };
 

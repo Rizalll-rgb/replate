@@ -1065,7 +1065,7 @@ export default function ExplorePage() {
           estimatedDeliveryTime={fulfillSuccessData.estimatedDeliveryTime}
           portionsCount={fulfillSuccessData.portionsCount}
           ticketCode={fulfillSuccessData.ticketCode}
-          onTrack={(code) => router.push(`/track/${code}`)}
+          onTrack={(code) => router.push(`/dashboard/tracking?code=${code}`)}
         />
       )}
 

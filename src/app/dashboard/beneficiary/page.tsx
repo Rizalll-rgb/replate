@@ -182,6 +182,20 @@ export default function BeneficiaryDashboardPage() {
     },
   ]);
 
+  // Ajukan Kebutuhan Donasi Modal State
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [reqInstitutionType, setReqInstitutionType] = useState('Panti Asuhan Yatim Piatu');
+  const [reqFoodType, setReqFoodType] = useState('Makanan Berat Siap Santap Bergizi');
+  const [reqQuantity, setReqQuantity] = useState('45');
+  const [reqUrgency, setReqUrgency] = useState('Mendesak (Darurat Segera)');
+  const [reqDeliveryMethod, setReqDeliveryMethod] = useState('Armada Toko (Rp 0)');
+  const [reqPaymentMethod, setReqPaymentMethod] = useState('Bebas Biaya (Rp 0)');
+  const [reqDriver, setReqDriver] = useState('Tugaskan Otomatis (Driver Terdekat)');
+  const [reqReadyTime, setReqReadyTime] = useState('Hari Ini, Pukul 19:30 - 20:30 WIB');
+  const [reqNotes, setReqNotes] = useState('');
+  const [reqPhone, setReqPhone] = useState('0812-3456-7890');
+  const [reqAddress, setReqAddress] = useState('Jl. Raya Gubeng No. 88, Gubeng, Surabaya');
+
   // Claim Modal State
   const [selectedClaimFood, setSelectedClaimFood] = useState<BeneficiaryFoodItem | null>(null);
   const [claimPortions, setClaimPortions] = useState<number>(30);
@@ -244,6 +258,84 @@ export default function BeneficiaryDashboardPage() {
     setSelectedClaimFood(item);
     setClaimPortions(Math.min(item.portions, totalBeneficiaries));
     setClaimNotes(`Untuk makan malam santri & anak asuh ${yayasanName}`);
+  };
+
+  const handleCreateDonationRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newReqId = `RPL-YYS-REQ-${Date.now().toString().slice(-6)}`;
+    const newReq = {
+      id: newReqId,
+      code: newReqId,
+      foodType: reqFoodType,
+      foodName: `${reqQuantity} Porsi ${reqFoodType}`,
+      quantity: `${reqQuantity} Porsi`,
+      institutionType: reqInstitutionType,
+      urgency: reqUrgency,
+      methodPreference: reqDeliveryMethod,
+      readyTime: reqReadyTime,
+      status: 'DALAM RADAR DONATUR (SMART MATCHING)',
+      createdAt: 'Baru saja',
+      notes: reqNotes || 'Kebutuhan pangan panti asuhan terverifikasi.',
+    };
+
+    const exploreItem = {
+      id: newReqId,
+      pantiName: yayasanName,
+      shelterType: reqInstitutionType,
+      needTitle: `${reqQuantity} Porsi ${reqFoodType}`,
+      requestedItem: reqFoodType,
+      foodCategoryNeeded: reqFoodType.includes('Sembako') ? 'Bahan Pokok (Groceries)' : 'Makanan Olahan (Meals)',
+      targetQuantity: parseInt(reqQuantity) || 45,
+      fulfilledQuantity: '0 Porsi',
+      beneficiariesCount: totalBeneficiaries || 45,
+      urgency: reqUrgency.includes('Mendesak') || reqUrgency.includes('Tinggi') ? 'HIGH' : 'MEDIUM',
+      urgencyLabel: reqUrgency.toUpperCase(),
+      location: legalitas.city ? `Surabaya (${legalitas.city})` : 'Surabaya (Gubeng)',
+      address: reqAddress || legalitas.address || 'Jl. Raya Gubeng No. 88, Gubeng, Surabaya',
+      contactPerson: legalitas.ketuaName || 'Ibu Hajjah Maryam',
+      contactPhone: reqPhone || legalitas.phone || '0812-3456-7890',
+      cutoffTime: reqReadyTime || '19:30 WIB',
+      deadline: reqReadyTime || 'Hari ini sebelum 19:30 WIB',
+      distance: '1.2 km (Area Sekitar)',
+      matchScore: 98,
+      imageUrl: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=60',
+      legalStatus: 'Terverifikasi Dinsos & Kemenkumham',
+      legalPermit: legalitas.izinDinsos || 'DINSOS-SBY/2023/8912',
+      notes: reqNotes || 'Kebutuhan pangan santri dan anak asuh panti asuhan.',
+      preferredDelivery: reqDeliveryMethod.includes('Ambil') ? 'SHELTER_PICKUP' : reqDeliveryMethod.includes('Toko') ? 'PROVIDER_DIRECT' : 'RESCUE_COURIER',
+      deliveryOption: reqDeliveryMethod,
+      paymentMethod: reqPaymentMethod,
+      assignedDriver: reqDriver,
+      deliveryLabel: reqDeliveryMethod,
+      deliveryDesc: 'Opsi pengiriman yang diminta oleh pihak yayasan/panti.',
+      lat: -7.2710,
+      lng: 112.7580,
+      reasons: ['Permintaan resmi diajukan langsung oleh pengurus panti terdaftar'],
+      breakdown: [],
+    };
+
+    try {
+      const currentRequests = JSON.parse(localStorage.getItem('replate_panti_requests') || '[]');
+      localStorage.setItem('replate_panti_requests', JSON.stringify([exploreItem, ...currentRequests]));
+      const myReqs = JSON.parse(localStorage.getItem('replate_my_requests') || '[]');
+      localStorage.setItem('replate_my_requests', JSON.stringify([newReq, ...myReqs]));
+      window.dispatchEvent(new Event('replate_panti_requests_updated'));
+      try {
+        fetch('/api/panti-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(exploreItem),
+        }).catch((err) => console.warn('Post panti API error:', err));
+      } catch (_) {}
+      window.dispatchEvent(new Event('replate_my_requests_updated'));
+    } catch (_) {}
+
+    setIsRequestModalOpen(false);
+    setToast({
+      isOpen: true,
+      message: 'Permintaan bantuan pangan berhasil dipublikasikan ke radar donatur & Food Provider!',
+      type: 'success',
+    });
   };
 
   const handleConfirmClaim = () => {
@@ -372,7 +464,15 @@ export default function BeneficiaryDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setIsRequestModalOpen(true)}
+              className="px-4 py-2 bg-[#D4A843] hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <HeartHandshake className="w-4 h-4 text-slate-950" />
+              <span>Ajukan Kebutuhan Donasi</span>
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('VERIFIKASI_LEGALITAS')}
@@ -1052,6 +1152,197 @@ export default function BeneficiaryDashboardPage() {
           </div>
         </Modal>
       )}
+
+            {/* Modal Ajukan Kebutuhan Donasi Panti */}
+      <Modal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        title="Ajukan Kebutuhan Bantuan Pangan Panti"
+        size="lg"
+      >
+        <form onSubmit={handleCreateDonationRequest} className="space-y-4 text-xs">
+          <div className="p-4 bg-[#1B3A5C] rounded-2xl text-white space-y-1">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#D4A843]" />
+              <span className="text-[10px] font-black text-[#D4A843] uppercase tracking-widest">
+                PUBLIKASI RADAR DONATUR & SMART MATCHING 2.0
+              </span>
+            </div>
+            <h3 className="font-black text-sm sm:text-base text-white">
+              Pengajuan Kebutuhan Pangan {yayasanName}
+            </h3>
+            <p className="text-[11px] text-slate-200 leading-snug">
+              Permintaan akan disinkronkan langsung ke dashboard mitra Food Provider dan katalog Eksplor Pangan.
+            </p>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+            <div>
+              <span className="text-slate-400 block font-medium">Lembaga Pemohon:</span>
+              <strong className="text-[#1B3A5C] font-black">{yayasanName}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block font-medium">Izin Legalitas:</span>
+              <strong className="text-emerald-700 font-black">{legalitas.izinDinsos}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block font-medium">Kategori Lembaga:</span>
+              <strong className="text-slate-800 font-bold">{reqInstitutionType}</strong>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Kategori Kebutuhan Makanan *</label>
+              <select
+                value={reqFoodType}
+                onChange={(e) => setReqFoodType(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option>Makanan Berat Siap Santap Bergizi</option>
+                <option>Bahan Pokok & Sembako Kering</option>
+                <option>Roti, Pastry & Kudapan Sehat</option>
+                <option>Susu, Buah Segar & Suplemen Balita</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Target Jumlah Porsi (Kapasitas: {totalBeneficiaries} Jiwa) *
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={500}
+                value={reqQuantity}
+                onChange={(e) => setReqQuantity(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Tingkat Urgensi Kebutuhan *</label>
+              <select
+                value={reqUrgency}
+                onChange={(e) => setReqUrgency(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option>Mendesak (Darurat Segera)</option>
+                <option>Tinggi (Prioritas Hari Ini)</option>
+                <option>Sedang (Kebutuhan Besok)</option>
+                <option>Rendah (Kebutuhan Rutin Mingguan)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Opsi Pengiriman <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={reqDeliveryMethod}
+                onChange={(e) => setReqDeliveryMethod(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option value="Armada Toko (Rp 0)">Armada Toko (Rp 0 - Gratis)</option>
+                <option value="Kurir Relawan Food Rescue">Kurir Relawan Food Rescue (Rp 0)</option>
+                <option value="Ambil Mandiri">Ambil Mandiri oleh Pihak Panti (Rp 0)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                Metode Pembayaran <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={reqPaymentMethod}
+                onChange={(e) => setReqPaymentMethod(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option value="Bebas Biaya (Rp 0)">Bebas Biaya (Rp 0)</option>
+                <option value="Saldo Dompet Replate">Saldo Dompet Replate</option>
+                <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
+                <option value="Transfer Virtual Account">Transfer Virtual Account</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Tugaskan Driver Pengantaran</label>
+              <select
+                value={reqDriver}
+                onChange={(e) => setReqDriver(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold bg-white cursor-pointer"
+              >
+                <option value="Tugaskan Otomatis (Driver Terdekat)">Tugaskan Otomatis (Driver Terdekat)</option>
+                <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">Budi Santoso - Honda Vario L 4521 AB (Armada Toko)</option>
+                <option value="Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)">Ahmad Fauzi - Replate Van L 8821 BB (Relawan Food Rescue)</option>
+                <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)">Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)</option>
+                <option value="Tanpa Driver (Pihak Panti Ambil Mandiri)">Tanpa Driver (Pihak Panti Ambil Mandiri)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Waktu Kesiapan Menerima Makanan *</label>
+              <input
+                type="text"
+                value={reqReadyTime}
+                onChange={(e) => setReqReadyTime(e.target.value)}
+                placeholder="Contoh: Hari Ini, Pukul 19:30 - 20:30 WIB"
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">No. WhatsApp PIC Penanggung Jawab *</label>
+              <input
+                type="text"
+                value={reqPhone}
+                onChange={(e) => setReqPhone(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold font-mono"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Alamat Lengkap Pengantaran Lembaga *</label>
+            <input
+              type="text"
+              value={reqAddress}
+              onChange={(e) => setReqAddress(e.target.value)}
+              required
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C] font-semibold"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Catatan Spesifikasi / Kebutuhan Santri</label>
+            <textarea
+              rows={2}
+              value={reqNotes}
+              onChange={(e) => setReqNotes(e.target.value)}
+              placeholder="Contoh: Membutuhkan 45 porsi nasi lauk pauk bergizi untuk santap malam anak panti..."
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsRequestModalOpen(false)}
+              className="font-bold text-xs"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              variant="gold"
+              size="sm"
+              className="font-black text-xs text-slate-950 py-2 px-4 shadow-xs cursor-pointer"
+            >
+              Kirim &amp; Publikasikan Permintaan
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Toast Alert */}
       <Toast

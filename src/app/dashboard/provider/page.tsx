@@ -1,5 +1,8 @@
 'use client';
 
+import { DonationFulfillSuccessModal } from '@/components/donations/DonationFulfillSuccessModal';
+
+
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -43,6 +46,31 @@ export default function ProviderOverviewPage() {
   const [providerName, setProviderName] = useState<string>('Warung Bakso Pak Kumis');
   const [providerAddress, setProviderAddress] = useState<string>('Surabaya');
   const [todayFormatted, setTodayFormatted] = useState<string>('');
+  const [fulfillSuccessData, setFulfillSuccessData] = useState<any | null>(null);
+  const [pantiSyncKey, setPantiSyncKey] = useState<number>(0);
+
+  useEffect(() => {
+    const handleSync = () => setPantiSyncKey((k) => k + 1);
+    fetch('/api/panti-requests')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          try {
+            const local = JSON.parse(localStorage.getItem('replate_panti_requests') || '[]');
+            const merged = deduplicatePantiNeeds([...json.data, ...local]);
+            localStorage.setItem('replate_panti_requests', JSON.stringify(merged));
+            setPantiSyncKey((k) => k + 1);
+          } catch (_) {}
+        }
+      })
+      .catch((err) => console.warn('Panti API sync error:', err));
+    window.addEventListener('replate_panti_requests_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('replate_panti_requests_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   // Strict Consumer Guard: Food Consumers must never enter Provider Dashboard
   useEffect(() => {
@@ -87,13 +115,15 @@ export default function ProviderOverviewPage() {
     selectedFoodId: string;
     portions: number;
     deliveryMethod: string;
+    driverName?: string;
     hygieneChecked: boolean;
   }>({
     isOpen: false,
     panti: null,
     selectedFoodId: '',
     portions: 30,
-    deliveryMethod: 'RESCUE_COURIER',
+    deliveryMethod: 'PROVIDER_DIRECT',
+    driverName: 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)',
     hygieneChecked: true,
   });
 
@@ -127,34 +157,56 @@ export default function ProviderOverviewPage() {
 
   // Dynamic Daily Matched Beneficiaries filtered strictly by SuperAdmin Radius & Real GPS Distance
   const matchedPantiList = useMemo(() => {
-    let allNeeds = [...SHARED_PANTI_NEEDS];
+    let customList: any[] = [];
     try {
       const customPantiReqs = localStorage.getItem('replate_panti_requests');
       if (customPantiReqs) {
         const parsed = JSON.parse(customPantiReqs);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          allNeeds = deduplicatePantiNeeds([...parsed, ...SHARED_PANTI_NEEDS]);
-        }
+        if (Array.isArray(parsed)) customList = parsed;
       }
     } catch (_) {}
 
+    const allNeeds = deduplicatePantiNeeds([...customList, ...SHARED_PANTI_NEEDS]);
+
     const maxRadius = syncRadius || 15;
-    const withDistance = allNeeds.map((panti) => {
-      const pLat = panti.lat || -7.2575;
-      const pLng = panti.lng || 112.7521;
-      const distKm = calculateDistance(providerLat, providerLng, pLat, pLng);
-      const formattedDist = distKm < 1 ? `${Math.round(distKm * 1000)} m` : `${distKm.toFixed(1)} km`;
+    const withDistance = allNeeds.map((panti: any) => {
+      const isCustom = !SHARED_PANTI_NEEDS.some((def) => def.id === panti.id);
+      const pLat = panti.lat || -7.2710;
+      const pLng = panti.lng || 112.7580;
+      const distKm = isCustom ? 1.2 : calculateDistance(providerLat, providerLng, pLat, pLng);
+      const formattedDist = isCustom ? '1.2 km (Area Terdekat)' : (distKm < 1 ? `${Math.round(distKm * 1000)} m` : `${distKm.toFixed(1)} km`);
       return {
         ...panti,
         distanceKm: distKm,
-        distance: `${formattedDist} (${panti.location})`,
+        distance: isCustom ? '1.2 km (Area Terdekat)' : `${formattedDist} (${panti.location})`,
+        isCustomRequest: isCustom,
       };
     });
 
-    // Strictly filter within SuperAdmin's defined radius (defaults to 15km)
-    const inRadius = withDistance.filter((p) => p.distanceKm <= maxRadius);
-    return inRadius.length > 0 ? inRadius : withDistance.filter((p) => p.location.toLowerCase().includes('surabaya'));
-  }, [providerLat, providerLng, syncRadius]);
+    // Filter out fulfilled donation requests so card is removed once fulfilled
+    const openItems = withDistance.filter((p: any) => {
+      const statusStr = String(p.status || '').toUpperCase();
+      if (statusStr.includes('DISANGGUPI') || statusStr.includes('SELESAI') || statusStr.includes('FULFILLED') || statusStr === 'COMPLETED') {
+        return false;
+      }
+      const targetNum = typeof p.targetQuantity === 'number'
+        ? p.targetQuantity
+        : parseInt(String(p.targetQuantity || '0').replace(/\D/g, '')) || 0;
+      const fulfilledNum = parseInt(String(p.fulfilledQuantity || '0').replace(/\D/g, '')) || 0;
+      if (targetNum > 0 && fulfilledNum >= targetNum) {
+        return false;
+      }
+      return true;
+    });
+
+    // Custom requests submitted by beneficiaries are ALWAYS preserved at the top
+    const customItems = openItems.filter((p) => p.isCustomRequest);
+    const regularItems = openItems.filter((p) => !p.isCustomRequest);
+    const inRadius = regularItems.filter((p) => p.distanceKm <= maxRadius);
+    const finalRegular = inRadius.length > 0 ? inRadius : regularItems.filter((p) => p.location.toLowerCase().includes('surabaya'));
+
+    return [...customItems, ...finalRegular];
+  }, [providerLat, providerLng, syncRadius, pantiSyncKey]);
 
   useEffect(() => {
     // Read SuperAdmin radius
@@ -526,7 +578,11 @@ export default function ProviderOverviewPage() {
           const updatedPanti = parsed.map((n: any) => {
             if (n.id === allocateModal.panti?.id) {
               const currentFulfilled = parseInt(String(n.fulfilledQuantity || '0').replace(/\D/g, '')) || 0;
-              return { ...n, fulfilledQuantity: `${currentFulfilled + allocateModal.portions} Porsi` };
+              return { 
+                ...n, 
+                fulfilledQuantity: `${currentFulfilled + allocateModal.portions} Porsi`,
+                status: `TELAH DISANGGUPI (${providerName || 'Mitra Food Provider'})`,
+              };
             }
             return n;
           });
@@ -535,32 +591,89 @@ export default function ProviderOverviewPage() {
       }
     } catch (_) {}
 
+    // SINKRONISASI KE replate_my_requests (milik Panti / Beneficiary)
+    const assignedDriverName = allocateModal.driverName || 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)';
+    const driverParts = assignedDriverName.split(' - ');
+    const dName = driverParts[0] || 'Budi Santoso';
+    const dVehicle = driverParts[1] || 'Honda Vario L 4521 AB';
+
+    try {
+      const myReqs = JSON.parse(localStorage.getItem('replate_my_requests') || '[]');
+      const updatedMyReqs = myReqs.map((r: any) => {
+        if (r.id === allocateModal.panti?.id || r.code === allocateModal.panti?.id) {
+          return {
+            ...r,
+            status: `TELAH DISANGGUPI (${session?.user?.name || providerName || 'Mitra Food Provider'})`,
+            provider: session?.user?.name || providerName || 'Dapur Berkah Provider (Mitra Terverifikasi)',
+            providerPhone: '0812-3456-7890',
+            code: ticketCode,
+            readyTime: `Hari ini ${allocateModal.panti.cutoffTime || '19:30 WIB'}`,
+            driverName: assignedDriverName,
+          };
+        }
+        return r;
+      });
+      localStorage.setItem('replate_my_requests', JSON.stringify(updatedMyReqs));
+    } catch (_) {}
+
+    window.dispatchEvent(new Event('replate_panti_requests_updated'));
+    try {
+      fetch('/api/panti-requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: allocateModal.panti?.id,
+          fulfilledQuantity: `${allocateModal.portions} Porsi`,
+          status: `TELAH DISANGGUPI (${session?.user?.name || providerName || 'Mitra Food Provider'})`,
+          allocatedBy: session?.user?.name || providerName || 'Mitra Food Provider',
+          driverName: assignedDriverName,
+        }),
+      }).catch((err) => console.warn('Panti patch API error:', err));
+    } catch (_) {}
+    window.dispatchEvent(new Event('replate_my_requests_updated'));
+
     setCompletedClaimsCount((prev) => prev + 1);
     setTotalRescuedKg((prev) => Math.round((prev + allocateModal.portions * 0.4) * 10) / 10);
 
-    // Close allocate modal and trigger authentic super-app loading before showing ticket
+    const deliveryOptLabel =
+      (allocateModal.deliveryMethod || 'PROVIDER_DIRECT') === 'PROVIDER_DIRECT'
+        ? 'Armada Toko (Rp 0 - Gratis)'
+        : (allocateModal.deliveryMethod === 'RESCUE_COURIER'
+            ? 'Kurir Relawan Food Rescue'
+            : 'Ambil Mandiri oleh Pihak Panti');
+
+    // Trigger Success Pop-up Modal
+    setFulfillSuccessData({
+      isOpen: true,
+      productName: selectedProduct.foodName,
+      providerName: session?.user?.name || providerName || 'Dapur Berkah Provider (Mitra Terverifikasi)',
+      recipientName: allocateModal.panti.pantiName,
+      deliveryAddress: allocateModal.panti.address,
+      deliveryOption: deliveryOptLabel,
+      deliveryFee: 0,
+      driverName: dName,
+      driverPhone: '0812-3456-7890',
+      driverVehicle: dVehicle,
+      estimatedDeliveryTime: '30 - 45 Menit (Sebelum Batas Waktu Santap)',
+      portionsCount: allocateModal.portions,
+      ticketCode: ticketCode,
+    });
+
+    // Close allocate modal
     setAllocateModal({
       isOpen: false,
       panti: null,
       selectedFoodId: '',
       portions: 30,
-      deliveryMethod: 'RESCUE_COURIER',
+      deliveryMethod: 'PROVIDER_DIRECT',
+      driverName: 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)',
       hygieneChecked: true,
     });
 
-    setActionLoader({
+    setIssuedTicketModal({
       isOpen: true,
-      message: 'Menerbitkan Tiket Penyaluran Donasi...',
-      submessage: 'Menugaskan kurir relawan dan mengunci alokasi stok toko Anda',
+      ticketData: newClaim,
     });
-
-    setTimeout(() => {
-      setActionLoader({ isOpen: false, message: '' });
-      setIssuedTicketModal({
-        isOpen: true,
-        ticketData: newClaim,
-      });
-    }, 650);
   };
 
   const sortedPantiList = useMemo(() => {
@@ -824,6 +937,11 @@ export default function ProviderOverviewPage() {
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-1.5">
+                            {String(panti.id || '').startsWith('RPL-YYS-REQ') && (
+                              <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-black text-[9.5px] uppercase tracking-wider rounded-md animate-pulse">
+                                Permintaan Baru Panti
+                              </span>
+                            )}
                             <span className="px-2 py-0.5 bg-blue-50 text-blue-900 border border-blue-200/80 rounded-md text-[10px] font-black uppercase tracking-wider">
                               {panti.shelterType}
                             </span>
@@ -1572,23 +1690,48 @@ export default function ProviderOverviewPage() {
                 );
               })()}
 
-              {/* LOCKED DELIVERY METHOD & VEHICLE FLEET MATCHING */}
-              <div className="p-3.5 bg-blue-50/90 rounded-2xl border border-blue-200 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-[#1B3A5C] uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <TruckIcon size={13} />
-                    <span>Metode Pengiriman & Ketentuan Armada:</span>
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-blue-700 text-white font-black text-[9px] uppercase">
-                    {allocateModal.portions > 40 ? 'Wajib Mobil Box / Van' : 'Motor Box Cooler'}
-                  </span>
+              {/* OPSI PENGIRIMAN & PENUGASAN DRIVER */}
+              <div className="p-3.5 sm:p-4 bg-blue-50/90 rounded-2xl border border-blue-200 space-y-3 text-xs">
+                <div>
+                  <label className="font-extrabold text-[#1B3A5C] text-xs flex items-center gap-1.5 mb-1.5">
+                    <TruckIcon size={14} className="text-[#1B3A5C]" />
+                    <span>Opsi Pengiriman *</span>
+                  </label>
+                  <select
+                    value={allocateModal.deliveryMethod || 'PROVIDER_DIRECT'}
+                    onChange={(e) => setAllocateModal({ ...allocateModal, deliveryMethod: e.target.value })}
+                    className="w-full bg-white border border-blue-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-xs"
+                  >
+                    <option value="PROVIDER_DIRECT">Armada Toko (Rp 0 - Gratis)</option>
+                    <option value="RESCUE_COURIER">Kurir Relawan Food Rescue (Rp 0 - Siaga Komunitas)</option>
+                    <option value="BENEFICIARY_PICKUP">Ambil Mandiri oleh Pihak Panti (Rp 0)</option>
+                  </select>
                 </div>
-                <p className="font-black text-slate-900 text-xs">
-                  {allocateModal.panti.deliveryLabel}
-                </p>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  {allocateModal.panti.deliveryDesc}
-                </p>
+
+                <div>
+                  <label className="font-extrabold text-[#1B3A5C] text-xs flex items-center gap-1.5 mb-1.5">
+                    <CheckIcon size={14} className="text-[#1B3A5C]" />
+                    <span>Pilih / Tugaskan Driver *</span>
+                  </label>
+                  <select
+                    value={allocateModal.driverName || 'Budi Santoso - Honda Vario L 4521 AB (Armada Toko)'}
+                    onChange={(e) => setAllocateModal({ ...allocateModal, driverName: e.target.value })}
+                    className="w-full bg-white border border-blue-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-xs"
+                  >
+                    <option value="Budi Santoso - Honda Vario L 4521 AB (Armada Toko)">
+                      Budi Santoso - Honda Vario L 4521 AB (Armada Toko - 0812-3456-7890)
+                    </option>
+                    <option value="Ahmad Rifai - Suzuki Carry Box L 8821 OP (Armada Toko)">
+                      Ahmad Rifai - Suzuki Carry Box L 8821 OP (Armada Toko - 0813-9876-5432)
+                    </option>
+                    <option value="Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga)">
+                      Rian Hidayat - Yamaha NMAX L 3319 CD (Driver Siaga - 0821-4567-8901)
+                    </option>
+                    <option value="Tugaskan Otomatis (Driver Terdekat)">
+                      Tugaskan Otomatis (Driver Terdekat)
+                    </option>
+                  </select>
+                </div>
               </div>
 
               {/* Interactive 8-Poin BPOM Checklist SOP */}
@@ -1736,6 +1879,27 @@ export default function ProviderOverviewPage() {
         type={toastState.type}
         onClose={() => setToastState((prev) => ({ ...prev, isOpen: false }))}
       />
+
+      {/* Modal Pop-up Konfirmasi Donasi Disanggupi */}
+      {fulfillSuccessData && (
+        <DonationFulfillSuccessModal
+          isOpen={fulfillSuccessData.isOpen}
+          onClose={() => setFulfillSuccessData(null)}
+          productName={fulfillSuccessData.productName}
+          providerName={fulfillSuccessData.providerName}
+          recipientName={fulfillSuccessData.recipientName}
+          deliveryAddress={fulfillSuccessData.deliveryAddress}
+          deliveryOption={fulfillSuccessData.deliveryOption}
+          deliveryFee={fulfillSuccessData.deliveryFee}
+          driverName={fulfillSuccessData.driverName}
+          driverPhone={fulfillSuccessData.driverPhone}
+          driverVehicle={fulfillSuccessData.driverVehicle}
+          estimatedDeliveryTime={fulfillSuccessData.estimatedDeliveryTime}
+          portionsCount={fulfillSuccessData.portionsCount}
+          ticketCode={fulfillSuccessData.ticketCode}
+          onTrack={(code) => router.push(`/dashboard/tracking?code=${encodeURIComponent(code)}`)}
+        />
+      )}
 
       {/* Authentic Super-App Action Loading Modal */}
       <SuperAppLoader

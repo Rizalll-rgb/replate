@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '../ui/Avatar';
 import { signOut } from 'next-auth/react';
+import { clearAuthSession } from '@/lib/sessionUtils';
 import { Toast } from '../ui/Toast';
 import { OutletSwitcher } from './OutletSwitcher';
 import { usePathname } from 'next/navigation';
@@ -81,15 +82,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, title = 
   }, []);
 
   const handleLogout = async () => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-      }
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-    } catch (_) {}
-    // Website: redirect ke halaman publik utama
+    clearAuthSession();
     await signOut({ callbackUrl: '/' });
   };
 
